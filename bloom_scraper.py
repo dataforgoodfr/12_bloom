@@ -4,16 +4,11 @@ import undetected_chromedriver as uc
 from apscheduler.schedulers.background import BackgroundScheduler
 from csv import writer
 from time import sleep
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
-# list of vessels given by Bloom
-vessels_source = 'chalutiers pélagiques.xlsx'
+
+
 
 def append_list_as_row(file_name, list_of_elem):
     '''function to add a rox to a csv file'''
@@ -26,6 +21,8 @@ def append_list_as_row(file_name, list_of_elem):
 
 def get_vessel_position():
     '''Parse a list of vessels to get their positions'''
+    # list of vessels given by Bloom
+    vessels_source = 'chalutiers pélagiques.xlsx'
     # Class Name of privacy policy agreement button (might change)
     privacy_click = 'css-47sehv'  
     # get crawling timestamps
@@ -39,13 +36,7 @@ def get_vessel_position():
         driver = uc.Chrome()
         driver.get(url) 
         sleep(5) # wait for the page to load
-        # click on the privacy policy agreement button if it appears
-        try:
-            WebDriverWait(driver, 2).until(lambda d: d.find_element(By.CLASS_NAME, privacy_click))
-            privacy_button = driver.find_element(by=By.CLASS_NAME, value=privacy_click)
-            ActionChains(driver).click(privacy_button).perform()
-        except:
-            pass
+
         # if the IMO leads to  an answer then add it to the csv else add nan values
         try:
             WebDriverWait(driver, 5).until(lambda d: d.find_element(By.CLASS_NAME, "ag-body"))
