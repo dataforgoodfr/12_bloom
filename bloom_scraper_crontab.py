@@ -1,7 +1,6 @@
 import datetime
 import pandas as pd
 import undetected_chromedriver as uc
-from apscheduler.schedulers.background import BackgroundScheduler
 from csv import writer
 from time import sleep
 from selenium.webdriver.common.by import By
@@ -22,7 +21,7 @@ def append_list_as_row(file_name, list_of_elem):
 def get_vessel_position():
     '''Parse a list of vessels to get their positions'''
     # list of vessels given by Bloom
-    vessels_source = 'chalutiers pélagiques.xlsx'
+    vessels_source = '/root/Bloom_scrap/chalutiers_pelagiques.xlsx'
     # Class Name of privacy policy agreement button (might change)
     privacy_click = 'css-47sehv'  
     # get crawling timestamps
@@ -31,9 +30,19 @@ def get_vessel_position():
     df = pd.read_excel(vessels_source)
     vessel_list = df["IMO"].tolist() 
     # Connect to Marine Traffic with items of the list
+    print("Start scrapping")
     for vessel in vessel_list:
+        print(vessel)
         url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,ship_type,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,notes&quicksearch|begins|quicksearch="+str(vessel)
-        driver = uc.Chrome()
+        options = uc.ChromeOptions()
+        options.add_argument("--disable-extensions")
+        options.add_argument('--disable-application-cache')
+        options.add_argument('--disable-gpu')
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--headless")
+        driver = uc.Chrome(options=options)
         driver.get(url) 
         sleep(5) # wait for the page to load
 
@@ -41,15 +50,11 @@ def get_vessel_position():
         try:
             WebDriverWait(driver, 5).until(lambda d: d.find_element(By.CLASS_NAME, "ag-body"))
             record = driver.find_element(By.CLASS_NAME, "ag-body")
-            append_list_as_row('bloom_scrap.csv',[crawling_timestamp]+record.text.split('\n'))
+            append_list_as_row('/root/bloom_scrap.csv',[crawling_timestamp]+record.text.split('\n'))
         except:
-            append_list_as_row('bloom_scrap.csv',[crawling_timestamp]+["nan",vessel,"nan","nan","nan"])
+            append_list_as_row('/root/bloom_scrap.csv',[crawling_timestamp]+["nan",vessel,"nan","nan","nan"])
         
     driver.close()
 
-sched = BackgroundScheduler()
-sched.add_job(get_vessel_position,'interval', minutes=15)
+get_vessel_position()
 
-sched.start()
-
-#sched.shutdown()
