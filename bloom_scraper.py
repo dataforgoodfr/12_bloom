@@ -32,7 +32,7 @@ def get_vessel_position():
     vessel_list = df["IMO"].tolist() 
     # Connect to Marine Traffic with items of the list
     for vessel in vessel_list:
-        url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,ship_type,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,notes&quicksearch|begins|quicksearch="+str(vessel)
+        url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,status,speed,navigational_status,notes&quicksearch|begins|8901913|quicksearch_shipid="+str(vessel)
         driver = uc.Chrome()
         driver.get(url) 
         sleep(5) # wait for the page to load
