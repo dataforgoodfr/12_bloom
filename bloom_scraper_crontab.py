@@ -42,7 +42,7 @@ def get_vessel_position():
         options.add_argument("--disable-setuid-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--headless")
-        driver = uc.Chrome(options=options)
+        driver = uc.Chrome(options=options, version_main=109)
         driver.get(url) 
         sleep(5) # wait for the page to load
 
