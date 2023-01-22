@@ -33,7 +33,7 @@ def get_vessel_position():
     print("Start scrapping")
     for vessel in vessel_list:
         print(vessel)
-        url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,ship_type,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,notes&quicksearch|begins|quicksearch="+str(vessel)
+        url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,status,speed,navigational_status,notes&quicksearch|begins|8901913|quicksearch_shipid="+str(vessel)  
         options = uc.ChromeOptions()
         options.add_argument("--disable-extensions")
         options.add_argument('--disable-application-cache')
