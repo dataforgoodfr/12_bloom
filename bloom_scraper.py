@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 import undetected_chromedriver as uc
-from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 from csv import writer
 from time import sleep
 from selenium.webdriver.common.by import By
@@ -32,7 +32,7 @@ def get_vessel_position():
     vessel_list = df["IMO"].tolist() 
     # Connect to Marine Traffic with items of the list
     for vessel in vessel_list:
-        url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,status,speed,navigational_status,notes&quicksearch|begins|8901913|quicksearch_shipid="+str(vessel)
+        url= "https://www.marinetraffic.com/en/data/?asset_type=vessels&columns=shipname,imo,time_of_latest_position,lat_of_latest_position,lon_of_latest_position,status,speed,navigational_status&quicksearch|begins|quicksearch="+str(vessel)
         driver = uc.Chrome()
         driver.get(url) 
         sleep(5) # wait for the page to load
@@ -45,11 +45,11 @@ def get_vessel_position():
         except:
             append_list_as_row('bloom_scrap.csv',[crawling_timestamp]+["nan",vessel,"nan","nan","nan"])
         
-    driver.close()
+        driver.close()
+get_vessel_position()
+# sched = BackgroundScheduler()
+# sched.add_job(get_vessel_position,'interval', minutes=15)
 
-sched = BackgroundScheduler()
-sched.add_job(get_vessel_position,'interval', minutes=15)
-
-sched.start()
+# sched.start()
 
 #sched.shutdown()
