@@ -12,9 +12,15 @@ Attention il semblerait que &> ne fonctionnerait pas avec tous les bash
 
 Pour utiliser la nouvelle version du scraper, la commande python est :
 ```bash
-python app.py 
+python app.py
 ```
-Pour l'exécuter en local, un paramètre supplémentaire est nécessaire : 
+Pour l'exécuter en local, un paramètre supplémentaire est nécessaire :
 ```bash
-python app.py -m local 
+python app.py -m local
 ```
+
+Installation :
+
+TODO
+
+Après installation : `poetry run pre-commit install`
