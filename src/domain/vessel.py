@@ -20,21 +20,25 @@ class Vessel(BaseModel):
             self.IMO,
             self.last_position_time,
             self.latitude,
-            self.longitude
+            self.longitude,
         ]
 
-    @validator('timestamp', pre=True)
+    @validator("timestamp", pre=True)
     def format_timestamp(cls, value):
-        return datetime.strptime(value, '%Y-%m-%d %H:%M UTC').replace(tzinfo=timezone.utc)
+        return datetime.strptime(value, "%Y-%m-%d %H:%M UTC").replace(
+            tzinfo=timezone.utc
+        )
 
-    @validator('last_position_time', pre=True)
+    @validator("last_position_time", pre=True)
     def format_last_position_time(cls, value):
         if isinstance(value, str):
-            return datetime.strptime(value, '%Y-%m-%d %H:%M UTC').replace(tzinfo=timezone.utc)
+            return datetime.strptime(value, "%Y-%m-%d %H:%M UTC").replace(
+                tzinfo=timezone.utc
+            )
         else:
             return None
 
-    @validator('latitude', 'longitude', pre=True)
+    @validator("latitude", "longitude", pre=True)
     def format_coordinates(cls, value):
         if isinstance(value, str):
             return float(value)
@@ -43,7 +47,6 @@ class Vessel(BaseModel):
 
 
 class AbstractVessel(ABC):
-
     @abstractmethod
     def load_vessel_identifiers(self) -> List[Vessel]:
         raise NotImplementedError
