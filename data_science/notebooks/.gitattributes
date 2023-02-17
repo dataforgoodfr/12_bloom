@@ -1,2 +1,4 @@
 *.shp filter=lfs diff=lfs merge=lfs -text
 reglementation-des-peches-cartographiee.csv filter=lfs diff=lfs merge=lfs -text
+reglementation-des-peches-cartographiee.gpk filter=lfs diff=lfs merge=lfs -text
+reglementation-des-peches-cartographiee.gpkg filter=lfs diff=lfs merge=lfs -text
