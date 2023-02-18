@@ -1,3 +1,5 @@
+import contextlib
+
 import undetected_chromedriver as uc
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
@@ -11,9 +13,20 @@ from src.domain.vessel import Vessel
 
 logger = getLogger()
 
+class DriverIsNotInitialized(Exception):
+    """This error is raised when using the scrapper outside of a driver context."""
+
 
 class MarineTrafficVesselScraper:
     def __init__(self):
+        self.driver = None
+        self.base_url = "https://www.marinetraffic.com/en/data/?asset_type=" \
+                        "vessels&columns=shipname,imo,time_of_latest_position," \
+                        "lat_of_latest_position,lon_of_latest_position,status," \
+                        "speed,navigational_status&quicksearch|begins|quicksearch="
+
+    @contextlib.contextmanager
+    def driver_session(self):
         options = uc.ChromeOptions()
         options.add_argument("--disable-extensions")
         options.add_argument('--disable-application-cache')
@@ -21,14 +34,18 @@ class MarineTrafficVesselScraper:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-setuid-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         self.driver = uc.Chrome(options=options, version_main=109)
-        self.base_url = "https://www.marinetraffic.com/en/data/?asset_type=" \
-                        "vessels&columns=shipname,imo,time_of_latest_position," \
-                        "lat_of_latest_position,lon_of_latest_position,status," \
-                        "speed,navigational_status&quicksearch|begins|quicksearch="
+
+        yield
+        
+        self.driver.quit()
+        self.driver = None
 
     def scrap_vessel(self, vessel: Vessel):
+        if not self.driver:
+            raise DriverIsNotInitialized("This method can only be used in a driver context.")
+        
         logger.info(f"Currently scrapping {vessel}")
         crawling_timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
         vessel_url = f"https://www.marinetraffic.com/en/data/?asset_type=" \
