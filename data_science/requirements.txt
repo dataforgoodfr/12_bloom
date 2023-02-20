@@ -1,3 +1,5 @@
+jupyter
+matplotlib
 geopandas
 shapely
 folium

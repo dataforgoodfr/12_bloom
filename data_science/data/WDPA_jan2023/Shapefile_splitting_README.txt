@@ -1,0 +1,3 @@
+Working with the .shp download
+ 
+We have split the shapefile layers into three equal parts due to its large size. In order to work with the data, you can load all three polygon shapefiles into your GIS and merge them into one layer. Do the same for the three points shapefiles. Once you have one layer of polygon records and one layer of points you can continue to work with the data as normal. Please email protectedareas@unep-wcmc.org if you have any problems.
