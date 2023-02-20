@@ -2,9 +2,24 @@
 
 ## Data files and sources
 
-### Hosting
+### Structure
 
-To host large data files directly on github, use Git Large File Storage (https://git-lfs.com/). 
+Relevant data or references to data sources are stored in the `data` folder.
+
+The `data` folder is subdivided into a `raw` (for data directly obtained from outside sources and "re-hosted" on our repo) 
+and a `processed` folder (for datasets we produce from `raw` data). 
+
+Ideally, for tracability, processed data should be accompanied by the script used to generate it from raw data.
+
+### Hosting/download large data files
+
+To host or download large data files directly on/from github, use Git Large File Storage (https://git-lfs.com/). 
+
+Make sure to track the extension of large data files as explained in point 2. of https://git-lfs.com/.
+
+Here is a list of tracking commands for some large data formats currently hosted on GH:
+
+`git lfs track "*.shp"`
 
 ### Documenting
 
