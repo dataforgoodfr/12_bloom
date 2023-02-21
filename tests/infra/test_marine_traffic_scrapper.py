@@ -1,5 +1,5 @@
-from src.domain.vessel import Vessel
-from src.infra.marine_traffic_scraper import MarineTrafficVesselScraper, Driver
+from domain.vessel import Vessel
+from infra.marine_traffic_scraper import MarineTrafficVesselScraper, Driver
 from datetime import timezone
 from subprocess import Popen, PIPE
 
@@ -61,5 +61,5 @@ def test_driver_tabs_opening():
                 driver=driver, 
                 vessel=test_vessel
             )
-            
+
         assert len(driver.window_handles) == 1
