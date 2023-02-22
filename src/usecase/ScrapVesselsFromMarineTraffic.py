@@ -1,4 +1,4 @@
-from src.infra.marine_traffic_scraper import MarineTrafficVesselScraper
+from src.infra.marine_traffic_scraper import MarineTrafficVesselScraper, Driver
 from src.infra.repository_vessel import VesselRepository
 
 
@@ -10,6 +10,9 @@ class ScrapVesselsFromMarineTraffic:
     def scrap_vessels(self):
         vessels = self.vessel_repository.load_vessel_identifiers()
         scrapped_vessels = []
-        for vessel in vessels:
-            scrapped_vessels.append(self.scraper.scrap_vessel(vessel))
+
+        with Driver() as driver:
+            for vessel in vessels:
+                scrapped_vessels.append(self.scraper.scrap_vessel(driver, vessel))
+        
         self.vessel_repository.save_vessels(scrapped_vessels)
