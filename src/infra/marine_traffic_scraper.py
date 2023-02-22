@@ -11,7 +11,7 @@ from src.domain.vessel import Vessel
 
 logger = getLogger()
 
-class Driver():
+class Driver:
     def __init__(self):
         arguments = [
             "--disable-extensions", 
