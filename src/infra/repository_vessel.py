@@ -16,7 +16,6 @@ class VesselRepository(AbstractVessel):
         self.results_path = Path.joinpath(Path.cwd(), "data/bloom_scrap.csv")
 
     def load_vessel_identifiers(self) -> List[Vessel]:
-
         df = pd.read_excel(self.vessels_path, engine="openpyxl")
         vessel_identifiers_list = df["IMO"].tolist()
 

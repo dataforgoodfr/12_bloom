@@ -1,8 +1,8 @@
 from datetime import timezone
 from subprocess import PIPE, Popen
 
-from domain.vessel import Vessel
-from infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
+from src.domain.vessel import Vessel
+from src.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
 
 
 def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
@@ -23,7 +23,7 @@ def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
 
 
 def test_driver_closure():
-    def has_chrome_driver_been_found(driver_pid: int) -> bool:
+    def has_chrome_driver_been_found(driver_pid: str) -> bool:
         ps_cmd = Popen(["ps", "-eo", "pid,ppid,args"], stdout=PIPE, stderr=PIPE)
         stdout, _ = ps_cmd.communicate()
         processes = [line.decode().split(maxsplit=2) for line in stdout.splitlines()]
@@ -31,19 +31,19 @@ def test_driver_closure():
         for pid, ppid, cmdline in processes:
             if pid == driver_pid and "defunct" not in cmdline:
                 driver_ppid = ppid
+                driver_cmdline = cmdline
                 break
         else:
             return False
 
         for pid, ppid, cmdline in processes:
-            if pid != driver_pid and ppid == driver_ppid and "chrome" in cmdline:
+            if pid != driver_pid and ppid == driver_ppid and "chrome" in driver_cmdline:
                 return True
 
         return False
 
     with Driver() as driver:
         driver_pid = str(driver.service.process.pid)
-
         assert has_chrome_driver_been_found(driver_pid) is True
 
     assert has_chrome_driver_been_found(driver_pid) is False

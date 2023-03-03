@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "bloom"
+name = "src"
 version = "0.1.0"
-description = ""
+description = "Bloom scrapping application"
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
@@ -11,9 +11,12 @@ apscheduler = "3.9.1"
 autopep8 = "1.5.4"
 pandas = "1.4.4"
 selenium = "4.6.0"
-undetected-chromedriver = "3.1.6"
+undetected-chromedriver = "3.4.6"
 openpyxl = "^3.1.0"
+pydantic = "1.10.4"
 pyyaml = "6.0"
+
+[tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
 
 

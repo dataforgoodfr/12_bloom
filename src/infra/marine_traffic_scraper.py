@@ -13,23 +13,29 @@ logger = getLogger()
 
 
 class Driver:
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         arguments = [
             "--disable-extensions",
             "--disable-application-cache",
             "--disable-gpu",
+            "--headless=new",
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
             "--headless",
         ]
-
         self._options = uc.ChromeOptions()
+
         for arg in arguments:
             self._options.add_argument(arg)
 
     def __enter__(self):
-        self._driver = uc.Chrome(options=self._options, version_main=109)
+        self._driver = uc.Chrome(
+            options=self._options,
+            version_main=109,
+        )
         return self._driver
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
