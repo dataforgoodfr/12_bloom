@@ -49,12 +49,7 @@ class MarineTrafficVesselScraper:
         logger.info(f"Currently scrapping {vessel}")
 
         crawling_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        vessel_url = (
-            f"https://www.marinetraffic.com/en/data/?asset_type="
-            f"vessels&columns=shipname,imo,time_of_latest_position,"
-            f"lat_of_latest_position,lon_of_latest_position,status,"
-            f"speed,navigational_status&quicksearch|begins|quicksearch={vessel.IMO}"
-        )
+        vessel_url = f"{self.base_url}{vessel.IMO}"
         driver.get(vessel_url)
 
         sleep(5)  # wait for the page to load
