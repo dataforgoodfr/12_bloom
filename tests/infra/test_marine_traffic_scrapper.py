@@ -1,8 +1,9 @@
+# ruff: noqa: ANN201
 from datetime import timezone
 from subprocess import PIPE, Popen
 
-from src.domain.vessel import Vessel
-from src.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
+from bloom.domain.vessel import Vessel
+from bloom.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
 
 
 def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
@@ -12,7 +13,8 @@ def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
 
     with Driver() as driver:
         scrapped_vessel = marine_traffic_scrapper.scrap_vessel(
-            driver=driver, vessel=test_vessel
+            driver=driver,
+            vessel=test_vessel,
         )
 
     assert (
@@ -36,7 +38,7 @@ def test_driver_closure():
         else:
             return False
 
-        for pid, ppid, cmdline in processes:
+        for pid, ppid, _ in processes:
             if pid != driver_pid and ppid == driver_ppid and "chrome" in driver_cmdline:
                 return True
 
