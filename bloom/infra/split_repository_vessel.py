@@ -17,7 +17,7 @@ class DataDoesNotExist(Exception):
     "Error triggered when no data match a filter"
 
 
-class ChainedFilesIO(BytesIO):
+class DataFile(BytesIO):
     def __init__(self, csv_paths: List[Path], zip_data: bool = True) -> None:
         # Geopandas use fiona to load files which only 
         # handles zip when fed with bytes.
@@ -83,64 +83,112 @@ class SplitVesselRepository(VesselRepository):
 
     def load_data(
         self, 
-        vessels_IMO: Union[int, str, List[Union[int, str]]] = None, 
-        dates_string: Union[List[str], str] = None
-    ) -> ChainedFilesIO:
-        if dates_string:
-            if not isinstance(dates_string, list):
-                dates_string = [dates_string]
+        vessel_IMOs: Union[int, str, List[Union[int, str]]] = None, 
+        date_strings: Union[List[str], str] = None
+    ) -> DataFile:
+        if date_strings:
+            if not isinstance(date_strings, list):
+                date_strings = [date_strings]
 
             dates = [
                 parse_date(date_string).strftime('%Y-%m-%d') 
-                for date_string in dates_string
+                for date_string in date_strings
             ]
         else:
             dates = ["**"]
         
-        if vessels_IMO:
-            if not isinstance(vessels_IMO, list):
-                vessels_IMO = [vessels_IMO]
+        if vessel_IMOs:
+            if not isinstance(vessel_IMOs, list):
+                vessel_IMOs = [vessel_IMOs]
         else:
-            vessels_IMO = ["*"]
+            vessel_IMOs = ["*"]
             
         logger.info(
-            f"Load data from vessels {vessels_IMO}' at dates {dates}."
+            f"Load data from vessels {vessel_IMOs}' at dates {dates}."
         )
         
         files = []
-        for date_str, IMO in itertools.product(dates, vessels_IMO):
+        for date_str, IMO in itertools.product(dates, vessel_IMOs):
             files.extend(self.results_path.glob(f'{date_str}/{IMO}.csv'))
         
         if not files:
             raise DataDoesNotExist("No data has been found with the given filters.")
     
-        return ChainedFilesIO(files)
+        return DataFile(files)
     
-    def load_vessel(self, vessel_IMO: Union[int, str]) -> ChainedFilesIO:
+    def load_vessel(self, vessel_IMO: Union[int, str]) -> DataFile:
         logger.info(
             f"Load vessel {vessel_IMO}'s historic"
         )
 
-        return self.load_data(vessels_IMO=vessel_IMO)
+        return self.load_data(vessel_IMOs=vessel_IMO)
     
-    def load_day(self, date_string: str = "today") -> ChainedFilesIO:
+    def load_day(self, date_string: str = "today") -> DataFile:
         logger.info(
             f"Load {date_string}'s historic"
         )
 
-        return self.load_data(dates_string=date_string)
+        return self.load_data(date_strings=date_string)
 
 
 _split_vessel_repository = SplitVesselRepository()
 
-def load_vessel_stream(vessel_IMO: Union[int, str]) -> ChainedFilesIO:
+def get_vessel_file(vessel_IMO: Union[int, str]) -> DataFile:
+    """Return a file like object containing the data of a vessel.
+
+    Args:
+        vessel_IMO: The IMO of the vessel to get.
+    
+    Returns:
+        DataFile: An object that encapsulate all the data
+            of this vessel and can be read with geo_pandas
+    
+    Raises:
+        DataDoesNotExist: Raise this error when no data are found.
+    """
+
     return _split_vessel_repository.load_vessel(vessel_IMO)
 
-def load_day_stream(date_string: str = "today") -> ChainedFilesIO:
+def get_day_file(date_string: str = "today") -> DataFile:
+    """Return a file like object containing the data of a given day.
+
+    Args:
+        date_string: A string representing a day. As we use
+            dateparser to parse it, it can be given under a large
+            variety of way such as "today", "two days ago", "10/10/2021",
+            ect...
+    
+    Returns:
+        DataFile: An object that encapsulate all the data
+            of this day and can be read with geo_pandas
+    
+    Raises:
+        DataDoesNotExist: Raise this error when no data are found.
+    """
+
     return _split_vessel_repository.load_day(date_string)
 
-def load_data_stream(
-        vessels_IMO: Union[int, str, List[Union[int, str]]] = None, 
-        dates_string: Union[List[str], str] = None
-    ) -> ChainedFilesIO:
-    return _split_vessel_repository.load_data(vessels_IMO, dates_string)
+def get_data_file(
+        vessel_IMOs: Union[int, str, List[Union[int, str]]] = None, 
+        date_strings: Union[List[str], str] = None
+    ) -> DataFile:
+    """Return a file like object containing the data given filters.
+
+    Args:
+        date_strings: A string or a list of strings representing (a) day(s). 
+            As we use dateparser to parse it, it can be given under a large
+            variety of way such as "today", "two days ago", "10/10/2021",
+            ect... If none are given, all the historical data is returned.
+        vessel_IMOs: A string or a list of strings representing the IMO 
+            of (a) vessel(s) to get. if none are given, the data of all
+            vessels is returned.
+
+    Returns:
+        DataFile: An object that encapsulate all the data
+            of this day and can be read with geo_pandas
+    
+    Raises:
+        DataDoesNotExist: Raise this error when no data are found.
+    """
+
+    return _split_vessel_repository.load_data(vessel_IMOs, date_strings)
