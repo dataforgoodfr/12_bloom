@@ -19,8 +19,9 @@ class DataDoesNotExist(Exception):
 
 class ChainedFilesIO(BytesIO):
     def __init__(self, csv_paths: List[Path], zip_data: bool = True) -> None:
-        # Geopandas use fiona to load files.
-        # fiona only handles zip when fed with bytes.
+        # Geopandas use fiona to load files which only 
+        # handles zip when fed with bytes.
+
         if zip_data:
             self._load_zip(csv_paths)
         else:
@@ -100,10 +101,10 @@ class SplitVesselRepository(VesselRepository):
             if not isinstance(vessels_IMO, list):
                 vessels_IMO = [vessels_IMO]
         else:
-            vessels_IMO = "*"
+            vessels_IMO = ["*"]
             
         logger.info(
-            f"Load data from vessels {vessels_IMO}' at dates {dates} ."
+            f"Load data from vessels {vessels_IMO}' at dates {dates}."
         )
         
         files = []
@@ -128,3 +129,18 @@ class SplitVesselRepository(VesselRepository):
         )
 
         return self.load_data(dates_string=date_string)
+
+
+_split_vessel_repository = SplitVesselRepository()
+
+def load_vessel_stream(vessel_IMO: Union[int, str]) -> ChainedFilesIO:
+    return _split_vessel_repository.load_vessel(vessel_IMO)
+
+def load_day_stream(date_string: str = "today") -> ChainedFilesIO:
+    return _split_vessel_repository.load_day(date_string)
+
+def load_data_stream(
+        vessels_IMO: Union[int, str, List[Union[int, str]]] = None, 
+        dates_string: Union[List[str], str] = None
+    ) -> ChainedFilesIO:
+    return _split_vessel_repository.load_data(vessels_IMO, dates_string)
