@@ -15,8 +15,6 @@ repos:
     hooks:
     - id: check-merge-conflict
     - id: mixed-line-ending
-    - id: no-commit-to-branch
-      exclude: master|main
   - repo: https://github.com/pycqa/bandit
     rev: 1.7.4
     hooks:
