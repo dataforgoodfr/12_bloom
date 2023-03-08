@@ -1,7 +1,11 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "bloom"
 version = "0.1.0"
-description = ""
+description = "Bloom scrapping application"
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
@@ -11,12 +15,107 @@ apscheduler = "3.9.1"
 autopep8 = "1.5.4"
 pandas = "1.4.4"
 selenium = "4.6.0"
-undetected-chromedriver = "3.1.6"
+undetected-chromedriver = "3.4.6"
 openpyxl = "^3.1.0"
+pydantic = "1.10.4"
 pyyaml = "6.0"
+
+[tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
+ruff = "^0.0.254"
 
+[tool.ruff]
+select = [
+    "A",
+    "ANN",
+    "ARG",
+    "B",
+    "C",
+    "COM",
+    "C90",
+    "E",
+    "ERA",
+    "F",
+    "I",
+    "N",
+    "PGH",
+    "PL",
+    "PLE",
+    "PLR",
+    "PLW",
+    "PT",
+    "PTH",
+    "Q",
+    "RET",
+    "RUF",
+    "SLF",
+    "SIM",
+    "TID",
+    "TCH",
+    "TRY",
+    "UP",
+    "W",
+    "YTT",
+]
+ignore = ["ANN101", "ANN401", "N805"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+fixable = [
+    "A",
+    "ANN",
+    "ARG",
+    "B",
+    "C",
+    "COM",
+    "C90",
+    "E",
+    "ERA",
+    "F",
+    "I",
+    "PGH",
+    "PL",
+    "PLE",
+    "PLR",
+    "PLW",
+    "PT",
+    "PTH",
+    "Q",
+    "RET",
+    "RUF",
+    "SLF",
+    "SIM",
+    "TID",
+    "TCH",
+    "TRY",
+    "UP",
+    "W",
+    "YTT",
+]
+unfixable = []
+
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "venv",
+]
+
+line-length = 88
+
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+target-version = "py310"
+
+[tool.ruff.mccabe]
+max-complexity = 10
