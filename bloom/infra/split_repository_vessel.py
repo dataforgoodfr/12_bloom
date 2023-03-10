@@ -20,7 +20,7 @@ class DataDoesNotExist(Exception):
 
 
 class DataFile(BytesIO):
-    """A mock file agnostic to the csv split metho."""
+    """A mock file agnostic to the csv split method."""
 
     def __init__(self, csv_paths: List[Path]):
         self._csv_paths = csv_paths
