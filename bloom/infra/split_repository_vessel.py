@@ -1,8 +1,10 @@
 from csv import writer
 from logging import getLogger
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Callable
 import zipfile
+import inspect
+import functools
 from dateparser import parse as parse_date
 import itertools
 
@@ -18,35 +20,79 @@ class DataDoesNotExist(Exception):
 
 
 class DataFile(BytesIO):
-    def __init__(self, csv_paths: List[Path], zip_data: bool = True) -> None:
-        # Geopandas use fiona to load files which only 
-        # handles zip when fed with bytes.
+    """A mock file agnostic to the csv split metho."""
 
-        if zip_data:
-            self._load_zip(csv_paths)
-        else:
-            self._load_plain(csv_paths)
+    def __init__(self, csv_paths: List[Path]):
+        self._csv_paths = csv_paths
+        self._is_initialized = False
 
-        self.seek(0)
+        self._add_context_to_reading_methods()
 
-    def _load_plain(self, csv_paths):
-        for csv_path in csv_paths:
+    def _add_context_to_reading_methods(self):
+        """Add a context aware data loader at each read method.
+        
+        As the context is only known when the reading action
+        occurs, the data is loaded at this moment. All the read methods
+        are therefore augmented to load the data if it has not been done
+        previously.
+        """
+
+        for method_name in dir(self):
+            if method_name.startswith(("read", "get")):
+                method = getattr(self, method_name)
+                method = self._add_context_aware_loader(method)
+                setattr(self, method_name, method)
+        
+    def _load_as_plain(self):
+        """Load a plain csv file."""
+
+        for csv_path in self._csv_paths:
             with open(csv_path, "rb") as fd:
                 self.write(fd.read())
             
-    def _load_zip(self, csv_paths):
+    def _load_as_zip(self):
+        """ Load zipfile data.
+        
+        This method is used when reading a file with Geopandas.
+        Geopandas only handles zip files when reading bytes for now.
+        """
+        
         with zipfile.ZipFile(self, 'w') as z:
             data = b""
-            for csv_path in csv_paths:
+            for csv_path in self._csv_paths:
                 with open(csv_path, "rb") as fd:
                     data += fd.read()
             
             z.writestr('data.csv', data)
-        
-
-    def readable(self):
-        return True
     
+    def _load_data(self):
+        """Loads data depending on the context.
+        
+        This method loads a content tailored to the reader.
+        """
+
+        current_frame, read_frame, caller_frame, *parent_frames = inspect.stack()
+
+        if "geopandas" in caller_frame.filename:
+            self._load_as_zip()
+        else:
+            self._load_as_plain()
+
+        self.seek(0)
+        self._is_initialized = True
+
+    def _add_context_aware_loader(self, read_method: Callable) -> Callable:
+        """Decorator that loads data before each first reading."""
+        
+        @functools.wraps(read_method)
+        def read_wrapper(*args, **kwargs) -> bytes:
+            if not self._is_initialized:
+                self._load_data()
+            
+            return read_method(*args, **kwargs)
+
+        return read_wrapper
+
 
 class SplitVesselRepository(VesselRepository):
     def __init__(self):
