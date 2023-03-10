@@ -1,7 +1,7 @@
 from csv import writer
 from logging import getLogger
 from pathlib import Path
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Any
 import zipfile
 import inspect
 import functools
@@ -15,9 +15,11 @@ from src.infra.repository_vessel import VesselRepository, Vessel
 logger = getLogger()
 
 
-class DataDoesNotExist(Exception):
-    "Error triggered when no data match a filter"
+class DataDoesNotExistError(Exception):
+    "Error triggered when no data matchs a filter"
 
+    def __init__(self) -> None:
+        super().__init__("No data has been found with the given filter.")
 
 class DataFile(BytesIO):
     """A mock file agnostic to the csv split method."""
@@ -28,8 +30,8 @@ class DataFile(BytesIO):
 
         self._add_context_to_reading_methods()
 
-    def _add_context_to_reading_methods(self):
-        """Add a context aware data loader at each read method.
+    def _add_context_to_reading_methods(self) -> None:
+        """Add a context aware data loader at each reading method.
         
         As the context is only known when the reading action
         occurs, the data is loaded at this moment. All the read methods
@@ -43,14 +45,14 @@ class DataFile(BytesIO):
                 method = self._add_context_aware_loader(method)
                 setattr(self, method_name, method)
         
-    def _load_as_plain(self):
+    def _load_as_plain(self) -> None:
         """Load a plain csv file."""
 
         for csv_path in self._csv_paths:
-            with open(csv_path, "rb") as fd:
+            with Path.open(csv_path, "rb") as fd:
                 self.write(fd.read())
             
-    def _load_as_zip(self):
+    def _load_as_zip(self) -> None:
         """ Load zipfile data.
         
         This method is used when reading a file with Geopandas.
@@ -60,12 +62,12 @@ class DataFile(BytesIO):
         with zipfile.ZipFile(self, 'w') as z:
             data = b""
             for csv_path in self._csv_paths:
-                with open(csv_path, "rb") as fd:
+                with Path.open(csv_path, "rb") as fd:
                     data += fd.read()
             
             z.writestr('data.csv', data)
     
-    def _load_data(self):
+    def _load_data(self) -> None:
         """Loads data depending on the context.
         
         This method loads a content tailored to the reader.
@@ -85,7 +87,7 @@ class DataFile(BytesIO):
         """Decorator that loads data before each first reading."""
         
         @functools.wraps(read_method)
-        def read_wrapper(*args, **kwargs) -> bytes:
+        def read_wrapper(*args: Any, **kwargs: Any) -> bytes:
             if not self._is_initialized:
                 self._load_data()
             
@@ -115,7 +117,7 @@ class SplitVesselRepository(VesselRepository):
 
         return file_path
     
-    def save_vessels(self, vessels_list: List[Vessel]):
+    def save_vessels(self, vessels_list: List[Vessel]) -> None:
         logger.info(
             f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}"
         )
@@ -123,7 +125,7 @@ class SplitVesselRepository(VesselRepository):
         for vessel in vessels_list:
             file_path = self._get_vessel_csv_path(vessel)
 
-            with open(file_path, "a", newline="") as write_obj:
+            with Path.open(file_path, "a", newline="") as write_obj:
                 csv_writer = writer(write_obj)
                 csv_writer.writerow(vessel.to_list())
 
@@ -158,7 +160,7 @@ class SplitVesselRepository(VesselRepository):
             files.extend(self.results_path.glob(f'{date_str}/{IMO}.csv'))
         
         if not files:
-            raise DataDoesNotExist("No data has been found with the given filters.")
+            raise DataDoesNotExistError()
     
         return DataFile(files)
     
@@ -190,7 +192,7 @@ def get_vessel_file(vessel_IMO: Union[int, str]) -> DataFile:
             of this vessel and can be read with geo_pandas
     
     Raises:
-        DataDoesNotExist: Raise this error when no data are found.
+        DataDoesNotExistError: Raise this error when no data are found.
     """
 
     return _split_vessel_repository.load_vessel(vessel_IMO)
@@ -209,7 +211,7 @@ def get_day_file(date_string: str = "today") -> DataFile:
             of this day and can be read with geo_pandas
     
     Raises:
-        DataDoesNotExist: Raise this error when no data are found.
+        DataDoesNotExistError: Raise this error when no data are found.
     """
 
     return _split_vessel_repository.load_day(date_string)
@@ -234,7 +236,7 @@ def get_data_file(
             of this day and can be read with geo_pandas
     
     Raises:
-        DataDoesNotExist: Raise this error when no data are found.
+        DataDoesNotExistError: Raise this error when no data are found.
     """
 
     return _split_vessel_repository.load_data(vessel_IMOs, date_strings)
