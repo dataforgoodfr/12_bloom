@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from logging import getLogger
 from time import sleep
 
-from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from undetected_chromedriver import Chrome, ChromeOptions
@@ -88,7 +87,7 @@ class MarineTrafficVesselScraper:
                     latitude=record_fields[3],
                     longitude=record_fields[4],
                 )
-        except WebDriverException:
+        except Exception:
             logger.exception(f"Scrapping failed for vessel {vessel.IMO}")
             vessel_records = Vessel(
                 timestamp=crawling_timestamp,
