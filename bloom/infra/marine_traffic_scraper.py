@@ -71,8 +71,16 @@ class MarineTrafficVesselScraper:
                     "IMO has changed: "
                     f"new value {record_fields[1]} vs old value {vessel.IMO}",
                 )
+                vessel_records = Vessel(
+                    timestamp=crawling_timestamp,
+                    ship_name=None,
+                    IMO=vessel.IMO,
+                    last_position_time=None,
+                    latitude=None,
+                    longitude=None,
+                )
             else:
-                return Vessel(
+                vessel_records = Vessel(
                     timestamp=crawling_timestamp,
                     ship_name=record_fields[0],
                     IMO=record_fields[1],
@@ -82,7 +90,7 @@ class MarineTrafficVesselScraper:
                 )
         except WebDriverException:
             logger.exception(f"Scrapping failed for vessel {vessel.IMO}")
-            return Vessel(
+            vessel_records = Vessel(
                 timestamp=crawling_timestamp,
                 ship_name=None,
                 IMO=vessel.IMO,
@@ -90,3 +98,4 @@ class MarineTrafficVesselScraper:
                 latitude=None,
                 longitude=None,
             )
+        return vessel_records

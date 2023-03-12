@@ -2,8 +2,6 @@ version: "3"
 services:
   scrapper:
     container_name: bloom_scraper
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     build:
       context: ../
       dockerfile: ./docker-env/Dockerfile
