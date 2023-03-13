@@ -11,6 +11,9 @@ class Vessel(BaseModel):
     last_position_time: datetime | None
     latitude: float | None
     longitude: float | None
+    status: str | None
+    speed: float | None
+    navigation_status: str | None
 
     def to_list(self) -> list:
         return [
