@@ -7,6 +7,7 @@ from time import sleep
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from shapely import Point
 from undetected_chromedriver import Chrome, ChromeOptions
 
 from bloom.domain.vessel import Vessel
@@ -56,50 +57,64 @@ class MarineTrafficVesselScraper:
             "speed,navigational_status&quicksearch|begins|quicksearch="
         )
 
-    def scrap_vessel(self, driver: Driver, vessel: Vessel) -> Vessel:
-        logger.info(f"Currently scrapping {vessel}")
+    def scrap_vessels(self, vessels: list[Vessel]) -> list[Vessel]:
+        with Driver() as driver:
+            vessels_list = []
+            for vessel in vessels:
+                logger.info(f"Currently scrapping {vessel}")
 
-        crawling_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        vessel_url = f"{self.base_url}{vessel.IMO}"
-        driver.get(vessel_url)
-
-        sleep(5)  # wait for the page to load
-
-        try:
-            WebDriverWait(driver, 5).until(
-                lambda d: d.find_element(By.CLASS_NAME, "ag-body"),
-            )
-            record = driver.find_element(By.CLASS_NAME, "ag-body")
-            record_fields = record.text.split("\n")
-            if record_fields[1] != vessel.IMO:
-                logger.warning(
-                    "IMO has changed: "
-                    f"new value {record_fields[1]} vs old value {vessel.IMO}",
+                crawling_timestamp = datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%d %H:%M UTC",
                 )
-        except WebDriverException:
-            logger.exception(f"Scrapping failed for vessel {vessel.IMO}")
-            return Vessel(
-                timestamp=crawling_timestamp,
-                ship_name=None,
-                IMO=vessel.IMO,
-                last_position_time=None,
-                latitude=None,
-                longitude=None,
-                status=None,
-                speed=None,
-                navigation_status=None,
-            )
-        return Vessel(
-            timestamp=crawling_timestamp,
-            ship_name=record_fields[0],
-            IMO=record_fields[1],
-            last_position_time=record_fields[2],
-            latitude=record_fields[3],
-            longitude=record_fields[4],
-            status=record_fields[5],
-            speed=self.extract_speed_from_scrapped_field(record_fields[6]),
-            navigation_status=record_fields[7],
-        )
+                vessel_url = f"{self.base_url}{vessel.IMO}"
+                driver.get(vessel_url)
+
+                sleep(5)  # wait for the page to load
+
+                try:
+                    WebDriverWait(driver, 5).until(
+                        lambda d: d.find_element(By.CLASS_NAME, "ag-body"),
+                    )
+                    record = driver.find_element(By.CLASS_NAME, "ag-body")
+                    record_fields = record.text.split("\n")
+                    if record_fields[1] != vessel.IMO:
+                        logger.warning(
+                            "IMO has changed: "
+                            f"new value {record_fields[1]} vs old value {vessel.IMO}",
+                        )
+                except WebDriverException:
+                    logger.exception(
+                        f"Scrapping failed for vessel {vessel.IMO}, "
+                        f"with exception {WebDriverException.__name__}",
+                    )
+                    vessels_list.append(
+                        Vessel(
+                            timestamp=crawling_timestamp,
+                            ship_name=None,
+                            IMO=vessel.IMO,
+                            last_position_time=None,
+                            position=None,
+                            status=None,
+                            speed=None,
+                            navigation_status=None,
+                        ),
+                    )
+                else:
+                    vessels_list.append(
+                        Vessel(
+                            timestamp=crawling_timestamp,
+                            ship_name=record_fields[0],
+                            IMO=record_fields[1],
+                            last_position_time=record_fields[2],
+                            position=Point(record_fields[3], record_fields[4]),
+                            status=record_fields[5],
+                            speed=self.extract_speed_from_scrapped_field(
+                                record_fields[6],
+                            ),
+                            navigation_status=record_fields[7],
+                        ),
+                    )
+        return vessels_list
 
     @staticmethod
     def extract_speed_from_scrapped_field(speed_field: str) -> float:

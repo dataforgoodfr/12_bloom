@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, validator
+from shapely import Point
 
 
 class Vessel(BaseModel):
@@ -9,8 +10,7 @@ class Vessel(BaseModel):
     ship_name: str | None
     IMO: str
     last_position_time: datetime | None
-    latitude: float | None
-    longitude: float | None
+    position: Point | None
     status: str | None
     speed: float | None
     navigation_status: str | None
@@ -21,9 +21,17 @@ class Vessel(BaseModel):
             self.ship_name,
             self.IMO,
             self.last_position_time,
-            self.latitude,
-            self.longitude,
+            self.position.__str__(),
+            self.status,
+            self.speed,
+            self.navigation_status,
         ]
+
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {
+            Point: lambda v: (v.x, v.y),
+        }
 
     @validator("timestamp", pre=True)
     def format_timestamp(cls, value: str) -> datetime:
@@ -37,12 +45,6 @@ class Vessel(BaseModel):
             return datetime.strptime(value, "%Y-%m-%d %H:%M UTC").replace(
                 tzinfo=timezone.utc,
             )
-        return None
-
-    @validator("latitude", "longitude", pre=True)
-    def format_coordinates(cls, value: str) -> float | None:
-        if isinstance(value, str):
-            return float(value)
         return None
 
 

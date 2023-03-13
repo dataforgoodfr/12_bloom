@@ -1,4 +1,5 @@
-from csv import writer
+import json
+from csv import DictWriter
 from logging import getLogger
 from pathlib import Path
 
@@ -24,7 +25,16 @@ class VesselRepository(AbstractVessel):
         logger.info(
             f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}",
         )
-        with Path.open(self.results_path, "a", newline="") as write_obj:
+        with Path.open(self.results_path, "a") as write_obj:
+            headers = vessels_list[0].__fields__.keys()
+            csv_writer = DictWriter(
+                write_obj,
+                delimiter=";",
+                lineterminator="\n",
+                fieldnames=headers,
+            )
+            if write_obj.tell() == 0:
+                csv_writer.writeheader()
+
             for vessel in vessels_list:
-                csv_writer = writer(write_obj)
-                csv_writer.writerow(vessel.to_list())
+                csv_writer.writerow(json.loads(vessel.json()))

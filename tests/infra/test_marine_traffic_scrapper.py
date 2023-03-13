@@ -8,14 +8,12 @@ from bloom.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScrape
 
 def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
     vessel_imo = 9175834
-    test_vessel = Vessel(IMO=vessel_imo)
+    test_vessels = [Vessel(IMO=vessel_imo)]
     marine_traffic_scrapper = MarineTrafficVesselScraper()
 
-    with Driver() as driver:
-        scrapped_vessel = marine_traffic_scrapper.scrap_vessel(
-            driver=driver,
-            vessel=test_vessel,
-        )
+    scrapped_vessel = marine_traffic_scrapper.scrap_vessels(
+        vessels=test_vessels,
+    )[0]
 
     assert (
         scrapped_vessel.last_position_time.tzinfo
@@ -55,12 +53,12 @@ def test_driver_tabs_opening():
     vessel_imo = 9175834
     test_vessel = Vessel(IMO=vessel_imo)
     marine_traffic_scrapper = MarineTrafficVesselScraper()
-
+    vessel_url = f"{marine_traffic_scrapper.base_url}{test_vessel.IMO}"
     with Driver() as driver:
         assert len(driver.window_handles) == 1
 
         for _ in range(2):
-            marine_traffic_scrapper.scrap_vessel(driver=driver, vessel=test_vessel)
+            driver.get(vessel_url)
 
         assert len(driver.window_handles) == 1
 

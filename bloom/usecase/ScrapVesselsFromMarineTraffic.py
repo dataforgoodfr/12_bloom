@@ -1,4 +1,4 @@
-from bloom.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
+from bloom.infra.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repository_vessel import VesselRepository
 
 
@@ -13,10 +13,7 @@ class ScrapVesselsFromMarineTraffic:
 
     def scrap_vessels(self) -> None:
         vessels = self.vessel_repository.load_vessel_identifiers()
-        scrapped_vessels = []
 
-        with Driver() as driver:
-            for vessel in vessels:
-                scrapped_vessels.append(self.scraper.scrap_vessel(driver, vessel))
+        scrapped_vessels = self.scraper.scrap_vessels(vessels)
 
         self.vessel_repository.save_vessels(scrapped_vessels)
