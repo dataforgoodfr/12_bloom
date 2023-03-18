@@ -10,7 +10,7 @@ import itertools
 
 from io import BytesIO
 
-from src.infra.repository_vessel import VesselRepository, Vessel
+from bloom.infra.repository_vessel import VesselRepository, Vessel
 
 logger = getLogger()
 
