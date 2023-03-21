@@ -1,10 +1,10 @@
 import asyncio
 import fnmatch
 import functools
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from os import environ
 from pathlib import Path
-from typing import Any, CoroutineType
+from typing import Any
 
 import aiofiles
 from aiobotocore.session import ClientCreatorContext, get_session
@@ -12,9 +12,9 @@ from aiocsv import AsyncWriter
 from botocore.exceptions import ClientError
 
 
-def async_to_sync(coro: CoroutineType) -> Callable:
+def async_to_sync(coro: Coroutine) -> Callable:
     @functools.wraps(coro)
-    def wrapper(storage: DataStorage, *args: Any, **kwargs: Any) -> Any:
+    def wrapper(storage: "DataStorage", *args: Any, **kwargs: Any) -> Any:
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             async with storage.create_client() as client:
                 return await coro(storage, client, *args, **kwargs)
@@ -29,7 +29,7 @@ class MissingAWSCredentialsError(Exception):
     def __init__(self) -> None:
         super().__init__(
             "AWS_SECRET_ACCESS_KEY and AWS_ACCESS_KEY_ID "
-            "environment variables should be defined.",
+            "environment variables should be defined before running the app.",
         )
 
 

@@ -32,7 +32,9 @@ class SplitVesselRepository(VesselRepository):
 
     def save_vessels(self, vessels_list: list[Vessel]) -> None:
         vessels_list = [vessel for vessel in vessels_list if vessel]
-        print(f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}")
+        logger.info(
+            f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}",
+        )
         paths, rows = zip(
             *[
                 (self._get_vessel_csv_path(vessel), vessel.to_list())

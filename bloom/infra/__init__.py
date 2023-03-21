@@ -13,12 +13,12 @@ Each function yield an object than geopandas can read:
 Here are the three functions, please use `help(the_function)`
 to get more information about them.
 
-get_data_file(
-    vessel_IMOs: Union[int, str, List[Union[int, str]]] = None,
-    date_strings: Union[List[str], str] = None
-) -> DataFile:
+def get_data_file(
+    vessel_imos: int | str | list[int | str] = None,
+    date_strings: list[str] | str = None,
+) -> DataFile
 
-get_day_file(date_string: str = "today") -> DataFile
-get_vessel_file(vessel_IMO: Union[int, str]) -> DataFile
+def get_day_file(date_string: str = "today") -> DataFile
+def get_vessel_file(vessel_imo: int | str) -> DataFile
 
 """

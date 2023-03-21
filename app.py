@@ -9,7 +9,7 @@ from logging import getLogger
 
 from bloom.enums import ExecutionMode
 from bloom.infra.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repository_vessel import VesselRepository
+from bloom.infra.split_repository_vessel import SplitVesselRepository
 from bloom.scheduler import PeriodicScheduler
 from bloom.usecase.ScrapVesselsFromMarineTraffic import ScrapVesselsFromMarineTraffic
 
@@ -19,7 +19,7 @@ logger = getLogger()
 
 
 def scrap_vessels_with_marine_traffic() -> None:
-    vessels_repository = VesselRepository()
+    vessels_repository = SplitVesselRepository()
     scraper = MarineTrafficVesselScraper()
     ScrapVesselsFromMarineTraffic(vessels_repository, scraper).scrap_vessels()
 
@@ -50,4 +50,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    scrap_vessels_with_marine_traffic()

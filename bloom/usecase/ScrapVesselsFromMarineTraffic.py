@@ -16,7 +16,7 @@ class ScrapVesselsFromMarineTraffic:
         scrapped_vessels = []
 
         with Driver() as driver:
-            for vessel in vessels[2:4]:
+            for vessel in vessels:
                 scrapped_vessels.append(self.scraper.scrap_vessel(driver, vessel))
 
         self.vessel_repository.save_vessels(scrapped_vessels)
