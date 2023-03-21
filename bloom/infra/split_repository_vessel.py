@@ -1,20 +1,18 @@
-from csv import writer
-from os import environ
+import itertools
 from logging import getLogger
 from pathlib import Path
-from typing import List, Union, Callable, Any
-from dateparser import parse as parse_date
-import itertools
 
-from bloom.infra.data_file import DataFile, DataDoesNotExistError
-from bloom.infra.repository_vessel import VesselRepository, Vessel
+from dateparser import parse as parse_date
+
+from bloom.infra.data_file import DataDoesNotExistError, DataFile
 from bloom.infra.data_storage import DataStorage
+from bloom.infra.repository_vessel import Vessel, VesselRepository
 
 logger = getLogger()
 
 
 class SplitVesselRepository(VesselRepository):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.results_path = Path.joinpath(Path.cwd(), "data", "csv")
         self._storage = DataStorage()
@@ -32,14 +30,15 @@ class SplitVesselRepository(VesselRepository):
         parsed_date = vessel.timestamp.strftime("%Y-%m")
         return Path.joinpath(Path(vessel.IMO), f"{parsed_date}.csv")
 
-    def save_vessels(self, vessels_list: List[Vessel]) -> None:
+    def save_vessels(self, vessels_list: list[Vessel]) -> None:
         vessels_list = [vessel for vessel in vessels_list if vessel]
         print(f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}")
         paths, rows = zip(
             *[
                 (self._get_vessel_csv_path(vessel), vessel.to_list())
                 for vessel in vessels_list
-            ]
+            ],
+            strict=True,
         )
         rows = [vessel.to_list() for vessel in vessels_list]
 
@@ -47,8 +46,8 @@ class SplitVesselRepository(VesselRepository):
 
     def load_data(
         self,
-        vessel_IMOs: Union[int, str, List[Union[int, str]]] = None,
-        date_strings: Union[List[str], str] = None,
+        vessel_imos: int | str | list[int | str] = None,
+        date_strings: list[str] | str = None,
     ) -> DataFile:
         if date_strings:
             if not isinstance(date_strings, list):
@@ -61,16 +60,16 @@ class SplitVesselRepository(VesselRepository):
         else:
             dates = ["**"]
 
-        if vessel_IMOs:
-            if not isinstance(vessel_IMOs, list):
-                vessel_IMOs = [vessel_IMOs]
+        if vessel_imos:
+            if not isinstance(vessel_imos, list):
+                vessel_imos = [vessel_imos]
         else:
-            vessel_IMOs = ["*"]
+            vessel_imos = ["*"]
 
-        logger.info(f"Load data from vessels {vessel_IMOs}' at dates {dates}.")
+        logger.info(f"Load data from vessels {vessel_imos}' at dates {dates}.")
 
         files = []
-        for date_str, imo in itertools.product(dates, vessel_IMOs):
+        for date_str, imo in itertools.product(dates, vessel_imos):
             files.extend(self._storage.glob(f"{imo}/{date_str}.csv"))
 
         if not files:
@@ -78,10 +77,10 @@ class SplitVesselRepository(VesselRepository):
 
         return DataFile(files)
 
-    def load_vessel(self, vessel_IMO: Union[int, str]) -> DataFile:
-        logger.info(f"Load vessel {vessel_IMO}'s historic")
+    def load_vessel(self, vessel_imo: int | str) -> DataFile:
+        logger.info(f"Load vessel {vessel_imo}'s historic")
 
-        return self.load_data(vessel_IMOs=vessel_IMO)
+        return self.load_data(vessel_imos=vessel_imo)
 
     def load_day(self, date_string: str = "today") -> DataFile:
         logger.info(f"Load {date_string}'s historic")
@@ -92,11 +91,11 @@ class SplitVesselRepository(VesselRepository):
 _split_vessel_repository = SplitVesselRepository()
 
 
-def get_vessel_file(vessel_IMO: Union[int, str]) -> DataFile:
+def get_vessel_file(vessel_imo: int | str) -> DataFile:
     """Return a file like object containing the data of a vessel.
 
     Args:
-        vessel_IMO: The IMO of the vessel to get.
+        vessel_imo: The IMO of the vessel to get.
 
     Returns:
         DataFile: An object that encapsulate all the data
@@ -106,7 +105,7 @@ def get_vessel_file(vessel_IMO: Union[int, str]) -> DataFile:
         DataDoesNotExistError: Raise this error when no data are found.
     """
 
-    return _split_vessel_repository.load_vessel(vessel_IMO)
+    return _split_vessel_repository.load_vessel(vessel_imo)
 
 
 def get_day_file(date_string: str = "today") -> DataFile:
@@ -130,8 +129,8 @@ def get_day_file(date_string: str = "today") -> DataFile:
 
 
 def get_data_file(
-    vessel_IMOs: Union[int, str, List[Union[int, str]]] = None,
-    date_strings: Union[List[str], str] = None,
+    vessel_imos: int | str | list[int | str] = None,
+    date_strings: list[str] | str = None,
 ) -> DataFile:
     """Return a file like object containing the data given filters.
 
@@ -140,7 +139,7 @@ def get_data_file(
             As we use dateparser to parse it, it can be given under a large
             variety of way such as "today", "two days ago", "10/10/2021",
             ect... If none are given, all the historical data is returned.
-        vessel_IMOs: A string or a list of strings representing the IMO
+        vessel_imos: A string or a list of strings representing the IMO
             of (a) vessel(s) to get. if none are given, the data of all
             vessels is returned.
 
@@ -152,4 +151,4 @@ def get_data_file(
         DataDoesNotExistError: Raise this error when no data are found.
     """
 
-    return _split_vessel_repository.load_data(vessel_IMOs, date_strings)
+    return _split_vessel_repository.load_data(vessel_imos, date_strings)

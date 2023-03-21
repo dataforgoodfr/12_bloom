@@ -1,12 +1,12 @@
 """DataFiles makes it easy to use by data scientists. """
 
-from pathlib import Path
-from typing import List, Callable, Any
-import zipfile
-import inspect
 import functools
-
+import inspect
+import zipfile
+from collections.abc import Callable
 from io import BytesIO
+from pathlib import Path
+from typing import Any
 
 from bloom.infra.data_storage import DataStorage
 
@@ -21,7 +21,7 @@ class DataDoesNotExistError(Exception):
 class DataFile(BytesIO):
     """A mock file agnostic to the csv split method."""
 
-    def __init__(self, csv_paths: List[Path]):
+    def __init__(self, csv_paths: list[Path]) -> None:
         self._csv_paths = csv_paths
         self._storage = DataStorage()
         self._is_initialized = False

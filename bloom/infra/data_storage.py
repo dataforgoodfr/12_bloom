@@ -1,21 +1,23 @@
-from os import environ
-from aiocsv import AsyncWriter
+import asyncio
 import fnmatch
 import functools
-import asyncio
-import aiofiles
+from collections.abc import Callable
+from os import environ
 from pathlib import Path
-from aiobotocore.session import get_session, ClientCreatorContext
-from botocore.response import StreamingBody
+from typing import Any, CoroutineType
+
+import aiofiles
+from aiobotocore.session import ClientCreatorContext, get_session
+from aiocsv import AsyncWriter
 from botocore.exceptions import ClientError
 
 
-def async_to_sync(coro):
+def async_to_sync(coro: CoroutineType) -> Callable:
     @functools.wraps(coro)
-    def wrapper(s3, *args, **kwargs):
-        async def async_wrapper(*args, **kwargs):
-            async with s3.create_client() as client:
-                return await coro(s3, client, *args, **kwargs)
+    def wrapper(storage: DataStorage, *args: Any, **kwargs: Any) -> Any:
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+            async with storage.create_client() as client:
+                return await coro(storage, client, *args, **kwargs)
 
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(async_wrapper(*args, **kwargs))
@@ -23,15 +25,23 @@ def async_to_sync(coro):
     return wrapper
 
 
+class MissingAWSCredentialsError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            "AWS_SECRET_ACCESS_KEY and AWS_ACCESS_KEY_ID "
+            "environment variables should be defined.",
+        )
+
+
 class DataStorage:
     def __init__(self) -> None:
         if "AWS_ACCESS_KEY_ID" not in environ or "AWS_SECRET_ACCESS_KEY" not in environ:
-            raise ValueError("Missing aws credentials")
+            raise MissingAWSCredentialsError()
 
         self._end_point_url = "https://s3.fr-par.scw.cloud"
         self._bucket_id = "bloom-s3"
         self._cache_path = Path.joinpath(Path.home(), ".s3_cache")
-        self._session = session = get_session()
+        self._session = get_session()
 
     def create_client(self) -> ClientCreatorContext:
         return self._session.create_client(
@@ -47,8 +57,11 @@ class DataStorage:
         return file_cache_path
 
     async def _append_row(
-        self, client: ClientCreatorContext, path: Path | str, row: list
-    ):
+        self,
+        client: ClientCreatorContext,
+        path: Path | str,
+        row: list,
+    ) -> None:
         cache_path = self._get_cache_path(path)
 
         if not cache_path.exists():
@@ -66,7 +79,9 @@ class DataStorage:
 
         async with aiofiles.open(cache_path, "rb") as cache_fd:
             await client.put_object(
-                Body=await cache_fd.read(), Bucket=self._bucket_id, Key=str(path)
+                Body=await cache_fd.read(),
+                Bucket=self._bucket_id,
+                Key=str(path),
             )
 
     @async_to_sync
@@ -75,21 +90,26 @@ class DataStorage:
         client: ClientCreatorContext,
         paths: list[Path | str],
         rows: list[list],
-    ):
+    ) -> None:
         await asyncio.gather(
-            *[self._append_row(client, path, row) for path, row in zip(paths, rows)]
+            *[
+                self._append_row(client, path, row)
+                for path, row in zip(paths, rows, strict=True)
+            ],
         )
 
     async def _get_file(self, client: ClientCreatorContext, path: Path | str) -> bytes:
-        object = await client.get_object(Bucket=self._bucket_id, Key=str(path))
-        return await object["Body"].read()
+        s3_object = await client.get_object(Bucket=self._bucket_id, Key=str(path))
+        return await s3_object["Body"].read()
 
     @async_to_sync
     async def get_data(
-        self, client: ClientCreatorContext, paths: list[Path | str]
+        self,
+        client: ClientCreatorContext,
+        paths: list[Path | str],
     ) -> bytes:
         streams = await asyncio.gather(
-            *[self._get_file(client, path) for path in paths]
+            *[self._get_file(client, path) for path in paths],
         )
 
         return b"".join(streams)
@@ -100,8 +120,8 @@ class DataStorage:
 
         paginator = client.get_paginator("list_objects_v2")
         async for result in paginator.paginate(Bucket=self._bucket_id):
-            for object in result["Contents"]:
-                path = object["Key"]
+            for s3_object in result["Contents"]:
+                path = s3_object["Key"]
 
                 if fnmatch.fnmatch(path, regex):
                     filtered_paths.append(path)
