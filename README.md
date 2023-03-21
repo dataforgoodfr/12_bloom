@@ -24,3 +24,11 @@ Installation :
 TODO
 
 Après installation : `poetry run pre-commit install`
+
+
+# Use app.py into a docker container
+In order to use of app.py as a cron job that run every 15 minutes into a docker container please follows those steps :
+1) Navigate to docker-env repository with command : cd ./docker-env
+2) Build docker compose file with : docker-compose build 
+3) Run docker compose file with : docker-compose up
+4) Enter into running container with : docker exec -it bloom_scraper /bin/bash

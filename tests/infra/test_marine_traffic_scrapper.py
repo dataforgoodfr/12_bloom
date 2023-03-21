@@ -63,3 +63,19 @@ def test_driver_tabs_opening():
             marine_traffic_scrapper.scrap_vessel(driver=driver, vessel=test_vessel)
 
         assert len(driver.window_handles) == 1
+
+
+def test_speed_field_is_correctly_parsed():
+    speed_field_value = "2.2 knots"
+    speed_field_value_null = "0.0 knots"
+    expected_speed = 2.2
+    expected_speed_null = 0
+    extracted_speed = MarineTrafficVesselScraper.extract_speed_from_scrapped_field(
+        speed_field_value,
+    )
+    extracted_speed_null = MarineTrafficVesselScraper.extract_speed_from_scrapped_field(
+        speed_field_value_null,
+    )
+
+    assert extracted_speed == expected_speed
+    assert extracted_speed_null == expected_speed_null
