@@ -24,7 +24,6 @@ aiobotocore = "^2.5.0"
 aiofiles = "^23.1.0"
 aiocsv = "^1.2.3"
 geopandas = "0.12.2"
-fiona = "1.9.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
