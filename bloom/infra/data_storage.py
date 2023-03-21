@@ -92,7 +92,7 @@ class DataStorage:
             *[self._get_file(client, path) for path in paths]
         )
 
-        return b"\n".join(streams)
+        return b"".join(streams)
 
     @async_to_sync
     async def glob(self, client: ClientCreatorContext, regex: str) -> list[str]:
