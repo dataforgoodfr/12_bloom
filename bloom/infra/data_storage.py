@@ -152,28 +152,24 @@ class DataStorage:
         element: BaseModel,
     ) -> None:
         cache_path = self._get_cache_path(path)
+        cache_path_exists = cache_path.exists()
 
         await self._clean_outdated_cache(cache_path)
-        if not cache_path.exists():
-            async with aiofiles.open(cache_path, "w") as cache_fd:
-                try:
-                    data = await self.__get_file(path)
-                except ClientError:
-                    writer = AsyncDictWriter(
-                        cache_fd,
-                        element.__fields__,
-                        quoting=csv.QUOTE_ALL,
-                    )
-                    await writer.writeheader()
-                else:
-                    await cache_fd.write(data.decode("utf-8"))
-
-        async with aiofiles.open(cache_path, "a", newline="") as cache_fd:
+        async with aiofiles.open(cache_path, "a") as cache_fd:
             writer = AsyncDictWriter(
                 cache_fd,
                 element.__fields__,
                 quoting=csv.QUOTE_ALL,
             )
+
+            if not cache_path_exists:
+                try:
+                    data = await self.__get_file(path)
+                except ClientError:
+                    await writer.writeheader()
+                else:
+                    await cache_fd.write(data.decode("utf-8"))
+
             await writer.writerow(element.dict())
 
         async with aiofiles.open(cache_path, "rb") as cache_fd:

@@ -42,18 +42,13 @@ class SplitVesselRepository(VesselRepository):
 
     def save_vessels(self, vessels_list: list[Vessel]) -> None:
         vessels_list = [vessel for vessel in vessels_list if vessel]
+        paths = [self._get_vessel_csv_path(vessel) for vessel in vessels_list]
+
         logger.info(
             f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}",
         )
-        paths, rows = zip(
-            *[
-                (self._get_vessel_csv_path(vessel), vessel.to_list())
-                for vessel in vessels_list
-            ],
-            strict=True,
-        )
 
-        self._storage.append_rows(paths, rows)
+        self._storage.append_elements(paths, vessels_list)
 
     def load_data(
         self,
@@ -65,7 +60,7 @@ class SplitVesselRepository(VesselRepository):
                 date_strings = [date_strings]
 
             dates = [
-                parse_date(date_string).strftime("%Y-%m-%d")
+                parse_date(date_string).strftime("%Y-%m")
                 for date_string in date_strings
             ]
         else:
@@ -93,7 +88,7 @@ class SplitVesselRepository(VesselRepository):
 
         return self.load_data(vessel_imos=vessel_imo)
 
-    def load_day(self, date_string: str = "today") -> DataFile:
+    def load_month(self, date_string: str = "today") -> DataFile:
         logger.info(f"Load {date_string}'s historic")
 
         return self.load_data(date_strings=date_string)
@@ -119,7 +114,7 @@ def get_vessel_file(vessel_imo: int | str) -> DataFile:
     return _split_vessel_repository.load_vessel(vessel_imo)
 
 
-def get_day_file(date_string: str = "today") -> DataFile:
+def get_month_file(date_string: str = "today") -> DataFile:
     """Return a file like object containing the data of a given day.
 
     Args:
@@ -136,7 +131,7 @@ def get_day_file(date_string: str = "today") -> DataFile:
         DataDoesNotExistError: Raise this error when no data are found.
     """
 
-    return _split_vessel_repository.load_day(date_string)
+    return _split_vessel_repository.load_month(date_string)
 
 
 def get_data_file(
