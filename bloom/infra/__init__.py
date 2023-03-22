@@ -18,7 +18,7 @@ def get_data_file(
     date_strings: list[str] | str = None,
 ) -> DataFile
 
-def get_day_file(date_string: str = "today") -> DataFile
+def get_month_file(date_string: str = "today") -> DataFile
 def get_vessel_file(vessel_imo: int | str) -> DataFile
 
 """
