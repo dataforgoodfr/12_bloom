@@ -1,4 +1,5 @@
 import asyncio
+import csv
 import fnmatch
 import functools
 from collections.abc import Callable, Coroutine
@@ -10,8 +11,9 @@ from typing import Any
 
 import aiofiles
 from aiobotocore.session import ClientCreatorContext, get_session
-from aiocsv import AsyncWriter
+from aiocsv import AsyncDictWriter
 from botocore.exceptions import ClientError, EndpointConnectionError
+from pydantic import BaseModel
 
 logger = getLogger()
 
@@ -22,7 +24,7 @@ def async_to_sync(coro: Coroutine) -> Callable:
     @functools.wraps(coro)
     def wrapper(storage: "DataStorage", *args: Any, **kwargs: Any) -> Any:
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-            async with storage.createclient() as client:
+            async with storage.create_client() as client:
                 # We are not giving client as an argument to avoid changing
                 # methods signature which would make ide information
                 # confusing. Methods that are not wrapped explicitely
@@ -66,12 +68,13 @@ class StorageType(Enum):
 
 
 class DataStorage:
-    """An S3 data storage with methods to append and to download csv files.
+    """An S3 data storage with methods to append elements and to download csv files.
 
-    It is object agnostic and path almost-agnostic. It has a knowledge
+    It is element agnostic and path almost-agnostic. It has a knowledge
     on path-building to clean outdated cache. This can be improved later on if needed.
 
-    Object sould be given as lists so that this class is not dependent of them.
+    Elements sould be given as BaseModel so that this class is not dependent of any
+    of them.
 
     """
 
@@ -86,8 +89,8 @@ class DataStorage:
         self._session = get_session()
         self.client = None
 
-    def createclient(self) -> ClientCreatorContext:
-        return self._session.createclient(
+    def create_client(self) -> ClientCreatorContext:
+        return self._session.create_client(
             "s3",
             aws_access_key_id=environ["AWS_ACCESS_KEY_ID"],
             aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY"],
@@ -143,26 +146,35 @@ class DataStorage:
                     else:
                         cache_path.unlink()
 
-    async def __append_row(
+    async def __append_element(
         self,
         path: Path | str,
-        row: list,
+        element: BaseModel,
     ) -> None:
         cache_path = self._get_cache_path(path)
 
         await self._clean_outdated_cache(cache_path)
         if not cache_path.exists():
-            async with aiofiles.open(cache_path, "bw") as cache_fd:
+            async with aiofiles.open(cache_path, "w") as cache_fd:
                 try:
                     data = await self.__get_file(path)
                 except ClientError:
-                    pass
+                    writer = AsyncDictWriter(
+                        cache_fd,
+                        element.__fields__,
+                        quoting=csv.QUOTE_ALL,
+                    )
+                    await writer.writeheader()
                 else:
-                    await cache_fd.write(data)
+                    await cache_fd.write(data.decode("utf-8"))
 
         async with aiofiles.open(cache_path, "a", newline="") as cache_fd:
-            csv_writer = AsyncWriter(cache_fd)
-            await csv_writer.writerow(row)
+            writer = AsyncDictWriter(
+                cache_fd,
+                element.__fields__,
+                quoting=csv.QUOTE_ALL,
+            )
+            await writer.writerow(element.dict())
 
         async with aiofiles.open(cache_path, "rb") as cache_fd:
             try:
@@ -176,15 +188,15 @@ class DataStorage:
                 logger.exception("Failed to push data on scaleway.")
 
     @async_to_sync
-    async def append_rows(
+    async def append_elements(
         self,
         paths: list[Path | str],
-        rows: list[list],
+        elements: list[BaseModel],
     ) -> None:
         await asyncio.gather(
             *[
-                self.__append_row(path, row)
-                for path, row in zip(paths, rows, strict=True)
+                self.__append_element(path, element)
+                for path, element in zip(paths, elements, strict=True)
             ],
         )
 
@@ -201,7 +213,11 @@ class DataStorage:
             *[self.__get_file(path) for path in paths],
         )
 
-        return b"".join(streams)
+        result = streams.pop(0)
+        for stream in streams:
+            result += b"".join(stream.split(b"\n")[1:])
+
+        return result
 
     @async_to_sync
     async def glob(self, regex: str) -> list[str]:
