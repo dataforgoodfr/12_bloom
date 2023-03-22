@@ -50,4 +50,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    scrap_vessels_with_marine_traffic()
+    main()
