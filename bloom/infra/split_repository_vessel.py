@@ -12,9 +12,16 @@ logger = getLogger()
 
 
 class SplitVesselRepository(VesselRepository):
+    """This class handle vessel data.
+
+    It augments VesselRepository by using split data files. It
+    handles paths logic and vessel related information.
+    It uses DataStorage to actually save and loads data.
+
+    """
+
     def __init__(self) -> None:
         super().__init__()
-        self.results_path = Path.joinpath(Path.cwd(), "data", "csv")
         self._storage = DataStorage()
 
     def _get_vessel_csv_path(self, vessel: Vessel) -> Path:
@@ -28,6 +35,9 @@ class SplitVesselRepository(VesselRepository):
         """
 
         parsed_date = vessel.timestamp.strftime("%Y-%m")
+
+        # This logic is used in the method DataStorage._clean_outdated_cache.
+        # Take care if you change the way the path is build here.
         return Path.joinpath(Path(vessel.IMO), f"{parsed_date}.csv")
 
     def save_vessels(self, vessels_list: list[Vessel]) -> None:
@@ -42,14 +52,13 @@ class SplitVesselRepository(VesselRepository):
             ],
             strict=True,
         )
-        rows = [vessel.to_list() for vessel in vessels_list]
 
         self._storage.append_rows(paths, rows)
 
     def load_data(
         self,
-        vessel_imos: int | str | list[int | str] = None,
-        date_strings: list[str] | str = None,
+        vessel_imos: int | str | list[int | str] | None = None,
+        date_strings: list[str] | str | None = None,
     ) -> DataFile:
         if date_strings:
             if not isinstance(date_strings, list):
@@ -60,13 +69,13 @@ class SplitVesselRepository(VesselRepository):
                 for date_string in date_strings
             ]
         else:
-            dates = ["**"]
+            dates = ["*"]
 
         if vessel_imos:
             if not isinstance(vessel_imos, list):
                 vessel_imos = [vessel_imos]
         else:
-            vessel_imos = ["*"]
+            vessel_imos = ["**"]
 
         logger.info(f"Load data from vessels {vessel_imos}' at dates {dates}.")
 

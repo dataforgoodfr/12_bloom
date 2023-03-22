@@ -2,6 +2,8 @@ import asyncio
 import fnmatch
 import functools
 from collections.abc import Callable, Coroutine
+from enum import Enum
+from logging import getLogger
 from os import environ
 from pathlib import Path
 from typing import Any
@@ -9,15 +11,27 @@ from typing import Any
 import aiofiles
 from aiobotocore.session import ClientCreatorContext, get_session
 from aiocsv import AsyncWriter
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, EndpointConnectionError
+
+logger = getLogger()
 
 
 def async_to_sync(coro: Coroutine) -> Callable:
+    """Convert a coroutine to a function."""
+
     @functools.wraps(coro)
     def wrapper(storage: "DataStorage", *args: Any, **kwargs: Any) -> Any:
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-            async with storage.create_client() as client:
-                return await coro(storage, client, *args, **kwargs)
+            async with storage.createclient() as client:
+                # We are not giving client as an argument to avoid changing
+                # methods signature which would make ide information
+                # confusing. Methods that are not wrapped explicitely
+                # are therefore prefixed with __ to "prevent" their use
+                # elsewhere.
+                storage.client = client
+                result = await coro(storage, *args, **kwargs)
+                storage.client = None
+                return result
 
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(async_wrapper(*args, **kwargs))
@@ -33,18 +47,47 @@ class MissingAWSCredentialsError(Exception):
         )
 
 
+class StorageType(Enum):
+    """Type of bucket storage.
+
+    More information about them can be found there:
+    https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html
+    """
+
+    STANDARD = 1
+    REDUCED_REDUNDANCY = 2
+    STANDARD_IA = 3
+    ONEZONE_IA = 4
+    INTELLIGENT_TIERING = 5
+    GLACIER = 6
+    DEEP_ARCHIVE = 7
+    OUTPOSTS = 8
+    GLACIER_IR = 9
+
+
 class DataStorage:
-    def __init__(self) -> None:
+    """An S3 data storage with methods to append and to download csv files.
+
+    It is object agnostic and path almost-agnostic. It has a knowledge
+    on path-building to clean outdated cache. This can be improved later on if needed.
+
+    Object sould be given as lists so that this class is not dependent of them.
+
+    """
+
+    def __init__(self, storage_type: StorageType = StorageType.STANDARD) -> None:
         if "AWS_ACCESS_KEY_ID" not in environ or "AWS_SECRET_ACCESS_KEY" not in environ:
             raise MissingAWSCredentialsError()
 
         self._end_point_url = "https://s3.fr-par.scw.cloud"
         self._bucket_id = "bloom-s3"
+        self._storage_type = storage_type
         self._cache_path = Path.joinpath(Path.home(), ".s3_cache")
         self._session = get_session()
+        self.client = None
 
-    def create_client(self) -> ClientCreatorContext:
-        return self._session.create_client(
+    def createclient(self) -> ClientCreatorContext:
+        return self._session.createclient(
             "s3",
             aws_access_key_id=environ["AWS_ACCESS_KEY_ID"],
             aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY"],
@@ -56,18 +99,62 @@ class DataStorage:
         file_cache_path.parent.mkdir(parents=True, exist_ok=True)
         return file_cache_path
 
-    async def _append_row(
+    def _get_data_storage_path(self, cache_path: Path | str) -> Path:
+        storage_path = str(cache_path).removeprefix(str(self._cache_path))
+        return Path(storage_path[1:])
+
+    async def _is_s3_object_up_to_date(self, s3_path: Path, cache_path: Path) -> bool:
+        s3_object = await self.client.get_object(
+            Bucket=self._bucket_id,
+            Key=str(s3_path),
+        )
+
+        s3_object_last_modif_time = s3_object["LastModified"].timestamp()
+        cache_file_last_modif_time = cache_path.lstat().st_mtime
+
+        return s3_object_last_modif_time >= cache_file_last_modif_time
+
+    async def _clean_outdated_cache(self, path: Path) -> None:
+        """Clean outdated cache files.
+
+        This method depends on the way cache files are stored.
+        Be carefull if changed are made in SplitVesselRepository.
+        """
+
+        for cache_path in path.parent.iterdir():
+            if cache_path == path:
+                continue
+
+            storage_path = self._get_data_storage_path(cache_path)
+
+            if await self._is_s3_object_up_to_date(storage_path, cache_path):
+                cache_path.unlink()
+            else:
+                async with aiofiles.open(cache_path, "rb") as cache_fd:
+                    try:
+                        await self.client.put_object(
+                            Body=await cache_fd.read(),
+                            Bucket=self._bucket_id,
+                            Key=str(storage_path),
+                            StorageClass=self._storage_type.name,
+                        )
+                    except EndpointConnectionError:
+                        logger.exception("Failed to push data on scaleway.")
+                    else:
+                        cache_path.unlink()
+
+    async def __append_row(
         self,
-        client: ClientCreatorContext,
         path: Path | str,
         row: list,
     ) -> None:
         cache_path = self._get_cache_path(path)
 
+        await self._clean_outdated_cache(cache_path)
         if not cache_path.exists():
             async with aiofiles.open(cache_path, "bw") as cache_fd:
                 try:
-                    data = await self._get_file(client, path)
+                    data = await self.__get_file(path)
                 except ClientError:
                     pass
                 else:
@@ -78,47 +165,49 @@ class DataStorage:
             await csv_writer.writerow(row)
 
         async with aiofiles.open(cache_path, "rb") as cache_fd:
-            await client.put_object(
-                Body=await cache_fd.read(),
-                Bucket=self._bucket_id,
-                Key=str(path),
-            )
+            try:
+                await self.client.put_object(
+                    Body=await cache_fd.read(),
+                    Bucket=self._bucket_id,
+                    Key=str(path),
+                    StorageClass=self._storage_type.name,
+                )
+            except EndpointConnectionError:
+                logger.exception("Failed to push data on scaleway.")
 
     @async_to_sync
     async def append_rows(
         self,
-        client: ClientCreatorContext,
         paths: list[Path | str],
         rows: list[list],
     ) -> None:
         await asyncio.gather(
             *[
-                self._append_row(client, path, row)
+                self.__append_row(path, row)
                 for path, row in zip(paths, rows, strict=True)
             ],
         )
 
-    async def _get_file(self, client: ClientCreatorContext, path: Path | str) -> bytes:
-        s3_object = await client.get_object(Bucket=self._bucket_id, Key=str(path))
+    async def __get_file(self, path: Path | str) -> bytes:
+        s3_object = await self.client.get_object(Bucket=self._bucket_id, Key=str(path))
         return await s3_object["Body"].read()
 
     @async_to_sync
     async def get_data(
         self,
-        client: ClientCreatorContext,
         paths: list[Path | str],
     ) -> bytes:
         streams = await asyncio.gather(
-            *[self._get_file(client, path) for path in paths],
+            *[self.__get_file(path) for path in paths],
         )
 
         return b"".join(streams)
 
     @async_to_sync
-    async def glob(self, client: ClientCreatorContext, regex: str) -> list[str]:
+    async def glob(self, regex: str) -> list[str]:
         filtered_paths = []
 
-        paginator = client.get_paginator("list_objects_v2")
+        paginator = self.client.get_paginator("list_objects_v2")
         async for result in paginator.paginate(Bucket=self._bucket_id):
             for s3_object in result["Contents"]:
                 path = s3_object["Key"]
