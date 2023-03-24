@@ -1,7 +1,7 @@
 import asyncio
 import csv
-import fnmatch
 import functools
+import re
 from collections.abc import Callable, Coroutine
 from enum import Enum
 from logging import getLogger
@@ -223,8 +223,7 @@ class DataStorage:
         async for result in paginator.paginate(Bucket=self._bucket_id):
             for s3_object in result["Contents"]:
                 path = s3_object["Key"]
-
-                if fnmatch.fnmatch(path, regex):
+                if re.match(regex, path):
                     filtered_paths.append(path)
 
         return filtered_paths

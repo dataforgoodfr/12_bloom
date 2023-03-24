@@ -1,4 +1,3 @@
-import itertools
 from logging import getLogger
 from pathlib import Path
 
@@ -15,7 +14,7 @@ class SplitVesselRepository(VesselRepository):
     """This class handle vessel data.
 
     It augments VesselRepository by using split data files. It
-    handles paths logic and vessel related information.
+    handles paths logic, including vessel imos and dates.
     It uses DataStorage to actually save and loads data.
 
     """
@@ -53,30 +52,31 @@ class SplitVesselRepository(VesselRepository):
     def load_data(
         self,
         vessel_imos: int | str | list[int | str] | None = None,
-        date_strings: list[str] | str | None = None,
+        since_date_string: str | None = None,
+        until_date_string: str | None = None,
     ) -> DataFile:
-        if date_strings:
-            if not isinstance(date_strings, list):
-                date_strings = [date_strings]
-
-            dates = [
-                parse_date(date_string).strftime("%Y-%m")
-                for date_string in date_strings
-            ]
-        else:
-            dates = ["*"]
+        since_date_string = since_date_string and parse_date(
+            since_date_string,
+        ).strftime("%Y-%m")
+        until_date_string = until_date_string and parse_date(
+            until_date_string,
+        ).strftime("%Y-%m")
 
         if vessel_imos:
             if not isinstance(vessel_imos, list):
                 vessel_imos = [vessel_imos]
         else:
-            vessel_imos = ["**"]
+            vessel_imos = ["[^/]+"]
 
-        logger.info(f"Load data from vessels {vessel_imos}' at dates {dates}.")
+        vessel_imos = "|".join(map(str, vessel_imos))
 
         files = []
-        for date_str, imo in itertools.product(dates, vessel_imos):
-            files.extend(self._storage.glob(f"{imo}/{date_str}.csv"))
+        for file_path in self._storage.glob(f"{vessel_imos}/[^\\.]+\\.csv"):
+            file_date = file_path.split("/")[-1][:-4]
+            if (since_date_string is None or since_date_string >= file_date) and (
+                until_date_string is None or until_date_string <= file_date
+            ):
+                files.append(file_path)
 
         if not files:
             raise DataDoesNotExistError()
@@ -88,10 +88,19 @@ class SplitVesselRepository(VesselRepository):
 
         return self.load_data(vessel_imos=vessel_imo)
 
-    def load_month(self, date_string: str = "today") -> DataFile:
-        logger.info(f"Load {date_string}'s historic")
+    def load_period(
+        self,
+        since_date_string: str | None,
+        until_date_string: str | None,
+    ) -> DataFile:
+        logger.info(
+            f"Load since {since_date_string} until {until_date_string} 's historic",
+        )
 
-        return self.load_data(date_strings=date_string)
+        return self.load_data(
+            since_date_string=since_date_string,
+            until_date_string=until_date_string,
+        )
 
 
 _split_vessel_repository = SplitVesselRepository()
@@ -114,14 +123,19 @@ def get_vessel_file(vessel_imo: int | str) -> DataFile:
     return _split_vessel_repository.load_vessel(vessel_imo)
 
 
-def get_month_file(date_string: str = "today") -> DataFile:
+def get_period_file(
+    since_date_string: str | None = "24 hours ago",
+    until_date_string: str | None = None,
+) -> DataFile:
     """Return a file like object containing the data of a given day.
 
     Args:
-        date_string: A string representing a day. As we use
+        since_date_string: A string representing the start of a period. As we use
             dateparser to parse it, it can be given under a large
             variety of way such as "today", "two days ago", "10/10/2021",
-            ect...
+            ect... If none are given it will be 24 hours ago.
+        until_date_string: A string representing the end of a period. If none is given
+            the end of the period will be the time of this function call.
 
     Returns:
         DataFile: An object that encapsulate all the data
@@ -131,20 +145,22 @@ def get_month_file(date_string: str = "today") -> DataFile:
         DataDoesNotExistError: Raise this error when no data are found.
     """
 
-    return _split_vessel_repository.load_month(date_string)
+    return _split_vessel_repository.load_period(since_date_string, until_date_string)
 
 
 def get_data_file(
     vessel_imos: int | str | list[int | str] = None,
-    date_strings: list[str] | str = None,
+    since_date_string: str | None = None,
+    until_date_string: str | None = None,
 ) -> DataFile:
     """Return a file like object containing the data given filters.
 
     Args:
-        date_strings: A string or a list of strings representing (a) day(s).
-            As we use dateparser to parse it, it can be given under a large
+        since_date_string: A string representing the start of a period. As we use
+            dateparser to parse it, it can be given under a large
             variety of way such as "today", "two days ago", "10/10/2021",
-            ect... If none are given, all the historical data is returned.
+            ect...
+        until_date_string: A string representing the end of a period.
         vessel_imos: A string or a list of strings representing the IMO
             of (a) vessel(s) to get. if none are given, the data of all
             vessels is returned.
@@ -157,4 +173,8 @@ def get_data_file(
         DataDoesNotExistError: Raise this error when no data are found.
     """
 
-    return _split_vessel_repository.load_data(vessel_imos, date_strings)
+    return _split_vessel_repository.load_data(
+        vessel_imos,
+        since_date_string,
+        until_date_string,
+    )
