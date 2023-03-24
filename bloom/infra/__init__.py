@@ -4,7 +4,8 @@ Three functions allow us to get ship data from S3 storage.
 Each function yield an object than geopandas can read:
 
 >>> import geopandas as geopd
->>> from src.infra import get_vessel_file
+>>> from src.infra import get_vessel_file # ruff remove the import for now,
+                                          # have to fix that
 
 >>> file = get_vessel_file(8224418)
 >>> df = geopd.read_file(file)
@@ -15,10 +16,14 @@ to get more information about them.
 
 def get_data_file(
     vessel_imos: int | str | list[int | str] = None,
-    date_strings: list[str] | str = None,
-) -> DataFile
+    since_date_string: str | None = None,
+    until_date_string: str | None = None,
+) -> DataFile:
 
-def get_month_file(date_string: str = "today") -> DataFile
+def get_period_file(
+    since_date_string: str | None = "24 hours ago",
+    until_date_string: str | None = None,
+) -> DataFile:
 def get_vessel_file(vessel_imo: int | str) -> DataFile
 
 """

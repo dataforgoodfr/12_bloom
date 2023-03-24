@@ -1,3 +1,4 @@
+import datetime
 from logging import getLogger
 from pathlib import Path
 
@@ -55,31 +56,43 @@ class SplitVesselRepository(VesselRepository):
         since_date_string: str | None = None,
         until_date_string: str | None = None,
     ) -> DataFile:
-        since_date_string = since_date_string and parse_date(
-            since_date_string,
-        ).strftime("%Y-%m")
-        until_date_string = until_date_string and parse_date(
-            until_date_string,
-        ).strftime("%Y-%m")
+        since_date = parse_date(since_date_string or "1970")
+        since_date_month_string = since_date.strftime("%Y-%m")
+
+        until_date = (
+            parse_date(
+                until_date_string,
+            )
+            if until_date_string
+            else datetime.datetime.now()
+        )
+        until_date_month_string = until_date and until_date.strftime("%Y-%m")
 
         if vessel_imos:
             if not isinstance(vessel_imos, list):
                 vessel_imos = [vessel_imos]
         else:
             vessel_imos = ["[^/]+"]
-
         vessel_imos = "|".join(map(str, vessel_imos))
 
         files = []
         for file_path in self._storage.glob(f"{vessel_imos}/[^\\.]+\\.csv"):
-            file_date = file_path.split("/")[-1][:-4]
-            if (since_date_string is None or since_date_string >= file_date) and (
-                until_date_string is None or until_date_string <= file_date
-            ):
-                files.append(file_path)
+            if since_date_month_string <= file_path.stem <= until_date_month_string:
+                files.append(str(file_path))
 
         if not files:
             raise DataDoesNotExistError()
+
+        if since_date_string or until_date_string:
+            return DataFile(
+                files,
+                filter_=lambda elt: since_date
+                <= datetime.datetime.strptime(
+                    elt["timestamp"],
+                    "%Y-%m-%d %H:%M:%S+00:00",
+                )
+                <= until_date,
+            )
 
         return DataFile(files)
 

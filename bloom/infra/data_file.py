@@ -1,10 +1,11 @@
 """DataFiles makes it easy to use by data scientists. """
 
+import csv
 import functools
 import inspect
 import zipfile
 from collections.abc import Callable
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any
 
@@ -21,9 +22,10 @@ class DataDoesNotExistError(Exception):
 class DataFile(BytesIO):
     """A mock file agnostic to the csv split method."""
 
-    def __init__(self, csv_paths: list[Path]) -> None:
+    def __init__(self, csv_paths: list[Path], filter_: Callable | None = None) -> None:
         self._csv_paths = csv_paths
         self._storage = DataStorage()
+        self._filter = filter_
         self._is_initialized = False
 
         self._add_context_to_reading_methods()
@@ -43,9 +45,29 @@ class DataFile(BytesIO):
                 method = self._add_context_aware_loader(method)
                 setattr(self, method_name, method)
 
+    def _filter_data(self, data: bytes) -> bytes:
+        if self._filter is None:
+            return data
+
+        str_data = data.decode()
+        data_reader = csv.DictReader(
+            StringIO(str_data),
+            quoting=csv.QUOTE_ALL,
+        )
+        list_data = str_data.split("\n")[:-1]
+        filtered_data = [list_data.pop(0)]
+
+        for row, row_str in zip(data_reader, list_data, strict=True):
+            if self._filter(row):
+                filtered_data.append(row_str)
+
+        return "\n".join(filtered_data).encode()
+
     def _load_as_plain(self) -> None:
         """Load a plain csv file."""
         data = self._storage.get_data(self._csv_paths)
+        data = self._filter_data(data)
+
         self.write(data)
 
     def _load_as_zip(self) -> None:
@@ -57,6 +79,8 @@ class DataFile(BytesIO):
 
         with zipfile.ZipFile(self, "w") as z:
             data = self._storage.get_data(self._csv_paths)
+            data = self._filter_data(data)
+
             z.writestr("data.csv", data)
 
     def _load_data(self) -> None:

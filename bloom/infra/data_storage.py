@@ -216,7 +216,7 @@ class DataStorage:
         return result
 
     @async_to_sync
-    async def glob(self, regex: str) -> list[str]:
+    async def glob(self, regex: str) -> list[Path]:
         filtered_paths = []
 
         paginator = self.client.get_paginator("list_objects_v2")
@@ -224,6 +224,6 @@ class DataStorage:
             for s3_object in result["Contents"]:
                 path = s3_object["Key"]
                 if re.match(regex, path):
-                    filtered_paths.append(path)
+                    filtered_paths.append(Path(path))
 
         return filtered_paths
