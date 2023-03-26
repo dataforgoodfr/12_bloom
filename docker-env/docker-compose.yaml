@@ -5,6 +5,8 @@ services:
     build:
       context: ../
       dockerfile: ./docker-env/Dockerfile
+      platforms:
+        - "linux/amd64"
     image: bloom_scraper
     volumes:
       - type: volume
