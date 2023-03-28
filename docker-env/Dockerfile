@@ -22,10 +22,11 @@ RUN rm /tmp/chrome.deb
 RUN echo '*/15 * * * * cd /source_code && /root/.local/bin/poetry run python3 app.py >> /data/cron_log.log 2>&1' >> ./cron_scrapper
 RUN chmod 744 ./cron_scrapper
 
-# Move cron tab into the right directory 
+# Move cron tab into the right directory
 RUN mv ./cron_scrapper /etc/cron.d/cron_scrapper
 
 # Run file
+ENV CHROME_DRIVER_VERSION 109
 RUN crontab /etc/cron.d/cron_scrapper
 
 # Launch cron services

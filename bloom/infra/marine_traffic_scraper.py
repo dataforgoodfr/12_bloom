@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime, timezone
 from logging import getLogger
@@ -11,6 +12,7 @@ from undetected_chromedriver import Chrome, ChromeOptions
 from bloom.domain.vessel import Vessel
 
 logger = getLogger()
+CHROME_VERSION = os.getenv("CHROME_DRIVER_VERSION", 110)
 
 
 class Driver:
@@ -35,7 +37,7 @@ class Driver:
     def __enter__(self) -> Chrome:
         self._driver = Chrome(
             options=self._options,
-            version_main=109,
+            version_main=CHROME_VERSION,
         )
         return self._driver
 
@@ -72,7 +74,7 @@ class MarineTrafficVesselScraper:
                     "IMO has changed: "
                     f"new value {record_fields[1]} vs old value {vessel.IMO}",
                 )
-        except WebDriverException | BaseException:
+        except WebDriverException:
             logger.exception(f"Scrapping failed for vessel {vessel.IMO}")
             return Vessel(
                 timestamp=crawling_timestamp,
