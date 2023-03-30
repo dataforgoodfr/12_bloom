@@ -1,0 +1,80 @@
+query {
+  vessels(imo: [9175834, 
+                244309000,   
+                9204556,   
+                8028412, 
+                244070881,   
+                8707537,
+                8209171,   
+                9074951,   
+                8716928,   
+                9126364,   
+                8707446,   
+                9182801,
+                8301187,   
+                9690688,   
+                8918318,   
+                8707745,   
+                8224406,   
+                9828936,
+                9187306,   
+                9249556,   
+                9249568,   
+                8901913],
+               lastUpdate: {
+      startTime: "2022-12-01T00:31:42.780Z"
+      endTime: "2023-02-21T00:31:42.780Z"
+    },
+    first: 1000) {
+     pageInfo {
+      hasNextPage
+      endCursor
+    }
+    nodes {
+      id
+      updateTimestamp
+      staticData {
+        aisClass
+        flag
+        name
+        callsign
+        timestamp
+        updateTimestamp
+        shipType
+        shipSubType
+        mmsi
+        imo
+        callsign
+        dimensions {
+          a
+          b
+          c
+          d
+          width
+          length
+        }
+      }
+      lastPositionUpdate {
+        accuracy
+        collectionType
+        course
+        heading
+        latitude
+        longitude
+        maneuver
+        navigationalStatus
+        rot
+        speed
+        timestamp
+        updateTimestamp
+      }
+      currentVoyage {
+        destination
+        draught
+        eta
+        timestamp
+        updateTimestamp
+      }
+    }
+  }
+}
