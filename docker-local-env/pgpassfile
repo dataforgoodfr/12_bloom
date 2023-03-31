@@ -1,0 +1,1 @@
+postgres_bloom:5432:postgres:bloom_user:bloom

@@ -19,6 +19,11 @@ pydantic = "1.10.4"
 pyyaml = "6.0"
 shapely = "2.0.1"
 geopandas = "0.12.2"
+sqlalchemy = "2.0.7"
+alembic = "^1.10.2"
+geoalchemy2 = "^0.13.1"
+psycopg2 = "^2.9.5"
+
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bloom.domain.vessel import AbstractVessel, Vessel
+from bloom.domain.vessel import AbstractVessel, VesselPositionMarineTraffic
 
 logger = getLogger()
 
@@ -15,13 +15,13 @@ class VesselRepository(AbstractVessel):
         self.vessels_path = Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.xlsx")
         self.results_path = Path.joinpath(Path.cwd(), "data/bloom_scrap.csv")
 
-    def load_vessel_identifiers(self) -> list[Vessel]:
+    def load_vessel_identifiers(self) -> list[VesselPositionMarineTraffic]:
         df = pd.read_excel(self.vessels_path, engine="openpyxl")
         vessel_identifiers_list = df["IMO"].tolist()
 
-        return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
+        return [VesselPositionMarineTraffic(IMO=imo) for imo in vessel_identifiers_list]
 
-    def save_vessels(self, vessels_list: list[Vessel]) -> None:
+    def save_vessels(self, vessels_list: list[VesselPositionMarineTraffic]) -> None:
         logger.info(
             f"Saving vessels positions : {[vessel.IMO for vessel in vessels_list]}",
         )

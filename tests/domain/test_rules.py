@@ -1,6 +1,6 @@
 from shapely import Point
 
-from bloom.domain.vessel import Vessel
+from bloom.domain.vessel import VesselPositionMarineTraffic
 from bloom.infra.file_repository_polygons import PolygonFileRepository
 from bloom.domain.rules import (
     execute_rule_low_speed,
@@ -8,7 +8,7 @@ from bloom.domain.rules import (
     execute_rule_trajectory_never_in_protected_area,
 )
 
-test_vessel = Vessel(
+test_vessel = VesselPositionMarineTraffic(
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",
@@ -20,7 +20,7 @@ test_vessel = Vessel(
 )
 
 
-test_vessel_rule_2 = Vessel(
+test_vessel_rule_2 = VesselPositionMarineTraffic(
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",
@@ -32,7 +32,7 @@ test_vessel_rule_2 = Vessel(
 )
 
 faulty_vessel_positions_list = [
-    Vessel(
+    VesselPositionMarineTraffic(
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Faulty position vessel",
         IMO="8901913",
@@ -42,7 +42,7 @@ faulty_vessel_positions_list = [
         speed=0.0,
         navigation_status="Moored",
     ),
-    Vessel(
+    VesselPositionMarineTraffic(
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Faulty position vessel",
         IMO="8901913",
@@ -55,7 +55,7 @@ faulty_vessel_positions_list = [
 ]
 
 not_faulty_vessel_positions_list = [
-    Vessel(
+    VesselPositionMarineTraffic(
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Not faulty position vessel",
         IMO="8901913",
@@ -65,7 +65,7 @@ not_faulty_vessel_positions_list = [
         speed=0.0,
         navigation_status="Moored",
     ),
-    Vessel(
+    VesselPositionMarineTraffic(
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Not faulty position vessel",
         IMO="8901913",

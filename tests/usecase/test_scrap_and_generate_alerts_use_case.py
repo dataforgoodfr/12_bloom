@@ -2,7 +2,7 @@ from unittest import mock
 
 from shapely import Point
 
-from bloom.domain.vessel import Vessel
+from bloom.domain.vessel import VesselPositionMarineTraffic
 from bloom.infra.file_repository_polygons import PolygonFileRepository
 from bloom.infra.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repository_vessel import VesselRepository
@@ -10,7 +10,7 @@ from bloom.usecase.ScrapVesselsAndGenerateAlertsFromMarineTraffic import (
     ScrapVesselsAndGenerateAlertsFromMarineTraffic,
 )
 
-test_vessel = Vessel(
+test_vessel = VesselPositionMarineTraffic(
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",

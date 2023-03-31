@@ -5,7 +5,7 @@ services:
     build:
       context: ../
       dockerfile: ./docker-env/Dockerfile
-      platforms:
+      platform:
         - "linux/amd64"
     image: bloom_scraper
     volumes:
@@ -15,6 +15,7 @@ services:
       - type: bind
         source: ..
         target: /source_code/
+
 
 volumes:
   persistentdata:

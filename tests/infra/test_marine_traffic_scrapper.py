@@ -2,13 +2,13 @@
 from datetime import timezone
 from subprocess import PIPE, Popen
 
-from bloom.domain.vessel import Vessel
+from bloom.domain.vessel import VesselPositionMarineTraffic
 from bloom.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
 
 
 def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
     vessel_imo = 9175834
-    test_vessels = [Vessel(IMO=vessel_imo)]
+    test_vessels = [VesselPositionMarineTraffic(IMO=vessel_imo)]
     marine_traffic_scrapper = MarineTrafficVesselScraper()
 
     scrapped_vessel = marine_traffic_scrapper.scrap_vessels(
@@ -51,7 +51,7 @@ def test_driver_closure():
 
 def test_driver_tabs_opening():
     vessel_imo = 9175834
-    test_vessel = Vessel(IMO=vessel_imo)
+    test_vessel = VesselPositionMarineTraffic(IMO=vessel_imo)
     marine_traffic_scrapper = MarineTrafficVesselScraper()
     vessel_url = f"{marine_traffic_scrapper.base_url}{test_vessel.IMO}"
     with Driver() as driver:
