@@ -20,13 +20,15 @@ class VesselPositionMarineTraffic(BaseModel):
     vessel_id: int
     mmsi: str | None
     last_position_time: datetime | None
+    ship_name: str | None
+    IMO: str
+    mmsi: str | None
+    fishing: bool | None
     at_port: bool | None
     position: Point | None
     status: str | None
     speed: float | None
     navigation_status: str | None
-    fishing: bool | None
-
     class Config:
         arbitrary_types_allowed = True
         json_encoders = {
@@ -50,7 +52,7 @@ class VesselPositionMarineTraffic(BaseModel):
 
 class AbstractVessel(ABC):
     @abstractmethod
-    def load_vessel_identifiers(self) -> list[VesselPositionMarineTraffic]:
+    def load_vessel_identifiers(self) -> list[Vessel]:
         raise NotImplementedError
 
     @abstractmethod

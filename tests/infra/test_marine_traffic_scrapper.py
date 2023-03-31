@@ -71,7 +71,12 @@ def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
 
 
 def test_driver_tabs_opening():
+<<<<<<< HEAD
 
+=======
+    vessel_imo = 9175834
+    test_vessel = Vessel(IMO=vessel_imo)
+>>>>>>> 964ecfe (wip: refactor Vessel and VesselScrapper)
     marine_traffic_scrapper = MarineTrafficVesselScraper()
     vessel_url = f"{marine_traffic_scrapper.base_url}{test_vessels[0].IMO}"
     with Driver() as driver:
@@ -100,6 +105,7 @@ def test_speed_field_is_correctly_parsed():
     assert extracted_speed == expected_speed
     assert extracted_speed_null == expected_speed_null
 
+<<<<<<< HEAD
 
 # def test_scrapper_retrieves_expected_attributes():
 #    scrapper = MarineTrafficVesselScraper()
@@ -109,3 +115,24 @@ def test_speed_field_is_correctly_parsed():
 #    assert actual_vessel.current_port is not None
 #    assert actual_vessel.mmsi is not None
 #    assert actual_vessel.at_port is not None
+=======
+def test_scrapper_retrieves_expected_attributes():
+    expected_vessel = VesselPositionMarineTraffic(
+        timestamp="2023-03-12 12:31 UTC",
+        ship_name="ZEELAND",
+        IMO="8901913",
+        mmsi="120193",
+        last_position_time="2023-03-12 12:30 UTC",
+        fishing=True,
+        at_port=False,
+        position=Point(-61.85589548359167, 17.195012165330123),
+        status="ACTIVE",
+        speed=0.0,
+        navigation_status="Moored",
+    )
+    
+    scrapper = MarineTrafficVesselScraper()
+    actual_vessel = scrapper.scrap_vessels(test_vessels)[0]
+
+    assert actual_vessel == expected_vessel
+>>>>>>> 964ecfe (wip: refactor Vessel and VesselScrapper)
