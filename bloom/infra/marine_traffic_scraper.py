@@ -10,7 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from shapely import Point
 from undetected_chromedriver import Chrome, ChromeOptions
 
-from bloom.domain.vessel import VesselPositionMarineTraffic
+from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 
 logger = getLogger()
 version = os.popen("/usr/bin/google-chrome --version")  # nosec
@@ -52,12 +52,13 @@ class MarineTrafficVesselScraper:
     def __init__(self) -> None:
         self.base_url = (
             "https://www.marinetraffic.com/en/data/?asset_type="
-            "vessels&columns=shipname,imo,time_of_latest_position,"
-            "lat_of_latest_position,lon_of_latest_position,status,"
-            "speed,navigational_status&quicksearch|begins|quicksearch="
+            "vessels&columns=shipname,current_port,imo,mmsi,"
+            "time_of_latest_position,lat_of_latest_position,"
+            "lon_of_latest_position,status,speed,navigational_status"
+            "&quicksearch|begins|quicksearch="
         )
 
-    def scrap_vessels(self, vessels: list[VesselPositionMarineTraffic]) -> list[VesselPositionMarineTraffic]:
+    def scrap_vessels(self, vessels: list[Vessel]) -> list[VesselPositionMarineTraffic]:
         with Driver() as driver:
             vessels_list = []
             for vessel in vessels:

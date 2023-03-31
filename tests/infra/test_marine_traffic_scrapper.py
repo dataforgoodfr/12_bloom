@@ -2,13 +2,15 @@
 from datetime import timezone
 from subprocess import PIPE, Popen
 
-from bloom.domain.vessel import VesselPositionMarineTraffic
+from shapely import Point
+
+from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 from bloom.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
 
+vessel_imo = 9175834
+test_vessels = [Vessel(IMO=vessel_imo)]
 
 def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
-    vessel_imo = 9175834
-    test_vessels = [VesselPositionMarineTraffic(IMO=vessel_imo)]
     marine_traffic_scrapper = MarineTrafficVesselScraper()
 
     scrapped_vessel = marine_traffic_scrapper.scrap_vessels(
@@ -51,7 +53,7 @@ def test_driver_closure():
 
 def test_driver_tabs_opening():
     vessel_imo = 9175834
-    test_vessel = VesselPositionMarineTraffic(IMO=vessel_imo)
+    test_vessel = Vessel(IMO=vessel_imo)
     marine_traffic_scrapper = MarineTrafficVesselScraper()
     vessel_url = f"{marine_traffic_scrapper.base_url}{test_vessel.IMO}"
     with Driver() as driver:
@@ -77,3 +79,23 @@ def test_speed_field_is_correctly_parsed():
 
     assert extracted_speed == expected_speed
     assert extracted_speed_null == expected_speed_null
+
+def test_scrapper_retrieves_expected_attributes():
+    expected_vessel = VesselPositionMarineTraffic(
+        timestamp="2023-03-12 12:31 UTC",
+        ship_name="ZEELAND",
+        IMO="8901913",
+        mmsi="120193",
+        last_position_time="2023-03-12 12:30 UTC",
+        fishing=True,
+        at_port=False,
+        position=Point(-61.85589548359167, 17.195012165330123),
+        status="ACTIVE",
+        speed=0.0,
+        navigation_status="Moored",
+    )
+    
+    scrapper = MarineTrafficVesselScraper()
+    actual_vessel = scrapper.scrap_vessels(test_vessels)[0]
+
+    assert actual_vessel == expected_vessel

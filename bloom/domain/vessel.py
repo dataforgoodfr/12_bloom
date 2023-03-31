@@ -5,30 +5,23 @@ from pydantic import BaseModel, validator
 from shapely import Point
 
 
+class Vessel(BaseModel):
+    ship_name: str | None
+    IMO: str
+    mmsi: str | None
+    
 class VesselPositionMarineTraffic(BaseModel):
     timestamp: datetime | None
     ship_name: str | None
     IMO: str
-    mmsi: str
+    mmsi: str | None
     last_position_time: datetime | None
-    fishing: bool
-    at_port: bool
+    fishing: bool | None
+    at_port: bool | None
     position: Point | None
     status: str | None
     speed: float | None
     navigation_status: str | None
-
-    def to_list(self) -> list:
-        return [
-            self.timestamp,
-            self.ship_name,
-            self.IMO,
-            self.last_position_time,
-            self.position.__str__(),
-            self.status,
-            self.speed,
-            self.navigation_status,
-        ]
 
     class Config:
         arbitrary_types_allowed = True
@@ -53,9 +46,9 @@ class VesselPositionMarineTraffic(BaseModel):
 
 class AbstractVessel(ABC):
     @abstractmethod
-    def load_vessel_identifiers(self) -> list[VesselPositionMarineTraffic]:
+    def load_vessel_identifiers(self) -> list[Vessel]:
         raise NotImplementedError
 
     @abstractmethod
-    def save_vessels(self, vessels_list: list[VesselPositionMarineTraffic]) -> None:
+    def save_vessels_positions(self, vessels_positions_list: list[VesselPositionMarineTraffic]) -> None:
         raise NotImplementedError
