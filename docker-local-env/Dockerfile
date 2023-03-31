@@ -1,21 +1,23 @@
 FROM python:3.10-bullseye
+RUN apt-get update
 
 # Define working directory
 WORKDIR /source_code
 
 # Install requirements package for python with poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV POETRY_VERSION=1.3.1
+RUN pip install --user "poetry==$POETRY_VERSION"
+ENV PATH="${PATH}:/root/.local/bin"
 COPY pyproject.toml poetry.lock ./
-RUN /root/.local/bin/poetry install
+RUN poetry install
 
 # Install cron
-RUN apt-get update
 RUN apt-get install -y cron
 
 # Install chrome in a specific version 109
 ARG CHROME_VERSION="109.0.5414.119-1"
 RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-RUN apt install -y /tmp/chrome.deb
+RUN apt-get install -y /tmp/chrome.deb
 RUN rm /tmp/chrome.deb
 
 # Create cron task inside container
