@@ -50,7 +50,7 @@ class VesselPositionMarineTraffic(BaseModel):
 
 class AbstractVessel(ABC):
     @abstractmethod
-    def load_vessel_identifiers(self) -> list[Vessel]:
+    def load_vessel_identifiers(self) -> list[VesselPositionMarineTraffic]:
         raise NotImplementedError
 
     @abstractmethod
