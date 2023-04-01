@@ -23,6 +23,7 @@ sqlalchemy = "2.0.7"
 alembic = "^1.10.2"
 geoalchemy2 = "^0.13.1"
 psycopg2 = "^2.9.5"
+dependency-injector = "^4.41.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -57,13 +58,12 @@ select = [
     "SLF",
     "SIM",
     "TID",
-    "TCH",
     "TRY",
     "UP",
     "W",
     "YTT",
 ]
-ignore = ["ANN101", "ANN401", "N805"]
+ignore = ["A003", "ANN101", "ANN401", "N805", "N818"]
 
 fixable = [
     "A",
@@ -90,7 +90,6 @@ fixable = [
     "SLF",
     "SIM",
     "TID",
-    "TCH",
     "TRY",
     "UP",
     "W",

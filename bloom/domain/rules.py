@@ -1,9 +1,12 @@
-from shapely import Polygon
+from geopandas import GeoSeries
 
 from bloom.domain.vessel import VesselPositionMarineTraffic
 
 
-def execute_rule_low_speed(vessel: VesselPositionMarineTraffic, polygon_list: list[Polygon]) -> bool:
+def execute_rule_low_speed(
+    vessel: VesselPositionMarineTraffic,
+    polygon_list: GeoSeries,
+) -> bool:
     threshold = 2
     if (
         len(polygon_list[polygon_list.contains(vessel.position)]) > 0
@@ -15,7 +18,7 @@ def execute_rule_low_speed(vessel: VesselPositionMarineTraffic, polygon_list: li
 
 def execute_rule_speed_in_five_and_seven(
     vessel: VesselPositionMarineTraffic,
-    polygon_list: list[Polygon],
+    polygon_list: GeoSeries,
 ) -> bool:
     min_threshold = 5.0
     max_threshold = 7.0
@@ -26,10 +29,9 @@ def execute_rule_speed_in_five_and_seven(
     return False
 
 
-# TODO: rename Vessel class in VesselPosition
 def execute_rule_trajectory_never_in_protected_area(
     vessel_positions_list: list[VesselPositionMarineTraffic],
-    polygon_list: list[Polygon],
+    polygon_list: GeoSeries,
 ) -> bool:
     for vessel_position in vessel_positions_list:
         if len(polygon_list[polygon_list.contains(vessel_position.position)]) > 0:

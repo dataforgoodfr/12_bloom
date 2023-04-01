@@ -70,7 +70,7 @@ class MarineTrafficVesselScraper:
                 vessel_url = f"{self.base_url}{vessel.IMO}"
                 driver.get(vessel_url)
 
-                sleep(5)  # wait for the page to load
+                sleep(2)  # wait for the page to load
 
                 try:
                     WebDriverWait(driver, 5).until(
@@ -78,11 +78,22 @@ class MarineTrafficVesselScraper:
                     )
                     record = driver.find_element(By.CLASS_NAME, "ag-body")
                     record_fields = record.text.split("\n")
-                    if record_fields[1] != vessel.IMO:
+                    if record_fields == [""]:
+                        logger.warning(
+                            f"IMO {vessel.IMO} not avaiable on MarineTraffic",
+                        )
+                        continue
+                    if record_fields[2] != vessel.IMO:
                         logger.warning(
                             "IMO has changed: "
                             f"new value {record_fields[1]} vs old value {vessel.IMO}",
                         )
+                    if record_fields[5] == "-" or record_fields[6] == "-":
+                        logger.warning(
+                            f"No position data available for this IMO {vessel.IMO}, "
+                            f"{record_fields}",
+                        )
+                        continue
                 except WebDriverException:
                     logger.exception(
                         f"Scrapping failed for vessel {vessel.IMO}, "
@@ -90,33 +101,51 @@ class MarineTrafficVesselScraper:
                     )
                     vessels_list.append(
                         VesselPositionMarineTraffic(
+                            vessel_id=vessel.vessel_id,
+                            ship_name=vessel.ship_name,
                             timestamp=crawling_timestamp,
-                            ship_name=None,
                             IMO=vessel.IMO,
-                            last_position_time=None,
-                            position=None,
-                            status=None,
-                            speed=None,
-                            navigation_status=None,
                         ),
                     )
                 else:
+                    logger.warning(
+                        f"Scrapping {record_fields[2]}",
+                    )
+                    logger.warning(
+                        f"With result {record_fields}",
+                    )
                     vessels_list.append(
                         VesselPositionMarineTraffic(
                             timestamp=crawling_timestamp,
                             ship_name=record_fields[0],
-                            IMO=record_fields[1],
-                            last_position_time=record_fields[2],
-                            position=Point(record_fields[3], record_fields[4]),
-                            status=record_fields[5],
-                            speed=self.extract_speed_from_scrapped_field(
-                                record_fields[6],
+                            current_port=record_fields[1],
+                            IMO=record_fields[2],
+                            vessel_id=vessel.vessel_id,
+                            mmsi=record_fields[3],
+                            last_position_time=record_fields[4],
+                            at_port=self._is_at_port(record_fields[1]),
+                            position=Point(record_fields[5], record_fields[6]),
+                            status=record_fields[7],
+                            speed=self._extract_speed_from_scrapped_field(
+                                record_fields[8],
                             ),
                             navigation_status=record_fields[7],
+                            fishing=self._is_fishing(record_fields[7]),
                         ),
                     )
         return vessels_list
 
     @staticmethod
-    def extract_speed_from_scrapped_field(speed_field: str) -> float:
-        return float(re.findall(r"[\d]*[.][\d]*", speed_field)[0])
+    def _extract_speed_from_scrapped_field(speed_field: str) -> float | None:
+        speed = re.findall(r"[\d]*[.][\d]*", speed_field)
+        if len(speed) > 0:
+            return float(speed[0])
+        return None
+
+    @staticmethod
+    def _is_fishing(navigation_status: str) -> bool:
+        return "fishing" in navigation_status.lower()
+
+    @staticmethod
+    def _is_at_port(current_port: str) -> bool:
+        return "-" not in current_port

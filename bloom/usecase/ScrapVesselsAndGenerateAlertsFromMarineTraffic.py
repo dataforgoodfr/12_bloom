@@ -1,8 +1,8 @@
 from bloom.domain.rules import execute_rule_low_speed
-from bloom.domain.vessel import VesselPositionMarineTraffic
-from bloom.infra.file_repository_polygons import PolygonFileRepository
-from bloom.infra.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repository_vessel import VesselRepository
+from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
+from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
+from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
+from bloom.infra.repositories.file_repository_vessel import VesselRepository
 
 
 class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
@@ -12,10 +12,10 @@ class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
         polygon_repository: PolygonFileRepository,
         scraper: MarineTrafficVesselScraper,
     ) -> None:
-        self.vessel_repository = vessel_repository
-        self.polygon_repository = polygon_repository
-        self.scraper = scraper
-        self.fishing_speed_limit = 2
+        self.vessel_repository: VesselRepository = vessel_repository
+        self.polygon_repository: PolygonFileRepository = polygon_repository
+        self.scraper: MarineTrafficVesselScraper = scraper
+        self.fishing_speed_limit: float = 2
 
     def generate_alerts_for_vessels_list(self) -> list[VesselPositionMarineTraffic]:
         vessels_list = self.scrap_vessels()
@@ -30,9 +30,11 @@ class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
         return alerts
 
     def scrap_vessels(self) -> list[VesselPositionMarineTraffic]:
-        vessels = self.vessel_repository.load_vessel_identifiers()
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
 
-        scrapped_vessels = self.scraper.scrap_vessels(vessels)
+        scrapped_vessels: list[
+            VesselPositionMarineTraffic
+        ] = self.scraper.scrap_vessels(vessels)
 
-        self.vessel_repository.save_vessels(scrapped_vessels)
+        self.vessel_repository.save_vessels_positions(scrapped_vessels)
         return scrapped_vessels

@@ -21,9 +21,13 @@ class VesselRepository(AbstractVessel):
 
         return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
 
-    def save_vessels_positions(self, vessels_positions_list: list[VesselPositionMarineTraffic]) -> None:
+    def save_vessels_positions(
+        self,
+        vessels_positions_list: list[VesselPositionMarineTraffic],
+    ) -> None:
         logger.info(
-            f"Saving vessels positions : {[vessel_position.IMO for vessel_position in vessels_positions_list]}",
+            f"Saving vessels positions : "
+            f"{[vessel_position.IMO for vessel_position in vessels_positions_list]}",
         )
         with Path.open(self.results_path, "a") as write_obj:
             headers = vessels_positions_list[0].__fields__.keys()

@@ -1,27 +1,32 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from uuid import UUID
 
 from pydantic import BaseModel, validator
 from shapely import Point
 
 
 class Vessel(BaseModel):
+    vessel_id: UUID
     ship_name: str | None
     IMO: str
     mmsi: str | None
-    
+
+
 class VesselPositionMarineTraffic(BaseModel):
     timestamp: datetime | None
     ship_name: str | None
+    current_port: str | None
     IMO: str
+    vessel_id: UUID
     mmsi: str | None
     last_position_time: datetime | None
-    fishing: bool | None
     at_port: bool | None
     position: Point | None
     status: str | None
     speed: float | None
     navigation_status: str | None
+    fishing: bool | None
 
     class Config:
         arbitrary_types_allowed = True
@@ -50,5 +55,8 @@ class AbstractVessel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def save_vessels_positions(self, vessels_positions_list: list[VesselPositionMarineTraffic]) -> None:
+    def save_vessels_positions(
+        self,
+        vessels_positions_list: list[VesselPositionMarineTraffic],
+    ) -> None:
         raise NotImplementedError

@@ -1,7 +1,7 @@
 from shapely import Point
 
 from bloom.domain.vessel import VesselPositionMarineTraffic
-from bloom.infra.file_repository_polygons import PolygonFileRepository
+from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
 from bloom.domain.rules import (
     execute_rule_low_speed,
     execute_rule_speed_in_five_and_seven,
@@ -9,6 +9,7 @@ from bloom.domain.rules import (
 )
 
 test_vessel = VesselPositionMarineTraffic(
+    vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",
@@ -21,6 +22,7 @@ test_vessel = VesselPositionMarineTraffic(
 
 
 test_vessel_rule_2 = VesselPositionMarineTraffic(
+    vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",
@@ -33,6 +35,7 @@ test_vessel_rule_2 = VesselPositionMarineTraffic(
 
 faulty_vessel_positions_list = [
     VesselPositionMarineTraffic(
+        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Faulty position vessel",
         IMO="8901913",
@@ -43,6 +46,7 @@ faulty_vessel_positions_list = [
         navigation_status="Moored",
     ),
     VesselPositionMarineTraffic(
+        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Faulty position vessel",
         IMO="8901913",
@@ -56,6 +60,7 @@ faulty_vessel_positions_list = [
 
 not_faulty_vessel_positions_list = [
     VesselPositionMarineTraffic(
+        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Not faulty position vessel",
         IMO="8901913",
@@ -66,6 +71,7 @@ not_faulty_vessel_positions_list = [
         navigation_status="Moored",
     ),
     VesselPositionMarineTraffic(
+        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Not faulty position vessel",
         IMO="8901913",

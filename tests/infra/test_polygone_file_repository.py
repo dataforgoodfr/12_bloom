@@ -1,6 +1,6 @@
 from shapely import Point, Polygon
 
-from bloom.infra.file_repository_polygons import PolygonFileRepository
+from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
 
 
 def test_is_point_in_polygon_returns_false_when_point_is_not_in_polygons_list():
