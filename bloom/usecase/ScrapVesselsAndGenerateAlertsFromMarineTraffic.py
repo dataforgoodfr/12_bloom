@@ -1,9 +1,8 @@
 from bloom.domain.rules import execute_rule_low_speed
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
-from bloom.infra.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
-
+from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
 class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
     def __init__(
         self,
@@ -34,6 +33,6 @@ class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
         scrapped_vessels: list[
             VesselPositionMarineTraffic
         ] = self.scraper.scrap_vessels(vessels)
-
+        
         self.vessel_repository.save_vessels_positions(scrapped_vessels)
         return scrapped_vessels

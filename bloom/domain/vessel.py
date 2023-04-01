@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from uuid import UUID
 
 from pydantic import BaseModel, validator
 from shapely import Point
@@ -29,6 +30,7 @@ class VesselPositionMarineTraffic(BaseModel):
     status: str | None
     speed: float | None
     navigation_status: str | None
+
     class Config:
         arbitrary_types_allowed = True
         json_encoders = {

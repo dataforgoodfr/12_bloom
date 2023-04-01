@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         + "/"
         + postgres_db
     )
-
+    
     srid: int = 4236
 
 

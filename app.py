@@ -5,9 +5,15 @@ based on a list of vessel. It can run in local mode, with a custom scheduler
 or scheduled outside of the app by a cronjob.
 """
 import argparse
+<<<<<<< HEAD
 
 from bloom.enums import ExecutionMode
 from bloom.logger import logger
+=======
+
+from logger import logger
+
+from bloom.enums import ExecutionMode
 from bloom.scheduler import PeriodicScheduler
 from container import UseCases
 
