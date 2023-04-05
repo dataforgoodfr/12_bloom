@@ -1,12 +1,12 @@
 FROM python:3.10-bullseye
 RUN apt-get update
 
-COPY bloom/ .
-COPY data/ .
+COPY bloom/ ./bloom/
+COPY data/ ./data/
 COPY app.py .
 
 # Install requirements package for python with poetry
-ENV POETRY_VERSION=1.3.1
+ENV POETRY_VERSION=1.4.0
 RUN pip install --user "poetry==$POETRY_VERSION"
 # Add the poetry binary files in the executable path
 ENV PATH="${PATH}:/root/.local/bin"
