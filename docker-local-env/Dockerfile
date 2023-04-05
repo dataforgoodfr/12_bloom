@@ -1,5 +1,7 @@
-FROM python:3.10-bullseye
+FROM python:3.10-slim
+
 RUN apt-get update
+RUN apt-get -y install wget
 
 # Define working directory
 WORKDIR /source_code

@@ -1,5 +1,6 @@
-FROM python:3.10-bullseye
+FROM python:3.10-slim
 RUN apt-get update
+RUN apt-get -y install wget
 
 COPY bloom/ ./bloom/
 COPY data/ ./data/
@@ -21,4 +22,4 @@ RUN rm /tmp/chrome.deb
 ENV CHROME_DRIVER_VERSION 109
 
 # Launch cron services
-ENTRYPOINT ["python3", "app.py"]
+ENTRYPOINT ["poetry","run","python3", "app.py"]
