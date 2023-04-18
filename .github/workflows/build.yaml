@@ -3,7 +3,7 @@ name: build & test app
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, mnicolle/GA_build_docker_image]
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -29,7 +29,7 @@ jobs:
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
+        username: RonanMorgan
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
