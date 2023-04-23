@@ -12,7 +12,8 @@ from undetected_chromedriver import Chrome, ChromeOptions
 from bloom.domain.vessel import Vessel
 
 logger = getLogger()
-CHROME_VERSION = os.getenv("CHROME_DRIVER_VERSION", 110)
+name_version_chrome = os.popen("/usr/bin/google-chrome --version").read().strip()
+CHROME_VERSION = int(name_version_chrome.split()[-1].split(".")[0])
 
 
 class Driver:

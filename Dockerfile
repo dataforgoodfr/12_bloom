@@ -14,12 +14,11 @@ ENV PATH="${PATH}:/root/.local/bin"
 COPY pyproject.toml poetry.lock ./
 RUN poetry install
 
-# Install chrome in a specific version 109
-ARG CHROME_VERSION="109.0.5414.119-1"
-RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-RUN apt-get install -y /tmp/chrome.deb
-RUN rm /tmp/chrome.deb
-ENV CHROME_DRIVER_VERSION 109
+# Install chrome in the latest version
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
+RUN rm -f google-chrome-stable_current_amd64.deb
+
 
 # Launch cron services
 ENTRYPOINT ["poetry","run","python3", "app.py"]
