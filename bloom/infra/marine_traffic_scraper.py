@@ -12,7 +12,7 @@ from undetected_chromedriver import Chrome, ChromeOptions
 from bloom.domain.vessel import Vessel
 
 logger = getLogger()
-version = os.popen("/usr/bin/google-chrome --version")  #nosec
+version = os.popen("/usr/bin/google-chrome --version")  # nosec
 version_chrome = version.read().strip().split()[-1]
 CHROME_VERSION = int(version_chrome.split(".")[0])
 
