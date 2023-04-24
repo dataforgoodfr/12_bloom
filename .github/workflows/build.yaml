@@ -3,7 +3,7 @@ name: build & test app
 on:
   pull_request:
   push:
-    branches: [main, mnicolle/GA_build_docker_image]
+    branches: [main, mnicolle/GA_build_docker_image] #try
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -30,7 +30,7 @@ jobs:
       with:
         registry: ghcr.io
         username: RonanMorgan
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.WRITE_PACKAGE_TOKEN }}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@v4
