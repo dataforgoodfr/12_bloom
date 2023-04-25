@@ -11,6 +11,8 @@ services:
     image: postgis/postgis:14-3.3-alpine
     ports:
       - 5480:5432
+    networks:
+        - bloom_net
     restart: unless-stopped
 
   pgadmin:
@@ -24,4 +26,10 @@ services:
         - ./pgadmin-servers.json:/pgadmin4/servers.json
       ports:
         - "${PGADMIN_PORT:-5080}:80"
+      networks:
+        - bloom_net
       restart: unless-stopped
+
+networks:
+  bloom_net:
+    name: bloom_net

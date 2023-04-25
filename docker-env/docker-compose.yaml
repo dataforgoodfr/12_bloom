@@ -7,8 +7,15 @@ services:
       dockerfile: ./docker-env/Dockerfile
     platform: "linux/amd64"
     image: bloom_scraper
+    networks:
+      - bloom_net
     #entrypoint: ["poetry","run","python3", "app.py"]
     volumes:
       - type: bind
         source: ..
         target: /source_code/
+
+networks:
+  bloom_net:
+    name: bloom_net
+    external: true

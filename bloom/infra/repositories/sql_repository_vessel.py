@@ -2,7 +2,7 @@ from contextlib import AbstractContextManager
 
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape
-from logger import logger
+from bloom.logger import logger
 
 from bloom.config import settings
 from bloom.domain.vessel import AbstractVessel, Vessel, VesselPositionMarineTraffic
