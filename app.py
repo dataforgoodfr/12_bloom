@@ -6,7 +6,7 @@ or scheduled outside of the app by a cronjob.
 """
 import argparse
 
-from logger import logger
+from bloom.logger import logger
 
 from bloom.enums import ExecutionMode
 from bloom.scheduler import PeriodicScheduler

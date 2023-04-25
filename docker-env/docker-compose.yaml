@@ -5,9 +5,9 @@ services:
     build:
       context: ../
       dockerfile: ./docker-env/Dockerfile
-      platform:
-        - "linux/amd64"
+    platform: "linux/amd64"
     image: bloom_scraper
+    entrypoint: ["poetry","run","python3", "app.py"]
     volumes:
       - type: volume
         source: persistentdata

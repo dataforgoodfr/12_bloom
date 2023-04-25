@@ -5,9 +5,12 @@ RUN apt-get -y install wget
 
 # Define working directory
 WORKDIR /source_code
+COPY bloom/ ./bloom/
+COPY data/ ./data/
+COPY app.py .
 
 # Install requirements package for python with poetry
-ENV POETRY_VERSION=1.3.1
+ENV POETRY_VERSION=1.4.0
 RUN pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
 COPY pyproject.toml poetry.lock ./
