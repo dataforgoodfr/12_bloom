@@ -1,4 +1,5 @@
 version: "3.7"
+name: test
 services:
   postgres:
     container_name: postgres_bloom
@@ -8,13 +9,9 @@ services:
       POSTGRES_PASSWORD: bloom
       POSTGRES_USER: bloom_user
     image: postgis/postgis:14-3.3-alpine
-    networks:
-      - bloom_net
     ports:
       - 5480:5432
     restart: unless-stopped
-    volumes:
-      - postgres_data:/var/lib/postgresql/data:rw
 
   pgadmin:
       container_name: pgadmin_bloom
@@ -23,22 +20,8 @@ services:
         PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-test@test.com}
         PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-test}
       volumes:
-        - pgadmin:/root/.pgadmin
         - ./pgpassfile:/pgadmin4/pgpassfile
         - ./pgadmin-servers.json:/pgadmin4/servers.json
       ports:
         - "${PGADMIN_PORT:-5080}:80"
-      networks:
-        - bloom_net
       restart: unless-stopped
-
-volumes:
-  postgres_data:
-    name: postgres_bloom_data
-  pgadmin:
-    name: pgadmin_bloom_data
-
-
-networks:
-  bloom_net:
-    name: bloom_net
