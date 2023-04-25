@@ -3,7 +3,7 @@ name: build & test app
 on:
   pull_request:
   push:
-    branches: [main, mnicolle/GA_build_docker_image] #try
+    branches: [main]
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -44,6 +44,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
+        file: ./docker-env/Dockerfile
         platforms: linux/amd64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
