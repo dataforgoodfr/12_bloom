@@ -340,6 +340,18 @@ files = [
 ]
 
 [[package]]
+name = "dependency-injection"
+version = "1.2.0"
+description = "This library defines a helper for building a dependency injection framework."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dependency_injection-1.2.0-py3-none-any.whl", hash = "sha256:10f8b2ef483a5a91e97144b0db9042270f218325e0a3d6cb78e3ad9cda7bcc79"},
+    {file = "dependency_injection-1.2.0.tar.gz", hash = "sha256:ff80737dd4aa50b25c41f32882c7391d2c435a3ccec119413e9b8d9e2a03e27f"},
+]
+
+[[package]]
 name = "dependency-injector"
 version = "4.41.0"
 description = "Dependency injection framework for Python"
@@ -1776,4 +1788,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "4e1f8653bb5ee83106c67bac6f0ff7fbe615594df843c079646639b9230824e3"
+content-hash = "6899c1021fe47100516d7f45a9cce32a00236eb5d410eac45aa404763b543f1f"

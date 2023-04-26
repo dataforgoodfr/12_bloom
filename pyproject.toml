@@ -24,7 +24,7 @@ alembic = "^1.10.2"
 geoalchemy2 = "^0.13.1"
 psycopg2-binary = "^2.9.6"
 dependency-injector = "^4.41.0"
-
+dependency_injection = "1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
