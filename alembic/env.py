@@ -21,7 +21,7 @@ target_metadata = None
 # can be acquired:
 # ... etc.
 
-db_url = os.getenv("DATABASE_URL")
+db_url = "postgresql://bloom_user:bloom@localhost:5480/bloom_db"
 
 config.set_main_option("sqlalchemy.url", db_url)
 
