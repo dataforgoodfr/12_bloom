@@ -8,11 +8,12 @@ Create Date: 2023-03-31 17:05:34.275315
 import uuid
 
 import sqlalchemy as sa
-from alembic import op
 from geoalchemy2 import Geometry
 
 # revision identifiers, used by Alembic.
 from sqlalchemy import Inspector
+
+from alembic import op
 
 revision = "e52b9542531c"
 down_revision = None
