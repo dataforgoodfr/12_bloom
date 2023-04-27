@@ -1,4 +1,3 @@
-import os
 import re
 from datetime import datetime, timezone
 from logging import getLogger
@@ -13,9 +12,6 @@ from undetected_chromedriver import Chrome, ChromeOptions
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 
 logger = getLogger()
-version = os.popen("/usr/bin/google-chrome --version")  # nosec
-version_chrome = version.read().strip().split()[-1]
-CHROME_VERSION = int(version_chrome.split(".")[0])
 
 
 class Driver:
@@ -26,11 +22,12 @@ class Driver:
             "--disable-extensions",
             "--disable-application-cache",
             "--disable-gpu",
-            "--headless=new",
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
-            "--headless",
+            "--start-maximized",
+            "--incognito",
+            "--headless=new",
         ]
         self._options = ChromeOptions()
 
@@ -38,9 +35,10 @@ class Driver:
             self._options.add_argument(arg)
 
     def __enter__(self) -> Chrome:
-        self._driver = Chrome(
-            options=self._options,
-            version_main=CHROME_VERSION,
+        self._driver = (
+            Chrome(
+                options=self._options,
+            ),
         )
         return self._driver
 

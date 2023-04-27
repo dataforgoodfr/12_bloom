@@ -20,8 +20,9 @@ RUN poetry install
 RUN apt-get install -y cron
 
 # Install chrome in the latest version
-RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
+ARG CHROME_VERSION="112.0.5615.165-1"
+RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+RUN apt-get install -y /tmp/chrome.deb
 RUN rm -f google-chrome-stable_current_amd64.deb
 
 # Create cron task inside container
@@ -32,7 +33,6 @@ RUN chmod 744 ./cron_scrapper
 RUN mv ./cron_scrapper /etc/cron.d/cron_scrapper
 
 # Run file
-ENV CHROME_DRIVER_VERSION 109
 RUN crontab /etc/cron.d/cron_scrapper
 
 # Launch cron services

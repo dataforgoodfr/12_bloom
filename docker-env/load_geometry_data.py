@@ -17,7 +17,7 @@ import geopandas as gpd
 from sqlalchemy import create_engine
 
 # The db url is configured with the db connexion variables declared in the db.yaml file.
-db_url = "postgresql://bloom_user:bloom@localhost:5480/bloom_db"
+db_url = "postgresql://bloom_user:bloom@postgres:5432/bloom_db"
 engine = create_engine(db_url, echo=False)
 gdf = gpd.read_file("data/Nonterrestrial_WDPA_Jan2023.shp")
 

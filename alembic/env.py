@@ -21,7 +21,8 @@ target_metadata = None
 # can be acquired:
 # ... etc.
 
-db_url = "postgresql://bloom_user:bloom@localhost:5480/bloom_db"
+db_url = "postgresql://bloom_user:bloom@postgres:5432/bloom_db"
+# not a proper solution : how to make it works for both local & docker ?
 
 config.set_main_option("sqlalchemy.url", db_url)
 
