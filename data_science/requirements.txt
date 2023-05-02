@@ -3,3 +3,5 @@ matplotlib
 geopandas
 shapely
 folium
+azure-storage-blob
+vincenty
