@@ -1,5 +1,7 @@
 from contextlib import AbstractContextManager
+from pathlib import Path
 
+import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape
 
@@ -9,12 +11,13 @@ from bloom.infra.database import sql_model
 from bloom.logger import logger
 
 
-class SqlRepositoryVessel(AbstractVessel):
+class RepositoryVessel(AbstractVessel):
     def __init__(
         self,
         session_factory: Callable,
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
+        self.vessels_path = Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.xlsx")
 
     def load_vessel_identifiers(self) -> list[Vessel]:
         with self.session_factory() as session:
@@ -22,6 +25,12 @@ class SqlRepositoryVessel(AbstractVessel):
             if not e:
                 return []
             return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
+
+    def load_vessel_identifiers_from_file(self) -> list[Vessel]:
+        df = pd.read_excel(self.vessels_path, engine="openpyxl")
+        vessel_identifiers_list = df["IMO"].tolist()
+
+        return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
 
     def save_vessels_positions(
         self,
