@@ -1,5 +1,4 @@
 version: "3.7"
-name: test
 services:
   postgres:
     container_name: postgres_bloom

@@ -35,10 +35,8 @@ class Driver:
             self._options.add_argument(arg)
 
     def __enter__(self) -> Chrome:
-        self._driver = (
-            Chrome(
-                options=self._options,
-            ),
+        self._driver = Chrome(
+            options=self._options,
         )
         return self._driver
 
