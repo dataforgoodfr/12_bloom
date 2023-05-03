@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repositories.sql_repository_vessel import SqlRepositoryVessel
+from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.usecase.ScrapVesselsFromMarineTraffic import ScrapVesselsFromMarineTraffic
 
 
@@ -16,7 +16,7 @@ class UseCases(containers.DeclarativeContainer):
     )
 
     vessel_repository = providers.Factory(
-        SqlRepositoryVessel,
+        RepositoryVessel,
         session_factory=db.provided.session,
     )
 
