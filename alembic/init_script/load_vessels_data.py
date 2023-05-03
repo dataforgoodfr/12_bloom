@@ -10,4 +10,8 @@ df = pd.read_csv(
     Path.joinpath(Path.cwd(), "../../data/chalutiers_pelagiques.csv"),
     sep=";",
 )
+
+df = df.drop(columns='comment')
+df["loa"] = pd.to_numeric(df["loa"])
+
 df.to_sql("vessels", engine, if_exists="append", index=False)
