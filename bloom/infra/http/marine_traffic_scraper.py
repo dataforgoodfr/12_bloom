@@ -1,4 +1,5 @@
 import re
+import os
 from datetime import datetime, timezone
 from logging import getLogger
 from time import sleep
@@ -12,7 +13,9 @@ from undetected_chromedriver import Chrome, ChromeOptions
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 
 logger = getLogger()
-
+version = os.popen("google-chrome --version")  # nosec
+version_chrome = version.read().strip().split()[-1]
+CHROME_VERSION = int(version_chrome.split(".")[0])
 
 class Driver:
     def __init__(
@@ -37,6 +40,7 @@ class Driver:
     def __enter__(self) -> Chrome:
         self._driver = Chrome(
             options=self._options,
+            version_main=CHROME_VERSION,
         )
         return self._driver
 

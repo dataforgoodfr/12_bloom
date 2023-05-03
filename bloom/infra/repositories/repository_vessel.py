@@ -27,9 +27,8 @@ class RepositoryVessel(AbstractVessel):
             return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
 
     def load_vessel_identifiers_from_file(self) -> list[Vessel]:
-        df = pd.read_csv(self.vessels_path, skiprows=0)
+        df = pd.read_csv(self.vessels_path, sep=';')
         vessel_identifiers_list = df["IMO"].tolist()
-
         return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
 
     def save_vessels_positions(
