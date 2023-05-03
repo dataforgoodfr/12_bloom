@@ -8,7 +8,7 @@ from shapely import Point
 class Vessel(BaseModel):
     vessel_id: int
     ship_name: str | None
-    IMO: str
+    IMO: str | None
     mmsi: str | None
 
 
@@ -16,7 +16,7 @@ class VesselPositionMarineTraffic(BaseModel):
     timestamp: datetime | None
     ship_name: str | None
     current_port: str | None
-    IMO: str
+    IMO: str | None
     vessel_id: int
     mmsi: str | None
     last_position_time: datetime | None
