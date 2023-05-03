@@ -1,6 +1,7 @@
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
+from bloom.logger import logger
 
 
 class ScrapVesselsFromMarineTraffic:
@@ -15,12 +16,18 @@ class ScrapVesselsFromMarineTraffic:
     def scrap_vessels(self) -> None:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
 
-        for chunk in self.batch(vessels, 10):
+        for chunk in self.batch(vessels, 200):
+            logger.info(
+                "Start to scrap chunk",
+            )
             scrapped_vessels: list[
                 VesselPositionMarineTraffic
             ] = self.scraper.scrap_vessels(chunk)
 
-        self.vessel_repository.save_vessels_positions(scrapped_vessels)
+            logger.info(
+                "Start to save chunk",
+            )
+            self.vessel_repository.save_vessels_positions(scrapped_vessels)
 
     def batch(iterable, n=1):  # noqa: ANN201 ANN001
         length = len(iterable)
