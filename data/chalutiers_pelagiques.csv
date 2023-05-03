@@ -1,4 +1,4 @@
-country_iso3;cfr;IMO;registration_number;external_marking;vessel_name;ircs;mmsi;loa;type;comment
+country_iso3;cfr;IMO;registration_number;external_marking;ship_name;ircs;mmsi;loa;type;comment
 PRT;PRT000021024;8687012;PTHOR-116852-C;PTHOR-116852-C;PESCA ATUM;CUTA2;204201240;26,6;>25m;
 PRT;PRT000021038;9205029;PD-561-C;PD-561-C;AGRIAO;CUTZ5;204201360;29,46;>25m;
 PRT;PRT000021039;9207223;PTHOR-116851-C;PTHOR-116851-C;MESTRE AFONSO;CUTM7;204201560;25,4;>25m;
