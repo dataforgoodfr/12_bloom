@@ -15,8 +15,14 @@ class ScrapVesselsFromMarineTraffic:
     def scrap_vessels(self) -> None:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
 
-        scrapped_vessels: list[
-            VesselPositionMarineTraffic
-        ] = self.scraper.scrap_vessels(vessels)
+        for chunk in self.batch(vessels, 10):
+            scrapped_vessels: list[
+                VesselPositionMarineTraffic
+            ] = self.scraper.scrap_vessels(chunk)
 
         self.vessel_repository.save_vessels_positions(scrapped_vessels)
+
+    def batch(iterable, n=1):  # noqa: ANN201 ANN001
+        length = len(iterable)
+        for ndx in range(0, length, n):
+            yield iterable[ndx : min(ndx + n, length)]
