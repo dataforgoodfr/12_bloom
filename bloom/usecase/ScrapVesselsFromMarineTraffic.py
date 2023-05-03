@@ -13,9 +13,7 @@ class ScrapVesselsFromMarineTraffic:
         self.scraper: MarineTrafficVesselScraper = scraper
 
     def scrap_vessels(self) -> None:
-        vessels: list[
-            Vessel
-        ] = self.vessel_repository.load_vessel_identifiers_from_file()
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
 
         scrapped_vessels: list[
             VesselPositionMarineTraffic
