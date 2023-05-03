@@ -29,7 +29,7 @@ class ScrapVesselsFromMarineTraffic:
             )
             self.vessel_repository.save_vessels_positions(scrapped_vessels)
 
-    def batch(iterable, n=1):  # noqa: ANN201 ANN001
+    def batch(self, iterable, n=1):  # noqa: ANN201 ANN001
         length = len(iterable)
         for ndx in range(0, length, n):
             yield iterable[ndx : min(ndx + n, length)]
