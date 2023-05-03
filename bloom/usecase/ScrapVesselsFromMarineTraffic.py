@@ -1,6 +1,6 @@
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repositories.sql_repository_vessel import RepositoryVessel
+from bloom.infra.repositories.repository_vessel import RepositoryVessel
 
 
 class ScrapVesselsFromMarineTraffic:

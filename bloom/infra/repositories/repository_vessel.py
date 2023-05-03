@@ -17,7 +17,7 @@ class RepositoryVessel(AbstractVessel):
         session_factory: Callable,
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
-        self.vessels_path = Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.xlsx")
+        self.vessels_path = Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.csv")
 
     def load_vessel_identifiers(self) -> list[Vessel]:
         with self.session_factory() as session:
@@ -27,7 +27,7 @@ class RepositoryVessel(AbstractVessel):
             return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
 
     def load_vessel_identifiers_from_file(self) -> list[Vessel]:
-        df = pd.read_csv(self.vessels_path, skiprowslist=0)
+        df = pd.read_csv(self.vessels_path, skiprows=0)
         vessel_identifiers_list = df["IMO"].tolist()
 
         return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
