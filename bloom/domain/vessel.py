@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from uuid import UUID
 
 from pydantic import BaseModel, validator
 from shapely import Point
 
 
 class Vessel(BaseModel):
-    vessel_id: UUID
+    vessel_id: int
     ship_name: str | None
     IMO: str
     mmsi: str | None
@@ -18,7 +17,7 @@ class VesselPositionMarineTraffic(BaseModel):
     ship_name: str | None
     current_port: str | None
     IMO: str
-    vessel_id: UUID
+    vessel_id: int
     mmsi: str | None
     last_position_time: datetime | None
     at_port: bool | None
