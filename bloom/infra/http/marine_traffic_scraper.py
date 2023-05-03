@@ -1,5 +1,5 @@
-import re
 import os
+import re
 from datetime import datetime, timezone
 from logging import getLogger
 from time import sleep
@@ -16,6 +16,7 @@ logger = getLogger()
 version = os.popen("google-chrome --version")  # nosec
 version_chrome = version.read().strip().split()[-1]
 CHROME_VERSION = int(version_chrome.split(".")[0])
+
 
 class Driver:
     def __init__(
