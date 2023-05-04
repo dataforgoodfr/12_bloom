@@ -2,7 +2,6 @@ import os
 import re
 from datetime import datetime, timezone
 from logging import getLogger
-from time import sleep
 
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
