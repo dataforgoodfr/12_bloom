@@ -94,7 +94,7 @@ def upgrade() -> None:
         sa.Column("mmsi", sa.String),
         sa.Column("loa", sa.Float),
         sa.Column("type", sa.String),
-        sa.Column("MT_ACTIVATED", sa.Boolean),
+        sa.Column("mt_activated", sa.Boolean),
         keep_existing=False,
     )
 
