@@ -22,7 +22,7 @@ class RepositoryVessel(AbstractVessel):
     def load_vessel_identifiers(self) -> list[Vessel]:
         with self.session_factory() as session:
             e = session.query(sql_model.Vessel).filter(
-                sql_model.Vessel.mt_activated is True,
+                sql_model.Vessel.mt_activated == True,
             )
             if not e:
                 return []
