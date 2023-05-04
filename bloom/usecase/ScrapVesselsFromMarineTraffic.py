@@ -16,7 +16,7 @@ class ScrapVesselsFromMarineTraffic:
     def scrap_vessels(self) -> None:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
 
-        for chunk in self.batch(vessels, 200):
+        for chunk in self.batch(vessels, 10):
             logger.info(
                 "Start to scrap chunk",
             )

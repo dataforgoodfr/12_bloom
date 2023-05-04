@@ -72,10 +72,8 @@ class MarineTrafficVesselScraper:
                 vessel_url = f"{self.base_url}{vessel.IMO}"
                 driver.get(vessel_url)
 
-                sleep(2)  # wait for the page to load
-
                 try:
-                    WebDriverWait(driver, 5).until(
+                    WebDriverWait(driver, 4).until(
                         lambda d: d.find_element(By.CLASS_NAME, "ag-body"),
                     )
                     record = driver.find_element(By.CLASS_NAME, "ag-body")
@@ -90,10 +88,10 @@ class MarineTrafficVesselScraper:
                             f"IMO {vessel.IMO}  too many values : {len(record_fields)}",
                         )
                         break
-                    if record_fields[3] != vessel.IMO:
+                    if record_fields[2] != vessel.IMO:
                         logger.warning(
                             "IMO has changed: "
-                            f"new value {record_fields[1]} vs old value {vessel.IMO}",
+                            f"new value {record_fields[2]} vs old value {vessel.IMO}",
                         )
                     if record_fields[5] == "-" or record_fields[6] == "-":
                         logger.warning(
@@ -106,9 +104,6 @@ class MarineTrafficVesselScraper:
                         f"Scrapping failed for vessel {vessel.IMO}, "
                         f"with exception {WebDriverException.__name__}",
                     )
-                    # vessels_list.append(
-                    #    VesselPositionMarineTraffic(
-                    #    ),
                 else:
                     logger.warning(
                         f"Scrapping {record_fields[2]}",
