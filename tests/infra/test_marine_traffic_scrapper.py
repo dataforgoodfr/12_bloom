@@ -9,7 +9,7 @@ vessel_imo = 9175834
 test_vessels = [
     Vessel(
         IMO=vessel_imo,
-        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+        vessel_id="10",
     )
 ]
 

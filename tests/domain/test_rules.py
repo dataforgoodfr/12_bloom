@@ -9,7 +9,7 @@ from bloom.domain.rules import (
 )
 
 test_vessel = VesselPositionMarineTraffic(
-    vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+    vessel_id="12",
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",

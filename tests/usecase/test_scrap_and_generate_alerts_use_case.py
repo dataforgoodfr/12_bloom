@@ -5,7 +5,7 @@ from shapely import Point
 from bloom.domain.vessel import VesselPositionMarineTraffic
 from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repositories.file_repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_vessel import VesselRepository
 from bloom.usecase.ScrapVesselsAndGenerateAlertsFromMarineTraffic import (
     ScrapVesselsAndGenerateAlertsFromMarineTraffic,
 )
