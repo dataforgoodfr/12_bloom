@@ -1,14 +1,14 @@
 import uuid
 
 from geoalchemy2 import Geometry
-from sqlalchemy import UUID, Boolean, Column, DateTime, Float, String
+from sqlalchemy import UUID, Boolean, Column, DateTime, Float, Integer, String
 
 from bloom.infra.database.database_manager import Base
 
 
 class Vessel(Base):
     __tablename__ = "vessels"
-    id = Column("id", int, primary_key=True, index=True)
+    id = Column("id", Integer, primary_key=True, index=True)
     country_iso3 = Column(String)
     cfr = Column(String)
     IMO = Column(String, index=True, nullable=False)
@@ -33,7 +33,7 @@ class VesselPositionMarineTraffic(Base):
     timestamp = Column("timestamp", DateTime)
     ship_name = Column("ship_name", String)
     IMO = Column("IMO", String, index=True, nullable=False)
-    vessel_id = Column("vessel_id", int, index=True)
+    vessel_id = Column("vessel_id", Integer, index=True)
     mmsi = Column("mmsi", String)
     last_position_time = Column("last_position_time", DateTime)
     fishing = Column("fishing", Boolean)
