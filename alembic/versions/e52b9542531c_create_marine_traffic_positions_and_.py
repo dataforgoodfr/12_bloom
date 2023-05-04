@@ -36,7 +36,7 @@ def upgrade() -> None:
         sa.Column("timestamp", sa.DateTime),
         sa.Column("ship_name", sa.String),
         sa.Column("IMO", sa.String, index=True),
-        sa.Column("vessel_id", sa.Integer, index=True, nullable=False, unique=True),
+        sa.Column("vessel_id", sa.Integer, index=True, nullable=False),
         sa.Column("mmsi", sa.String),
         sa.Column("last_position_time", sa.DateTime),
         sa.Column("fishing", sa.Boolean),
