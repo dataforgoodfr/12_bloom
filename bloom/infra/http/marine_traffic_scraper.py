@@ -100,14 +100,9 @@ class MarineTrafficVesselScraper:
                         f"Scrapping failed for vessel {vessel.IMO}, "
                         f"with exception {WebDriverException.__name__}",
                     )
-                    vessels_list.append(
-                        VesselPositionMarineTraffic(
-                            vessel_id=vessel.vessel_id,
-                            ship_name=vessel.ship_name,
-                            timestamp=crawling_timestamp,
-                            IMO=vessel.IMO,
-                        ),
-                    )
+                    # vessels_list.append(
+                    #    VesselPositionMarineTraffic(
+                    #    ),
                 else:
                     logger.warning(
                         f"Scrapping {record_fields[2]}",
