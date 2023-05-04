@@ -19,6 +19,7 @@ class Vessel(Base):
     mmsi = Column(String)
     loa = Column(Float)
     type = Column(String)
+    mt_activated = Column(Boolean)
 
 
 class VesselPositionMarineTraffic(Base):

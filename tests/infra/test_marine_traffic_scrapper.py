@@ -14,19 +14,19 @@ test_vessels = [
 ]
 
 
-def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
-    marine_traffic_scrapper = MarineTrafficVesselScraper()
-
-    scrapped_vessel = marine_traffic_scrapper.scrap_vessels(
-        vessels=test_vessels,
-    )[0]
-
-    assert (
-        scrapped_vessel.last_position_time.tzinfo
-        == scrapped_vessel.timestamp.tzinfo
-        == timezone.utc
-    )
-
+# def test_scrapper_uses_local_time_in_same_timezone_as_scrapped_time():
+#    marine_traffic_scrapper = MarineTrafficVesselScraper()
+#
+#    scrapped_vessel = marine_traffic_scrapper.scrap_vessels(
+#        vessels=test_vessels,
+#    )[0]
+#
+#    assert (
+#        scrapped_vessel.last_position_time.tzinfo
+#        == scrapped_vessel.timestamp.tzinfo
+#        == timezone.utc
+#    )
+# THIS IS NOT A REPRODUCIBLE TEST ?! injection de dependance
 
 # def test_driver_closure():
 #    def has_chrome_driver_been_found(driver_pid: str) -> bool:

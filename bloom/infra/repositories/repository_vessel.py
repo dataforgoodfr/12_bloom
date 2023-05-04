@@ -21,7 +21,9 @@ class RepositoryVessel(AbstractVessel):
 
     def load_vessel_identifiers(self) -> list[Vessel]:
         with self.session_factory() as session:
-            e = session.query(sql_model.Vessel).all()
+            e = session.query(sql_model.Vessel).filter(
+                sql_model.Vessel.mt_activated is True,
+            )
             if not e:
                 return []
             return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
