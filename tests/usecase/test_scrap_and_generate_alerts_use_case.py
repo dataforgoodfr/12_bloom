@@ -5,13 +5,13 @@ from shapely import Point
 from bloom.domain.vessel import VesselPositionMarineTraffic
 from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repositories.repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.usecase.ScrapVesselsAndGenerateAlertsFromMarineTraffic import (
     ScrapVesselsAndGenerateAlertsFromMarineTraffic,
 )
 
 test_vessel = VesselPositionMarineTraffic(
-    vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+    vessel_id="32",
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",

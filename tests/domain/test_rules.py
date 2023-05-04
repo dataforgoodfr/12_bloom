@@ -22,7 +22,7 @@ test_vessel = VesselPositionMarineTraffic(
 
 
 test_vessel_rule_2 = VesselPositionMarineTraffic(
-    vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+    vessel_id="13",
     timestamp="2023-03-12 12:31 UTC",
     ship_name="ZEELAND",
     IMO="8901913",
@@ -35,7 +35,7 @@ test_vessel_rule_2 = VesselPositionMarineTraffic(
 
 faulty_vessel_positions_list = [
     VesselPositionMarineTraffic(
-        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+        vessel_id="14",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Faulty position vessel",
         IMO="8901913",
@@ -46,7 +46,7 @@ faulty_vessel_positions_list = [
         navigation_status="Moored",
     ),
     VesselPositionMarineTraffic(
-        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+        vessel_id="15",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Faulty position vessel",
         IMO="8901913",
@@ -60,7 +60,7 @@ faulty_vessel_positions_list = [
 
 not_faulty_vessel_positions_list = [
     VesselPositionMarineTraffic(
-        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+        vessel_id="16",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Not faulty position vessel",
         IMO="8901913",
@@ -71,7 +71,7 @@ not_faulty_vessel_positions_list = [
         navigation_status="Moored",
     ),
     VesselPositionMarineTraffic(
-        vessel_id="d13627f8-dccd-446f-a80b-8c81b7e061a7",
+        vessel_id="17",
         timestamp="2023-03-12 12:31 UTC",
         ship_name="Not faulty position vessel",
         IMO="8901913",
