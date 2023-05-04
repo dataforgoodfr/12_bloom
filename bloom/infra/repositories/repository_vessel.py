@@ -22,7 +22,8 @@ class RepositoryVessel(AbstractVessel):
     def load_vessel_identifiers(self) -> list[Vessel]:
         with self.session_factory() as session:
             e = session.query(sql_model.Vessel).filter(
-                sql_model.Vessel.mt_activated == True,
+                sql_model.Vessel.mt_activated == True,  # noqa: E712
+                # sqlAlchemy doesn't tolerate is True
             )
             if not e:
                 return []
