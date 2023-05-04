@@ -16,6 +16,7 @@ logger = getLogger()
 version = os.popen("google-chrome --version")  # nosec
 version_chrome = version.read().strip().split()[-1]
 CHROME_VERSION = int(version_chrome.split(".")[0])
+NUMBER_OF_SCRAPED_VALUES = 10
 
 
 class Driver:
@@ -84,6 +85,11 @@ class MarineTrafficVesselScraper:
                             f"IMO {vessel.IMO} not avaiable on MarineTraffic",
                         )
                         continue
+                    if len(record_fields) > NUMBER_OF_SCRAPED_VALUES:
+                        logger.warning(
+                            f"IMO {vessel.IMO}  too many values : {len(record_fields)}",
+                        )
+                        break
                     if record_fields[3] != vessel.IMO:
                         logger.warning(
                             "IMO has changed: "
