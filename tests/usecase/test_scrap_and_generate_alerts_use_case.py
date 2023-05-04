@@ -24,7 +24,7 @@ test_vessel = VesselPositionMarineTraffic(
 
 
 def test_generate_alerts_for_vessels_list_adds_single_alert_for_vessel():
-    vessel_repository = mock.Mock(spec=VesselRepository)
+    vessel_repository = mock.Mock(spec=RepositoryVessel)
     vessel_repository.load_vessel_identifiers.return_value = ["8901913"]
     vessel_scrapper = mock.Mock(spec=MarineTrafficVesselScraper)
     vessel_scrapper.scrap_vessels.return_value = [test_vessel]
