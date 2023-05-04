@@ -2,28 +2,36 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, validator
+from shapely import Point
 
 
 class Vessel(BaseModel):
+    vessel_id: int
+    ship_name: str | None
+    IMO: str | None
+    mmsi: str | None
+
+
+class VesselPositionMarineTraffic(BaseModel):
     timestamp: datetime | None
     ship_name: str | None
-    IMO: str
+    current_port: str | None
+    IMO: str | None
+    vessel_id: int
+    mmsi: str | None
     last_position_time: datetime | None
-    latitude: float | None
-    longitude: float | None
+    at_port: bool | None
+    position: Point | None
     status: str | None
     speed: float | None
     navigation_status: str | None
+    fishing: bool | None
 
-    def to_list(self) -> list:
-        return [
-            self.timestamp,
-            self.ship_name,
-            self.IMO,
-            self.last_position_time,
-            self.latitude,
-            self.longitude,
-        ]
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {
+            Point: lambda v: (v.x, v.y),
+        }
 
     @validator("timestamp", pre=True)
     def format_timestamp(cls, value: str) -> datetime:
@@ -39,12 +47,6 @@ class Vessel(BaseModel):
             )
         return None
 
-    @validator("latitude", "longitude", pre=True)
-    def format_coordinates(cls, value: str) -> float | None:
-        if isinstance(value, str):
-            return float(value)
-        return None
-
 
 class AbstractVessel(ABC):
     @abstractmethod
@@ -52,5 +54,8 @@ class AbstractVessel(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def save_vessels(self, vessels_list: list[Vessel]) -> None:
+    def save_vessels_positions(
+        self,
+        vessels_positions_list: list[VesselPositionMarineTraffic],
+    ) -> None:
         raise NotImplementedError

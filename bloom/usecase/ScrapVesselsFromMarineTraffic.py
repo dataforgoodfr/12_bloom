@@ -1,22 +1,35 @@
-from bloom.infra.marine_traffic_scraper import Driver, MarineTrafficVesselScraper
-from bloom.infra.repository_vessel import VesselRepository
+from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
+from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
+from bloom.infra.repositories.repository_vessel import RepositoryVessel
+from bloom.logger import logger
 
 
 class ScrapVesselsFromMarineTraffic:
     def __init__(
         self,
-        vessel_repository: VesselRepository,
+        vessel_repository: RepositoryVessel,
         scraper: MarineTrafficVesselScraper,
     ) -> None:
-        self.vessel_repository = vessel_repository
-        self.scraper = scraper
+        self.vessel_repository: RepositoryVessel = vessel_repository
+        self.scraper: MarineTrafficVesselScraper = scraper
 
     def scrap_vessels(self) -> None:
-        vessels = self.vessel_repository.load_vessel_identifiers()
-        scrapped_vessels = []
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
 
-        with Driver() as driver:
-            for vessel in vessels:
-                scrapped_vessels.append(self.scraper.scrap_vessel(driver, vessel))
+        for chunk in self.batch(vessels, 10):
+            logger.info(
+                "Start to scrap chunk",
+            )
+            scrapped_vessels: list[
+                VesselPositionMarineTraffic
+            ] = self.scraper.scrap_vessels(chunk)
 
-        self.vessel_repository.save_vessels(scrapped_vessels)
+            logger.info(
+                "Start to save chunk",
+            )
+            self.vessel_repository.save_vessels_positions(scrapped_vessels)
+
+    def batch(self, iterable, n=1):  # noqa: ANN201 ANN001
+        length = len(iterable)
+        for ndx in range(0, length, n):
+            yield iterable[ndx : min(ndx + n, length)]

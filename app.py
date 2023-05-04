@@ -5,23 +5,13 @@ based on a list of vessel. It can run in local mode, with a custom scheduler
 or scheduled outside of the app by a cronjob.
 """
 import argparse
-from logging import getLogger
 
 from bloom.enums import ExecutionMode
-from bloom.infra.marine_traffic_scraper import MarineTrafficVesselScraper
-from bloom.infra.repository_vessel import VesselRepository
+from bloom.logger import logger
 from bloom.scheduler import PeriodicScheduler
-from bloom.usecase.ScrapVesselsFromMarineTraffic import ScrapVesselsFromMarineTraffic
+from container import UseCases
 
 SCRAP_INTERVAL = 15 * 60
-
-logger = getLogger()
-
-
-def scrap_vessels_with_marine_traffic() -> None:
-    vessels_repository = VesselRepository()
-    scraper = MarineTrafficVesselScraper()
-    ScrapVesselsFromMarineTraffic(vessels_repository, scraper).scrap_vessels()
 
 
 def main() -> None:
@@ -35,18 +25,20 @@ def main() -> None:
         default=ExecutionMode.CRONTAB,
     )
     args = parser.parse_args()
+    use_cases = UseCases()
+    marine_traffic_usecase = use_cases.scrap_marine_data_usecase()
     if args.mode == ExecutionMode.LOCAL:
         logger.info("Starting scraping with internal scheduler")
         scheduler = PeriodicScheduler(
-            function=scrap_vessels_with_marine_traffic,
+            function=marine_traffic_usecase.scrap_vessels,
             interval=SCRAP_INTERVAL,
         )
-        scrap_vessels_with_marine_traffic()
+        marine_traffic_usecase.scrap_vessels()
         while True:
             scheduler.start()
     else:
         logger.info("Starting scraping with external scheduler")
-        scrap_vessels_with_marine_traffic()
+        marine_traffic_usecase.scrap_vessels()
 
 
 if __name__ == "__main__":

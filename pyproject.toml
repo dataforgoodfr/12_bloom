@@ -10,18 +10,26 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-apscheduler = "3.9.1"
 autopep8 = "1.5.4"
 pandas = "1.4.4"
-selenium = "4.6.0"
+selenium = "4.8.3"
 undetected-chromedriver = "3.4.6"
 openpyxl = "^3.1.0"
 pydantic = "1.10.4"
 pyyaml = "6.0"
+shapely = "2.0.1"
+geopandas = "0.12.2"
+sqlalchemy = "2.0.7"
+alembic = "^1.10.2"
+geoalchemy2 = "^0.13.1"
+psycopg2-binary = "^2.9.6"
+dependency-injector = "^4.41.0"
+dependency_injection = "1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
 ruff = "^0.0.254"
+tox = "^4.4.8"
 
 [tool.ruff]
 select = [
@@ -50,13 +58,12 @@ select = [
     "SLF",
     "SIM",
     "TID",
-    "TCH",
     "TRY",
     "UP",
     "W",
     "YTT",
 ]
-ignore = ["ANN101", "ANN401", "N805"]
+ignore = ["A003", "ANN101", "ANN401", "N805", "N818"]
 
 fixable = [
     "A",
@@ -83,7 +90,6 @@ fixable = [
     "SLF",
     "SIM",
     "TID",
-    "TCH",
     "TRY",
     "UP",
     "W",
@@ -108,6 +114,7 @@ exclude = [
     "build",
     "dist",
     "venv",
+    "tests"
 ]
 
 line-length = 88
