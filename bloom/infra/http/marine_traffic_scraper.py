@@ -84,7 +84,7 @@ class MarineTrafficVesselScraper:
                             f"IMO {vessel.IMO} not avaiable on MarineTraffic",
                         )
                         continue
-                    if record_fields[2] != vessel.IMO:
+                    if record_fields[3] != vessel.IMO:
                         logger.warning(
                             "IMO has changed: "
                             f"new value {record_fields[1]} vs old value {vessel.IMO}",
