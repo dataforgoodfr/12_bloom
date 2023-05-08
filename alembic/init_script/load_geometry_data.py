@@ -12,12 +12,32 @@ using the db.yaml docker compose file.
 Once images are built and running, you can run the following
 python script from the root of the bloom project.
 """
+import logging
+import os
 
 import geopandas as gpd
 from sqlalchemy import create_engine
 
+logging.basicConfig()
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+
+postrges_user = os.environ.get("POSTGRES_USER")
+postrges_password = os.environ.get("POSTRGES_PASSWORD")
+postrges_hostname = os.environ.get("POSTGRES_HOSTNAME")
+postrges_db = os.environ.get("POSTGRES_DB")
+
+
 # The db url is configured with the db connexion variables declared in the db.yaml file.
-db_url = "postgresql://bloom_user:bloom@postgres:5432/bloom_db"
+db_url = (
+    "postgresql://"
+    + postrges_user
+    + ":"
+    + postrges_password
+    + "@"
+    + postrges_hostname
+    + ":5432/"
+    + postrges_db
+)
 engine = create_engine(db_url, echo=False)
 gdf = gpd.read_file("data/Nonterrestrial_WDPA_Jan2023.shp")
 
