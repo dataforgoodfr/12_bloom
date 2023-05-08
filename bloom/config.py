@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     postgres_password = os.environ.get("POSTGRES_PASSWORD")
     postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
     postgres_db = os.environ.get("POSTGRES_DB")
+    postgres_port = os.environ.get("POSTGRES_PORT")
 
     db_url = (
         "postgresql://"
@@ -17,7 +18,9 @@ class Settings(BaseSettings):
         + postgres_password
         + "@"
         + postgres_hostname
-        + ":5432/"
+        + ":"
+        + postgres_port
+        + "/"
         + postgres_db
     )
 

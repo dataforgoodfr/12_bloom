@@ -12,6 +12,7 @@ postgres_user = os.environ.get("POSTGRES_USER")
 postgres_password = os.environ.get("POSTGRES_PASSWORD")
 postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
 postgres_db = os.environ.get("POSTGRES_DB")
+postgres_port = os.environ.get("POSTGRES_PORT")
 
 # The db url is configured with the db connexion variables declared in the db.yaml file.
 db_url = (
@@ -21,7 +22,9 @@ db_url = (
     + postgres_password
     + "@"
     + postgres_hostname
-    + ":5432/"
+    + ":"
+    + postgres_port
+    + "/"
     + postgres_db
 )
 engine = create_engine(db_url)
