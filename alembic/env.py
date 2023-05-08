@@ -22,22 +22,21 @@ target_metadata = None
 # can be acquired:
 # ... etc.
 
-postrges_user = os.environ.get("POSTGRES_USER")
-postrges_password = os.environ.get("POSTRGES_PASSWORD")
-postrges_hostname = os.environ.get("POSTGRES_HOSTNAME")
-postrges_db = os.environ.get("POSTGRES_DB")
+postgres_user = os.environ.get("POSTGRES_USER")
+postgres_password = os.environ.get("POSTGRES_PASSWORD")
+postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
+postgres_db = os.environ.get("POSTGRES_DB")
 
 db_url = (
     "postgresql://"
-    + postrges_user
+    + postgres_user
     + ":"
-    + postrges_password
+    + postgres_password
     + "@"
-    + postrges_hostname
+    + postgres_hostname
     + ":5432/"
-    + postrges_db
+    + postgres_db
 )
-# not a proper solution : how to make it works for both local & docker ?
 
 config.set_main_option("sqlalchemy.url", db_url)
 
