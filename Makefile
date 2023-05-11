@@ -22,6 +22,9 @@ rm-db:
 	@docker-compose -f docker-env/docker-compose-db.yaml stop
 	@docker-compose -f docker-env/docker-compose-db.yaml rm
 
+rm-dev-env:
+	@docker rm blomm-test
+
 init-production:
 	$(BLOOM_PRODUCTION_DOCKER) --rm alembic upgrade head
 	$(BLOOM_PRODUCTION_DOCKER) --rm /venv/bin/python3 alembic/init_script/load_vessels_data.py

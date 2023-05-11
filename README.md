@@ -16,18 +16,27 @@ Launch the following command :
 
 Now, a postgresql db is available in your localhost, port 5480. And a pgadmin is available port 5080
 
+You can remove it thanks to this command:
+` make rm-db`
+
 ## Development environment
 
-Launch the following command to launch the development environment :
+Launch the development environment :
 ` make launch-dev-container`
 
-In order to use the development environment, you will need to do a ` docker ps` to find the container_id and do a scd command :
-` docker exec -ti DOCKER_ID /bin/bash`
+In order to acess the development environment :
+` docker exec -ti blomm-test /bin/bash`
 
 You know have a shell which can launch python command.
 
-A second option is to launch directly the app.py command thanks to this command :
-` launch-app`
+To delete the container:
+` make rm-dev-env`
+
+
+
+A second option is to launch directly the app.py command thanks to this command : (the container is automatically removed after)
+` make launch-app`
+
 
 ## About Database schema
 Don't be afraid to launch ` alembic upgrade head` in the root of the project in order to update the database schema to the last version.

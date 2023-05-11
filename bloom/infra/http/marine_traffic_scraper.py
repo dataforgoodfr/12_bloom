@@ -1,7 +1,6 @@
 import os
 import re
 from datetime import datetime, timezone
-from logging import getLogger
 
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
@@ -10,8 +9,8 @@ from shapely import Point
 from undetected_chromedriver import Chrome, ChromeOptions
 
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
+from bloom.logger import logger
 
-logger = getLogger()
 version = os.popen("google-chrome --version")  # nosec
 version_chrome = version.read().strip().split()[-1]
 CHROME_VERSION = int(version_chrome.split(".")[0])
