@@ -29,7 +29,7 @@ db_url = (
 )
 engine = create_engine(db_url)
 df = pd.read_csv(
-    Path.joinpath(Path.cwd(), "../../data/chalutiers_pelagiques.csv"),
+    Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.csv"),
     sep=";",
     dtype={"loa": float, "IMO": str},
 )
