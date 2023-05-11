@@ -85,7 +85,7 @@ def test_speed_field_is_correctly_parsed():
     assert extracted_speed_null == expected_speed_null
 
 
-#def test_scrapper_retrieves_expected_attributes():
+# def test_scrapper_retrieves_expected_attributes():
 #    scrapper = MarineTrafficVesselScraper()
 #    actual_vessel = scrapper.scrap_vessels(test_vessels)[0]
 #
