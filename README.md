@@ -9,6 +9,8 @@ You can develop locally using Poetry and your own database but you can also use 
 
 please note that every container use the .env.template file. You may want to modify it to access the dockrized db from you local python environment for exemple (using POSTGRES_HOSTNAME=localhost and POSTGRES_PORT=5480
 
+If you work with Mac m1, the containers may not work as expected
+
 ## Development Database
 
 Launch the following command :
