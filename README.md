@@ -11,6 +11,9 @@ please note that every container use the .env.template file. You may want to mod
 
 If you work with Mac m1, the containers may not work as expected
 
+## Poetry 
+
+
 ## Development Database
 
 Launch the following command :
@@ -49,7 +52,7 @@ Some initialisation files are also available in alembic/init_script
 The domain directory ...
 The infra directory ...
 
-## test & precommit hook
+## tests & precommit hook
 Please install the [precommit hook](https://pre-commit.com/) tool locally to avoid any issue with the CI/CD.
 
 You may also want to launch tests :
