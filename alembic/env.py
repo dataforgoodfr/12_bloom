@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -21,8 +22,24 @@ target_metadata = None
 # can be acquired:
 # ... etc.
 
-db_url = "postgresql://bloom_user:bloom@postgres:5432/bloom_db"
-# not a proper solution : how to make it works for both local & docker ?
+postgres_user = os.environ.get("POSTGRES_USER")
+postgres_password = os.environ.get("POSTGRES_PASSWORD")
+postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
+postgres_db = os.environ.get("POSTGRES_DB")
+postgres_port = os.environ.get("POSTGRES_PORT")
+
+db_url = (
+    "postgresql://"
+    + postgres_user
+    + ":"
+    + postgres_password
+    + "@"
+    + postgres_hostname
+    + ":"
+    + postgres_port
+    + "/"
+    + postgres_db
+)
 
 config.set_main_option("sqlalchemy.url", db_url)
 

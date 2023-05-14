@@ -2,22 +2,26 @@ FROM python:3.10-slim
 
 RUN apt-get update
 RUN apt-get -y install wget
+RUN apt-get install -y rsyslog
 
 # Define working directory
 WORKDIR /source_code
 COPY bloom/ ./bloom/
 COPY data/ ./data/
 COPY app.py .
+COPY docker-env/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
 ENV POETRY_VERSION=1.4.0
 RUN pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
 COPY pyproject.toml poetry.lock ./
+
+RUN python -m venv /venv
+ENV PATH=/venv/bin:$PATH \
+    VIRTUAL_ENV=/venv
 RUN poetry install
 
-# Install cron
-RUN apt-get install -y cron
 
 # Install chrome in the latest version
 ARG CHROME_VERSION="112.0.5615.165-1"
@@ -25,8 +29,16 @@ RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/
 RUN apt-get install -y /tmp/chrome.deb
 RUN rm -f google-chrome-stable_current_amd64.deb
 
+
+# Launch cron services
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y cron \
+    # Remove package lists for smaller image sizes
+    && rm -rf /var/lib/apt/lists/* \
+    && which cron \
+    && rm -rf /etc/cron.*/*
+
 # Create cron task inside container
-RUN echo '*/15 * * * * cd /source_code && /root/.local/bin/poetry run python3 app.py >> /data/cron_log.log 2>&1' >> ./cron_scrapper
+RUN echo '*/15 * * * *	/venv/bin/python3 /source_code/app.py 2>&1 | /usr/bin/logger -t bloom'  >> ./cron_scrapper
 RUN chmod 744 ./cron_scrapper
 
 # Move cron tab into the right directory
@@ -35,6 +47,11 @@ RUN mv ./cron_scrapper /etc/cron.d/cron_scrapper
 # Run file
 RUN crontab /etc/cron.d/cron_scrapper
 
-# Launch cron services
-ENTRYPOINT ["cron", "-f"]
+COPY docker-env/entrypoint.sh /entrypoint.sh
+RUN ["chmod", "+x", "/entrypoint.sh"]
 
+#ENTRYPOINT ["/entrypoint.sh"]
+# https://manpages.ubuntu.com/manpages/trusty/man8/cron.8.html
+# -f | Stay in foreground mode, don't daemonize.
+# -L loglevel | Tell  cron  what to log about jobs (errors are logged regardless of this value) as the sum of the following values:
+#CMD ["cron","-f", "-L", "2"]

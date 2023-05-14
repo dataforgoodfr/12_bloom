@@ -1,11 +1,29 @@
-from pydantic import BaseSettings, Field
+import os
+
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    db_url: str = Field(
-        "postgresql://bloom_user:bloom@postgres_bloom:5432/bloom_db",
-        env="DATABASE_URL",
+
+    postgres_user = os.environ.get("POSTGRES_USER")
+    postgres_password = os.environ.get("POSTGRES_PASSWORD")
+    postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
+    postgres_db = os.environ.get("POSTGRES_DB")
+    postgres_port = os.environ.get("POSTGRES_PORT")
+
+    db_url = (
+        "postgresql://"
+        + postgres_user
+        + ":"
+        + postgres_password
+        + "@"
+        + postgres_hostname
+        + ":"
+        + postgres_port
+        + "/"
+        + postgres_db
     )
+
     srid: int = 4236
 
 
