@@ -1,23 +1,21 @@
-from logging import getLogger
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
 from requests import exceptions
-from collections.abc import MutableMapping
 
 from bloom.domain.vessel import Vessel
 from bloom.infra.spire_api_paging import Paging
+from bloom.logger import logger
 
-logger = getLogger()
 
 class SpireService:
     def __init__(self) -> None:
         self.transport = RequestsHTTPTransport(
-            url='https://api.spire.com/graphql',
-            # headers={'Authorization': f"Bearer {os.getenv('SPIRE_TOKEN')}"},
-            headers={'Authorization': 'Bearer U2hWhOiuDfAiVo8g07IIkMdzrDZtPGps'},
+            url="https://api.spire.com/graphql",
+            headers={"Authorization": "Bearer U2hWhOiuDfAiVo8g07IIkMdzrDZtPGps"},
             verify=True,
             retries=3,
-            timeout=30)
+            timeout=30,
+        )
 
     def create_client(self):
         try:
@@ -26,13 +24,13 @@ class SpireService:
             logger.error(e)
             raise
         return client
-    
+
     def create_query_string(self, vessels: list[Vessel]):
         imo_list = [vessel["IMO"] for vessel in vessels]
-        gql_formatted_imo_list = '\n'.join(map(str, imo_list))
+        "\n".join(map(str, imo_list))
 
-        return f"""
-        query {{
+        return """
+        query {
             vessels(
                 imo: [
                     9175834
@@ -59,15 +57,15 @@ class SpireService:
                     9249568
                     8901913
                 ]
-            ) {{
-                pageInfo {{
+            ) {
+                pageInfo {
                     hasNextPage
                     endCursor
-                }}
-                nodes {{
+                }
+                nodes {
                     id
                     updateTimestamp
-                    staticData {{
+                    staticData {
                         aisClass
                         flag
                         name
@@ -79,16 +77,16 @@ class SpireService:
                         mmsi
                         imo
                         callsign
-                        dimensions {{
+                        dimensions {
                             a
                             b
                             c
                             d
                             width
                             length
-                        }}
-                    }}
-                    lastPositionUpdate {{
+                        }
+                    }
+                    lastPositionUpdate {
                         accuracy
                         collectionType
                         course
@@ -101,42 +99,42 @@ class SpireService:
                         speed
                         timestamp
                         updateTimestamp
-                    }}
-                    currentVoyage {{
+                    }
+                    currentVoyage {
                         destination
                         draught
                         eta
                         timestamp
                         updateTimestamp
-                    }}
-                }}
-            }}
-        }}
+                    }
+                }
+            }
+        }
         """
-    
+
     def get_raw_vessels(self, vessels: list[Vessel]):
         query_string = self.create_query_string(vessels)
         client = self.create_client()
         paging = Paging()
         hasNextPage: bool = False
         raw_vessels = []
-        
+
         while True:
-            try: 
-                response, hasNextPage = paging.page_and_get_response(client, query_string)
+            try:
+                response, hasNextPage = paging.page_and_get_response(
+                    client,
+                    query_string,
+                )
                 if response:
-                    raw_vessels += response.get('vessels', {}).get('nodes', [])
+                    raw_vessels += response.get("vessels", {}).get("nodes", [])
                     if not hasNextPage:
-                        break                
+                        break
             except BaseException as e:
                 logger.error(e)
                 raise
 
         return raw_vessels
 
-
-        
-    
     def get_vessels(self, vessels: list[Vessel]):
         raw_vessels = self.get_raw_vessels(vessels)
         formatted_vessels = self.format_raw_vessels(raw_vessels)
@@ -151,5 +149,5 @@ class SpireService:
 
         for raw_vessel in raw_vessels:
             vessels.append(self.format_raw_vessel(raw_vessel))
-        
+
         return vessels

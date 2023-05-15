@@ -1,14 +1,14 @@
-from logging import getLogger
 from gql import gql
 
-logger = getLogger()
+from bloom.logger import logger
 
-class Paging():
-    def __init__(self, response=None):
+
+class Paging:
+    def __init__(self, response=None) -> None:
         self._response = response
 
     def get_pageInfo_elements(self):
-        """ Gets the elements helpful for Paging
+        """Gets the elements helpful for Paging
         Returns:
             endCursor(str) - pageInfo.endCursor value
             hasNext(bool) - pageInfo.hasNext value
@@ -17,9 +17,9 @@ class Paging():
         if not response:
             logger.error("Did not get response, can't get paging information")
             raise Exception
-        pageInfo = response['vessels']['pageInfo']
-        endCursor: str = pageInfo['endCursor']
-        hasNextPage: bool = pageInfo['hasNextPage']
+        pageInfo = response["vessels"]["pageInfo"]
+        endCursor: str = pageInfo["endCursor"]
+        hasNextPage: bool = pageInfo["hasNextPage"]
         return endCursor, hasNextPage
 
     def _should_stop_paging(self):
@@ -37,14 +37,13 @@ class Paging():
         Args:
             client: gql client
             query: str query string
-            hasNextPage: bool optional - paging element, is there a next page -- NOT HERE
+            hasNextPage: bool optional - paging element, is there a next page - NOT HERE
         Returns:
             response: dict service response to query
             hasNextPage: bool paging element, is there a next page
         """
         if not self._response:
             try:
-                # print(query)
                 self._response = client.execute(gql(query))
             except BaseException as e:
                 logger.error(e)
@@ -59,24 +58,22 @@ class Paging():
             if endCursor:
                 insert_text = f',after: "{endCursor}" '
             else:
-                logger.info(f'Error no endCursor {endCursor}')
+                logger.info(f"Error no endCursor {endCursor}")
                 hasNextPage = False
                 return self._response, hasNextPage
             query = self.insert_into_query_header(query=query, insert_text=insert_text)
             try:
-                # print(query)
                 self._response = client.execute(gql(query))
             except BaseException as e:
                 logger.warning(e)
-                try: # Try again as there could be internal errors from time to time
-                    # print(query)
+                try:  # Try again as there could be internal errors from time to time
                     self._response = client.execute(gql(query))
                 except BaseException as e:
                     self._response = False
 
             return self._response, hasNextPage
-        
-    def insert_into_query_header(query, insert_text=''):
+
+    def insert_into_query_header(query, insert_text=""):
         """Insert text into query header
         Args:
             query(str) - query string
@@ -84,15 +81,14 @@ class Paging():
         Returns
             new_query(str) - text with insert
         """
-        if ')' in query:
-            loc = query.find(')')
+        if ")" in query:
+            loc = query.find(")")
             # remove the existing )
-            tmp: str = query.replace(')', '')
+            tmp: str = query.replace(")", "")
             # add paging elements where the ) once was .. + 1 for some spacing in case
             beginning: str = tmp[:loc]
             end: str = tmp[loc:]
-            new_query = beginning + ' ' + insert_text + ' ) ' + end
+            new_query = beginning + " " + insert_text + " ) " + end
         else:
             return query
         return new_query
-
