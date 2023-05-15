@@ -2,6 +2,7 @@ import uuid
 
 from geoalchemy2 import Geometry
 from sqlalchemy import UUID, Boolean, Column, DateTime, Float, Integer, String
+
 from bloom.infra.database.database_manager import Base
 
 

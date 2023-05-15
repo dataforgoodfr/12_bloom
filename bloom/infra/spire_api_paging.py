@@ -1,38 +1,45 @@
-from gql import gql
+from typing import Any
+
+from gql import Client, gql
 
 from bloom.logger import logger
 
 
 class Paging:
-    def __init__(self, response=None) -> None:
+    def __init__(self, response: dict[str, Any] = None) -> None:
         self._response = response
 
-    def get_pageInfo_elements(self):
+    def get_pageinfo_elements(self) -> tuple[str, bool]:
         """Gets the elements helpful for Paging
         Returns:
-            endCursor(str) - pageInfo.endCursor value
-            hasNext(bool) - pageInfo.hasNext value
+            endcursor(str) - pageinfo.endcursor value
+            hasnext(bool) - pageinfo.hasnext value
         """
         response = self._response
         if not response:
             logger.error("Did not get response, can't get paging information")
-            raise Exception
-        pageInfo = response["vessels"]["pageInfo"]
-        endCursor: str = pageInfo["endCursor"]
-        hasNextPage: bool = pageInfo["hasNextPage"]
-        return endCursor, hasNextPage
+            raise TypeError
+        pageinfo = response["vessels"]["pageInfo"]
+        endcursor: str = pageinfo["endCursor"]
+        hasnextpage: bool = pageinfo["hasNextPage"]
+        return endcursor, hasnextpage
 
-    def _should_stop_paging(self):
-        endCursor, hasNextPage = self.get_pageInfo_elements()
-        if endCursor and hasNextPage:
+    def _should_stop_paging(self) -> bool:
+        endcursor, hasnextpage = self.get_pageinfo_elements()
+        if endcursor and hasnextpage:
             return False
-        elif not hasNextPage or endCursor is None:
+        if not hasnextpage or endcursor is None:
             return True
+        return None
 
-    def get_response(self):
+    def get_response(self) -> dict[str, Any]:
         return self._response
 
-    def page_and_get_response(self, client, query):
+    def page_and_get_response(
+        self,
+        client: Client,
+        query: str,
+    ) -> tuple[dict[str, Any], bool]:
         """
         Args:
             client: gql client
@@ -45,35 +52,33 @@ class Paging:
         if not self._response:
             try:
                 self._response = client.execute(gql(query))
-            except BaseException as e:
-                logger.error(e)
+            except BaseException:
+                logger.exception("Execution of the query failed")
                 raise
 
         if self._should_stop_paging():
-            hasNextPage = False
-            return self._response, hasNextPage
+            return self._response
+        # there is more, so page
+        endcursor, hasnextpage = self.get_pageinfo_elements()
+        if endcursor:
+            insert_text = f',after: "{endcursor}" '
         else:
-            # there is more, so page
-            endCursor, hasNextPage = self.get_pageInfo_elements()
-            if endCursor:
-                insert_text = f',after: "{endCursor}" '
-            else:
-                logger.info(f"Error no endCursor {endCursor}")
-                hasNextPage = False
-                return self._response, hasNextPage
-            query = self.insert_into_query_header(query=query, insert_text=insert_text)
-            try:
+            logger.info(f"Error no endcursor {endcursor}")
+            hasnextpage = False
+            return self._response, hasnextpage
+        query = self.insert_into_query_header(query=query, insert_text=insert_text)
+        try:
+            self._response = client.execute(gql(query))
+        except BaseException as e:
+            logger.warning(e)
+            try:  # Try again as there could be internal errors from time to time
                 self._response = client.execute(gql(query))
             except BaseException as e:
-                logger.warning(e)
-                try:  # Try again as there could be internal errors from time to time
-                    self._response = client.execute(gql(query))
-                except BaseException as e:
-                    self._response = False
+                self._response = False
 
-            return self._response, hasNextPage
+        return self._response, hasnextpage
 
-    def insert_into_query_header(query, insert_text=""):
+    def insert_into_query_header(query, insert_text: str = "") -> str:
         """Insert text into query header
         Args:
             query(str) - query string
@@ -88,7 +93,5 @@ class Paging:
             # add paging elements where the ) once was .. + 1 for some spacing in case
             beginning: str = tmp[:loc]
             end: str = tmp[loc:]
-            new_query = beginning + " " + insert_text + " ) " + end
-        else:
-            return query
-        return new_query
+            return beginning + " " + insert_text + " ) " + end
+        return query

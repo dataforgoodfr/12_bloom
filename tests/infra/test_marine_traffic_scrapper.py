@@ -94,4 +94,3 @@ def test_speed_field_is_correctly_parsed():
 #    assert actual_vessel.current_port is not None
 #    assert actual_vessel.mmsi is not None
 #    assert actual_vessel.at_port is not None
-

@@ -17,15 +17,15 @@ class SpireService:
             timeout=30,
         )
 
-    def create_client(self):
+    def create_client(self) -> Client:
         try:
             client = Client(transport=self.transport, fetch_schema_from_transport=True)
-        except exceptions.ConnectTimeout as e:
-            logger.error(e)
+        except exceptions.ConnectTimeout:
+            logger.exception("Connection failed")
             raise
         return client
 
-    def create_query_string(self, vessels: list[Vessel]):
+    def create_query_string(self, vessels: list[Vessel]) -> str:
         imo_list = [vessel["IMO"] for vessel in vessels]
         "\n".join(map(str, imo_list))
 
@@ -112,42 +112,35 @@ class SpireService:
         }
         """
 
-    def get_raw_vessels(self, vessels: list[Vessel]):
+    def get_raw_vessels(self, vessels: list[Vessel]) -> list[str]:
         query_string = self.create_query_string(vessels)
         client = self.create_client()
         paging = Paging()
-        hasNextPage: bool = False
+        hasnextpage: bool = False
         raw_vessels = []
 
         while True:
             try:
-                response, hasNextPage = paging.page_and_get_response(
+                response, hasnextpage = paging.page_and_get_response(
                     client,
                     query_string,
                 )
                 if response:
                     raw_vessels += response.get("vessels", {}).get("nodes", [])
-                    if not hasNextPage:
+                    if not hasnextpage:
                         break
-            except BaseException as e:
-                logger.error(e)
+            except BaseException:
+                logger.exception("Error when paging")
                 raise
 
         return raw_vessels
 
-    def get_vessels(self, vessels: list[Vessel]):
+    def get_vessels(self, vessels: list[Vessel]) -> list[Vessel]:
         raw_vessels = self.get_raw_vessels(vessels)
-        formatted_vessels = self.format_raw_vessels(raw_vessels)
-
-        return formatted_vessels
-
-    def format_raw_vessel(self, raw_vessel) -> Vessel:
-        return raw_vessel
-
-    def format_raw_vessels(self, raw_vessels) -> list[Vessel]:
-        vessels = []
-
         for raw_vessel in raw_vessels:
             vessels.append(self.format_raw_vessel(raw_vessel))
 
         return vessels
+
+    def format_raw_vessel(self, raw_vessel: str) -> Vessel:
+        return raw_vessel
