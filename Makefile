@@ -19,6 +19,9 @@ launch-dev-container:
 launch-app:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
 
+launch-test:
+	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} tox -vv
+
 rm-db:
 	@docker-compose -f docker-env/docker-compose-db.yaml stop
 	@docker-compose -f docker-env/docker-compose-db.yaml rm
