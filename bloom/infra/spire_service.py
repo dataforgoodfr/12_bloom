@@ -1,3 +1,5 @@
+import os
+
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
 from requests import exceptions
@@ -9,9 +11,11 @@ from bloom.logger import logger
 
 class SpireService:
     def __init__(self) -> None:
+        spire_token = os.environ.get("SPIRE_TOKEN")
+
         self.transport = RequestsHTTPTransport(
             url="https://api.spire.com/graphql",
-            headers={"Authorization": "Bearer Fw5tUQPoD3cExIsslDqC0xaRjwJx4WHr"},
+            headers={"Authorization": "Bearer " + spire_token},
             verify=True,
             retries=3,
             timeout=30,
