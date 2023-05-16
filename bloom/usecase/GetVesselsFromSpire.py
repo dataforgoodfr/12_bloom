@@ -5,12 +5,19 @@ from gql.transport.requests import RequestsHTTPTransport
 from requests import exceptions
 
 from bloom.domain.vessel import Vessel
-from bloom.infra.spire_api_paging import Paging
+from bloom.infra.http.spire_api_utils import Paging
+from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.logger import logger
 
 
-class SpireService:
-    def __init__(self) -> None:
+class GetVesselsFromSpire:
+    def __init__(
+        self,
+        vessel_repository: RepositoryVessel,
+    ) -> None:
+
+        self.vessel_repository: RepositoryVessel = vessel_repository
+
         spire_token = os.environ.get("SPIRE_TOKEN")
 
         self.transport = RequestsHTTPTransport(
@@ -30,8 +37,9 @@ class SpireService:
         return client
 
     def create_query_string(self, vessels: list[Vessel]) -> str:
+
         imo_list = [vessel["IMO"] for vessel in vessels]
-        "\n".join(map(str, imo_list))
+        print("\n".join(map(str, imo_list)))
 
         return """
         query {
@@ -140,12 +148,11 @@ class SpireService:
 
         return raw_vessels
 
-    def get_vessels(self, vessels: list[Vessel]) -> list[Vessel]:
+    def get_all_vessels(self) -> list[Vessel]:
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
         raw_vessels = self.get_raw_vessels(vessels)
-        for raw_vessel in raw_vessels:
-            vessels.append(self.format_raw_vessel(raw_vessel))
 
-        return vessels
-
-    def format_raw_vessel(self, raw_vessel: str) -> Vessel:
-        return raw_vessel
+        return [
+            RepositoryVessel.map_json_vessel_to_sql_spire(vessel)
+            for vessel in raw_vessels
+        ]

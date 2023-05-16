@@ -1,17 +1,19 @@
+import json
 from contextlib import AbstractContextManager
 from pathlib import Path
 
 import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape
+from shapely import Point
 
 from bloom.config import settings
-from bloom.domain.vessel import AbstractVessel, Vessel, VesselPositionMarineTraffic
+from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 from bloom.infra.database import sql_model
 from bloom.logger import logger
 
 
-class RepositoryVessel(AbstractVessel):
+class RepositoryVessel:
     def __init__(
         self,
         session_factory: Callable,
@@ -34,9 +36,10 @@ class RepositoryVessel(AbstractVessel):
         vessel_identifiers_list = df["IMO"].tolist()
         return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
 
-    def save_vessels_positions(
+    def save_marine_traffic_vessels_positions(
         self,
         vessels_positions_list: list[VesselPositionMarineTraffic],
+        # refactor: according to me, domain class is useless here if we have two tables
     ) -> None:
         with self.session_factory() as session:
             sql_vessel_position_objects = [
@@ -50,6 +53,18 @@ class RepositoryVessel(AbstractVessel):
                 f"positions have been saved in base.",
             )
 
+    def save_spire_vessels_positions(
+        self,
+        sql_vessels_positions_list: list[sql_model.VesselPositionSpire],
+    ) -> None:
+        with self.session_factory() as session:
+            session.add_all(sql_vessels_positions_list)
+            session.commit()
+            logger.info(
+                f"{len(sql_vessels_positions_list)} "
+                f"positions have been saved in base.",
+            )
+
     @staticmethod
     def map_sql_vessel_to_schema(sql_vessel: sql_model.Vessel) -> Vessel:
         return Vessel(
@@ -57,6 +72,28 @@ class RepositoryVessel(AbstractVessel):
             ship_name=sql_vessel.ship_name,
             IMO=sql_vessel.IMO,
             mmsi=sql_vessel.mmsi,
+        )
+
+    @staticmethod
+    def map_json_vessel_to_sql_spire(vessel: str) -> sql_model.VesselPositionSpire:
+        vessel_sql = json.load(vessel)
+
+        return sql_model.VesselPositionMarineTraffic(
+            timestamp=vessel_sql["updateTimestamp"],
+            ship_name=vessel_sql["staticData"]["name"],
+            IMO=vessel_sql["staticData"]["imo"],
+            vessel_id=vessel_sql["id"],
+            mmsi=vessel_sql["staticData"]["mmsi"],
+            last_position_time=vessel_sql["lastPositionUpdate"]["timestamp"],
+            position=from_shape(
+                Point(
+                    vessel_sql["lastPositionUpdate"]["latitude"],
+                    vessel_sql["lastPositionUpdate"]["longitude"],
+                ),
+                srid=settings.srid,
+            ),
+            speed=vessel_sql["lastPositionUpdate"]["speed"],
+            navigation_status=vessel_sql["lastPositionUpdate"]["navigationalStatus"],
         )
 
     @staticmethod

@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, validator
@@ -49,16 +48,3 @@ class VesselPositionMarineTraffic(BaseModel):
                 tzinfo=timezone.utc,
             )
         return None
-
-
-class AbstractVessel(ABC):
-    @abstractmethod
-    def load_vessel_identifiers(self) -> list[Vessel]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def save_vessels_positions(
-        self,
-        vessels_positions_list: list[VesselPositionMarineTraffic],
-    ) -> None:
-        raise NotImplementedError

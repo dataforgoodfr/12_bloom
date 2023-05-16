@@ -44,3 +44,23 @@ class VesselPositionMarineTraffic(Base):
     status = Column("status", String)
     speed = Column("speed", Float)
     navigation_status = Column("navigation_status", String)
+
+
+class VesselPositionSpire(Base):
+    __tablename__ = "spire_vessel_positions"
+    id = Column(
+        "id",
+        UUID(as_uuid=True),
+        primary_key=True,
+        index=True,
+        default=uuid.uuid4,
+    )
+    timestamp = Column("timestamp", DateTime)
+    ship_name = Column("ship_name", String)
+    IMO = Column("IMO", String, index=True, nullable=False)
+    vessel_id = Column("vessel_id", Integer, index=True)
+    mmsi = Column("mmsi", String)
+    last_position_time = Column("last_position_time", DateTime)
+    position = Column("position", Geometry("POINT"))
+    speed = Column("speed", Float)
+    navigation_status = Column("navigation_status", String)

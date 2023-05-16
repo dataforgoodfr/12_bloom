@@ -4,8 +4,8 @@ This application execute the scrapping of different vessel's positions source,
 based on a list of vessel. It can run in local mode, with a custom scheduler
 or scheduled outside of the app by a cronjob.
 """
-from bloom.infra.spire_service import SpireService
 from bloom.logger import logger
+from container import UseCases
 
 SCRAP_INTERVAL = 15 * 60
 
@@ -17,8 +17,9 @@ def main() -> None:
     # if args.mode == ExecutionMode.LOCAL:
     #     while True:
 
-    spire_service = SpireService()
-    vessels = spire_service.get_raw_vessels([])
+    use_cases = UseCases()
+    spire_traffic_usecase = use_cases.get_spire_data_usecase()
+    vessels = spire_traffic_usecase.get_all_vessels()
     logger.info(vessels)
 
     return
