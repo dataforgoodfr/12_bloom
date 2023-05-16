@@ -55,9 +55,8 @@ class Paging:
             except BaseException:
                 logger.exception("Execution of the query failed")
                 raise
-
         if self._should_stop_paging():
-            return self._response
+            return self._response, None
         # there is more, so page
         endcursor, hasnextpage = self.get_pageinfo_elements()
         if endcursor:

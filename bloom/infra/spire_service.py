@@ -11,7 +11,7 @@ class SpireService:
     def __init__(self) -> None:
         self.transport = RequestsHTTPTransport(
             url="https://api.spire.com/graphql",
-            headers={"Authorization": "Bearer U2hWhOiuDfAiVo8g07IIkMdzrDZtPGps"},
+            headers={"Authorization": "Bearer Fw5tUQPoD3cExIsslDqC0xaRjwJx4WHr"},
             verify=True,
             retries=3,
             timeout=30,
@@ -125,6 +125,7 @@ class SpireService:
                     client,
                     query_string,
                 )
+
                 if response:
                     raw_vessels += response.get("vessels", {}).get("nodes", [])
                     if not hasnextpage:
