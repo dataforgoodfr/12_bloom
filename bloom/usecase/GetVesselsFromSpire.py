@@ -39,10 +39,13 @@ class GetVesselsFromSpire:
     def create_query_string(self, vessels: list[Vessel]) -> str:
         imo_list = [vessel.get_imo() for vessel in vessels]
 
-        return """
+        return (
+            """
         query {
             vessels(
-                imo: [ """ + "\n".join(map(str, imo_list)) + """ ]
+                imo: [ """
+            + "\n".join(map(str, imo_list))
+            + """ ]
             ) {
                 pageInfo {
                     hasNextPage
@@ -97,18 +100,17 @@ class GetVesselsFromSpire:
             }
         }
         """
+        )
 
     def get_raw_vessels(self, vessels: list[Vessel]) -> list[str]:
         query_string = self.create_query_string(vessels)
         client = self.create_client()
         paging = Paging()
-        hasnextpage: bool = False
-        raw_vessels = []
-        
-        return  paging.page_and_get_response(
-                    client,
-                    query_string,
-                )
+
+        return paging.page_and_get_response(
+            client,
+            query_string,
+        )
 
     def get_all_vessels(self) -> list[Vessel]:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()

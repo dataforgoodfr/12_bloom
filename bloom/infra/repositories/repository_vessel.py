@@ -1,4 +1,3 @@
-import json
 from contextlib import AbstractContextManager
 from pathlib import Path
 

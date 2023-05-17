@@ -26,7 +26,7 @@ class Paging:
         hasnextpage: bool = pageinfo["hasNextPage"]
         return endcursor, hasnextpage
 
-    def _should_stop_paging(self, endcursor, hasnextpage) -> bool:
+    def _should_stop_paging(self, endcursor: str, hasnextpage: bool) -> bool:
         if endcursor and hasnextpage:
             return False
         if not hasnextpage or endcursor is None:
@@ -60,15 +60,15 @@ class Paging:
         print("PREMIERE REPONSE")
         print(self._response)
         endcursor, hasnextpage = self.get_pageinfo_elements()
-        
+
         if self._should_stop_paging(endcursor, hasnextpage):
             return self._response, None
-        
+
         if not endcursor:
             logger.info(f"Error no endcursor {endcursor}")
             hasnextpage = False
             return self._response, hasnextpage
-        
+
         # there is more, so page
         query = self.insert_into_query_header(query=query, endcursor=endcursor)
         print("NEW QUERY")
@@ -85,7 +85,7 @@ class Paging:
                 self._response = False
         return self._response, hasnextpage
 
-    def insert_into_query_header(self, query, endcursor: str = "") -> str:
+    def insert_into_query_header(self, query: str, endcursor: str = "") -> str:
         """Insert text into query header
         Args:
             query(str) - query string
@@ -93,7 +93,7 @@ class Paging:
         Returns
             new_query(str) - text with insert
         """
-        insert_text = f',after: "{endcursor}" ' 
+        insert_text = f',after: "{endcursor}" '
         if ")" in query:
             loc = query.find(")")
             # remove the existing )
