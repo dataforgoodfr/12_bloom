@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
@@ -102,7 +103,7 @@ class GetVesselsFromSpire:
         """
         )
 
-    def get_raw_vessels(self, vessels: list[Vessel]) -> list[str]:
+    def get_raw_vessels(self, vessels: list[Vessel]) -> dict[str, Any]:
         query_string = self.create_query_string(vessels)
         client = self.create_client()
         paging = Paging()
