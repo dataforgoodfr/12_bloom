@@ -1,5 +1,4 @@
 import os
-from typing import Any
 
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
@@ -116,7 +115,7 @@ class GetVesselsFromSpire:
     def get_all_vessels(self) -> list[Vessel]:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
         raw_vessels = self.get_raw_vessels(vessels)
-        
+
         return [
             RepositoryVessel.map_json_vessel_to_sql_spire(vessel)
             for vessel in raw_vessels

@@ -24,12 +24,12 @@ class Paging:
         return endcursor, hasnextpage
 
     def _should_stop_paging(self, endcursor: str, hasnextpage: bool) -> bool:
-        
+
         if endcursor and hasnextpage:
             return False
         if not hasnextpage or endcursor is None:
             return True
-        
+
         return None
 
     def page_and_get_response(
@@ -50,7 +50,7 @@ class Paging:
         except BaseException:
             logger.exception("Execution of the query failed")
             raise
-        
+
         self.vessel_list = response["vessels"]["nodes"]
         endcursor, hasnextpage = self.get_pageinfo_elements(response)
 
@@ -65,7 +65,7 @@ class Paging:
                 logger.warning(e)
                 # Try again as there could be internal errors from time to time
                 response = client.execute(gql(query))
-            
+
             self.vessel_list += response["vessels"]["nodes"]
             endcursor, hasnextpage = self.get_pageinfo_elements(response)
         logger.info(f"Number of vessel scrapped from Spire {len(self.vessel_list)}")
