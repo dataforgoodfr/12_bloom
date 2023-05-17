@@ -37,38 +37,12 @@ class GetVesselsFromSpire:
         return client
 
     def create_query_string(self, vessels: list[Vessel]) -> str:
-
-        imo_list = [vessel["IMO"] for vessel in vessels]
-        print("\n".join(map(str, imo_list)))
+        imo_list = [vessel.get_imo() for vessel in vessels]
 
         return """
         query {
             vessels(
-                imo: [
-                    9175834
-                    227302000
-                    244309000
-                    9204556
-                    8028412
-                    244070881
-                    8707537
-                    8209171
-                    9074951
-                    8716928
-                    9126364
-                    8707446
-                    9182801
-                    8301187
-                    9690688
-                    8918318
-                    8707745
-                    8224406
-                    9828936
-                    9187306
-                    9249556
-                    9249568
-                    8901913
-                ]
+                imo: [ """ + "\n".join(map(str, imo_list)) + """ ]
             ) {
                 pageInfo {
                     hasNextPage
@@ -130,23 +104,11 @@ class GetVesselsFromSpire:
         paging = Paging()
         hasnextpage: bool = False
         raw_vessels = []
-
-        while True:
-            try:
-                response, hasnextpage = paging.page_and_get_response(
+        
+        return  paging.page_and_get_response(
                     client,
                     query_string,
                 )
-
-                if response:
-                    raw_vessels += response.get("vessels", {}).get("nodes", [])
-                    if not hasnextpage:
-                        break
-            except BaseException:
-                logger.exception("Error when paging")
-                raise
-
-        return raw_vessels
 
     def get_all_vessels(self) -> list[Vessel]:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()

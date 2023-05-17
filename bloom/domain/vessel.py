@@ -10,6 +10,8 @@ class Vessel(BaseModel):
     IMO: str | None
     mmsi: str | None
 
+    def get_imo(self):
+         return self.IMO
 
 class VesselPositionMarineTraffic(BaseModel):
     timestamp: datetime | None

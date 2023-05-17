@@ -21,7 +21,6 @@ class Vessel(Base):
     type = Column(String)
     mt_activated = Column(Boolean)
 
-
 class VesselPositionMarineTraffic(Base):
     __tablename__ = "marine_traffic_vessel_positions"
     id = Column(

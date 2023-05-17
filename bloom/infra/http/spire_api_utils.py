@@ -20,12 +20,13 @@ class Paging:
             logger.error("Did not get response, can't get paging information")
             raise TypeError
         pageinfo = response["vessels"]["pageInfo"]
+        print("get_pageinfo_elements")
+        print(pageinfo)
         endcursor: str = pageinfo["endCursor"]
         hasnextpage: bool = pageinfo["hasNextPage"]
         return endcursor, hasnextpage
 
-    def _should_stop_paging(self) -> bool:
-        endcursor, hasnextpage = self.get_pageinfo_elements()
+    def _should_stop_paging(self, endcursor, hasnextpage) -> bool:
         if endcursor and hasnextpage:
             return False
         if not hasnextpage or endcursor is None:
@@ -49,35 +50,42 @@ class Paging:
             response: dict service response to query
             hasNextPage: bool paging element, is there a next page
         """
+        print("enter in page_and_get_response")
         if not self._response:
             try:
                 self._response = client.execute(gql(query))
             except BaseException:
                 logger.exception("Execution of the query failed")
                 raise
-        if self._should_stop_paging():
-            return self._response, None
-        # there is more, so page
+        print("PREMIERE REPONSE")
+        print(self._response)
         endcursor, hasnextpage = self.get_pageinfo_elements()
-        if endcursor:
-            insert_text = f',after: "{endcursor}" '
-        else:
+        
+        if self._should_stop_paging(endcursor, hasnextpage):
+            return self._response, None
+        
+        if not endcursor:
             logger.info(f"Error no endcursor {endcursor}")
             hasnextpage = False
             return self._response, hasnextpage
-        query = self.insert_into_query_header(query=query, insert_text=insert_text)
+        
+        # there is more, so page
+        query = self.insert_into_query_header(query=query, endcursor=endcursor)
+        print("NEW QUERY")
+        print(query)
         try:
             self._response = client.execute(gql(query))
+            print("SECONDE REPONSE")
+            print(self._response)
         except BaseException as e:
             logger.warning(e)
             try:  # Try again as there could be internal errors from time to time
                 self._response = client.execute(gql(query))
             except BaseException as e:
                 self._response = False
-
         return self._response, hasnextpage
 
-    def insert_into_query_header(query, insert_text: str = "") -> str:
+    def insert_into_query_header(self, query, endcursor: str = "") -> str:
         """Insert text into query header
         Args:
             query(str) - query string
@@ -85,6 +93,7 @@ class Paging:
         Returns
             new_query(str) - text with insert
         """
+        insert_text = f',after: "{endcursor}" ' 
         if ")" in query:
             loc = query.find(")")
             # remove the existing )
