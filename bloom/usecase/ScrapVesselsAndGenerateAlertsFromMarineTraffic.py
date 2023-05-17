@@ -36,5 +36,5 @@ class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
             VesselPositionMarineTraffic
         ] = self.scraper.scrap_vessels(vessels)
 
-        self.vessel_repository.save_vessels_positions(scrapped_vessels)
+        self.vessel_repository.save_marine_traffic_vessels_positions(scrapped_vessels)
         return scrapped_vessels
