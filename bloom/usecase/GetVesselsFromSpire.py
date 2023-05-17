@@ -103,7 +103,7 @@ class GetVesselsFromSpire:
         """
         )
 
-    def get_raw_vessels(self, vessels: list[Vessel]) -> dict[str, Any]:
+    def get_raw_vessels(self, vessels: list[Vessel]) -> list[str]:
         query_string = self.create_query_string(vessels)
         client = self.create_client()
         paging = Paging()
@@ -116,7 +116,7 @@ class GetVesselsFromSpire:
     def get_all_vessels(self) -> list[Vessel]:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
         raw_vessels = self.get_raw_vessels(vessels)
-
+        
         return [
             RepositoryVessel.map_json_vessel_to_sql_spire(vessel)
             for vessel in raw_vessels

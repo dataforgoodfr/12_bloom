@@ -6,8 +6,8 @@ from bloom.logger import logger
 
 
 class Paging:
-    def __init__(self, response: dict[str, Any] = None) -> None:
-        self._response = response
+    def __init__(self, vessel_list: list[str] = None) -> None:
+        self._vessel_list = vessel_list
 
     def get_pageinfo_elements(self, response: dict[str, Any]) -> tuple[str, bool]:
         """Gets the elements helpful for Paging
@@ -19,26 +19,18 @@ class Paging:
             logger.error("Did not get response, can't get paging information")
             raise TypeError
         pageinfo = response["vessels"]["pageInfo"]
-        print("get_pageinfo_elements")
-        print(pageinfo)
         endcursor: str = pageinfo["endCursor"]
         hasnextpage: bool = pageinfo["hasNextPage"]
         return endcursor, hasnextpage
 
     def _should_stop_paging(self, endcursor: str, hasnextpage: bool) -> bool:
-
-        if not endcursor:
-            logger.info(f"Error no endcursor {endcursor}")
-            return True
-
+        
         if endcursor and hasnextpage:
             return False
         if not hasnextpage or endcursor is None:
             return True
+        
         return None
-
-    def get_response(self) -> dict[str, Any]:
-        return self._response
 
     def page_and_get_response(
         self,
@@ -54,33 +46,30 @@ class Paging:
             response: dict service response to query
         """
         try:
-            self._response = client.execute(gql(query))
+            response = client.execute(gql(query))
         except BaseException:
             logger.exception("Execution of the query failed")
             raise
-
-        endcursor, hasnextpage = self.get_pageinfo_elements(self._response)
-
-        if self._should_stop_paging(endcursor, hasnextpage):
-            return self._response
+        
+        self.vessel_list = response["vessels"]["nodes"]
+        endcursor, hasnextpage = self.get_pageinfo_elements(response)
 
         # there is more, so page
         initial_query = query
         while not self._should_stop_paging(endcursor, hasnextpage):
             response = None
             query = self.insert_into_query_header(initial_query, endcursor)
-
             try:
-                response += client.execute(gql(query))
+                response = client.execute(gql(query))
             except BaseException as e:
                 logger.warning(e)
                 # Try again as there could be internal errors from time to time
                 response = client.execute(gql(query))
-
+            
+            self.vessel_list += response["vessels"]["nodes"]
             endcursor, hasnextpage = self.get_pageinfo_elements(response)
-            self._response += response
-
-        return self._response
+        logger.info(f"Number of vessel scrapped from Spire {len(self.vessel_list)}")
+        return self.vessel_list
 
     def insert_into_query_header(self, query: str, endcursor: str = "") -> str:
         """Insert text into query header

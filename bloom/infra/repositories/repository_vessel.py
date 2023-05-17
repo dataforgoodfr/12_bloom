@@ -75,23 +75,36 @@ class RepositoryVessel:
 
     @staticmethod
     def map_json_vessel_to_sql_spire(vessel: str) -> sql_model.VesselPositionSpire:
-        return sql_model.VesselPositionMarineTraffic(
-            timestamp=vessel["updateTimestamp"],
-            ship_name=vessel["staticData"]["name"],
-            IMO=vessel["staticData"]["imo"],
-            vessel_id=vessel["id"],
-            mmsi=vessel["staticData"]["mmsi"],
-            last_position_time=vessel["lastPositionUpdate"]["timestamp"],
-            position=from_shape(
-                Point(
-                    vessel["lastPositionUpdate"]["latitude"],
-                    vessel["lastPositionUpdate"]["longitude"],
+        if(vessel["lastPositionUpdate"] == None):
+            return sql_model.VesselPositionMarineTraffic(
+                timestamp=vessel["updateTimestamp"],
+                ship_name=vessel["staticData"]["name"],
+                IMO=vessel["staticData"]["imo"],
+                vessel_id=vessel["id"],
+                mmsi=vessel["staticData"]["mmsi"],
+                last_position_time=None,
+                position=None,
+                speed=None,
+                navigation_status=None,
+            )
+        else:
+            return sql_model.VesselPositionMarineTraffic(
+                timestamp=vessel["updateTimestamp"],
+                ship_name=vessel["staticData"]["name"],
+                IMO=vessel["staticData"]["imo"],
+                vessel_id=vessel["id"],
+                mmsi=vessel["staticData"]["mmsi"],
+                last_position_time=vessel["lastPositionUpdate"]["timestamp"],
+                position=from_shape(
+                    Point(
+                        vessel["lastPositionUpdate"]["latitude"],
+                        vessel["lastPositionUpdate"]["longitude"],
+                    ),
+                    srid=settings.srid,
                 ),
-                srid=settings.srid,
-            ),
-            speed=vessel["lastPositionUpdate"]["speed"],
-            navigation_status=vessel["lastPositionUpdate"]["navigationalStatus"],
-        )
+                speed=vessel["lastPositionUpdate"]["speed"],
+                navigation_status=vessel["lastPositionUpdate"]["navigationalStatus"],
+            )
 
     @staticmethod
     def map_schema_marine_traffic_to_sql_vessel_position(
