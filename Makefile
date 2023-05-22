@@ -22,7 +22,7 @@ launch-app:
 launch-test:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} tox -vv
 
-rm-db:
+rm-dev-db:
 	@docker-compose -f docker-env/docker-compose-db.yaml stop
 	@docker-compose -f docker-env/docker-compose-db.yaml rm
 
