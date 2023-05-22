@@ -15,6 +15,10 @@ If you work with Mac m1, the containers may not work as expected
 
 
 ## Development Database
+First, you need to create an .env.test file, you can use the .env.template file :
+` cp .env.template .env.test`
+
+Next, you have to set the SPIRE_TOKEN variable.
 
 Launch the following command :
 ` make launch-dev-db `
