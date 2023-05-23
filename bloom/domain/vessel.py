@@ -10,7 +10,7 @@ class Vessel(BaseModel):
     IMO: str | None
     mmsi: str | None
 
-    def get_imo(self) -> int:
+    def get_imo(self) -> str:
         return self.IMO
 
 
