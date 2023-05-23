@@ -65,5 +65,6 @@ class VesselPositionSpire(Base):
     at_port = Column("at_port", Boolean)
     port_name = Column("port_name", String)
     position = Column("position", Geometry("POINT"))
+    status = Column("status", String)
     speed = Column("speed", Float)
     navigation_status = Column("navigation_status", String)
