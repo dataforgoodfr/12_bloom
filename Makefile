@@ -16,7 +16,7 @@ launch-dev-db:
 launch-dev-container:
 	$(BLOOM_DEV_DOCKER) -dti  d4g/bloom:${VERSION}  /bin/bash
 
-launch-app:
+launch-dev-app:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
 
 launch-test:
