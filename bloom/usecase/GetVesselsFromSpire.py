@@ -5,6 +5,7 @@ from gql.transport.requests import RequestsHTTPTransport
 from requests import exceptions
 
 from bloom.domain.vessel import Vessel
+from bloom.infra.database import sql_model
 from bloom.infra.http.spire_api_utils import Paging
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.logger import logger
@@ -112,14 +113,23 @@ class GetVesselsFromSpire:
             query_string,
         )
 
-    def get_all_vessels(self) -> list[Vessel]:
+    def get_all_vessels(self) -> list[sql_model.VesselPositionSpire]:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
         raw_vessels = self.get_raw_vessels(vessels)
 
         return [
-            RepositoryVessel.map_json_vessel_to_sql_spire(vessel)
+            RepositoryVessel.map_json_vessel_to_sql_spire(
+                vessel,
+                self.find_id(vessel["staticData"]["imo"], vessels),
+            )
             for vessel in raw_vessels
         ]
 
-    def save_vessels(self, vessels: list[Vessel]) -> None:
+    def save_vessels(self, vessels: list[sql_model.VesselPositionSpire]) -> None:
         self.vessel_repository.save_spire_vessels_positions(vessels)
+
+    def find_id(self, imo: str, list_vessel: list[Vessel]) -> int:
+        for vessel in list_vessel:
+            if imo == vessel.IMO:
+                return vessel.id
+        return None
