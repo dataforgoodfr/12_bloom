@@ -20,6 +20,7 @@ def main() -> None:
     use_cases = UseCases()
     spire_traffic_usecase = use_cases.get_spire_data_usecase()
     vessels = spire_traffic_usecase.get_all_vessels()
+    spire_traffic_usecase.save_vessels(vessels)
     logger.info(vessels)
 
     return

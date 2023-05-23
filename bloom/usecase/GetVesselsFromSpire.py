@@ -120,3 +120,6 @@ class GetVesselsFromSpire:
             RepositoryVessel.map_json_vessel_to_sql_spire(vessel)
             for vessel in raw_vessels
         ]
+
+    def save_vessels(self, vessels: list[Vessel]) -> None:
+        self.vessel_repository.save_spire_vessels_positions(vessels)

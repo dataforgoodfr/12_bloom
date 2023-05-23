@@ -76,24 +76,31 @@ class RepositoryVessel:
     @staticmethod
     def map_json_vessel_to_sql_spire(vessel: str) -> sql_model.VesselPositionSpire:
         if vessel["lastPositionUpdate"] is None:
-            return sql_model.VesselPositionMarineTraffic(
+            return sql_model.VesselPositionSpire(
                 timestamp=vessel["updateTimestamp"],
                 ship_name=vessel["staticData"]["name"],
                 IMO=vessel["staticData"]["imo"],
                 vessel_id=vessel["id"],
                 mmsi=vessel["staticData"]["mmsi"],
                 last_position_time=None,
+                fishing=None,
+                at_port=None,
+                port_name=None,
                 position=None,
+                status=None,
                 speed=None,
                 navigation_status=None,
             )
-        return sql_model.VesselPositionMarineTraffic(
+        return sql_model.VesselPositionSpire(
             timestamp=vessel["updateTimestamp"],
             ship_name=vessel["staticData"]["name"],
             IMO=vessel["staticData"]["imo"],
             vessel_id=vessel["id"],
             mmsi=vessel["staticData"]["mmsi"],
             last_position_time=vessel["lastPositionUpdate"]["timestamp"],
+            fishing=None,
+            at_port=None,
+            port_name=None,
             position=from_shape(
                 Point(
                     vessel["lastPositionUpdate"]["latitude"],
@@ -101,6 +108,7 @@ class RepositoryVessel:
                 ),
                 srid=settings.srid,
             ),
+            status=None,
             speed=vessel["lastPositionUpdate"]["speed"],
             navigation_status=vessel["lastPositionUpdate"]["navigationalStatus"],
         )
