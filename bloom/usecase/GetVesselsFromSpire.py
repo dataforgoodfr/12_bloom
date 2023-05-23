@@ -45,7 +45,7 @@ class GetVesselsFromSpire:
         query {
             vessels(
                 imo: [ """
-            + "\n".join(map(str, imo_list))
+            + "\n".join(map(str, imo_list))  # get_should send a str ?
             + """ ]
             ) {
                 pageInfo {
@@ -129,7 +129,8 @@ class GetVesselsFromSpire:
         self.vessel_repository.save_spire_vessels_positions(vessels)
 
     def find_id(self, imo: str, list_vessel: list[Vessel]) -> int:
+        map_id = {}
         for vessel in list_vessel:
-            if imo == vessel.IMO:
-                return vessel.vessel_id
-        return None
+            map_id.update[vessel.IMO] = vessel.vessel_id
+
+        return map_id.get(imo)
