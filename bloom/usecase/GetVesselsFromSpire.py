@@ -131,5 +131,5 @@ class GetVesselsFromSpire:
     def find_id(self, imo: str, list_vessel: list[Vessel]) -> int:
         for vessel in list_vessel:
             if imo == vessel.IMO:
-                return vessel.id
+                return vessel.vessel_id
         return None
