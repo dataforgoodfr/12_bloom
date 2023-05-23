@@ -98,7 +98,7 @@ class RepositoryVessel:
             timestamp=vessel["updateTimestamp"],
             ship_name=vessel["staticData"]["name"],
             IMO=vessel["staticData"]["imo"],
-            vessel_id=id,
+            vessel_id=vessel_id,
             mmsi=vessel["staticData"]["mmsi"],
             last_position_time=vessel["lastPositionUpdate"]["timestamp"],
             fishing=None,
