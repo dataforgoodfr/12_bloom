@@ -119,7 +119,7 @@ class GetVesselsFromSpire:
 
         map_id = {}
         for vessel in vessels:
-            map_id.update[vessel.IMO] = vessel.vessel_id
+            map_id[vessel.IMO] = vessel.vessel_id
 
         return [
             RepositoryVessel.map_json_vessel_to_sql_spire(
