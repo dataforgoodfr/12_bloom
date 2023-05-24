@@ -4,8 +4,8 @@ from shapely import Point
 
 from bloom.domain.vessel import VesselPositionMarineTraffic
 from bloom.infra.repositories.file_repository_polygons import PolygonFileRepository
-from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
+from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.usecase.ScrapVesselsAndGenerateAlertsFromMarineTraffic import (
     ScrapVesselsAndGenerateAlertsFromMarineTraffic,
 )
@@ -25,7 +25,7 @@ test_vessel = VesselPositionMarineTraffic(
 
 def test_generate_alerts_for_vessels_list_adds_single_alert_for_vessel():
     vessel_repository = mock.Mock(spec=RepositoryVessel)
-    vessel_repository.load_vessel_identifiers.return_value = ["8901913"]
+    vessel_repository.load_vessel_metadata.return_value = ["8901913"]
     vessel_scrapper = mock.Mock(spec=MarineTrafficVesselScraper)
     vessel_scrapper.scrap_vessels.return_value = [test_vessel]
     polygon_repository = PolygonFileRepository()

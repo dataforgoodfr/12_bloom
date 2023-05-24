@@ -27,6 +27,8 @@ def main() -> None:
     args = parser.parse_args()
     use_cases = UseCases()
     marine_traffic_usecase = use_cases.scrap_marine_data_usecase()
+    spire_traffic_usecase = use_cases.get_spire_data_usecase()
+
     if args.mode == ExecutionMode.LOCAL:
         logger.info("Starting scraping with internal scheduler")
         scheduler = PeriodicScheduler(
@@ -34,11 +36,13 @@ def main() -> None:
             interval=SCRAP_INTERVAL,
         )
         marine_traffic_usecase.scrap_vessels()
+        spire_traffic_usecase.save_vessels(spire_traffic_usecase.get_all_vessels())
         while True:
             scheduler.start()
     else:
         logger.info("Starting scraping with external scheduler")
         marine_traffic_usecase.scrap_vessels()
+        spire_traffic_usecase.save_vessels(spire_traffic_usecase.get_all_vessels())
 
 
 if __name__ == "__main__":

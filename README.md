@@ -15,6 +15,10 @@ If you work with Mac m1, the containers may not work as expected
 
 
 ## Development Database
+First, you need to create an .env.test file, you can use the .env.template file :
+` cp .env.template .env.test`
+
+Next, you have to set the SPIRE_TOKEN variable.
 
 Launch the following command :
 ` make launch-dev-db `
@@ -23,6 +27,9 @@ Now, a postgresql db is available in your localhost, port 5480. And a pgadmin is
 
 You can remove it thanks to this command:
 ` make rm-db`
+
+TIPS : you can use the following command to launch the psql client :
+` docker exec -ti postgres_bloom psql -d bloom_db -U bloom_user `
 
 ## Development environment
 

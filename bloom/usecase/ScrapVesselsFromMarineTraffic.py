@@ -14,7 +14,7 @@ class ScrapVesselsFromMarineTraffic:
         self.scraper: MarineTrafficVesselScraper = scraper
 
     def scrap_vessels(self) -> None:
-        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_metadata()
 
         for chunk in self.batch(vessels, 10):
             logger.info(
@@ -27,7 +27,9 @@ class ScrapVesselsFromMarineTraffic:
             logger.info(
                 "Start to save chunk",
             )
-            self.vessel_repository.save_vessels_positions(scrapped_vessels)
+            self.vessel_repository.save_marine_traffic_vessels_positions(
+                scrapped_vessels,
+            )
 
     def batch(self, iterable, n=1):  # noqa: ANN201 ANN001
         length = len(iterable)

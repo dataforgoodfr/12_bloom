@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
 from pydantic import BaseModel, validator
@@ -11,6 +10,9 @@ class Vessel(BaseModel):
     IMO: str | None
     mmsi: str | None
 
+    def get_imo(self) -> str:
+        return self.IMO
+
 
 class VesselPositionMarineTraffic(BaseModel):
     timestamp: datetime | None
@@ -20,12 +22,15 @@ class VesselPositionMarineTraffic(BaseModel):
     vessel_id: int
     mmsi: str | None
     last_position_time: datetime | None
+    ship_name: str | None
+    IMO: str
+    mmsi: str | None
+    fishing: bool | None
     at_port: bool | None
     position: Point | None
     status: str | None
     speed: float | None
     navigation_status: str | None
-    fishing: bool | None
 
     class Config:
         arbitrary_types_allowed = True
@@ -46,16 +51,3 @@ class VesselPositionMarineTraffic(BaseModel):
                 tzinfo=timezone.utc,
             )
         return None
-
-
-class AbstractVessel(ABC):
-    @abstractmethod
-    def load_vessel_identifiers(self) -> list[Vessel]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def save_vessels_positions(
-        self,
-        vessels_positions_list: list[VesselPositionMarineTraffic],
-    ) -> None:
-        raise NotImplementedError

@@ -30,11 +30,11 @@ class ScrapVesselsAndGenerateAlertsFromMarineTraffic:
         return alerts
 
     def scrap_vessels(self) -> list[VesselPositionMarineTraffic]:
-        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_metadata()
 
         scrapped_vessels: list[
             VesselPositionMarineTraffic
         ] = self.scraper.scrap_vessels(vessels)
 
-        self.vessel_repository.save_vessels_positions(scrapped_vessels)
+        self.vessel_repository.save_marine_traffic_vessels_positions(scrapped_vessels)
         return scrapped_vessels
