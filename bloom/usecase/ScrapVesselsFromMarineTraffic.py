@@ -14,7 +14,7 @@ class ScrapVesselsFromMarineTraffic:
         self.scraper: MarineTrafficVesselScraper = scraper
 
     def scrap_vessels(self) -> None:
-        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
+        vessels: list[Vessel] = self.vessel_repository.load_vessel_metadata()
 
         for chunk in self.batch(vessels, 10):
             logger.info(

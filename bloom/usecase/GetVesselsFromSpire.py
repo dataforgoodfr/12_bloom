@@ -114,12 +114,12 @@ class GetVesselsFromSpire:
         )
 
     def get_all_vessels(self) -> list[sql_model.VesselPositionSpire]:
-        vessels: list[Vessel] = self.vessel_repository.load_vessel_identifiers()
+        vessels: list[Vessel] = self.vessel_repository.load_all_vessel_metadata()
         raw_vessels = self.get_raw_vessels(vessels)
 
         map_id = {}
         for vessel in vessels:
-            map_id[int(vessel.get_imo())] = vessel.vessel_id
+            map_id[vessel.get_imo()] = vessel.vessel_id
 
         return [
             RepositoryVessel.map_json_vessel_to_sql_spire(

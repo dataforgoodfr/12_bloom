@@ -20,7 +20,7 @@ class RepositoryVessel:
         self.session_factory = session_factory
         self.vessels_path = Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.csv")
 
-    def load_vessel_identifiers(self) -> list[Vessel]:
+    def load_vessel_metadata(self) -> list[Vessel]:
         with self.session_factory() as session:
             e = session.query(sql_model.Vessel).filter(
                 sql_model.Vessel.mt_activated == True,  # noqa: E712
@@ -30,7 +30,14 @@ class RepositoryVessel:
                 return []
             return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
 
-    def load_vessel_identifiers_from_file(self) -> list[Vessel]:
+    def load_all_vessel_metadata(self) -> list[Vessel]:
+        with self.session_factory() as session:
+            e = session.query(sql_model.Vessel)
+            if not e:
+                return []
+            return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
+
+    def load_vessel_metadata_from_file(self) -> list[Vessel]:
         df = pd.read_csv(self.vessels_path, sep=";")
         vessel_identifiers_list = df["IMO"].tolist()
         return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
