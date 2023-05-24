@@ -28,6 +28,9 @@ Now, a postgresql db is available in your localhost, port 5480. And a pgadmin is
 You can remove it thanks to this command:
 ` make rm-db`
 
+TIPS : you can use the following command to launch the psql client :
+` docker exec -ti postgres_bloom psql -d bloom_db -U bloom_user `
+
 ## Development environment
 
 Launch the development environment :
