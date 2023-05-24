@@ -24,6 +24,7 @@ class RepositoryVessel:
         with self.session_factory() as session:
             e = session.query(sql_model.Vessel).filter(
                 sql_model.Vessel.mt_activated == True,  # noqa: E712
+                sql_model.Vessel.IMO is not None,
                 # sqlAlchemy doesn't tolerate is True
             )
             if not e:
@@ -32,7 +33,9 @@ class RepositoryVessel:
 
     def load_all_vessel_metadata(self) -> list[Vessel]:
         with self.session_factory() as session:
-            e = session.query(sql_model.Vessel)
+            e = session.query(sql_model.Vessel).filter(
+                sql_model.Vessel.IMO is not None,
+            )
             if not e:
                 return []
             return [self.map_sql_vessel_to_schema(vessel) for vessel in e]
