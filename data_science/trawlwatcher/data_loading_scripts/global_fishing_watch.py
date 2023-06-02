@@ -1,8 +1,8 @@
 
 import pandas as pd
 from datetime import datetime
-from .vessel import Vessel
-from .fleet import Fleet
+from ..vessels.vessel import Vessel
+from ..vessels.fleet import Fleet
 
 # Download csv here https://globalfishingwatch.org/data-download/datasets/public-training-data-v1
 

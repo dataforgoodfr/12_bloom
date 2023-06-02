@@ -7,7 +7,7 @@ import random
 from tqdm.auto import tqdm
 import geopandas as gpd
 from shapely.geometry import Point
-from .trajectory import visualize
+from .vessel_utils.trajectory import visualize
 
 
 class Vessel:

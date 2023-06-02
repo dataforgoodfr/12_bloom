@@ -136,6 +136,7 @@ dmypy.json
 notebooks/poster_analysis/test
 *.mp4
 data_science/notebooks/Exploration_Martin.ipynb
+data_science/notebooks/data/
 data_science/data/processed/Nonterrestrial_WDPA_Jan2023/Nonterrestrial_WDPA_Jan2023.shp
 data_science/data/processed/Nonterrestrial_WDPA_Jan2023/Nonterrestrial_WDPA_Jan2023.shp
 data_science/data/processed/Nonterrestrial_WDPA_Jan2023/Nonterrestrial_WDPA_Jan2023.shp
