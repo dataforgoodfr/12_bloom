@@ -12,13 +12,17 @@ import fiona
 from typing import Union
 from geopandas import GeoDataFrame, GeoSeries
 from typing import Optional
+import random
 
 
 
 class Polygons:
 
-    def __init__(self):
-        pass
+    def __init__(self, data: gpd.GeoDataFrame = None):
+        self.data = data
+
+    def __repr__(self):
+        return f"Polygons(n_polygons={len(self.data)})"
 
     def load_shp(self,path):
         self.data = gpd.GeoDataFrame.from_file(path) 
@@ -33,6 +37,21 @@ class Polygons:
             layer_list.append(geopkg)
 
         self.data = pd.concat(layer_list, ignore_index=True)
+
+    def query(self,query_str):
+        filtered_data = self.data.query(query_str)
+        assert len(filtered_data) > 0
+        filtered_polygons = Polygons(filtered_data.copy())
+        return filtered_polygons
+
+    def sample(self, n=1):
+        n_polys = len(self.data)
+        if n > n_polys:
+            n = n_polys
+        sub_polys_ids = random.sample(range(n_polys), n)
+        filtered_data = self.data.iloc[sub_polys_ids]
+        filtered_polygons = Polygons(filtered_data.copy())
+        return filtered_polygons
 
     def plot(self, interactive=False):
         if interactive:
