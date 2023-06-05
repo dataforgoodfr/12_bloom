@@ -44,7 +44,7 @@ class Polygons:
         filtered_polygons = Polygons(filtered_data.copy())
         return filtered_polygons
 
-    def sample(self, n=1):
+    def sample(self, n: int = 1):
         n_polys = len(self.data)
         if n > n_polys:
             n = n_polys

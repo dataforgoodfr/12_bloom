@@ -70,7 +70,7 @@ class Vessel:
         # Add the consecutive chunk IDs to the dataframe
         self.data['chunk_id'] = consecutive_chunk_ids
 
-    def sample(self,n=1, reset_chunk_id: bool = False):
+    def sample(self, n: int = 1, reset_chunk_id: bool = False):
         all_chunk_ids = list(self.data["chunk_id"].unique())
         if n > len(all_chunk_ids):
             n = len(all_chunk_ids)
