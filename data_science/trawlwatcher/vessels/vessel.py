@@ -17,18 +17,23 @@ class Vessel:
                  chunk_id = 0):
         self.vessel_id = vessel_id
         self.data = data
-        self.data["chunk_id"] = chunk_id
+        if isinstance(self.data, gpd.GeoDataFrame):
+            self.data["chunk_id"] = chunk_id
 
     def __repr__(self):
         n_chunk = len(self.data["chunk_id"].unique())
         return f"Vessel(n_points={len(self.data)},n_chunks={n_chunk})"
 
-    def load_long_lat_pandas(self,path, crs = "EPSG:3857"):
+    def load_long_lat_from_path(self, path, crs = "EPSG:3857"):
         pandas_df =  pd.DataFrame.from_file(path) 
         geometry = [Point(xy) for xy in zip(pandas_df['lon'], pandas_df['lat'])]
-        self.data = gpd.GeoDataFrame(self.data, crs=crs, geometry=geometry)
+        self.data = gpd.GeoDataFrame(pandas_df, crs=crs, geometry=geometry)
+    
+    def load_long_lat_from_pandas(self, pandas_df: pd.DataFrame, crs = "EPSG:3857"):
+        geometry = [Point(xy) for xy in zip(pandas_df['lon'], pandas_df['lat'])]
+        self.data = gpd.GeoDataFrame(pandas_df, crs=crs, geometry=geometry)
 
-    def visualize_trajectory(self,color_by_speed: bool = False, marker_by_fishing: bool = False,**kwargs):
+    def visualize_trajectory(self, color_by_speed: bool = False, marker_by_fishing: bool = False,**kwargs):
         return visualize(self.data,color_by_speed,marker_by_fishing,**kwargs)
 
     def query(self, query_str, reset_chunk_id: bool = False):

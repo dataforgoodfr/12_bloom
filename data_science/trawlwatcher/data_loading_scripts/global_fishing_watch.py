@@ -9,7 +9,6 @@ from ..vessels.fleet import Fleet
 
 def load_global_fishing_watch_dataset(path):
 
-
     df = pd.read_csv(path)
     # Parse the timestamps to datetime objects
     df['timestamp'] = df['timestamp'].apply(lambda x: datetime.utcfromtimestamp(x))
@@ -17,7 +16,9 @@ def load_global_fishing_watch_dataset(path):
     # Create a Vessel object for each unique mmsi
     vessels = {}
     for mmsi, vessel_data in df.groupby('mmsi'):
-        vessels[mmsi] = Vessel(vessel_data.reset_index(drop = True).copy(),mmsi)
+        this_vessel = Vessel(vessel_id = mmsi)
+        this_vessel.load_long_lat_from_pandas(vessel_data.reset_index(drop = True).copy())
+        vessels[mmsi] = this_vessel
 
     fleet = Fleet(vessels)
 
