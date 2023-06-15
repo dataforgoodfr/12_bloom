@@ -1,4 +1,5 @@
 from contextlib import AbstractContextManager
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -105,7 +106,7 @@ class RepositoryVessel:
                 navigation_status=None,
             )
         return sql_model.VesselPositionSpire(
-            timestamp=vessel["updateTimestamp"],
+            timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
             ship_name=vessel["staticData"]["name"],
             IMO=vessel["staticData"]["imo"],
             vessel_id=vessel_id,
