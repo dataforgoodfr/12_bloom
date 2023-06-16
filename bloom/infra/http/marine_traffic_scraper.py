@@ -67,7 +67,7 @@ class MarineTrafficVesselScraper:
                 crawling_timestamp = datetime.now(timezone.utc).strftime(
                     "%Y-%m-%d %H:%M UTC",
                 )
-                vessel_url = f"{self.base_url}{vessel.IMO}"
+                vessel_url = f"{self.base_url}{vessel.mmsi}"
                 driver.get(vessel_url)
 
                 try:
@@ -78,12 +78,12 @@ class MarineTrafficVesselScraper:
                     record_fields = record.text.split("\n")
                     if record_fields == [""]:
                         logger.warning(
-                            f"IMO {vessel.IMO} not avaiable on MarineTraffic",
+                            f"mmsi {vessel.mmsi} not avaiable on MarineTraffic",
                         )
                         continue
                     if len(record_fields) > NUMBER_OF_SCRAPED_VALUES:
                         logger.warning(
-                            f"IMO {vessel.IMO}  too many values : {len(record_fields)}",
+                            f"mmsi {vessel.mmsi} too many values:{len(record_fields)}",
                         )
                         break
                     if record_fields[2] != vessel.IMO:
@@ -93,13 +93,13 @@ class MarineTrafficVesselScraper:
                         )
                     if record_fields[5] == "-" or record_fields[6] == "-":
                         logger.warning(
-                            f"No position data available for this IMO {vessel.IMO}, "
+                            f"No position data available for this mmsi {vessel.mmsi}, "
                             f"{record_fields}",
                         )
                         continue
                 except WebDriverException:
                     logger.exception(
-                        f"Scrapping failed for vessel {vessel.IMO}, "
+                        f"Scrapping failed for vessel {vessel.mmsi}, "
                         f"with exception {WebDriverException.__name__}",
                     )
                 else:
