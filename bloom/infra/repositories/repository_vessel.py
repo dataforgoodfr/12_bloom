@@ -25,7 +25,7 @@ class RepositoryVessel:
         with self.session_factory() as session:
             e = session.query(sql_model.Vessel).filter(
                 sql_model.Vessel.mt_activated == True,  # noqa: E712
-                sql_model.Vessel.IMO != None,  # noqa: E711
+                sql_model.Vessel.mmsi != None,  # noqa: E711
                 # sqlAlchemy doesn't tolerate is True
             )
             if not e:
@@ -35,7 +35,7 @@ class RepositoryVessel:
     def load_all_vessel_metadata(self) -> list[Vessel]:
         with self.session_factory() as session:
             e = session.query(sql_model.Vessel).filter(
-                sql_model.Vessel.IMO != None,  # noqa: E711
+                sql_model.Vessel.mmsi != None,  # noqa: E711
             )
             if not e:
                 return []
@@ -43,8 +43,8 @@ class RepositoryVessel:
 
     def load_vessel_metadata_from_file(self) -> list[Vessel]:
         df = pd.read_csv(self.vessels_path, sep=";")
-        vessel_identifiers_list = df["IMO"].tolist()
-        return [Vessel(IMO=imo) for imo in vessel_identifiers_list]
+        vessel_identifiers_list = df["mmsi"].tolist()
+        return [Vessel(mmsi=mmsi) for mmsi in vessel_identifiers_list]
 
     def save_marine_traffic_vessels_positions(
         self,

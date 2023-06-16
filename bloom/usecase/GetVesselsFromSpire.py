@@ -38,14 +38,14 @@ class GetVesselsFromSpire:
         return client
 
     def create_query_string(self, vessels: list[Vessel]) -> str:
-        imo_list = [vessel.get_imo() for vessel in vessels]
+        mmsi_list = [vessel.get_mmsi() for vessel in vessels]
 
         return (
             """
         query {
             vessels(
-                imo: [ """
-            + "\n".join(map(str, imo_list))  # get_should send a str ?
+                mmsi: [ """
+            + "\n".join(map(str, mmsi_list))  # get_should send a str ?
             + """ ]
             ) {
                 pageInfo {
@@ -119,12 +119,12 @@ class GetVesselsFromSpire:
 
         map_id = {}
         for vessel in vessels:
-            map_id[int(vessel.get_imo())] = vessel.vessel_id
+            map_id[int(vessel.get_mmsi())] = vessel.vessel_id
 
         return [
             RepositoryVessel.map_json_vessel_to_sql_spire(
                 vessel,
-                map_id.get(vessel["staticData"]["imo"]),
+                map_id.get(vessel["staticData"]["mmsi"]),
             )
             for vessel in raw_vessels
         ]
