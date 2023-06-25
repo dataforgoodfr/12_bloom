@@ -1,6 +1,6 @@
 import uuid
 
-from geoalchemy2 import Geometry
+from geoalchemy2 import Geometry, Raster
 from sqlalchemy import UUID, Boolean, Column, DateTime, Float, Integer, String
 
 from bloom.infra.database.database_manager import Base
@@ -68,3 +68,9 @@ class VesselPositionSpire(Base):
     status = Column("status", String)
     speed = Column("speed", Float)
     navigation_status = Column("navigation_status", String)
+
+
+class DistanceShore(Base):
+    __tablename__ = "distance_shore"
+    rid = Column("rid", Integer, primary_key=True)
+    raster = Column("rast", Raster())
