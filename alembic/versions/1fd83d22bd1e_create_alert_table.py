@@ -5,7 +5,6 @@ Revises: e52b9542531c
 Create Date: 2023-06-26 23:06:06.323214
 
 """
-import uuid
 
 import sqlalchemy as sa
 from sqlalchemy import Inspector
@@ -29,7 +28,6 @@ def upgrade() -> None:
             sa.Identity(),
             primary_key=True,
             index=True,
-            default=uuid.uuid4,
         ),
         sa.Column("timestamp", sa.DateTime),
         sa.Column("vessel_id", sa.Integer, index=True, nullable=False),
@@ -45,13 +43,11 @@ def upgrade() -> None:
         ["id"],
     )
 
-    op.create_foreign_key(
-        "fk_alert_mpa",
-        "alert",
-        "mpa",
-        ["mpa_id"],
-        ["index"],
-    )
+
+# op.create_foreign_key(
+#     "fk_alert_mpa",
+#     "alert",
+#     "mpa",
 
 
 def downgrade() -> None:
