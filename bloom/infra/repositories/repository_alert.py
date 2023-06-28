@@ -27,7 +27,7 @@ class RepositoryAlert:
                         JOIN mpa
                         ON ST_Contains(mpa.geometry, spire_vessel_positions.position)
                         WHERE spire_vessel_positions.timestamp = '{timestamp}');
-                    """,  # nosec
+                    """,  # nosec: B608
             )
             session.execute(sql)
             session.commit()
@@ -52,7 +52,7 @@ class RepositoryAlert:
                         ON a.vessel_id = spire.vessel_id
                         WHERE  a.timestamp = '{timestamp}') as habile
                         JOIN mpa ON mpa_id = mpa.index
-                    """,  # nosec
+                    """,  # nosec: B608
             )
             e = session.execute(sql)
             if not e:
