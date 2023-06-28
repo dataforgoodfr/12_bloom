@@ -1,6 +1,6 @@
 import uuid
 
-from geoalchemy2 import Geometry
+from geoalchemy2 import Geometry, Raster
 from sqlalchemy import UUID, Boolean, Column, DateTime, Float, Integer, String
 
 from bloom.infra.database.database_manager import Base
@@ -76,3 +76,9 @@ class Alert(Base):
     timestamp = Column("timestamp", DateTime)
     mpa_id = Column("mpa_id", Integer)
     vessel_id = Column("vessel_id", Integer)
+
+
+class DistanceShore(Base):
+    __tablename__ = "distance_shore"
+    rid = Column("rid", Integer, primary_key=True)
+    raster = Column("rast", Raster())
