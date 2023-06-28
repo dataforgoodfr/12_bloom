@@ -27,11 +27,10 @@ def main() -> None:
     )
     args = parser.parse_args()
     use_cases = UseCases()
-    #marine_traffic_usecase = use_cases.scrap_marine_data_usecase()
-    #spire_traffic_usecase = use_cases.get_spire_data_usecase()
+    marine_traffic_usecase = use_cases.scrap_marine_data_usecase()
+    spire_traffic_usecase = use_cases.get_spire_data_usecase()
     alert_usecase = use_cases.generate_alert_usecase()
-    #timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    timestamp = '2023-06-28 00:40:00'
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
     if args.mode == ExecutionMode.LOCAL:
         logger.info("Starting scraping with internal scheduler")
@@ -39,19 +38,19 @@ def main() -> None:
             function=marine_traffic_usecase.scrap_vessels,
             interval=SCRAP_INTERVAL,
         )
-        #marine_traffic_usecase.scrap_vessels(timestamp)
-        #spire_traffic_usecase.save_vessels(
-        #    spire_traffic_usecase.get_all_vessels(timestamp),
-        #)
+        marine_traffic_usecase.scrap_vessels(timestamp)
+        spire_traffic_usecase.save_vessels(
+            spire_traffic_usecase.get_all_vessels(timestamp),
+        )
         alert_usecase.generate_alerts(timestamp)
         while True:
             scheduler.start()
     else:
         logger.info("Starting scraping with external scheduler")
-        #marine_traffic_usecase.scrap_vessels(timestamp)
-        #spire_traffic_usecase.save_vessels(
-        #    spire_traffic_usecase.get_all_vessels(timestamp),
-        #)
+        marine_traffic_usecase.scrap_vessels(timestamp)
+        spire_traffic_usecase.save_vessels(
+            spire_traffic_usecase.get_all_vessels(timestamp),
+        )
         alert_usecase.generate_alerts(timestamp)
 
 

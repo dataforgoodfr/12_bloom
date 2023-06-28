@@ -28,6 +28,7 @@ dependency_injection = "1.2.0"
 requests = "2.31.0"
 gql = "^3.4.0"
 requests-toolbelt = "^0.10.1"
+slack-sdk = "^3.21.3"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
