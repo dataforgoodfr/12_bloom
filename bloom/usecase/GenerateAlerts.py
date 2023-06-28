@@ -27,58 +27,57 @@ class GenerateAlerts:
 
         webhook = WebhookClient(slack_url)
         print("send a message")
-        response = webhook.send(
-            text="fallback",
-            blocks=f'''[
-                {{
+        blocks='''[
+                {
                         "type": "header",
-                        "text": {{
+                        "text": {
                                 "type": "plain_text",
                                 "text": "New Alert : Vessel in a Protected Area",
                                 "emoji": true
-                         }}
-                }},
-                {{
+                         }
+                },
+                {
                         "type": "section",
                         "fields": [
-                                {{
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*Name of the vessel:*\n{alert.ship_name}"
-                                }},
-                                {{
+                                        "text": "*Name of the vessel:*\\n''' + alert.ship_name + '''"
+                                },
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*Name of the area:*\n{alert.mpa_name}"
-                                }}
+                                        "text": "*Name of the area:*\\n''' + alert.mpa_name + '''"
+                                }
                         ]
-                }},
-                {{
+                },
+                {
                         "type": "section",
                         "fields": [
-                                {{
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*When:*\n{alert.last_position_time}"
-                                }},
-                                {{
+                                        "text": "*When:*\\n''' + alert.last_position_time.strftime("%m/%d/%Y, %H:%M:%S") + '''"
+                                },
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*IUCN category:*\n{alert.iucn_cat}"
-                                }}
+                                        "text": "*IUCN category:*\\n''' + alert.iucn_cat + '''"
+                                }
                         ]
-                }},
-                {{
+                },
+                {
                         "type": "section",
                         "fields": [
-                                {{
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*Position of the vessel:*\n{alert.position}"
-                                }},
-                                {{
+                                        "text": "*Position of the vessel:*\\n''' + alert.position + '''"
+                                },
+                                {
                                         "type": "mrkdwn",
-                                        'text": "*mmsi:*\n{alert.mmsi}"
-                                }}
+                                        "text": "*mmsi:*\\n''' + str(alert.mmsi) + '''"
+                                }
                         ]
-                }}
+                }
         ]'''
-        )
+        print(blocks)
+        response = webhook.send(text="fallback",blocks=blocks)
         print(response.status_code)
         print(response.body)
         #assert response.status_code == 200
