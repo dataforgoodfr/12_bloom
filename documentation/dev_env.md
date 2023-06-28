@@ -34,7 +34,7 @@ Launch the development environment :
 ` make launch-dev-container`
 
 In order to access the development environment :
-` docker exec -ti blomm-test /bin/bash`
+` docker exec -ti bloom-test /bin/bash`
 
 You know have a shell which can launch python command.
 

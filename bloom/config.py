@@ -24,7 +24,7 @@ class Settings(BaseSettings):
         + postgres_db
     )
 
-    srid: int = 4236
+    srid: int = 4326
 
 
 settings = Settings()

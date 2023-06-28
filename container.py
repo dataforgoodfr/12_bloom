@@ -3,7 +3,9 @@ from dependency_injector import containers, providers
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
+from bloom.infra.repositories.repository_alert import RepositoryAlert
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
+from bloom.usecase.GenerateAlerts import GenerateAlerts
 from bloom.usecase.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.usecase.ScrapVesselsFromMarineTraffic import ScrapVesselsFromMarineTraffic
 
@@ -21,6 +23,11 @@ class UseCases(containers.DeclarativeContainer):
         session_factory=db.provided.session,
     )
 
+    alert_repository = providers.Factory(
+        RepositoryAlert,
+        session_factory=db.provided.session,
+    )
+
     marine_traffic_scrapper = providers.Factory(
         MarineTrafficVesselScraper,
     )
@@ -34,4 +41,9 @@ class UseCases(containers.DeclarativeContainer):
     get_spire_data_usecase = providers.Factory(
         GetVesselsFromSpire,
         vessel_repository=vessel_repository,
+    )
+
+    generate_alert_usecase = providers.Factory(
+        GenerateAlerts,
+        alert_repository=alert_repository,
     )
