@@ -1,5 +1,5 @@
 from contextlib import AbstractContextManager
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -49,11 +49,12 @@ class RepositoryVessel:
     def save_marine_traffic_vessels_positions(
         self,
         vessels_positions_list: list[VesselPositionMarineTraffic],
+        timestamp: datetime,
         # refactor: according to me, domain class is useless here if we have two tables
     ) -> None:
         with self.session_factory() as session:
             sql_vessel_position_objects = [
-                self.map_schema_marine_traffic_to_sql_vessel_position(vessel)
+                self.map_schema_marine_traffic_to_sql_vessel_position(vessel, timestamp)
                 for vessel in vessels_positions_list
             ]
             session.add_all(sql_vessel_position_objects)
@@ -88,10 +89,11 @@ class RepositoryVessel:
     def map_json_vessel_to_sql_spire(
         vessel: str,
         vessel_id: int,
+        timestamp: datetime,
     ) -> sql_model.VesselPositionSpire:
         if vessel["lastPositionUpdate"] is None:
             return sql_model.VesselPositionSpire(
-                timestamp=vessel["updateTimestamp"],
+                timestamp=timestamp,
                 ship_name=vessel["staticData"]["name"],
                 IMO=vessel["staticData"]["imo"],
                 vessel_id=vessel_id,
@@ -106,7 +108,7 @@ class RepositoryVessel:
                 navigation_status=None,
             )
         return sql_model.VesselPositionSpire(
-            timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            timestamp=timestamp,
             ship_name=vessel["staticData"]["name"],
             IMO=vessel["staticData"]["imo"],
             vessel_id=vessel_id,
@@ -130,9 +132,10 @@ class RepositoryVessel:
     @staticmethod
     def map_schema_marine_traffic_to_sql_vessel_position(
         vessel_position: VesselPositionMarineTraffic,
+        timestamp: datetime,
     ) -> sql_model.VesselPositionMarineTraffic:
         return sql_model.VesselPositionMarineTraffic(
-            timestamp=vessel_position.timestamp,
+            timestamp=timestamp,
             ship_name=vessel_position.ship_name,
             IMO=vessel_position.IMO,
             vessel_id=vessel_position.vessel_id,

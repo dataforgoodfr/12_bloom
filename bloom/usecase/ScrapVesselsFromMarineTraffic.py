@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
@@ -13,7 +15,7 @@ class ScrapVesselsFromMarineTraffic:
         self.vessel_repository: RepositoryVessel = vessel_repository
         self.scraper: MarineTrafficVesselScraper = scraper
 
-    def scrap_vessels(self) -> None:
+    def scrap_vessels(self, timestamp: datetime) -> None:
         vessels: list[Vessel] = self.vessel_repository.load_vessel_metadata()
 
         for chunk in self.batch(vessels, 10):
@@ -29,6 +31,7 @@ class ScrapVesselsFromMarineTraffic:
             )
             self.vessel_repository.save_marine_traffic_vessels_positions(
                 scrapped_vessels,
+                timestamp,
             )
 
     def batch(self, iterable, n=1):  # noqa: ANN201 ANN001

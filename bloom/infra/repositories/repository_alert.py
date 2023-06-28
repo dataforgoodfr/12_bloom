@@ -7,7 +7,7 @@ from sqlalchemy.sql import text
 from bloom.domain.alert import Alert
 
 
-class RepositoryVessel:
+class RepositoryAlert:
     def __init__(
         self,
         session_factory: Callable,
