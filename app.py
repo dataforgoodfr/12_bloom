@@ -11,14 +11,9 @@ from bloom.enums import ExecutionMode
 from bloom.logger import logger
 from bloom.scheduler import PeriodicScheduler
 from container import UseCases
-from shapely import Point
+
 SCRAP_INTERVAL = 15 * 60
 
-
-from bloom.infra.repositories.repository_raster import RepositoryRaster
-from bloom.config import settings
-from bloom.infra.database.database_manager import Database
-from dependency_injector import providers
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Bloom scraping application")
@@ -57,6 +52,7 @@ def main() -> None:
             spire_traffic_usecase.get_all_vessels(timestamp),
         )
         alert_usecase.generate_alerts(timestamp)
+
 
 if __name__ == "__main__":
     main()
