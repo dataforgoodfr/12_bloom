@@ -68,3 +68,11 @@ class VesselPositionSpire(Base):
     status = Column("status", String)
     speed = Column("speed", Float)
     navigation_status = Column("navigation_status", String)
+
+
+class Alert(Base):
+    __tablename__ = "alert"
+    id = Column("id", Integer, primary_key=True, index=True)
+    timestamp = Column("timestamp", DateTime)
+    mpa_id = Column("mpa_id", Integer)
+    vessel_id = Column("vessel_id", Integer)

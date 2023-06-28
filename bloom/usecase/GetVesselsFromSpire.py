@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
@@ -113,7 +114,10 @@ class GetVesselsFromSpire:
             query_string,
         )
 
-    def get_all_vessels(self) -> list[sql_model.VesselPositionSpire]:
+    def get_all_vessels(
+        self,
+        timestamp: datetime,
+    ) -> list[sql_model.VesselPositionSpire]:
         vessels: list[Vessel] = self.vessel_repository.load_all_vessel_metadata()
         raw_vessels = self.get_raw_vessels(vessels)
 
@@ -125,6 +129,7 @@ class GetVesselsFromSpire:
             RepositoryVessel.map_json_vessel_to_sql_spire(
                 vessel,
                 map_id.get(vessel["staticData"]["mmsi"]),
+                timestamp,
             )
             for vessel in raw_vessels
         ]
