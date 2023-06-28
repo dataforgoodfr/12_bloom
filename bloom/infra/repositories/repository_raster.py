@@ -24,4 +24,4 @@ class RepositoryRaster:
                     """,  # nosec: B608
             )
             e = session.execute(sql)
-            return e[0]
+            return e.first()[0]
