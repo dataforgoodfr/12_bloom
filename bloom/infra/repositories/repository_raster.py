@@ -16,7 +16,6 @@ class RepositoryRaster:
 
     def select_distance_shore(self, point: Point) -> int:
         with self.session_factory() as session:
-
             sql = text(
                 f"""
     SELECT ST_Value(rast, ST_SetSRID(ST_MakePoint({point.x},{point.y}),{settings.srid}))
