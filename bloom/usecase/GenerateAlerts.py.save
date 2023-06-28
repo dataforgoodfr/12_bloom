@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from slack_sdk.webhook import WebhookClient
 from bloom.infra.repositories.repository_alert import RepositoryAlert
@@ -17,7 +16,7 @@ class GenerateAlerts:
 
         list_alert = self.alert_repository.load_alert(timestamp)
         for alert in list_alert:
-            self.send_slack_alert(alert)
+            self.send_slack_aler(alert)
 
         return
 
@@ -25,61 +24,59 @@ class GenerateAlerts:
 
         slack_url = os.environ.get("SLACK_URL")
 
-        webhook = WebhookClient(slack_url)
-        print("send a message")
+        webhook = WebhookClient(url)
         response = webhook.send(
             text="fallback",
             blocks=f'''[
-                {{
+                {
                         "type": "header",
-                        "text": {{
+                        "text": {
                                 "type": "plain_text",
                                 "text": "New Alert : Vessel in a Protected Area",
                                 "emoji": true
-                         }}
-                }},
-                {{
+                         }
+                },
+                {
                         "type": "section",
                         "fields": [
-                                {{
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*Name of the vessel:*\n{alert.ship_name}"
-                                }},
-                                {{
+                                        "text": "*Name of the vessel:*\n'''{alert.ship_name}'''"
+                                },
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*Name of the area:*\n{alert.mpa_name}"
-                                }}
+                                        "text": "*Name of the area:*\n'''{alert.mpa_name}'''"
+                                }
                         ]
-                }},
-                {{
+                },
+                {
                         "type": "section",
                         "fields": [
-                                {{
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*When:*\n{alert.last_position_time}"
-                                }},
-                                {{
+                                        "text": "*When:*\n'''{alert.last_position_time}'''"
+                                },
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*IUCN category:*\n{alert.iucn_cat}"
-                                }}
+                                        "text": "*IUCN category:*\n'''{alert.iucn_cat}'''"
+                                }
                         ]
-                }},
-                {{
+                },
+                {
                         "type": "section",
                         "fields": [
-                                {{
+                                {
                                         "type": "mrkdwn",
-                                        "text": "*Position of the vessel:*\n{alert.position}"
-                                }},
-                                {{
+                                        "text": "*Position of the vessel:*\n'''{alert.position}"
+                                },
+                                {
                                         "type": "mrkdwn",
                                         'text": "*mmsi:*\n{alert.mmsi}"
-                                }}
+                                }
                         ]
-                }}
+                }
         ]'''
         )
-        print(response.status_code)
-        print(response.body)
+
         #assert response.status_code == 200
         #assert response.body == "ok"
