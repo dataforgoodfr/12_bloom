@@ -1,11 +1,12 @@
 from contextlib import AbstractContextManager
 from datetime import datetime
 
+import sqlalchemy
 from dependency_injector.providers import Callable
 from sqlalchemy.sql import text
 
 from bloom.domain.alert import Alert
-import sqlalchemy
+
 
 class RepositoryAlert:
     def __init__(
@@ -28,14 +29,14 @@ class RepositoryAlert:
                         WHERE spire_vessel_positions.timestamp = '{timestamp}');
                     """,  # nosec
             )
-            e = session.execute(sql)
+            session.execute(sql)
             session.commit()
-            return None
+            return
 
     def load_alert(self, timestamp: datetime) -> list[Alert]:
         with self.session_factory() as session:
             # requesting the polygons was too long.
-            # If the joins become too long, we can create an alert table with all the data and just do a select.
+            # If the join become too long,we can create an alert table with all the data
             # In this case domain will be equal to  sql model
             sql = text(
                 f"""
@@ -56,14 +57,14 @@ class RepositoryAlert:
             e = session.execute(sql)
             if not e:
                 return []
-            return  [self.map_sql_to_alert(row) for row in e]
+            return [self.map_sql_to_alert(row) for row in e]
 
     def map_sql_to_alert(self, row: sqlalchemy.engine.row.Row) -> Alert:
         return Alert(
-                ship_name=row[1],
-                mmsi=row[2],
-                last_position_time=row[3],
-                position=row[4],
-                iucn_cat=row[6],
-                mpa_name=row[5],
-                )
+            ship_name=row[1],
+            mmsi=row[2],
+            last_position_time=row[3],
+            position=row[4],
+            iucn_cat=row[6],
+            mpa_name=row[5],
+        )
