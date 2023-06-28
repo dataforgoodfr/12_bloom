@@ -25,3 +25,15 @@ class RepositoryRaster:
             )
             e = session.execute(sql)
             return e.first()[0]
+
+    def select_distance_port(self, point: Point) -> int:
+        with self.session_factory() as session:
+            sql = text(
+                f"""
+    SELECT ST_Value(rast, ST_SetSRID(ST_MakePoint({point.x},{point.y}),{settings.srid}))
+    AS val FROM distance_port WHERE
+    ST_Intersects(rast, ST_SetSRID(ST_MakePoint({point.x},{point.y}),{settings.srid}));
+                    """,  # nosec: B608
+            )
+            e = session.execute(sql)
+            return e.first()[0]
