@@ -82,3 +82,9 @@ class DistanceShore(Base):
     __tablename__ = "distance_shore"
     rid = Column("rid", Integer, primary_key=True)
     raster = Column("rast", Raster())
+
+
+class DistancePort(Base):
+    __tablename__ = "distance_shore"
+    rid = Column("rid", Integer, primary_key=True)
+    raster = Column("rast", Raster())

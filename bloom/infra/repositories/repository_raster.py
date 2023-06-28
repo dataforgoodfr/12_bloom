@@ -1,25 +1,28 @@
 from contextlib import AbstractContextManager
 
 from dependency_injector.providers import Callable
-from sqlalchemy import func
+from shapely import Point
+from sqlalchemy.sql import text
 
-from bloom.infra.database import sql_model
+from bloom.config import settings
 
 
-class RepositoryVessel:
+class RepositoryRaster:
     def __init__(
         self,
         session_factory: Callable,
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def select_distance_shore(self) -> int:
+    def select_distance_shore(self, point: Point) -> int:
         with self.session_factory() as session:
-            e = session.query(sql_model.DistanceShore).filter(
-                func.ST_Contains(sql_model.DistanceShore, "POINT(1.83 51.18)"),
-            )
 
-            if not e:
-                return []
-            print(e)
-            return None
+            sql = text(
+                f"""
+    SELECT ST_Value(rast, ST_SetSRID(ST_MakePoint({point.x},{point.y}),{settings.srid}))
+    AS val FROM distance_shore WHERE
+    ST_Intersects(rast, ST_SetSRID(ST_MakePoint({point.x},{point.y}),{settings.srid}));
+                    """,  # nosec: B608
+            )
+            e = session.execute(sql)
+            return e[0]
