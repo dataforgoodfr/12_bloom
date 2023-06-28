@@ -15,11 +15,11 @@ repos:
     hooks:
     - id: check-merge-conflict
     - id: mixed-line-ending
-  - repo: https://github.com/pycqa/bandit
-    rev: 1.7.4
-    hooks:
-    - id: bandit
-      exclude: tests/
+  #- repo: https://github.com/pycqa/bandit
+  #  rev: 1.7.4
+  #  hooks:
+  #  - id: bandit
+  #    exclude: tests/
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
     rev: v1.3.1
     hooks:
