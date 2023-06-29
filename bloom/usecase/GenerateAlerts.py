@@ -33,7 +33,11 @@ class GenerateAlerts:
 
         return
 
-    def send_slack_alert(self, alert: Alert) -> None:
+    def send_slack_alert(
+        self,
+        alert: Alert,
+        type_name: str = "Vessel in a Protected Area",
+    ) -> None:
 
         slack_url = os.environ.get("SLACK_URL")
 
@@ -44,7 +48,9 @@ class GenerateAlerts:
                         "type": "header",
                         "text": {
                                 "type": "plain_text",
-                                "text": "New Alert : Vessel in a Protected Area",
+                                "text": "New Alert : """
+            + type_name
+            + """",
                                 "emoji": true
                          }
                 },
@@ -88,12 +94,17 @@ class GenerateAlerts:
                                 {
                                         "type": "mrkdwn",
                                         "text": "*Position of the vessel:*\\n"""
-            + alert.position
+            + "Longitude :"
+            + alert.position.x
+            + "Latitude :"
+            + alert.position.y
             + """"
                                 },
                                 {
                                         "type": "mrkdwn",
-                                        "text": "*mmsi:*\\n"""
+"text": <https://www.marinetraffic.com/en/data?asset_type=vessels&mmsi%7Ceq%7Cmmsi="""
+            + str(alert.mmsi)
+            + """|mmsi:>"\\n"""
             + str(alert.mmsi)
             + """"
                                 }
