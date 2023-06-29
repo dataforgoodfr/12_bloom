@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 test_alert = Alert(
     ship_name="ship_name",
     mmsi=622768943,
-    last_position_time=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    last_position_time=datetime.now(timezone.utc),
     position="position",
     iucn_cat="iucn_cat",
     mpa_name="mpa_name",
