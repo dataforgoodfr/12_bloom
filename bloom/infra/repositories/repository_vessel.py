@@ -119,8 +119,8 @@ class RepositoryVessel:
             port_name=None,
             position=from_shape(
                 Point(
-                    vessel["lastPositionUpdate"]["latitude"],
                     vessel["lastPositionUpdate"]["longitude"],
+                    vessel["lastPositionUpdate"]["latitude"],
                 ),
                 srid=settings.srid,
             ),

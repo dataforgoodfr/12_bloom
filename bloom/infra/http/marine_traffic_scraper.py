@@ -119,7 +119,7 @@ class MarineTrafficVesselScraper:
                             mmsi=record_fields[3],
                             last_position_time=record_fields[4],
                             at_port=self._is_at_port(record_fields[1]),
-                            position=Point(record_fields[5], record_fields[6]),
+                            position=Point(record_fields[6], record_fields[5]),
                             status=record_fields[7],
                             speed=self._extract_speed_from_scrapped_field(
                                 record_fields[8],
