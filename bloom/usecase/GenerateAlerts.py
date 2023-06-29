@@ -33,10 +33,13 @@ class GenerateAlerts:
 
         return
 
-    def send_slack_alert(self, alert: Alert) -> None:
+    def send_slack_alert(
+        self,
+        alert: Alert,
+        type_name: str = "Vessel in a Protected Area",
+    ) -> int:
 
         slack_url = os.environ.get("SLACK_URL")
-
         webhook = WebhookClient(slack_url)
         blocks = (
             """[
@@ -44,7 +47,9 @@ class GenerateAlerts:
                         "type": "header",
                         "text": {
                                 "type": "plain_text",
-                                "text": "New Alert : Vessel in a Protected Area",
+                                "text": "New Alert : """
+            + type_name
+            + """",
                                 "emoji": true
                          }
                 },
@@ -87,13 +92,15 @@ class GenerateAlerts:
                         "fields": [
                                 {
                                         "type": "mrkdwn",
-                                        "text": "*Position of the vessel:*\\n"""
+            "text": "*Position of the vessel (Long,Lat):*\\n"""
             + alert.position
             + """"
                                 },
                                 {
                                         "type": "mrkdwn",
-                                        "text": "*mmsi:*\\n"""
+"text": "<https://www.marinetraffic.com/en/data?asset_type=vessels&mmsi%7Ceq%7Cmmsi="""
+            + str(alert.mmsi)
+            + """|mmsi:>\\n"""
             + str(alert.mmsi)
             + """"
                                 }
@@ -101,8 +108,9 @@ class GenerateAlerts:
                 }
         ]"""
         )
+        print(blocks)
         response = webhook.send(text="fallback", blocks=blocks)
 
         logger.info(f"Currently sending an alert about this vessel: {alert.ship_name}")
         logger.info(response.status_code)
-        logger.info(response.body)
+        return response.status_code

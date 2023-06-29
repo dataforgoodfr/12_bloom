@@ -11,9 +11,13 @@ from undetected_chromedriver import Chrome, ChromeOptions
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
 from bloom.logger import logger
 
-version = os.popen("google-chrome --version")  # nosec
-version_chrome = version.read().strip().split()[-1]
-CHROME_VERSION = int(version_chrome.split(".")[0])
+try:
+    version = os.popen("google-chrome --version")  # nosec
+    version_chrome = version.read().strip().split()[-1]
+    CHROME_VERSION = int(version_chrome.split(".")[0])
+except IndexError:
+    CHROME_VERSION = os.environ.get("CHROME_VERSION")
+
 NUMBER_OF_SCRAPED_VALUES = 10
 
 
