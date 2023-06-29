@@ -4,6 +4,7 @@ from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.http.marine_traffic_scraper import MarineTrafficVesselScraper
 from bloom.infra.repositories.repository_alert import RepositoryAlert
+from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from bloom.usecase.GetVesselsFromSpire import GetVesselsFromSpire
@@ -28,6 +29,11 @@ class UseCases(containers.DeclarativeContainer):
         session_factory=db.provided.session,
     )
 
+    raster_repository = providers.Factory(
+        RepositoryRaster,
+        session_factory=db.provided.session,
+    )
+
     marine_traffic_scrapper = providers.Factory(
         MarineTrafficVesselScraper,
     )
@@ -46,4 +52,5 @@ class UseCases(containers.DeclarativeContainer):
     generate_alert_usecase = providers.Factory(
         GenerateAlerts,
         alert_repository=alert_repository,
+        raster_repository=raster_repository,
     )

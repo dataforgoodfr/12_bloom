@@ -76,3 +76,9 @@ class Alert(Base):
     timestamp = Column("timestamp", DateTime)
     mpa_id = Column("mpa_id", Integer)
     vessel_id = Column("vessel_id", Integer)
+
+
+# class DistanceShore(Base):
+
+
+# class DistancePort(Base):

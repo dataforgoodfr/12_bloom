@@ -1,10 +1,12 @@
 import os
 from datetime import datetime
 
+from shapely import Point
 from slack_sdk.webhook import WebhookClient
 
 from bloom.domain.alert import Alert
 from bloom.infra.repositories.repository_alert import RepositoryAlert
+from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.logger import logger
 
 
@@ -12,8 +14,14 @@ class GenerateAlerts:
     def __init__(
         self,
         alert_repository: RepositoryAlert,
+        raster_repository: RepositoryRaster,
     ) -> None:
         self.alert_repository: RepositoryAlert = alert_repository
+        self.raster_repository: RepositoryAlert = raster_repository
+
+    def get_distance_shore(self, point: Point) -> None:
+
+        return self.raster_repository.select_distance_shore(point)
 
     def generate_alerts(self, timestamp: datetime) -> None:
 
