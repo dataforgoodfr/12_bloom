@@ -3,7 +3,7 @@ from bloom.domain.alert import Alert
 from datetime import datetime, timezone
 
 
-def test_driver_tabs_opening():
+def test_launch_alert():
 
     use_cases = UseCases()
     alert_usecase = use_cases.generate_alert_usecase()

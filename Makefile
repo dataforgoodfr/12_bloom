@@ -1,11 +1,7 @@
 VERSION ?= 1.0.0
 
 BLOOM_DEV_DOCKER = @docker run --name blomm-test  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net
-<<<<<<< Updated upstream
-BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=1g --log-opt max-file=3  --entrypoint /entrypoint.sh
-=======
 BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=1g --log-opt max-file=3 --entrypoint /entrypoint.sh
->>>>>>> Stashed changes
 
 build:
 	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
