@@ -16,7 +16,8 @@ def test_launch_alert():
 
     use_cases = UseCases()
     alert_usecase = use_cases.generate_alert_usecase()
-    alert_usecase.send_slack_alert(
+    status_code = alert_usecase.send_slack_alert(
         test_alert,
         "THIS IS A TEST",
     )
+    assert status_code == 200
