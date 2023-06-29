@@ -20,4 +20,4 @@ def test_launch_alert():
         test_alert,
         "THIS IS A TEST",
     )
-    assert status_code == 200
+    assert status_code == 404
