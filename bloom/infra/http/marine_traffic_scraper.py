@@ -16,7 +16,7 @@ try:
     version_chrome = version.read().strip().split()[-1]
     CHROME_VERSION = int(version_chrome.split(".")[0])
 except IndexError:
-    CHROME_VERSION = "112.0.5615.165-1"
+    CHROME_VERSION = os.environ.get("CHROME_VERSION")
 
 NUMBER_OF_SCRAPED_VALUES = 10
 
