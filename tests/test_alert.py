@@ -3,12 +3,12 @@ from bloom.domain.alert import Alert
 from datetime import datetime, timezone
 
 test_alert = Alert(
-    "ship_name",
-    622768943,
-    datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    "position",
-    "iucn_cat",
-    "mpa_name",
+    ship_name="ship_name",
+    mmsi=622768943,
+    last_position_time=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    position="position",
+    iucn_cat="iucn_cat",
+    mpa_name="mpa_name",
 )
 
 
