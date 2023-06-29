@@ -93,11 +93,9 @@ class GenerateAlerts:
                         "fields": [
                                 {
                                         "type": "mrkdwn",
-                                        "text": "*Position of the vessel:*\\n"""
-            + "Longitude :"
-            + alert.position.x
-            + "Latitude :"
-            + alert.position.y
+                                        "text": "*Position of the vessel
+                                        (Longitude , Latitude):*\\n"""
+            + alert.position
             + """"
                                 },
                                 {
