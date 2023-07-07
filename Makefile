@@ -37,4 +37,4 @@ launch-production:
 	$(BLOOM_PRODUCTION_DOCKER) --name bloom-production -d d4g/bloom:${VERSION} cron -f -L 2
 
 launch-production-app:
-	 $(BLOOM_PRODUCTION_DOCKER) --name blomm-production-app --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
+	 $(BLOOM_PRODUCTION_DOCKER) --name bloom-production-app --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
