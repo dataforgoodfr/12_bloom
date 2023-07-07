@@ -131,7 +131,7 @@ class GetVesselsFromSpire:
                 map_id.get(vessel["staticData"]["mmsi"]),
                 timestamp,
             )
-            for vessel in raw_vessels
+            for vessel in raw_vessels if vessel["lastPositionUpdate"] is not None
         ]
 
     def save_vessels(self, vessels: list[sql_model.VesselPositionSpire]) -> None:

@@ -1,6 +1,6 @@
 VERSION ?= 1.0.0
 
-BLOOM_DEV_DOCKER = @docker run --name blomm-test  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net
+BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net
 BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=1g --log-opt max-file=3 --entrypoint /entrypoint.sh
 
 build:
@@ -27,11 +27,11 @@ rm-dev-db:
 	@docker-compose -f docker-env/docker-compose-db.yaml rm
 
 rm-dev-env:
-	@docker rm blomm-test
+	@docker rm bloom-test
 
 init-production:
-	$(BLOOM_PRODUCTION_DOCKER) --name blomm-production-db-init --rm alembic upgrade head
-	$(BLOOM_PRODUCTION_DOCKER) --name blomm-production-db-init --rm /venv/bin/python3 alembic/init_script/load_vessels_data.py
+	$(BLOOM_PRODUCTION_DOCKER) --name bloom-production-db-init --rm d4g/bloom:${VERSION} alembic upgrade head
+	$(BLOOM_PRODUCTION_DOCKER) --name bloom-production-db-init --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
 
 launch-production:
 	$(BLOOM_PRODUCTION_DOCKER) --name bloom-production -d d4g/bloom:${VERSION} cron -f -L 2
