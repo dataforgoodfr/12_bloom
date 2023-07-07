@@ -61,13 +61,19 @@ class VesselPositionSpire(Base):
     vessel_id = Column("vessel_id", Integer, index=True)
     mmsi = Column("mmsi", String)
     last_position_time = Column("last_position_time", DateTime)
-    fishing = Column("fishing", Boolean)
-    at_port = Column("at_port", Boolean)
-    port_name = Column("port_name", String)
     position = Column("position", Geometry("POINT"))
-    status = Column("status", String)
     speed = Column("speed", Float)
     navigation_status = Column("navigation_status", String)
+    vessel_length = Column("vessel_length", Integer)
+    vessel_width = Column("vessel_width", Integer)
+    voyage_destination = Column("voyage_destination", String)
+    voyage_draught = Column("voyage_draught", Float)
+    voyage_eta = Column("voyage_eta", DateTime)
+    accuracy = Column("accuracy", String)
+    position_sensors = Column("position_sensors", String)
+    course = Column("course", Float)
+    heading = Column("heading", Float)
+    rot = Column("rot", Float)
 
 
 class Alert(Base):

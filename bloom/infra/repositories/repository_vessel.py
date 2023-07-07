@@ -91,42 +91,88 @@ class RepositoryVessel:
         vessel_id: int,
         timestamp: datetime,
     ) -> sql_model.VesselPositionSpire:
-        if vessel["lastPositionUpdate"] is None:
-            return sql_model.VesselPositionSpire(
-                timestamp=timestamp,
-                ship_name=vessel["staticData"]["name"],
-                IMO=vessel["staticData"]["imo"],
-                vessel_id=vessel_id,
-                mmsi=vessel["staticData"]["mmsi"],
-                last_position_time=None,
-                fishing=None,
-                at_port=None,
-                port_name=None,
-                position=None,
-                status=None,
-                speed=None,
-                navigation_status=None,
-            )
         return sql_model.VesselPositionSpire(
             timestamp=timestamp,
             ship_name=vessel["staticData"]["name"],
             IMO=vessel["staticData"]["imo"],
             vessel_id=vessel_id,
             mmsi=vessel["staticData"]["mmsi"],
-            last_position_time=vessel["lastPositionUpdate"]["timestamp"],
-            fishing=None,
-            at_port=None,
-            port_name=None,
-            position=from_shape(
-                Point(
-                    vessel["lastPositionUpdate"]["longitude"],
-                    vessel["lastPositionUpdate"]["latitude"],
-                ),
-                srid=settings.srid,
+            last_position_time=(
+                vessel["lastPositionUpdate"]["timestamp"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
             ),
-            status=None,
-            speed=vessel["lastPositionUpdate"]["speed"],
-            navigation_status=vessel["lastPositionUpdate"]["navigationalStatus"],
+            position=(
+                from_shape(
+                    Point(
+                        vessel["lastPositionUpdate"]["longitude"],
+                        vessel["lastPositionUpdate"]["latitude"],
+                    ),
+                    srid=settings.srid,
+                )
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            speed=(
+                vessel["lastPositionUpdate"]["speed"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            navigation_status=(
+                vessel["lastPositionUpdate"]["navigationalStatus"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            vessel_length=(
+                vessel["staticData"]["dimensions"]["width"]
+                if vessel["staticData"]["dimensions"] is not None
+                else None
+            ),
+            vessel_width=(
+                vessel["staticData"]["dimensions"]["length"]
+                if vessel["staticData"]["dimensions"] is not None
+                else None
+            ),
+            voyage_destination=(
+                vessel["currentVoyage"]["destination"]
+                if vessel["currentVoyage"] is not None
+                else None
+            ),
+            voyage_draught=(
+                vessel["currentVoyage"]["draught"]
+                if vessel["currentVoyage"] is not None
+                else None
+            ),
+            voyage_eta=(
+                vessel["currentVoyage"]["eta"]
+                if vessel["currentVoyage"] is not None
+                else None
+            ),
+            accuracy=(
+                vessel["lastPositionUpdate"]["accuracy"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            position_sensors=(
+                vessel["lastPositionUpdate"]["collectionType"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            course=(
+                vessel["lastPositionUpdate"]["course"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            heading=(
+                vessel["lastPositionUpdate"]["heading"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
+            rot=(
+                vessel["lastPositionUpdate"]["rot"]
+                if vessel["lastPositionUpdate"] is not None
+                else None
+            ),
         )
 
     @staticmethod
