@@ -132,6 +132,7 @@ class GetVesselsFromSpire:
                 timestamp,
             )
             for vessel in raw_vessels
+            if vessel["lastPositionUpdate"] is not None
         ]
 
     def save_vessels(self, vessels: list[sql_model.VesselPositionSpire]) -> None:

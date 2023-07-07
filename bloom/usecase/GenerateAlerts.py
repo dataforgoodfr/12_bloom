@@ -108,7 +108,6 @@ class GenerateAlerts:
                 }
         ]"""
         )
-        print(blocks)
         response = webhook.send(text="fallback", blocks=blocks)
 
         logger.info(f"Currently sending an alert about this vessel: {alert.ship_name}")
