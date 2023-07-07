@@ -38,21 +38,20 @@ def main() -> None:
             function=marine_traffic_usecase.scrap_vessels,
             interval=SCRAP_INTERVAL,
         )
-        marine_traffic_usecase.scrap_vessels(timestamp)
         spire_traffic_usecase.save_vessels(
             spire_traffic_usecase.get_all_vessels(timestamp),
         )
+        marine_traffic_usecase.scrap_vessels(timestamp)
         alert_usecase.generate_alerts(timestamp)
         while True:
             scheduler.start()
     else:
         logger.info("Starting scraping with external scheduler")
-        marine_traffic_usecase.scrap_vessels(timestamp)
         spire_traffic_usecase.save_vessels(
             spire_traffic_usecase.get_all_vessels(timestamp),
         )
+        marine_traffic_usecase.scrap_vessels(timestamp)
         alert_usecase.generate_alerts(timestamp)
-
 
 if __name__ == "__main__":
     main()
