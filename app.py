@@ -53,5 +53,6 @@ def main() -> None:
         marine_traffic_usecase.scrap_vessels(timestamp)
         alert_usecase.generate_alerts(timestamp)
 
+
 if __name__ == "__main__":
     main()
