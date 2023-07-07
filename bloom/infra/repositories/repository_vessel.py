@@ -123,8 +123,16 @@ class RepositoryVessel:
                 if vessel["lastPositionUpdate"] is not None
                 else None
             ),
-            vessel_length=vessel["staticData"]["dimensions"]["width"],
-            vessel_width=vessel["staticData"]["dimensions"]["length"],
+            vessel_length=(
+                vessel["staticData"]["dimensions"]["width"]
+                if vessel["staticData"]["dimensions"] is not None
+                else None
+            ),
+            vessel_width=(
+                vessel["staticData"]["dimensions"]["length"]
+                if vessel["staticData"]["dimensions"] is not None
+                else None
+            ),
             voyage_destination=(
                 vessel["currentVoyage"]["destination"]
                 if vessel["currentVoyage"] is not None
