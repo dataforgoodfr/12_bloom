@@ -59,7 +59,7 @@ class GenerateAlerts:
                                 {
                                         "type": "mrkdwn",
                                         "text": "*Name of the vessel:*\\n"""
-            + alert.ship_name
+            + (alert.ship_name or "None")
             + """"
                                 },
                                 {
