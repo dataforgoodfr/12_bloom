@@ -1,7 +1,18 @@
 import uuid
 
+import folium
 from geoalchemy2 import Geometry
-from sqlalchemy import UUID, Boolean, Column, DateTime, Float, Integer, String
+from sqlalchemy import (
+    UUID,
+    BigInteger,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    Integer,
+    String,
+    Text,
+)
 
 from bloom.infra.database.database_manager import Base
 
@@ -82,6 +93,65 @@ class Alert(Base):
     timestamp = Column("timestamp", DateTime)
     mpa_id = Column("mpa_id", Integer)
     vessel_id = Column("vessel_id", Integer)
+
+
+IUCN_CATEGORIES = {
+    "Ia": {"name": "Strict Nature Reserve", "color": "#FF0000"},  # Red
+    "Ib": {"name": "Wilderness Area", "color": "#FF3300"},  #
+    "II": {"name": "National Park", "color": "#FF6600"},  #
+    "III": {"name": "Natural Monument or Feature", "color": "#FF9900"},  #
+    "IV": {"name": "Habitat/Species Management Area", "color": "#FFCC00"},  #
+    "V": {"name": "Protected Landscape/Seascape", "color": "#FFFF00"},  #
+    "VI": {
+        "name": "Protected area with sustainable use of natural resources",
+        "color": "#FFFF66",
+    },  # Yellow
+}
+
+
+class MPA(Base):
+    __tablename__ = "mpa"
+    geometry = Column("geometry", Geometry("POLYGON"))
+    gov_type = Column("GOV_TYPE", Text)
+    iucn_category = Column("IUCN_CAT", Text)
+    name = Column("NAME", Text)
+    type = Column("DESIG_TYPE", Text)
+    index = Column("index", BigInteger, primary_key=True, index=True)
+
+    def __repr__(self):
+        return f"MarineProtectedArea(name={self.name},type={self.type},iucn_category={self.iucn_category})"
+
+    def get_polygon(self):
+        shapely_polygon = wkb.loads(bytes(self.geometry.data))
+        geojson_polygon = shapely_polygon.__geo_interface__
+        return geojson_polygon
+
+    @property
+    def protected_area_category(self):
+        return IUCN_CATEGORIES.get(self.iucn_category, {"name": "Unknown"})["name"]
+
+    @property
+    def color(self):
+        return IUCN_CATEGORIES.get(self.iucn_category, {"color": "#808080"})["color"]
+
+    def add_to_map(self, m, show_iucn=True):
+
+        polygon = self.get_polygon()
+        color = self.color
+
+        if show_iucn:
+
+            folium.GeoJson(
+                polygon,
+                style_function=lambda _, color=color: {
+                    "fillColor": color,
+                    "color": color,
+                },
+                tooltip=f"Protected area : {self.name}, IUCN category :{self.iucn_category} {self.protected_area_category}",
+            ).add_to(m)
+
+        else:
+            folium.GeoJson(polygon).add_to(m)
 
 
 # class DistanceShore(Base):

@@ -3,12 +3,15 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+import geopandas as gpd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape
 from shapely import Point
+from shapely import wkb
 
 from bloom.config import settings
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
+from bloom.domain.vessels.vessel_trajectory import VesselTrajectory
 from bloom.infra.database import sql_model
 from bloom.logger import logger
 
@@ -195,3 +198,68 @@ class RepositoryVessel:
             speed=vessel_position.speed,
             navigation_status=vessel_position.navigation_status,
         )
+
+    def get_all_positions(self, mmsi, session):
+        positions = (
+            session.query(sql_model.VesselPositionSpire)
+            .filter(sql_model.VesselPositionSpire.mmsi == mmsi)
+            .all()
+        )
+        return positions
+
+    def get_vessel_trajectory(self, mmsi, as_trajectory=True):
+        def convert_wkb_to_point(x):
+            try:
+                point = wkb.loads(bytes(x.data))
+                return point
+            except:
+                return None
+
+        with self.session_factory() as session:
+            vessel = session.query(sql_model.Vessel).filter_by(mmsi=mmsi).first()
+            if vessel is not None:
+                positions = self.get_all_positions(mmsi, session)
+            else:
+                positions = []
+
+        print("LETS PRINT")
+        df = (
+            pd.DataFrame([p.__dict__ for p in positions])
+            .drop(columns=["_sa_instance_state"])
+            .sort_values("timestamp")
+            .drop_duplicates(subset=["mmsi", "timestamp"])
+            .reset_index(drop=True)
+        )
+
+        print(df["position"])
+
+        df["geometry"] = df["position"].map(convert_wkb_to_point)
+
+        print(df["geometry"])
+
+        # With CRS 4326, the coordinates are reversed
+        # Temporary fix
+        df.loc[df["timestamp"] <= "2023-06-28 14:44:00", "geometry"] = df[
+            "geometry"
+        ].apply(lambda point: Point(point.y, point.x))
+
+        df["is_fishing"] = df["navigation_status"] == "ENGAGED_IN_FISHING"
+
+        # Create a boolean Series where True represents a change from 'MOORED' to something else
+        condition = (df["navigation_status"].shift() == "MOORED") & (
+            df["navigation_status"] != "MOORED"
+        )
+
+        # Use cumsum to generate the 'voyage_id'. The cumsum operation works because 'True' is treated as 1 and 'False' as 0.
+        df["voyage_id"] = condition.cumsum()
+
+        positions = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
+        metadata = {
+            k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"
+        }
+
+        if as_trajectory:
+            trajectory = VesselTrajectory(metadata, positions)
+            return trajectory
+        else:
+            return metadata, positions
