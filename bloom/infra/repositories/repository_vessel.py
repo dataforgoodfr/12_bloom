@@ -2,12 +2,11 @@ from contextlib import AbstractContextManager
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape
-from shapely import Point
-from shapely import wkb
+from shapely import Point, wkb
 
 from bloom.config import settings
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic

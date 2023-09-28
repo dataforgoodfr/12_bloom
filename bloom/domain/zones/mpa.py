@@ -1,27 +1,22 @@
+import geopandas as gpd
+from geoalchemy2.elements import WKTElement
+from geopy import distance
 from shapely import wkb
+from shapely.geometry import Point, Polygon
+from sqlalchemy import func
+
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.database.sql_model import MPA
-from shapely.geometry import Point
-import folium
-from geopy import distance
-
-from shapely import wkb
-import geopandas as gpd
-from sqlalchemy import func
-from shapely.geometry import Polygon
-from functools import partial
-from geoalchemy2.elements import WKTElement
 
 
+def get_closest_marine_protected_areas(coord=(58.373683, -8.080092), radius=100):
 
-def get_closest_marine_protected_areas(coord = (58.373683,-8.080092),radius = 100):
-    
     ##### CREATE CIRCLE
     db = Database(settings.db_url)
 
     # Create a Point object
-    point = Point(coord[1], coord[0])
+    Point(coord[1], coord[0])
 
     # Calculate the coordinates of the circle's boundary points
     boundary_points = []
@@ -40,27 +35,38 @@ def get_closest_marine_protected_areas(coord = (58.373683,-8.080092),radius = 10
 
     mpas = []
     with db.session() as session:
-        mpas = session.query(MPA).filter(func.ST_Intersects(MPA.geometry, wkt_circle)).all()
+        mpas = (
+            session.query(MPA)
+            .filter(func.ST_Intersects(MPA.geometry, wkt_circle))
+            .all()
+        )
         if mpas:
             print(f"Circle overlaps with the following polygons: {len(mpas)}")
         session.close()
 
     gdf = convert_list_of_mpas_to_gdf(mpas)
-        
-    return mpas,gdf
+
+    return mpas, gdf
 
 
-
-def add_closest_marine_protected_areas(mpas,m,show_iucn = True):
+def add_closest_marine_protected_areas(mpas, m, show_iucn=True):
     for mpa in mpas:
-        mpa.add_to_map(m,show_iucn = show_iucn)
+        mpa.add_to_map(m, show_iucn=show_iucn)
 
 
 def convert_list_of_mpas_to_gdf(mpas):
 
-    keys = ["name","iucn_category","color","protected_area_category","gov_type","type","index"]
-    mpas_metadata = [{key:getattr(mpa,key) for key in keys} for mpa in mpas] 
+    keys = [
+        "name",
+        "iucn_category",
+        "color",
+        "protected_area_category",
+        "gov_type",
+        "type",
+        "index",
+    ]
+    mpas_metadata = [{key: getattr(mpa, key) for key in keys} for mpa in mpas]
     mpas_geometry = [wkb.loads(bytes(mpa.geometry.data)) for mpa in mpas]
 
-    gdf = gpd.GeoDataFrame(mpas_metadata,geometry = mpas_geometry,crs="EPSG:4326")
+    gdf = gpd.GeoDataFrame(mpas_metadata, geometry=mpas_geometry, crs="EPSG:4326")
     return gdf
