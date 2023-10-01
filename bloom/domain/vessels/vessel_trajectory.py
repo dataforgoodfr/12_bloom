@@ -1,19 +1,23 @@
 import random
 from datetime import datetime
 
+import folium
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 from shapely.geometry import MultiPoint
 
-from ..zones.mpa import (
+from bloom.domain.zones.mpa import (
     add_closest_marine_protected_areas,
     get_closest_marine_protected_areas,
 )
+
 from .visualize_trajectory import visualize
 
+ANGLE = 180
 
-def calculate_bearing(lat1, lon1, lat2, lon2):
+
+def calculate_bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     # Calculate the bearing between two points
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
@@ -21,17 +25,16 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
     y = np.sin(dlon) * np.cos(lat2)
     initial_bearing = np.arctan2(y, x)
     initial_bearing = np.degrees(initial_bearing)
-    compass_bearing = (initial_bearing + 360) % 360
-    return compass_bearing
+    return (initial_bearing + 360) % 360
 
 
-def normalize_bearing(angle):
+def normalize_bearing(angle: float) -> float:
     """
     Normalize a bearing difference to be within the range of -180 to 180.
     """
-    while angle <= -180:
+    while angle <= -ANGLE:
         angle += 360
-    while angle > 180:
+    while angle > ANGLE:
         angle -= 360
     return angle
 
@@ -56,19 +59,20 @@ class VesselTrajectory:
 
     # # Convert the dataset to a GeoDataFrame
 
-    def __repr__(self):
-        return f"Vessel(n_points={len(self.positions)},n_voyages={self.n_voyages},n_chunks={self.n_chunks})"
+    def __repr__(self) -> str:
+        return f"""Vessel(n_points={len(self.positions)},
+            n_voyages={self.n_voyages},n_chunks={self.n_chunks})"""
 
     @property
-    def n_voyages(self):
+    def n_voyages(self) -> int:
         return self.positions["voyage_id"].nunique()
 
     @property
-    def n_chunks(self):
+    def n_chunks(self) -> int:
         return self.positions["chunk_id"].nunique()
 
     @property
-    def centroid(self):
+    def centroid(self) -> (float, float):
 
         # Make sure that your GeoDataFrame is named gdf and has a column 'geometry'
         all_points = MultiPoint(self.positions["geometry"].unary_union)
@@ -78,13 +82,12 @@ class VesselTrajectory:
         return (centroid.y, centroid.x)
 
     @property
-    def mpas(self):
+    def mpas(self) -> []:
         if hasattr(self, "_mpas"):
             return self._mpas
-        else:
-            return None
+        return None
 
-    def get_closest_marine_protected_areas(self, radius=100):
+    def get_closest_marine_protected_areas(self, radius: int = 100) -> None:
         self._mpas, self._mpas_gdf = get_closest_marine_protected_areas(
             self.centroid,
             radius,
@@ -94,10 +97,10 @@ class VesselTrajectory:
         self,
         color_by_speed: bool = False,
         marker_by_fishing: bool = False,
-        show_mpas=True,
-        show_iucn=True,
-        **kwargs,
-    ):
+        show_mpas: bool = True,
+        show_iucn: bool = True,
+        **kwargs: any,
+    ) -> folium.Map:
         m = visualize(self.positions, color_by_speed, marker_by_fishing, **kwargs)
         if self.mpas is not None and show_mpas:
             add_closest_marine_protected_areas(self.mpas, m, show_iucn=show_iucn)
