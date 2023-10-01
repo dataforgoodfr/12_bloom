@@ -83,12 +83,12 @@ class VesselTrajectory:
 
     @property
     def mpas(self) -> []:
-        if hasattr(self, "_mpas"):
-            return self._mpas
+        if hasattr(self, "mpas"):
+            return self.mpas
         return None
 
     def get_closest_marine_protected_areas(self, radius: int = 100) -> None:
-        self._mpas, self._mpas_gdf = get_closest_marine_protected_areas(
+        self.mpas, self._mpas_gdf = get_closest_marine_protected_areas(
             self.centroid,
             radius,
         )
@@ -106,7 +106,12 @@ class VesselTrajectory:
             add_closest_marine_protected_areas(self.mpas, m, show_iucn=show_iucn)
         return m
 
-    def query(self, query_str=None, chunk_id=None, voyage_id=None):
+    def query(
+        self,
+        query_str: str = None,
+        chunk_id: str = None,
+        voyage_id: str = None,
+    ) -> "VesselTrajectory":
 
         if query_str is not None:
             pass
@@ -119,25 +124,27 @@ class VesselTrajectory:
         assert len(filtered_data) > 0
         filtered_vessel = VesselTrajectory(self.metadata, filtered_data.copy())
 
-        if hasattr(self, "_mpas"):
-            filtered_vessel._mpas = self._mpas
+        if hasattr(self, "mpas"):
+            filtered_vessel.mpas = self.mpas
 
         filtered_vessel.positions.index = filtered_data.index
 
         return filtered_vessel
 
-    def filter_by_date(self, start_date: datetime, end_date: datetime):
+    def filter_by_date(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> "VesselTrajectory":
         # Filter the data by the specified date range
         filtered_data = self.positions[
             (self.positions["timestamp"] >= start_date)
             & (self.positions["timestamp"] <= end_date)
         ]
         # Create a new Vessel object with the filtered data
-        filtered_vessel = VesselTrajectory(self.metadata, filtered_data.copy())
+        return VesselTrajectory(self.metadata, filtered_data.copy())
 
-        return filtered_vessel
-
-    def chunk_data(self, max_duration_hours: int):
+    def chunk_data(self, max_duration_hours: int) -> None:
         # Calculate the duration of each chunk in seconds
         max_duration_seconds = max_duration_hours * 3600
 
@@ -147,23 +154,29 @@ class VesselTrajectory:
         # Calculate the cumulative time deltas
         cum_time_deltas = time_deltas.cumsum()
 
-        # Calculate the chunk IDs based on the cumulative time deltas and the maximum duration
+        # Calculate the chunk IDs based on the cumulative
+        # time deltas and the maximum duration
         chunk_ids = (cum_time_deltas.dt.total_seconds() // max_duration_seconds).astype(
             int,
         )
 
-        # Assign consecutive chunk IDs based on the order in which they appear in the data
+        # Assign consecutive chunk IDs based on the order
+        # in which they appear in the data
         rank = chunk_ids.rank(method="dense").astype(int)
         consecutive_chunk_ids = rank - rank.min()
 
         # Add the consecutive chunk IDs to the dataframe
         self.positions["chunk_id"] = consecutive_chunk_ids
 
-    def sample(self):
+    def sample(self) -> "VesselTrajectory":
         chunk_id = random.choice(list(self.positions["chunk_id"].unique()))
         return self.query(f"chunk_id=={chunk_id}")
 
-    def is_in_mpas(self, mpas_gdf=None, how="inner"):
+    def is_in_mpas(
+        self,
+        mpas_gdf: gpd.GeoDataFrame = None,
+        how: str = "inner",
+    ) -> gpd.GeoDataFrame:
         if mpas_gdf is None:
             mpas_gdf = self._mpas_gdf
 
@@ -173,7 +186,7 @@ class VesselTrajectory:
             predicate="intersects",
         ).drop_duplicates(subset="timestamp")
 
-    def compute_angle(self, gdf):
+    def compute_angle(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
         # Now, compute the bearings
         gdf["bearing"] = calculate_bearing(
@@ -189,13 +202,21 @@ class VesselTrajectory:
         gdf["angle_abs"] = gdf["angle"].abs()
         return gdf
 
-    def compute_change_direction_flag(self, gdf, threshold=30):
+    def compute_change_direction_flag(
+        self,
+        gdf: gpd.GeoDataFrame,
+        threshold: str = 30,
+    ) -> gpd.GeoDataFrame:
         if "angle" not in gdf.columns:
             gdf = self.compute_angle(gdf)
         gdf[f"flag_change_{threshold}"] = (gdf["angle"].abs() > threshold).astype(int)
         return gdf
 
-    def compute_rolling_deviation(self, gdf, period="3H"):
+    def compute_rolling_deviation(
+        self,
+        gdf: gpd.GeoDataFrame,
+        period: str = "3H",
+    ) -> gpd.GeoDataFrame:
 
         # Ensure your 'timestamp' column is of datetime type
         gdf["timestamp"] = pd.to_datetime(gdf["timestamp"])
@@ -206,12 +227,13 @@ class VesselTrajectory:
         # Calculate the rolling standard deviation for 'bearing_change'
         gdf[f"rolling_angle_{period}"] = gdf["angle"].rolling(period).std()
 
-        gdf = gdf.reset_index()  # Reset index if necessary
-        return gdf
+        return gdf.reset_index()  # Reset index if necessary
 
 
-# # For the second flag, we can use a rolling window to check for consistent increases or decreases in latitude
+# # For the second flag, we can use a rolling window
+# to check for consistent increases or decreases in latitude
 
 # # Create the second flag if either condition is met
 
-# # You may want to do the same for the 'lon' variable, depending on the trajectories you're dealing with
+# # You may want to do the same for the 'lon' variable,
+# depending on the trajectories you're dealing with
