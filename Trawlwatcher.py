@@ -1,12 +1,15 @@
 from pathlib import Path
 
 import streamlit as st
+from dotenv import load_dotenv
 
 st.set_page_config(
     page_title="Bloom Trawlwatcher Demo app",
     page_icon="🐟",
     layout="wide",
 )
+
+load_dotenv()
 
 
 def local_css(file_name: str) -> None:
@@ -15,7 +18,7 @@ def local_css(file_name: str) -> None:
         return
 
 
-local_css("styles.css")
+local_css(Path("styles.css"))
 
 st.write("![](https://upload.wikimedia.org/wikipedia/fr/e/e8/Logo_BLOOM.jpg)")
 st.write("## Welcome to Bloom Trawlwatcher Demo app! 🐟")
