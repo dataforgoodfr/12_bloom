@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import folium
 import geopandas as gpd
 from geoalchemy2.elements import WKTElement
@@ -14,7 +12,7 @@ from bloom.infra.database.sql_model import MPA
 
 
 def get_closest_marine_protected_areas(
-    coord: Tuple[float, float] = (58.373683, -8.080092),
+    coord: tuple[float, float] = (58.373683, -8.080092),
     radius: int = 100,
 ) -> (list[MPA], gpd.GeoDataFrame):
     ##### CREATE CIRCLE

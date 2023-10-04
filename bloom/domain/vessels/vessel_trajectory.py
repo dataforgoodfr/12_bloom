@@ -1,6 +1,5 @@
 import random
 from datetime import datetime
-from typing import Tuple
 
 import folium
 import geopandas as gpd
@@ -72,7 +71,7 @@ class VesselTrajectory:
         return self.positions["chunk_id"].nunique()
 
     @property
-    def centroid(self) -> Tuple[float, float]:
+    def centroid(self) -> tuple[float, float]:
         # Make sure that your GeoDataFrame is named gdf and has a column 'geometry'
         all_points = MultiPoint(self.positions["geometry"].unary_union)
         centroid = all_points.centroid
