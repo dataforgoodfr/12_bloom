@@ -1,12 +1,14 @@
 from contextlib import AbstractContextManager
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape
 from shapely import Point, wkb
+from sqlalchemy.orm import Session
 
 from bloom.config import settings
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
@@ -52,7 +54,7 @@ class RepositoryVessel:
         self,
         vessels_positions_list: list[VesselPositionMarineTraffic],
         timestamp: datetime,
-        # refactor: according to me, domain class is useless here if we have two tables
+        # according to me, domain class is useless here if we have two tables
     ) -> None:
         with self.session_factory() as session:
             sql_vessel_position_objects = [
@@ -198,28 +200,38 @@ class RepositoryVessel:
             navigation_status=vessel_position.navigation_status,
         )
 
-    def get_all_positions(self, mmsi, session):
+    def get_all_positions(
+        self,
+        mmsi: str,
+        session: Session,
+    ) -> list[sql_model.VesselPositionSpire]:
         positions = (
             session.query(sql_model.VesselPositionSpire)
             .filter(sql_model.VesselPositionSpire.mmsi == mmsi)
             .all()
         )
-        return positions
+        if positions:
+            return positions
+        else:
+            return []
 
-    def get_vessel_trajectory(self, mmsi, as_trajectory=True):
-        def convert_wkb_to_point(x):
+    def get_vessel_trajectory(
+        self,
+        mmsi: str,
+        as_trajectory: bool = True,
+    ) -> Point | None:
+        def convert_wkb_to_point(x: Any) -> Point | None:
             try:
                 point = wkb.loads(bytes(x.data))
-                return point
-            except:
+                return point  # noqa: TRY300
+            except:  # noqa: E722
                 return None
 
         with self.session_factory() as session:
             vessel = session.query(sql_model.Vessel).filter_by(mmsi=mmsi).first()
-            if vessel is not None:
-                positions = self.get_all_positions(mmsi, session)
-            else:
-                positions = []
+            positions = (
+                self.get_all_positions(mmsi, session) if vessel is not None else []
+            )
 
         print("LETS PRINT")
         df = (
@@ -249,7 +261,8 @@ class RepositoryVessel:
             df["navigation_status"] != "MOORED"
         )
 
-        # Use cumsum to generate the 'voyage_id'. The cumsum operation works because 'True' is treated as 1 and 'False' as 0.
+        # Use cumsum to generate the 'voyage_id'.
+        # The cumsum operation works because 'True' is treated as 1 and 'False' as 0.
         df["voyage_id"] = condition.cumsum()
 
         positions = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")

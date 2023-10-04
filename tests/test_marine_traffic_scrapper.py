@@ -56,7 +56,6 @@ test_vessels = [
 
 
 def test_driver_tabs_opening():
-
     marine_traffic_scrapper = MarineTrafficVesselScraper()
     vessel_url = f"{marine_traffic_scrapper.base_url}{test_vessels[0].IMO}"
     with Driver() as driver:

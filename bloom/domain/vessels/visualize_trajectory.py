@@ -1,4 +1,7 @@
+from typing import Any
+
 import folium
+import geopandas as gpd
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,16 +9,15 @@ from folium.plugins import AntPath
 
 
 def visualize(
-    data,
-    color_by_speed: bool = False,
+    data: gpd.GeoDataFrame,
     marker_by_fishing: bool = False,
-    with_animation=False,
-    min_speed=2.0,
-    max_speed=None,
-    weight=5,
-    minutes_ais=120,
-    cmap=plt.cm.Spectral_r,
-):
+    with_animation: bool = False,
+    min_speed: float = 2.0,
+    max_speed: float = None,
+    weight: float = 5,
+    minutes_ais: int = 120,
+    cmap: Any = plt.cm.Spectral_r,
+) -> folium.Map:
     # Create a map centered on the first latitude/longitude position
     map_center = [data.iloc[0]["lat"], data.iloc[0]["lon"]]
     m = folium.Map(location=map_center, zoom_start=6)
@@ -40,11 +42,15 @@ def visualize(
                 ).add_to(m)
 
     # Define a function to color the polyline based on speed
-    def speed_color(speed, cmap=cmap):
+    def speed_color(speed: float, cmap: Any = cmap) -> str:
         rgba = cmap(speed)
         return mcolors.rgb2hex(rgba)
 
-    def antpath_delay(speed, max_speed=30, min_delay=1000, max_delay=20000):
+    def antpath_delay(
+        speed: float,
+        min_delay: int = 1000,
+        max_delay: int = 20000,
+    ) -> float:
         return min_delay + (1 - speed) * (max_delay - min_delay)
 
     if max_speed is None:
@@ -61,10 +67,8 @@ def visualize(
     ).tolist()
 
     if not with_animation:
-
         # Add lines connecting each latitude/longitude point with a color based on speed
         for i in range(0, len(data) - 1):
-
             color = "#6a6b6c" if stop_condition[i] else colors[i]
 
             loc = [
@@ -79,7 +83,6 @@ def visualize(
             ).add_to(m)
 
     else:
-
         # Create a list of locations and corresponding colors based on speed
         for i in range(len(data) - 1):
             loc = [

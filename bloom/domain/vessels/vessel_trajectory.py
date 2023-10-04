@@ -1,5 +1,6 @@
 import random
 from datetime import datetime
+from typing import Tuple
 
 import folium
 import geopandas as gpd
@@ -41,7 +42,6 @@ def normalize_bearing(angle: float) -> float:
 
 class VesselTrajectory:
     def __init__(self, metadata: pd.DataFrame, positions: gpd.GeoDataFrame) -> None:
-
         self.metadata = metadata
         self.positions = positions
 
@@ -72,8 +72,7 @@ class VesselTrajectory:
         return self.positions["chunk_id"].nunique()
 
     @property
-    def centroid(self) -> (float, float):
-
+    def centroid(self) -> Tuple[float, float]:
         # Make sure that your GeoDataFrame is named gdf and has a column 'geometry'
         all_points = MultiPoint(self.positions["geometry"].unary_union)
         centroid = all_points.centroid
@@ -112,7 +111,6 @@ class VesselTrajectory:
         chunk_id: str = None,
         voyage_id: str = None,
     ) -> "VesselTrajectory":
-
         if query_str is not None:
             pass
         elif chunk_id is not None:
@@ -187,7 +185,6 @@ class VesselTrajectory:
         ).drop_duplicates(subset="timestamp")
 
     def compute_angle(self, gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-
         # Now, compute the bearings
         gdf["bearing"] = calculate_bearing(
             gdf["lat"].shift(),
@@ -217,7 +214,6 @@ class VesselTrajectory:
         gdf: gpd.GeoDataFrame,
         period: str = "3H",
     ) -> gpd.GeoDataFrame:
-
         # Ensure your 'timestamp' column is of datetime type
         gdf["timestamp"] = pd.to_datetime(gdf["timestamp"])
 

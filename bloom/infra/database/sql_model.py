@@ -1,7 +1,9 @@
 import uuid
+from typing import Any
 
 import folium
 from geoalchemy2 import Geometry
+from shapely import wkb
 from sqlalchemy import (
     UUID,
     BigInteger,
@@ -118,36 +120,38 @@ class MPA(Base):
     type = Column("DESIG_TYPE", Text)
     index = Column("index", BigInteger, primary_key=True, index=True)
 
-    def __repr__(self):
-        return f"MarineProtectedArea(name={self.name},type={self.type},iucn_category={self.iucn_category})"
+    def __repr__(self) -> str:
+        return (
+            f"MarineProtectedArea(name={self.name},"
+            f"type={self.type},iucn_category={self.iucn_category})"
+        )
 
-    def get_polygon(self):
+    def get_polygon(self) -> Any:
         shapely_polygon = wkb.loads(bytes(self.geometry.data))
-        geojson_polygon = shapely_polygon.__geo_interface__
-        return geojson_polygon
+        return shapely_polygon.__geo_interface__
 
     @property
-    def protected_area_category(self):
+    def protected_area_category(self) -> str:
         return IUCN_CATEGORIES.get(self.iucn_category, {"name": "Unknown"})["name"]
 
     @property
-    def color(self):
+    def color(self) -> str:
         return IUCN_CATEGORIES.get(self.iucn_category, {"color": "#808080"})["color"]
 
-    def add_to_map(self, m, show_iucn=True):
-
+    def add_to_map(self, m: folium.Map, show_iucn: bool = True) -> None:
         polygon = self.get_polygon()
         color = self.color
 
         if show_iucn:
-
             folium.GeoJson(
                 polygon,
                 style_function=lambda _, color=color: {
                     "fillColor": color,
                     "color": color,
                 },
-                tooltip=f"Protected area : {self.name}, IUCN category :{self.iucn_category} {self.protected_area_category}",
+                tooltip=f"Protected area : {self.name}, "
+                f"IUCN category :{self.iucn_category} "
+                f"{self.protected_area_category}",
             ).add_to(m)
 
         else:

@@ -17,7 +17,6 @@ class RepositoryAlert:
 
     def save_alerts(self, timestamp: datetime) -> None:
         with self.session_factory() as session:
-
             sql = text(
                 f"""
                     INSERT INTO alert(timestamp,vessel_id,mpa_id)

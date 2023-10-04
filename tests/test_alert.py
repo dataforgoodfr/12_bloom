@@ -13,7 +13,6 @@ test_alert = Alert(
 
 
 def test_launch_alert():
-
     use_cases = UseCases()
     alert_usecase = use_cases.generate_alert_usecase()
     status_code = alert_usecase.send_slack_alert(

@@ -1,3 +1,6 @@
+from typing import Tuple
+
+import folium
 import geopandas as gpd
 from geoalchemy2.elements import WKTElement
 from geopy import distance
@@ -10,8 +13,10 @@ from bloom.infra.database.database_manager import Database
 from bloom.infra.database.sql_model import MPA
 
 
-def get_closest_marine_protected_areas(coord=(58.373683, -8.080092), radius=100):
-
+def get_closest_marine_protected_areas(
+    coord: Tuple[float, float] = (58.373683, -8.080092),
+    radius: int = 100,
+) -> (list[MPA], gpd.GeoDataFrame):
     ##### CREATE CIRCLE
     db = Database(settings.db_url)
 
@@ -33,7 +38,6 @@ def get_closest_marine_protected_areas(coord=(58.373683, -8.080092), radius=100)
     # Convert the Polygon object to a WKT string
     wkt_circle = WKTElement(circle.wkt, srid=circle_srid)
 
-    mpas = []
     with db.session() as session:
         mpas = (
             session.query(MPA)
@@ -49,13 +53,16 @@ def get_closest_marine_protected_areas(coord=(58.373683, -8.080092), radius=100)
     return mpas, gdf
 
 
-def add_closest_marine_protected_areas(mpas, m, show_iucn=True):
+def add_closest_marine_protected_areas(
+    mpas: list[MPA],
+    m: folium.Map,
+    show_iucn: bool = True,
+) -> None:
     for mpa in mpas:
         mpa.add_to_map(m, show_iucn=show_iucn)
 
 
-def convert_list_of_mpas_to_gdf(mpas):
-
+def convert_list_of_mpas_to_gdf(mpas: list[MPA]) -> gpd.GeoDataFrame:
     keys = [
         "name",
         "iucn_category",

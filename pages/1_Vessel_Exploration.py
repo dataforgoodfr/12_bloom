@@ -1,15 +1,13 @@
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-
-load_dotenv()
-
 from streamlit_folium import st_folium
 
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
 
+load_dotenv()
 st.set_page_config(page_title="Vessel Exploration", page_icon="⚓", layout="wide")
 
 
@@ -22,6 +20,7 @@ local_css("styles.css")
 
 db = Database(settings.db_url)
 rep = RepositoryVessel(db.session)
+
 
 # @st.cache_data  # 👈 Add the caching decorator
 def load_trajectory(mmsi, mpa):
@@ -75,16 +74,13 @@ with st.sidebar.form("Vessel selection"):
     load_mpa = st.checkbox("Load MPA")
     submitted = st.form_submit_button("Load", on_click=select_vessel, args=(mmsi,))
 
-
 # -------------------------------------------------------------------------------
 # Vessel exploration main page
 
 if st.session_state.vessel_mmsi is None:
-
     st.write("Select a vessel from the dropdown list")
 
 else:
-
     mmsi = st.session_state.vessel_mmsi
     v = load_trajectory(mmsi, load_mpa)
 

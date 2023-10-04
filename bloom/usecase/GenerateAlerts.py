@@ -20,11 +20,9 @@ class GenerateAlerts:
         self.raster_repository: RepositoryAlert = raster_repository
 
     def get_distance_shore(self, point: Point) -> None:
-
         return self.raster_repository.select_distance_shore(point)
 
     def generate_alerts(self, timestamp: datetime) -> None:
-
         self.alert_repository.save_alerts(timestamp)
 
         list_alert = self.alert_repository.load_alert(timestamp)
@@ -38,7 +36,6 @@ class GenerateAlerts:
         alert: Alert,
         type_name: str = "Vessel in a Protected Area",
     ) -> int:
-
         slack_url = os.environ.get("SLACK_URL")
         webhook = WebhookClient(slack_url)
         blocks = (
