@@ -158,3 +158,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Precommit hooks: ruff cache
+.ruff_cache
