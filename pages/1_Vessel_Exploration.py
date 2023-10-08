@@ -21,7 +21,7 @@ db = Database(settings.db_url)
 rep = RepositoryVessel(db.session)
 
 
-@st.cache_data  # 👈 Add the caching decorator
+# @st.cache_data  # 👈 Add the caching decorator
 def load_trajectory(mmsi, mpa):
     vessel = rep.get_vessel_trajectory(mmsi)
     if mpa:
@@ -29,7 +29,7 @@ def load_trajectory(mmsi, mpa):
     return vessel
 
 
-@st.cache_data  # 👈 Add the caching decorator
+# @st.cache_data  # 👈 Add the caching decorator
 def load_trawlers():
     trawlers = pd.read_csv("data/chalutiers_pelagiques.csv", sep=";")
     return trawlers
