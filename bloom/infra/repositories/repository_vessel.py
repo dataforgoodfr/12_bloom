@@ -219,7 +219,7 @@ class RepositoryVessel:
         self,
         mmsi: str,
         as_trajectory: bool = True,
-    ) -> Point | None:
+    ) -> Point | None: #Point ?
         def convert_wkb_to_point(x: Any) -> Point | None:
             try:
                 point = wkb.loads(bytes(x.data))
@@ -233,7 +233,6 @@ class RepositoryVessel:
                 self.get_all_positions(mmsi, session) if vessel is not None else []
             )
 
-        print("LETS PRINT")
         df = (
             pd.DataFrame([p.__dict__ for p in positions])
             .drop(columns=["_sa_instance_state"])
@@ -242,17 +241,13 @@ class RepositoryVessel:
             .reset_index(drop=True)
         )
 
-        print(df["position"])
-
         df["geometry"] = df["position"].map(convert_wkb_to_point)
-
-        print(df["geometry"])
 
         # With CRS 4326, the coordinates are reversed
         # Temporary fix
-        df.loc[df["timestamp"] <= "2023-06-28 14:44:00", "geometry"] = df[
-            "geometry"
-        ].apply(lambda point: Point(point.y, point.x))
+        #df.loc[df["timestamp"] <= "2023-06-28 14:44:00", "geometry"] = df[
+        #    "geometry"
+        #].apply(lambda point: Point(point.y, point.x))
 
         df["is_fishing"] = df["navigation_status"] == "ENGAGED_IN_FISHING"
 

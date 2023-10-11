@@ -141,7 +141,6 @@ else:
         vi.get_closest_marine_protected_areas()
 
     folium_map = vi.visualize_trajectory(
-        with_animation=False,
         marker_by_fishing=show_markers_fishing,
         show_mpas=show_mpas,
         show_iucn=True,
