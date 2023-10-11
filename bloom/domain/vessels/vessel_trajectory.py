@@ -72,7 +72,7 @@ class VesselTrajectory:
 
     @property
     def centroid(self) -> tuple[float, float]:
-        # Make sure that your GeoDataFrame is named gdf and has a column 'geometry'
+          # Make sure that your GeoDataFrame is named gdf and has a column 'geometry'
         all_points = MultiPoint(self.positions["geometry"].unary_union)
         centroid = all_points.centroid
 
@@ -81,12 +81,12 @@ class VesselTrajectory:
 
     @property
     def mpas(self) -> []:
-        if hasattr(self, "mpas"):
-            return self.mpas
+        if hasattr(self, "_mpas"):
+            return self._mpas
         return None
 
     def get_closest_marine_protected_areas(self, radius: int = 100) -> None:
-        self.mpas, self._mpas_gdf = get_closest_marine_protected_areas(
+        self._mpas, self._mpas_gdf = get_closest_marine_protected_areas(
             self.centroid,
             radius,
         )
@@ -121,8 +121,8 @@ class VesselTrajectory:
         assert len(filtered_data) > 0
         filtered_vessel = VesselTrajectory(self.metadata, filtered_data.copy())
 
-        if hasattr(self, "mpas"):
-            filtered_vessel.mpas = self.mpas
+        if hasattr(self, "_mpas"):
+            filtered_vessel._mpas = self._mpas
 
         filtered_vessel.positions.index = filtered_data.index
 
