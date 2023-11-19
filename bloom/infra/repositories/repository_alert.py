@@ -72,7 +72,7 @@ class RepositoryAlert:
                         JOIN (SELECT * FROM spire_vessel_positions
                         WHERE spire_vessel_positions.timestamp = '{timestamp}') as spire
                         ON a.vessel_id = spire.vessel_id
-                        WHERE  a.timestamp = '{timestamp}') as habile
+                        WHERE  a.timestamp = '{timestamp}' and cross_mpa = 1) as habile
                         JOIN mpa ON mpa_ids[1] = mpa.index
                     """,  # nosec: B608
             )
