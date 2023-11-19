@@ -20,15 +20,15 @@ class RepositoryAlert:
 
             sql = text(
                 f"""
-                    INSERT INTO alert(timestamp,vessel_id,cross, mpa_ids)
+                    INSERT INTO alert(timestamp,vessel_id,cross_mpa,mpa_ids)
                     (
-                        SELECT vessel_id, timestamp, (CAST(ST_Contains(mpa_fr_with_mn.geometry,current_position) AS INT) - CAST(ST_Contains(mpa_fr_with_mn.geometry,previous_position) AS INT)) as cross, ARRAY_AGG(mpa_fr_with_mn.index ORDER BY mpa_fr_with_mn.index DESC) AS mpa_ids FROM 
+                        SELECT timestamp, vessel_id, (CAST(ST_Contains(mpa_fr_with_mn.geometry,current_position) AS INT) - CAST(ST_Contains(mpa_fr_with_mn.geometry,previous_position) AS INT)) as cross_mpa, ARRAY_AGG(mpa_fr_with_mn.index ORDER BY mpa_fr_with_mn.index DESC) AS mpa_ids FROM 
                             (SELECT spire_vessel_positions.vessel_id AS vessel_id,
 	                                spire_vessel_positions.position AS current_position,
 	                                spire_vessel_positions.timestamp AS timestamp,
                                     LAG(spire_vessel_positions.position) OVER (PARTITION BY spire_vessel_positions.vessel_id ORDER BY spire_vessel_positions.timestamp) AS previous_position
                                 FROM spire_vessel_positions WHERE spire_vessel_positions.timestamp = '{timestamp}') AS foo
-                            CROSS JOIN mpa_fr_with_mn WHERE previous_position IS NOT NULL and ST_Contains(mpa_fr_with_mn.geometry,current_position) != ST_Contains(mpa_fr_with_mn.geometry,previous_position) GROUP BY vessel_id, timestamp,value; 
+                            CROSS JOIN mpa_fr_with_mn WHERE previous_position IS NOT NULL and ST_Contains(mpa_fr_with_mn.geometry,current_position) != ST_Contains(mpa_fr_with_mn.geometry,previous_position) GROUP BY vessel_id, timestamp,cross_mpa
                     );
                     """,  # nosec: B608
             )
@@ -64,7 +64,7 @@ class RepositoryAlert:
                 f"""
                     SELECT timestamp, ship_name, mmsi, lp_time, position,
                             mpa."NAME", mpa."IUCN_CAT"
-                    FROM (SELECT a.mpa_id as mpa_id, a.timestamp as timestamp,
+                    FROM (SELECT a.mpa_ids as mpa_ids, a.timestamp as timestamp,
                             spire.ship_name as ship_name,
                             spire.mmsi as mmsi, spire.last_position_time as lp_time,
                             ST_AsText(spire.position) as position
