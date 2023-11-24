@@ -22,7 +22,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-
     op.create_table(
         "marine_traffic_vessel_positions",
         sa.Column(

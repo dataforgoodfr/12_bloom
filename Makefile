@@ -27,6 +27,7 @@ rm-dev-db:
 	@docker-compose -f docker-env/docker-compose-db.yaml rm
 
 rm-dev-env:
+	@docker stop bloom-test
 	@docker rm bloom-test
 
 init-production:

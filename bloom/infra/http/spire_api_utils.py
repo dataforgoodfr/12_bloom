@@ -24,7 +24,6 @@ class Paging:
         return endcursor, hasnextpage
 
     def _should_stop_paging(self, endcursor: str, hasnextpage: bool) -> bool:
-
         if endcursor and hasnextpage:
             return False
         if not hasnextpage or endcursor is None:
