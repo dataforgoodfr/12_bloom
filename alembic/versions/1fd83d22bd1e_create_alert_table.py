@@ -8,12 +8,12 @@ Create Date: 2023-06-26 23:06:06.323214
 
 import sqlalchemy as sa
 from sqlalchemy import Inspector
-
+from sqlalchemy.dialects.postgresql import ARRAY
 from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "1fd83d22bd1e"
-down_revision = "e52b9542531c"
+down_revision = "68c9f220a07f"
 branch_labels = None
 depends_on = None
 
@@ -28,9 +28,10 @@ def upgrade() -> None:
             primary_key=True,
             index=True,
         ),
-        sa.Column("timestamp", sa.DateTime),
+        sa.Column("timestamp", sa.DateTime, index=True, nullable=False),
         sa.Column("vessel_id", sa.Integer, index=True, nullable=False),
-        sa.Column("mpa_id", sa.Integer, index=True, nullable=False),
+        sa.Column("cross_mpa", sa.Integer, nullable=False),
+        sa.Column("mpa_ids", ARRAY(sa.BigInteger), nullable=False),
         keep_existing=False,
     )
 
@@ -41,13 +42,6 @@ def upgrade() -> None:
         ["vessel_id"],
         ["id"],
     )
-
-
-# op.create_foreign_key(
-#     "fk_alert_mpa",
-#     "alert",
-#     "mpa",
-
 
 def downgrade() -> None:
     conn = op.get_bind()
