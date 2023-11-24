@@ -4,7 +4,6 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-
     postgres_user = os.environ.get("POSTGRES_USER")
     postgres_password = os.environ.get("POSTGRES_PASSWORD")
     postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")

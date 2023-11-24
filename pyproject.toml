@@ -29,6 +29,13 @@ requests = "2.31.0"
 gql = "^3.4.0"
 requests-toolbelt = "^0.10.1"
 slack-sdk = "^3.21.3"
+folium = "^0.14.0"
+matplotlib = "^3.8.0"
+geopy = "^2.4.0"
+streamlit = "^1.27.2"
+streamlit-folium = "^0.15.0"
+python-dotenv
+
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"
@@ -67,7 +74,7 @@ select = [
     "W",
     "YTT",
 ]
-ignore = ["A003", "ANN101", "ANN401", "N805", "N818"]
+ignore = ["A003", "ANN101", "ANN401", "N805", "N818", "PLR0913", "RET504", "RET505"]
 
 fixable = [
     "A",
@@ -118,10 +125,11 @@ exclude = [
     "build",
     "dist",
     "venv",
+    "pages",
     "tests"
 ]
 
-line-length = 88
+line-length = 96
 
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 

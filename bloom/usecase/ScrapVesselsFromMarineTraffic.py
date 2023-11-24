@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from datetime import datetime
 
 from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
@@ -34,7 +35,8 @@ class ScrapVesselsFromMarineTraffic:
                 timestamp,
             )
 
-    def batch(self, iterable, n=1):  # noqa: ANN201 ANN001
+    # Fixed typing for precommit hook (ruff)
+    def batch(self, iterable: list[Vessel], n: int = 1) -> Generator[list[Vessel]]:
         length = len(iterable)
         for ndx in range(0, length, n):
             yield iterable[ndx : min(ndx + n, length)]

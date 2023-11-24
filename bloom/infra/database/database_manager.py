@@ -13,7 +13,6 @@ Base = declarative_base()
 
 class Database:
     def __init__(self, db_url: str) -> None:
-        print("INIT DB")
         self._engine = create_engine(db_url, echo=True)
         self._session_factory = orm.scoped_session(
             orm.sessionmaker(

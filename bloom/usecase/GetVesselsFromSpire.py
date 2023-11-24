@@ -17,7 +17,6 @@ class GetVesselsFromSpire:
         self,
         vessel_repository: RepositoryVessel,
     ) -> None:
-
         self.vessel_repository: RepositoryVessel = vessel_repository
 
         spire_token = os.environ.get("SPIRE_TOKEN")

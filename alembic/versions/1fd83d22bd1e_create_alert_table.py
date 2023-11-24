@@ -19,7 +19,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-
     op.create_table(
         "alert",
         sa.Column(
