@@ -34,7 +34,7 @@ matplotlib = "^3.8.0"
 geopy = "^2.4.0"
 streamlit = "^1.27.2"
 streamlit-folium = "^0.15.0"
-python-dotenv
+python-dotenv = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
