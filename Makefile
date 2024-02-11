@@ -13,6 +13,9 @@ launch-dev-db:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} alembic upgrade head
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
 
+load-amp-data:
+	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
+
 launch-dev-container:
 	$(BLOOM_DEV_DOCKER) -dti  d4g/bloom:${VERSION} /bin/bash
 
