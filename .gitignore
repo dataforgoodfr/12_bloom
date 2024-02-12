@@ -29,7 +29,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 zones_subset_02022024.csv
-
+spire_positions_subset_02022024.csv
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

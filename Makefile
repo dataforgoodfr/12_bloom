@@ -16,6 +16,9 @@ launch-dev-db:
 load-amp-data:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
 
+load-test-positions-data:
+	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_positions_data.py
+
 launch-dev-container:
 	$(BLOOM_DEV_DOCKER) -dti  d4g/bloom:${VERSION} /bin/bash
 
