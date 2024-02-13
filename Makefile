@@ -8,10 +8,16 @@ build:
 	@docker tag d4g/bloom:${VERSION} d4g/bloom:latest
 
 launch-dev-db:
-	@docker-compose -f docker-env/docker-compose-db.yaml up -d
+	@docker compose -f docker-env/docker-compose-db.yaml up -d
 	@sleep 10
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} alembic upgrade head
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
+
+load-amp-data:
+	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
+
+load-test-positions-data:
+	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_positions_data.py
 
 launch-dev-container:
 	$(BLOOM_DEV_DOCKER) -dti  d4g/bloom:${VERSION} /bin/bash

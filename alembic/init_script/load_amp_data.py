@@ -1,21 +1,9 @@
-"""
-This script presents a method to load geometry data in a local DB.
-First, you will need 4 shape files present in the data directory :
-data/Nonterrestrial_WDPA_Jan2023.dbf
-data/Nonterrestrial_WDPA_Jan2023.prj
-data/Nonterrestrial_WDPA_Jan2023.shp
-data/Nonterrestrial_WDPA_Jan2023.shx
-The, you will have to spawn a database and a pgadmin containers locally,
-using the db.yaml docker compose file.
-#! docker compose up -d postgres pgadmin
-
-Once images are built and running, you can run the following
-python script from the root of the bloom project.
-"""
 import logging
 import os
 
 import geopandas as gpd
+import pandas as pd
+from shapely import wkb
 from sqlalchemy import create_engine
 
 logging.basicConfig()
@@ -42,6 +30,20 @@ db_url = (
     + postgres_db
 )
 engine = create_engine(db_url, echo=False)
-gdf = gpd.read_file("data/Nonterrestrial_WDPA_Jan2023.shp")
 
-gdf.to_postgis("mpa", con=engine, if_exists="append", index=False)
+df = pd.read_csv("zones_subset_02022024.csv")
+df = df.rename(columns={"Geometry": "geometry",
+                        "Index": "index", "Wdpaid": "WDPAID",
+                        "Name": "name",
+                        "Desig Eng": "DESIG_ENG",
+                        "Desig Type": "DESIG_TYPE",
+                        "Iucn Cat": "IUCN_CAT",
+                        "Parent Iso": "PARENT_ISO",
+                        "Iso3": "ISO3",
+                        "Beneficiaries": "BENEFICIARIES"})
+
+df['geometry'] = df['geometry'].apply(wkb.loads)
+gdf = gpd.GeoDataFrame(df, crs='epsg:4326')
+gdf.head()
+
+gdf.to_postgis("mpa_fr_with_mn", con=engine, if_exists="replace", index=False)
