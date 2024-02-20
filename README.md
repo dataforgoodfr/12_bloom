@@ -1,19 +1,24 @@
 ![banner](images/banner.png)
 
-**[Trawl Watch](https://twitter.com/TrawlWatch)** is an initiative launched by the **[Bloom Association](https://www.bloomassociation.org/en/)** to track and expose the most destructive fishing vessels. Inspired by L’[Avion de Bernard](https://www.instagram.com/laviondebernard/), which monitors the movements of private jets, Trawl Watch aims to make visible the impact of these massive trawlers on our oceans. These vessels, often referred to as mégachalutiers, deploy gigantic nets that can engulf marine life from the surface down to the ocean floor. The consequences are both ecological—as they devastate crucial nursery and breeding areas for marine animals—and social, as they deprive artisanal fishermen of a healthy marine ecosystem. The solution proposed by Bloom is to dismantle these industrial fishing ships and redistribute their quotas to small-scale fishers. A petition has been launched, and Bloom continues to track these megatrawlers while awaiting action from European institutions12.
+## What is Trawl Watch
+
+**[Trawl Watch](https://twitter.com/TrawlWatch)** is an initiative launched by the **[Bloom Association](https://www.bloomassociation.org/en/)** to track and expose the most destructive fishing vessels. Inspired by L’[Avion de Bernard](https://www.instagram.com/laviondebernard/), which monitors the movements of private jets, **Trawl Watch** aims to make visible the impact of these massive trawlers on our oceans. These vessels, often referred to as _mégachalutiers_, deploy gigantic nets that can engulf marine life from the surface down to the ocean floor. The consequences are both ecological—as they devastate crucial nursery and breeding areas for marine animals—and social, as they deprive artisanal fishermen of a healthy marine ecosystem. The solution proposed by **Bloom** is to dismantle these industrial fishing ships and redistribute their quotas to small-scale fishers. A petition has been launched, and **Bloom** continues to track these megatrawlers while awaiting action from European institutions.
 
 **Did you know that, in Europe, the largest fishing vessels, which represent 1% of the fleet, catch half of the fish?** These factory-vessels can measure up to 144 meters in length and catch 400,000 kilos of fish per day! This is as much as 1,000 small-scale fishing vessels in one day at sea.
 
 **These veritable sea monsters are devastating Europe’s biodiversity and coastlines.** It is important to measure the scale of the damage: about 20 of these factory-vessels can obliterate hundreds of thousands of marine animals and biodiversity treasures in one day, including in the so-called ‘Marine Protected Areas’ of French territorial waters, which are not protected at all.
 
-In addition, more and more ‘mega trawlers’ – vessels over 25 meters in length – come right up to the coast to fish, so close to the beaches that they can be observed from the shore. These industrial monsters were not designed to fish in coastal waters, where small artisanal fishers operate.
+## What is Bloom Association
 
-## Installing a Trawl Watch with `venv` and `poetry`
+**BLOOM** is a non-profit organization founded in 2005 that works to preserve the marine environment and species from unnecessary destruction and to increase social benefits in the fishing sector. **BLOOM** wages awareness and advocacy campaigns in order to accelerate the adoption of concrete solutions for the ocean, humans and the climate. **BLOOM** carries out scientific research projects, independent studies and evaluations that highlight crucial and unaddressed issues such as the financing mechanisms of the fishing sector. **BLOOM**’s actions are meant for the general public as well as policy-makers and economic stakeholders.
+
+## Installing Trawl Watch with `poetry`
 
 ### Prerequisites:
 
 1. Python (≥ `3.10`) installed on your system.
-2. Ensure you have `venv` and [`poetry`](https://python-poetry.org/) installed. If not, you can install them using `pip`.
+2. Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
+3. Ensure you have `poetry` installed. If not, you can install them using `pip`.
 
 ```bash
 pip install poetry
@@ -26,7 +31,7 @@ pip install poetry
    Clone the GitHub repository you want to install locally using the `git clone` command.
 
    ```bash
-   $ git clone https://github.com/dataforgoodfr/12_bloom.git
+   git clone https://github.com/dataforgoodfr/12_bloom.git
    ```
 
 2. **Navigate to the Repository Directory:**
@@ -34,34 +39,18 @@ pip install poetry
    Use the `cd` command to navigate into the repository directory.
 
    ```bash
-   $ cd 12_bloom/
+   cd 12_bloom/
    ```
 
-3. **Set Up a Virtual Environment using `venv`:**
+3. **Configure `poetry` to create a Virtual Environment inside the project:**
 
-Create a virtual environment using `venv` to isolate the dependencies for the project.
-
-```bash
-$ python -m venv venv
-```
-
-4. **Activate the Virtual Environment:**
-
-   Activate the virtual environment to work within its isolated environment.
-
-   On Windows:
+   Ensure that poetry will create a `.venv` directory into the project with the command:
 
    ```bash
-   venv\Scripts\activate
+   poetry config virtualenvs.in-project true
    ```
 
-   On Unix or MacOS:
-
-   ```bash
-   source venv/bin/activate
-   ```
-
-5. **Install Project Dependencies using `poetry`:**
+4. **Install Project Dependencies using `poetry`:**
 
    Use `poetry` to install the project dependencies.
 
@@ -71,86 +60,65 @@ $ python -m venv venv
 
    This will read the `pyproject.toml` file in the repository and install all the dependencies specified.
 
-6. **(Optional) Install Development Dependencies:**
-
-   If there are separate dependencies for development, you can install them using:
+5. **Make sure everything is all right using `poetry env info`:**
 
    ```bash
-   poetry install --dev
+   poetry env info
    ```
 
-7. **Run the Project:**
-
-   After installing the dependencies, you can run the project using the appropriate commands specified in the repository's documentation or README file.
+   It should looks something likes:
 
    ```bash
-   poetry run <command_to_run_project>
+   Virtualenv
+   Python:         3.11.2
+   Implementation: CPython
+   Path:           /home/guillaume/12_bloom/.venv
+   Executable:     /home/guillaume/12_bloom/.venv/bin/python
+   Valid:          True
+
+   System
+   Platform:   linux
+   OS:         posix
+   Python:     3.11.2
+   Path:       /usr
+   Executable: /usr/bin/python3.11
    ```
 
-8. **Deactivate the Virtual Environment:**
+6. **Activate the Virtual Environment:**
 
-   Once you're done working with the project, deactivate the virtual environment.
+   Activate the virtual environment to work within its isolated environment.
+
+   On Unix or MacOS:
 
    ```bash
-   deactivate
+   poetry shell
    ```
 
-#### Additional Notes:
+7.
 
-- Ensure you are using the correct Python version specified by the repository, especially if it's mentioned in the `pyproject.toml` file.
-- Always refer to the repository's documentation or README file for any specific instructions or configurations required for setting up and running the project.
+### Once you're done working with the project, deactivate the virtual environment.
 
-This documentation provides a general guideline for setting up a project from a GitHub repository using `venv` and `poetry`. Adjustments may be needed based on the specific requirements and configurations of the repository you are working with.
+```bash
+deactivate
+```
 
-### Requirements
+## Documentation
 
-### FAQ
+[Dendron](https://marketplace.visualstudio.com/items?itemName=dendron.dendron) is a powerful Visual Studio Code, or [VSCodium](https://vscodium.com/), extension designed to streamline and enhance the documentation process. With **Dendron**, documenting projects becomes intuitive and efficient, thanks to its hierarchical note-taking system. Users can organize their documentation into a tree-like structure, making it easy to navigate and manage. The extension offers robust features such as bidirectional linking, which allows for seamless navigation between related notes, and support for Markdown formatting, enabling users to create rich and visually appealing documentation. Additionally, **Dendron** provides powerful search functionality, enabling users to quickly locate specific information within their documentation vault. Overall, **Dendron** empowers developers, writers, and teams to create comprehensive and well-organized documentation, facilitating better knowledge management and collaboration. The documentation is locaed inside the `./docs/notes` directory.
 
-Suivre les trajectoires de milliers de bateaux de pêche en quasi temps réel afin de pouvoir analyser leurs pratiques de pêche dans des zones maritimes protégées (AMP) à partir de données GPS récupérées (via antennes satellites et/ou terrestres)
+Here's some basic Dendron shortcuts:
 
-- https://www.un.org/sustainabledevelopment/economic-growth/
-- https://www.un.org/sustainabledevelopment/climate-change/
-- https://www.un.org/sustainabledevelopment/oceans/
+| Shortcut       | Description  |
+| -------------- | ------------ |
+| `Cmd/Ctrl + L` | Lookup notes |
 
-- https://petitions.bloomassociation.org/en/stop-mega-trawlers/
+## More information can be found there
 
-## Setting up your local development environment
-
-### FAQ
-
-## bloom data source
-
-## [Automatic identification system](https://en.wikipedia.org/wiki/Automatic_identification_system)
-
-limits:
-
-- out of range
-- intense traffic area
-- expensive
-
-- https://spire.com/maritime/
-
-## [Marine Protected Areas]
-
-- https://www.cell.com/one-earth/fulltext/S2590-3322(20)30150-0
-
-## [Shom](https://www.shom.fr/)
-
-pour visualiser les droits miles nautique et les droits historiques
-
-# Bloom Project
-
-This project is maintained by D4G in order to gather vessels data.
-A cron job is launched every 15min, does calls to API and save the data in a Postgresql database.
-
-## About directory architecture
-
-The domain directory ...
-The infra directory ...
-
-More information can be found there :
-
-1. [Database initialisation and versioning](./documentation/database_init.md)
-2. [Development environment](./documentation/dev_env.md)
-3. [Useful SQL examples](./documentation/sql_examples.md)
+1. [Database initialisation and versioning](./docs/database.initialisation.md)
+2. [Development environment](./docs/development.environment.md)
+3. [Useful SQL examples](./docs/sql.examples.md)
 4. [Data models](#todo)
+
+## FAQ
+
+#todo
