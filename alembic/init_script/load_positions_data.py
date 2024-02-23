@@ -27,9 +27,11 @@ db_url = (
     + "/"
     + postgres_db
 )
+
 engine = create_engine(db_url)
+
 df = pd.read_csv(
-    Path.joinpath(Path.cwd(), "spire_positions_subset_02022024.csv"),
+    Path.joinpath(Path.cwd(), "data/spire_positions_subset_02022024.csv"),
     sep=","
 )
 

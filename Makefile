@@ -9,7 +9,7 @@ build:
 
 launch-dev-db:
 	@docker compose -f docker-env/docker-compose-db.yaml up -d
-	@sleep 10
+	@sleep 20
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} alembic upgrade head
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
 

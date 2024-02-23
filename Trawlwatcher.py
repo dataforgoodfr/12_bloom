@@ -9,14 +9,16 @@ st.set_page_config(
     layout="wide",
 )
 
-load_dotenv()
-
+# FILL IN YOUR CREDENTIALS .env file HERE !!
+env_path = Path('.') / '.env.template'
+if not env_path.is_file():
+    raise FileNotFoundError(f"Couldn't find .env file at {env_path.absolute()}")
+load_dotenv(env_path)
 
 def local_css(file_name: str) -> None:
     with Path.open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
         return
-
 
 local_css(Path("styles.css"))
 

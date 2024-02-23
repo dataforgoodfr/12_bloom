@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
@@ -29,9 +30,14 @@ db_url = (
     + "/"
     + postgres_db
 )
+
 engine = create_engine(db_url, echo=False)
 
-df = pd.read_csv("zones_subset_02022024.csv")
+df = pd.read_csv(
+    Path.joinpath(Path.cwd(), "data/zones_subset_02022024.csv"),
+    sep=",",
+)
+
 df = df.rename(columns={"Geometry": "geometry",
                         "Index": "index", "Wdpaid": "WDPAID",
                         "Name": "name",
