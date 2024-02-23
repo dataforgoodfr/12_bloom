@@ -9,6 +9,7 @@ WORKDIR /source_code
 COPY bloom/ ./bloom/
 COPY data/ ./data/
 COPY app.py .
+COPY container.py .
 COPY docker-env/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
