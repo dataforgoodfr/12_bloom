@@ -39,7 +39,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y
     && rm -rf /etc/cron.*/*
 
 # Create cron task inside container
-RUN echo '*/15 * * * *	/venv/bin/python3 /source_code/app.py 2>&1 | /usr/bin/logger -t bloom'  >> ./cron_scrapper
+RUN echo '*/15 * * * *	root /venv/bin/python3 /source_code/app.py 2>&1 | /usr/bin/logger -t bloom'  >> ./cron_scrapper
 RUN chmod 744 ./cron_scrapper
 
 # Move cron tab into the right directory
