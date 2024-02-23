@@ -55,8 +55,8 @@ RUN crontab /etc/cron.d/cron_scrapper
 COPY docker-env/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]
 
-#ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 # https://manpages.ubuntu.com/manpages/trusty/man8/cron.8.html
 # -f | Stay in foreground mode, don't daemonize.
 # -L loglevel | Tell  cron  what to log about jobs (errors are logged regardless of this value) as the sum of the following values:
-#CMD ["cron","-f", "-L", "2"]
+CMD ["cron","-f", "-L", "2"]
