@@ -112,13 +112,18 @@ IUCN_CATEGORIES = {
 
 
 class MPA(Base):
-    __tablename__ = "mpa"
+    __tablename__ = "mpa_fr_with_mn"
     geometry = Column("geometry", Geometry("POLYGON"))
-    gov_type = Column("GOV_TYPE", Text)
+    #gov_type = Column("GOV_TYPE", Text)
     iucn_category = Column("IUCN_CAT", Text)
-    name = Column("NAME", Text)
+    name = Column("name", Text, nullable=False)
     type = Column("DESIG_TYPE", Text)
-    index = Column("index", BigInteger, primary_key=True, index=True)
+    index = Column("index", Integer, primary_key=True)
+    wdpaid = Column("WDPAID", Float)
+    eng = Column("DESIG_ENG", Text)
+    parent_iso = Column("PARENT_ISO", Text)
+    iso3 = Column("ISO3", Text)
+    benificiaries = Column("Benificiaries", Text)
 
     def __repr__(self) -> str:
         return (
