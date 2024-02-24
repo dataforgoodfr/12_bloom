@@ -1,7 +1,7 @@
 FROM python:3.10-slim-bullseye
 
 RUN apt-get update
-RUN apt-get -y install wget
+RUN apt-get -y install wget gcc g++
 RUN apt-get install -y rsyslog
 
 # Define working directory
