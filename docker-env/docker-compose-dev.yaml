@@ -1,0 +1,14 @@
+version: "3.7"
+services:
+  app:
+      # Ajout du volume du code pour partager directement le code git dans le conteneur
+      volumes:
+        - ..:${APP_DIR:-/source_code}
+        #- ../alembic:/${APP_DIR:-/source_code}/alembic
+        #- ../bloom:/${APP_DIR:-/source_code}/bloom
+        #- ../Makefile:/${APP_DIR:-/source_code}/Makefile
+        - ./entrypoint.sh:/entrypoint.sh
+      #entrypoint: [""]
+      command: ["/bin/bash"]
+      stdin_open: true
+      tty: true

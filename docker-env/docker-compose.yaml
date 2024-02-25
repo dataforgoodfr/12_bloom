@@ -1,0 +1,80 @@
+version: "3.7"
+services:
+  postgres:
+    container_name: ${POSTGRES_HOSTNAME:-postgres_bloom}
+    hostname: ${POSTGRES_HOSTNAME:-postgres_bloom}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_USER: ${POSTGRES_USER:-boom_user}
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+    ports:
+      - ${POSTGRES_PORT_OUTSIDE_WHEN_DOCKER:-5432}:5432
+    networks:
+        - bloom_net
+    restart: unless-stopped
+    secrets:
+        - postgres_password
+
+  pgadmin:
+      container_name: pgadmin_bloom
+      image: dpage/pgadmin4
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-test@test.com}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-test}
+        PGADMIN_SERVER_JSON_FILE: /run/secrets/servers.json
+      ports:
+        - "${PGADMIN_PORT:-5080}:80"
+      networks:
+        - bloom_net
+      restart: unless-stopped
+      secrets:
+        - servers.json
+        - pgpassfile
+        #- postgresql.crt
+        #- postgresql.key
+
+  app:
+      container_name: app_bloom
+      hostname: app_bloom
+      build:
+        context: ..
+        dockerfile: docker-env/Dockerfile
+        args:
+            CHROME_VERSION: "112.0.5615.165-1"
+            APP_DIR: ${APP_DIR:-/source_code}
+            FROM_IMAGE: ${FROM_IMAGE:-python:3.10-slim-bullseye}
+      image: dataforgood/12_bloom
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER:-boom_user}
+        POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+        POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME:-postgres_bloom}
+        POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+        POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+        SPIRE_TOKEN_FILE: /run/secrets/spire_token
+      volumes:
+        - ../data:${APP_DIR:-/source_code}/data
+      networks:
+        - bloom_net
+      restart: unless-stopped
+      secrets:
+        - postgres_password
+        - spire_token
+
+secrets:
+    postgres_password:
+        file: ${SECRET_POSTGRES_PASSWORD:-postgres_password}
+    servers.json:
+        file: ${SECRET_POSTGRES_SERVERS:-pgadmin-servers.json}
+    pgpassfile:
+        file: ${SECRET_POSTGRES_PASSFILE:-pgpassfile}
+    spire_token:
+        file: ${SECRET_POSTGRES_PASSFILE:-spire_token}
+    #postgresql.crt:
+    #    file: ${SECRET_POSTGRES_SSL_CERT:-./postgresql.crt}
+    #postgresql.key:
+    #    file: ${SECRET_POSTGRES_SSL_KEY:-./postgresql.key}
+
+networks:
+  bloom_net:
+    name: bloom_net
