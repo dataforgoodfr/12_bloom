@@ -19,7 +19,15 @@ class GetVesselsFromSpire:
     ) -> None:
         self.vessel_repository: RepositoryVessel = vessel_repository
 
-        spire_token = os.environ.get("SPIRE_TOKEN")
+        if "SPIRE_TOKEN" not in os.environ and  "SPIRE_TOKEN_FILE" not in os.environ:
+            raise ValueError("SPIRE_TOKEN or SPIRE_TOKEN_FILE must be defined in ENV")
+        else:
+            try: f = open(os.environ.get("SPIRE_TOKEN_FILE"))
+            except TypeError: pass
+            except FileNotFoundError: pass
+            else:
+                with f: spire_token = f.readline().strip()
+            if os.environ.get("SPIRE_TOKEN") != None: spire_token = os.environ.get("SPIRE_TOKEN")
 
         self.transport = RequestsHTTPTransport(
             url="https://api.spire.com/graphql",
