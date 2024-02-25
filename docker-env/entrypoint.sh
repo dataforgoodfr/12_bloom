@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cat /source_code/.env >> /etc/environment
+# commented as not very docker standard, should be transfered by ENV
+#cat $APP_DIR/.env >> /etc/environment
 
 # Store all APP_BLOOM ENV variables to local file accessible to current user to share them with cron task
 # Due to the fact that cron process doesn't access to declared ENV vars and doesn't load user profiles
@@ -13,7 +14,8 @@ env | egrep '^(POSTGRES_.*|SPIRE_TOKEN.*)' > ~/.env
 
 ln -sf /dev/stdout /var/log/syslog
 
-source /source_code/.env
+# commented as not very docker standard, should be transfered by ENV
+#source $APP_DIR/.env
 
 # execute CMD
 echo "$@"

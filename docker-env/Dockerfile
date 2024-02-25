@@ -1,11 +1,15 @@
-FROM python:3.10-slim-bullseye
+ARG FROM_IMAGE=python:3.10-slim-bullseye
+FROM ${FROM_IMAGE}
+
+ARG APP_DIR=/source_code
+ENV APP_DIR=${APP_DIR}
 
 RUN apt-get update
 RUN apt-get -y install wget gcc g++
 RUN apt-get install -y rsyslog
 
 # Define working directory
-WORKDIR /source_code
+WORKDIR ${APP_DIR}
 COPY bloom/ ./bloom/
 COPY data/ ./data/
 COPY app.py .
@@ -13,7 +17,8 @@ COPY container.py .
 COPY docker-env/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
-ENV POETRY_VERSION=1.4.0
+ARG POETRY_VERSION=1.4.0
+ENV POETRY_VERSION=${POETRY_VERSION}
 RUN pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
 COPY pyproject.toml poetry.lock ./
