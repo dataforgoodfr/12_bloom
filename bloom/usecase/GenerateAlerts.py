@@ -9,6 +9,7 @@ from bloom.infra.repositories.repository_alert import RepositoryAlert
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.logger import logger
 
+from bloom.config import settings
 
 class GenerateAlerts:
     def __init__(
@@ -36,7 +37,7 @@ class GenerateAlerts:
         alert: Alert,
         type_name: str = "Vessel in a Protected Area",
     ) -> int:
-        slack_url = os.environ.get("SLACK_URL")
+        slack_url = settings.slack_url
         webhook = WebhookClient(slack_url)
         blocks = (
             """[

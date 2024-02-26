@@ -11,6 +11,8 @@ from bloom.infra.http.spire_api_utils import Paging
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.logger import logger
 
+from bloom.config import settings
+
 
 class GetVesselsFromSpire:
     def __init__(
@@ -19,7 +21,7 @@ class GetVesselsFromSpire:
     ) -> None:
         self.vessel_repository: RepositoryVessel = vessel_repository
 
-        spire_token = os.environ.get("SPIRE_TOKEN")
+        spire_token = settings.spire_token
 
         self.transport = RequestsHTTPTransport(
             url="https://api.spire.com/graphql",
