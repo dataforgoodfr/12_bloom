@@ -3,6 +3,12 @@ VERSION ?= 1.0.0
 BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net -p 8501:8501
 BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
+UPDATE_SETTINGS = @python -c "from bloom.config import settings"
+
+# Regenerate .env file according to .env.template, .env.local, APP_ENV value, .env.${APP_ENV},  .env.${APP_ENV}.local
+update_env:
+	$(UPDATE_SETTINGS)
+	
 build:
 	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
 	@docker tag d4g/bloom:${VERSION} d4g/bloom:latest
