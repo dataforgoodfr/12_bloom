@@ -8,7 +8,8 @@ def extract_values(filename:str,config:dict,allow_extend:bool=True):
     Parameters:
     - filename: filename/filepath from which to extract key/value pairs
     - config: dict to extend/update with new key/value pairs
-    - keys: restrict the keys that are extracted/updated to the supplied list. No restriction if None
+    - allow_extend: allows to extend extracted keys with new keys that are not in actuel config if True,
+                    restrict to already existing keys in config of False
     Returns a dict contains key/value
     """ 
     FILEPATH=Path(os.path.dirname(__file__)).joinpath(filename)
@@ -53,8 +54,6 @@ class Settings(BaseSettings):
         # We restrict extracted keys to the keys already existing in .env.template
         file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{self.app_env}.local")
         if os.path.isfile(file_to_process): extract_values(file_to_process,config,allow_extend=False)
-        
-        print(config)
         
         # Now all .env.* files has been merged, we write the cumulated result to .env
         # .env is for compliance with docker/docker-compose standard
