@@ -20,7 +20,7 @@ def extract_values(filename:str,config:dict,allow_extend:bool=True):
         if(len(split)==2):
             # if extracted key already exist in config OR if allowed to add new keys to config
             # Then adding/updating key/value
-            if split[0] in config.keys() or allow_extend == True:
+            if split[0].lower() in config.keys() or allow_extend == True:
                 config[split[0].lower()]=split[1]
     return config
             
@@ -47,12 +47,12 @@ class Settings(BaseSettings):
         
         # Extract .env.${app_env} and override existing values
         # We restrict extracted keys to the keys already existing in .env.template
-        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{self.app_env}")
+        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['app_env']}")
         if os.path.isfile(file_to_process): extract_values(file_to_process,config,allow_extend=False)
         
         # Extract .env.${app_env}.local and override existing values
         # We restrict extracted keys to the keys already existing in .env.template
-        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{self.app_env}.local")
+        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['app_env']}.local")
         if os.path.isfile(file_to_process): extract_values(file_to_process,config,allow_extend=False)
         
         # Now all .env.* files has been merged, we write the cumulated result to .env
@@ -60,7 +60,7 @@ class Settings(BaseSettings):
         file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env")
         f = open(file_to_process, "w")
         f.truncate(0)
-        f.write("# This file was generated automaticaly by bloom.config\n# Don't modify values directly here\n# Use .env.* files instead then restart application")
+        f.write("# This file was generated automaticaly by bloom.config\n# Don't modify values directly here\n# Use .env.* files instead then restart application\n")
         for k,v in config.items():
             f.write(f"{k}={v}\n")
         f.close()
