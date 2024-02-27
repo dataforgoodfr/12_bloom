@@ -3,7 +3,20 @@ from pathlib import Path
 
 from pydantic import BaseSettings
 
-def extract_values_from_file(filename:str,config:dict,allow_extend:bool=False):
+def extract_values_from_env(config:dict,allow_extend:bool=False):
+    """ function that extrat key=value pairs from a file
+    Parameters:
+    - config: dict to extend/update with new key/value pairs found in environment
+    - allow_extend: allows to extend extracted keys with new keys that are not in actuel config if True,
+                    restrict to already existing keys in config of False
+    Returns a dict contains key/value
+    """
+    for k,v in os.environ.items():
+        if k in config.keys() or allow_extend == True:
+            config[k]=v
+    return config
+
+def extract_values_from_file(filename:str,config:dict,allow_extend:bool=False,env_priority=True):
     """ function that extrat key=value pairs from a file
     Parameters:
     - filename: filename/filepath from which to extract key/value pairs found in .env.* file
@@ -22,58 +35,51 @@ def extract_values_from_file(filename:str,config:dict,allow_extend:bool=False):
             # Then adding/updating key/value
             if split[0] in config.keys() or allow_extend == True:
                 config[split[0]]=split[1]
+        if env_priority: extract_values_from_env(config,allow_extend=False)
     return config
-
-def extract_values_from_env(config:dict,allow_extend:bool=False):
-    """ function that extrat key=value pairs from a file
-    Parameters:
-    - config: dict to extend/update with new key/value pairs found in environment
-    - allow_extend: allows to extend extracted keys with new keys that are not in actuel config if True,
-                    restrict to already existing keys in config of False
-    Returns a dict contains key/value
-    """
-    for k,v in os.environ.items():
-        if k in config.keys() or allow_extend == True:
-            config[k]=v
-    return config
-            
+    
 class Settings(BaseSettings):
     APP_ENV:str=None
     db_url:str=None
     def __init__(self,*arg, **args):
         super().__init__(self,*arg, **args)
-        # Default app_env is 'dev'
+        # Default APP_ENV is 'dev'
         self.APP_ENV='dev'
+        
+        # Destination file of "env" merged config
+        # Usefull to set it to docker.${APP_ENV} when generated for docker
+        PATH_ENV=os.getenv('PATH_ENV',Path(os.path.dirname(__file__)).joinpath(f"../.env"))
         
         # dict to store temporary/overrided config parameters
         config={}
-        
-        if os.environ.get('BLOOM_CONFIG') != None:
-            file_to_process=os.environ.get('BLOOM_CONFIG')
-            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True)
         
         # Extract .env.template as default values
         # The keys present in .env.template now will restrict keys that are extracted from following files
         # So all parameters MUST HAVE a default value declared in .env.template to be loaded
         file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.template")
-        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True)
+        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True,env_priority=True)
+        
+        # Extract from file pointed by BLOOM_CONFIG en var
+        if os.environ.get('BLOOM_CONFIG') != None:
+            file_to_process=os.environ.get('BLOOM_CONFIG')
+            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True,env_priority=True)
         
         # Extract .env.local and override existing values
         # We restrict extracted keys to the keys already existing in .env.template
         file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.local")
-        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False)
+        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
-        # Extract .env.${app_env} and override existing values
+        # Extract .env.${APP_ENV} and override existing values
         # We restrict extracted keys to the keys already existing in .env.template
-        if 'app_env' in config:
-            file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['app_env']}")
-            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False)
+        if 'APP_ENV' in config:
+            file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['APP_ENV']}")
+            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
-        # Extract .env.${app_env}.local and override existing values
+        # Extract .env.${APP_ENV}.local and override existing values
         # We restrict extracted keys to the keys already existing in .env.template
-        if 'app_env' in config:
-            file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['app_env']}.local")
-            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False)
+        if 'APP_ENV' in config:
+            file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['APP_ENV']}.local")
+            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
         # Extract and oerride values from environment variables
         # We restrict extracted keys to the keys already existing in .env.template
@@ -81,15 +87,15 @@ class Settings(BaseSettings):
         
         # Now all .env.* files has been merged, we write the cumulated result to .env
         # .env is for compliance with docker/docker-compose standard
-        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env")
-        f = open(file_to_process, "w")
+        print(f"writing {PATH_ENV}")
+        f = open(PATH_ENV, "w")
         f.truncate(0)
         f.write("# This file was generated automaticaly by bloom.config\n# Don't modify values directly here\n# Use .env.* files instead then restart application\n")
         for k,v in config.items():
             f.write(f"{k}={v}\n")
         f.close()
         # Now we extract key/value pairs from new .env and add them to current class as attributes
-        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,self.__dict__,allow_extend=True)
+        if os.path.isfile(PATH_ENV): extract_values_from_file(PATH_ENV,self.__dict__,allow_extend=True,env_priority=True)
         
         
         # Set the db_url attribute containing connection string to the database
