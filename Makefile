@@ -40,7 +40,8 @@ launch-dev-db:
 	$(EXPORT_ENV_DEV) && $(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
 
 load-amp-data:
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
+	$(UPDATE_ENV_DEV)
+	$(EXPORT_ENV_DEV) && $(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
 
 load-test-positions-data:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_positions_data.py
