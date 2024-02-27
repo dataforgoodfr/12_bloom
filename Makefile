@@ -1,15 +1,15 @@
 VERSION ?= 1.0.0
 
-BLOOM_DEV_DOCKER = docker run --name bloom-dev  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/.docker.dev --network=bloom_net -e POSTGRES_PORT=5432 -p 8501:8501
-BLOOM_PRODUCTION_DOCKER = docker run --host ${POSTGRES_HOSTNAME}--mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/.docker.prod --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
+BLOOM_DEV_DOCKER = docker run --name bloom-dev  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/.env.docker.dev --network=bloom_net -e POSTGRES_PORT=5432 -p 8501:8501
+BLOOM_PRODUCTION_DOCKER = docker run --add-host ${POSTGRES_HOSTNAME}:$${POSTGRES_IP} --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/.env.docker.prod --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
-EXPORT_ENV_DEV = @export $(shell cat /tmp/docker.dev | grep -v "#" | xargs -d '\r')
-EXPORT_ENV_TEST = @export $(shell cat /tmp/docker.test | grep -v "#" | xargs -d '\r')
-EXPORT_ENV_PROD = @export $(shell cat /tmp/docker.prod | grep -v "#" | xargs -d '\r')
+EXPORT_ENV_DEV = @export $(shell cat /tmp/.env.docker.dev | grep -v "#" | xargs -d '\r')
+EXPORT_ENV_TEST = @export $(shell cat /tmp/.env.docker.test | grep -v "#" | xargs -d '\r')
+EXPORT_ENV_PROD = @export $(shell cat /tmp/.env.docker.prod | grep -v "#" | xargs -d '\r')
 
-UPDATE_ENV_DEV = @$(shell pwd)/scripts/update_env.sh dev /tmp/.docker.dev
-UPDATE_ENV_TEST = @$(shell pwd)/scripts/update_env.sh test /tmp/.docker.test
-UPDATE_ENV_PROD = @$(shell pwd)/scripts/update_env.sh prod /tmp/.docker.prod
+UPDATE_ENV_DEV = @$(shell pwd)/scripts/update_env.sh dev /tmp/.env.docker.dev
+UPDATE_ENV_TEST = @$(shell pwd)/scripts/update_env.sh test /tmp/.env.docker.test
+UPDATE_ENV_PROD = @$(shell pwd)/scripts/update_env.sh prod /tmp/.env.docker.prod
 
 build:
 	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
