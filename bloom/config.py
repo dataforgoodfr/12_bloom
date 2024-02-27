@@ -46,10 +46,6 @@ class Settings(BaseSettings):
         # Default APP_ENV is 'dev'
         self.APP_ENV='dev'
         
-        # Destination file of "env" merged config
-        # Usefull to set it to docker.${APP_ENV} when generated for docker
-        PATH_ENV=os.getenv('PATH_ENV',Path(os.path.dirname(__file__)).joinpath(f"../.env"))
-        
         # dict to store temporary/overrided config parameters
         config={}
         
@@ -85,23 +81,30 @@ class Settings(BaseSettings):
         # We restrict extracted keys to the keys already existing in .env.template
         extract_values_from_env(config,allow_extend=False)
         
-        # Now all .env.* files has been merged, we write the cumulated result to .env
-        # .env is for compliance with docker/docker-compose standard
-        print(f"writing {PATH_ENV}")
-        f = open(PATH_ENV, "w")
-        f.truncate(0)
-        f.write("# This file was generated automaticaly by bloom.config\n# Don't modify values directly here\n# Use .env.* files instead then restart application\n")
-        for k,v in config.items():
-            f.write(f"{k}={v}\n")
-        f.close()
         # Now we extract key/value pairs from new .env and add them to current class as attributes
-        if os.path.isfile(PATH_ENV): extract_values_from_file(PATH_ENV,self.__dict__,allow_extend=True,env_priority=True)
+        self.__dict__ = { **self.__dict__, **config }
         
         
         # Set the db_url attribute containing connection string to the database
         self.db_url = ( f"postgresql://"
                         f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
                         f"@{self.POSTGRES_HOSTNAME}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
+        
+        
+        # Destination file of "env" merged config
+        # Usefull to set it to docker.${APP_ENV} when generated for docker
+        # If not defined, is None and no merged file is generated
+        PATH_ENV=os.getenv('PATH_ENV')
+        if PATH_ENV != None:
+            # Now all .env.* files has been merged, we write the cumulated result to .env
+            # .env is for compliance with docker/docker-compose standard
+            print(f"writing {PATH_ENV}")
+            f = open(PATH_ENV, "w")
+            f.truncate(0)
+            f.write("# This file was generated automaticaly by bloom.config\n# Don't modify values directly here\n# Use .env.* files instead then restart application\n")
+            for k,v in config.items():
+                f.write(f"{k}={v}\n")
+            f.close()
                         
 
     srid: int = 4326
