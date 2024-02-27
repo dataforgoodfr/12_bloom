@@ -46,6 +46,10 @@ class Settings(BaseSettings):
         # Default APP_ENV is 'dev'
         self.APP_ENV='dev'
         
+        # Destination file of "env" merged config
+        # Usefull to set it to docker.${APP_ENV} when generated for docker
+        PATH_ENV=os.getenv('PATH_ENV',Path(os.path.dirname(__file__)).joinpath(f"../.env"))
+        
         # dict to store temporary/overrided config parameters
         config={}
         

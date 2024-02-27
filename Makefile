@@ -15,6 +15,10 @@ build:
 	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
 	@docker tag d4g/bloom:${VERSION} d4g/bloom:latest
 
+test-config:
+	$(UPDATE_ENV_DEV)
+	$(EXPORT_ENV_DEV) && env 
+
 launch-dev-db:
 	$(UPDATE_ENV_DEV)
 	$(EXPORT_ENV_DEV) && docker compose -f docker-env/docker-compose-db.yaml up -d
