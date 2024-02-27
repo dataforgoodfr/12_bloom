@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
     image: postgis/postgis:14-3.3-alpine
     ports:
-      - ${POSTGRES_PORT}:5432
+      - ${EXPOSED_POSTGRES_PORT}:5432
     networks:
         - bloom_net
     restart: unless-stopped
