@@ -47,6 +47,11 @@ class Settings(BaseSettings):
         
         # dict to store temporary/overrided config parameters
         config={}
+        
+        if os.environ.get('BLOOM_CONFIG') != None:
+            file_to_process=os.environ.get('BLOOM_CONFIG')
+            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True)
+        
         # Extract .env.template as default values
         # The keys present in .env.template now will restrict keys that are extracted from following files
         # So all parameters MUST HAVE a default value declared in .env.template to be loaded
