@@ -21,7 +21,7 @@ class GetVesselsFromSpire:
     ) -> None:
         self.vessel_repository: RepositoryVessel = vessel_repository
 
-        spire_token = settings.spire_token
+        spire_token = settings.SPIRE_TOKEN
 
         self.transport = RequestsHTTPTransport(
             url="https://api.spire.com/graphql",
