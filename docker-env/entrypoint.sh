@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cat /source_code/.env >> /etc/environment
-
 # Store all APP_BLOOM ENV variables to local file accessible to current user to share them with cron task
 # Due to the fact that cron process doesn't access to declared ENV vars and doesn't load user profiles
 # The entrypoint.sh script stores ENV vars at runtime in the ~/.env file as key=value pairs
@@ -12,8 +10,6 @@ env | egrep '^(POSTGRES_.*|SPIRE_TOKEN.*)' > ~/.env
 /etc/init.d/rsyslog restart
 
 ln -sf /dev/stdout /var/log/syslog
-
-source /source_code/.env
 
 # execute CMD
 echo "$@"
