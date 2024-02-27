@@ -22,7 +22,7 @@ db_url = (
     + postgres_password
     + "@"
     + postgres_hostname
-    + ":"
+    + ":"s
     + postgres_port
     + "/"
     + postgres_db
@@ -31,11 +31,8 @@ db_url = (
 engine = create_engine(db_url)
 
 df = pd.read_csv(
-    Path(os.path.dirname(__file__)).joinpath("../../data/chalutiers_pelagiques.csv"),
+    Path(os.path.dirname(__file__)).joinpath("../../data/ports_rad3000_res10.csv"),
     sep=";",
-    dtype={"loa": float, "IMO": str},
 )
 
-df = df.drop(columns="comment")
-
-df.to_sql("vessels", engine, if_exists="append", index=False)
+df.to_sql("ports", engine, if_exists="append", index=False)
