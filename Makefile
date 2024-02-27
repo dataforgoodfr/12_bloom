@@ -1,6 +1,6 @@
 VERSION ?= 1.0.0
 
-BLOOM_DEV_DOCKER = docker run --name bloom-dev  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/docker.dev --network=bloom_net -p ${POSTGRES_PORT}:8501
+BLOOM_DEV_DOCKER = docker run --name bloom-dev  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/docker.dev --network=bloom_net -p 8501:8501
 BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
 EXPORT_ENV_DEV = @export $(shell cat /tmp/docker.dev | grep -v "#" | xargs -d '\r')
