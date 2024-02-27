@@ -86,7 +86,7 @@ class Settings(BaseSettings):
         extract_values_from_env(config,allow_extend=False)
         
         # Now we extract key/value pairs from new .env and add them to current class as attributes
-        self.__dict__ = { **self.__dict__, **config }
+        self.__dict__.update(config)
         
         
         # Set the db_url attribute containing connection string to the database
