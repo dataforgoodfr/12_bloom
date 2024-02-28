@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 from pydantic import BaseSettings
@@ -12,6 +13,15 @@ def extract_values_from_env(config:dict,allow_extend:bool=False):
     Returns a dict contains key/value
     """
     for k,v in os.environ.items():
+        # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
+        if k in [f"{k}_FILE" for k in config.keys()]\
+            and ( k.removesuffix('_FILE') in config.keys() or  allow_extend == True):
+            if(os.path.isfile(v)):
+                file = open(v, mode='r')
+                config[k.removesuffix('_FILE')]=file.readline().strip()
+        # Processing of direct affectation via ATTR=VALUE
+        # if extracted key already exist in config OR if allowed to add new keys to config
+        # Then adding/updating key/value
         if k in config.keys() or allow_extend == True:
             config[k]=v
     return config
@@ -31,10 +41,18 @@ def extract_values_from_file(filename:str,config:dict,allow_extend:bool=False,en
         split=l.strip().split('=',1)
         # if extraction contains 2 items and strictly 2 items
         if(len(split)==2):
+            k=split[0]
+            v=split[1]
+            # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
+            if k in [f"{k}_FILE" for k in config.keys()]\
+                and ( k.removesuffix('_FILE') in config.keys() or  allow_extend == True):
+                if(os.path.isfile(v)):
+                    file = open(v, mode='r')
+                    config[k.removesuffix('_FILE')]=file.readline().strip()
             # if extracted key already exist in config OR if allowed to add new keys to config
             # Then adding/updating key/value
-            if split[0] in config.keys() or allow_extend == True:
-                config[split[0]]=split[1]
+            if k in config.keys() or allow_extend == True:
+                config[k]=v
         if env_priority: extract_values_from_env(config,allow_extend=False)
     return config
     
@@ -76,7 +94,7 @@ class Settings(BaseSettings):
         if os.path.isfile(file_to_process):
             extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
-        if APP_ENV has been defined
+        # if APP_ENV has been defined
         if 'APP_ENV' in config:
             # Extract .env.${APP_ENV} and override existing values
             file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['APP_ENV']}")
