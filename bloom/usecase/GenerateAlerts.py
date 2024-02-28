@@ -37,7 +37,7 @@ class GenerateAlerts:
         alert: Alert,
         type_name: str = "Vessel in a Protected Area",
     ) -> int:
-        slack_url = settings.slack_url
+        slack_url = settings.SLACK_URL
         webhook = WebhookClient(slack_url)
         blocks = (
             """[
