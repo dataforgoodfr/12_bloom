@@ -8,7 +8,6 @@ RUN apt-get install -y rsyslog
 WORKDIR /source_code
 COPY bloom/ ./bloom/
 COPY data/ ./data/
-COPY .env.template .
 COPY app.py .
 COPY container.py .
 COPY docker-env/rsyslog.conf /etc/rsyslog.conf
@@ -44,7 +43,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y
 # The entrypoint.sh script stores ENV vars at runtime in the ~/.env file as key=value pairs
 # Then the cron line include some command to load these ENV vars from file before launching app.py
 # This mecanism allows to give access to the same ENV vars for app.py launch in terminal and launch via cron
-RUN echo "*/15 * * * *	root export \$(cat ~/.env | grep -v '#' | xargs);/venv/bin/python3 /source_code/app.py 2>&1 | /usr/bin/logger -t bloom"  >> ./cron_scrapper
+RUN echo "*/15 * * * *	root export \$(cat /tmp/.env.cron | grep -v '#' | xargs);/venv/bin/python3 /source_code/app.py 2>&1 | /usr/bin/logger -t bloom"  >> ./cron_scrapper
 RUN chmod 744 ./cron_scrapper
 
 # Move cron tab into the right directory
