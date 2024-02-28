@@ -3,17 +3,6 @@ VERSION ?= 1.0.0
 BLOOM_DEV_DOCKER = @docker run --name bloom-dev --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/.env.docker.dev --network=bloom_net -e POSTGRES_PORT=5432 -p 8501:8501 -e APP_ENV=dev -v "$(shell pwd)/.env:/source_code/.env" -v "$(shell pwd)/.env.local:/source_code/.env.local" -v $(shell pwd)/.env.dev:/source_code/.env.dev -v $(shell pwd)/.env.dev.local:/source_code/.env.dev.local
 BLOOM_PRODUCTION_DOCKER = @docker run --add-host ${POSTGRES_HOSTNAME}:$${POSTGRES_IP} --mount type=bind,source="$(shell pwd)",target=/source_code --env-file /tmp/.env.docker.prod --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh -e APP_ENV=prod -v $(shell pwd)/.env:/source_code/.env -v $(shell pwd)/.env.local:/source_code/.env.local -v $(shell pwd)/.env.prod:/source_code/.env.prod -v $(shell pwd)/.env.prod.local:/source_code/.env.prod.local
 
-define mount_env_options
-	OPTIONS=""
-	files=".env .env.local .env.dev .env.test .env.prod .env.dev.local .env.test.local .env.prod.local"
-	for file in $$files ;do 
-		echo "Y"
-	done
-	echo $$OPTIONS
-endef
-
-MOUNT_ENV_OTPIONS = /bin/bash $(shell pwd)/scripts/env_mount.sh
-
 EXPORT_ENV_DEV = @export $(shell cat /tmp/.env.docker.dev | grep -v "#" | xargs -d '\r')
 EXPORT_ENV_TEST = @export $(shell cat /tmp/.env.docker.test | grep -v "#" | xargs -d '\r')
 EXPORT_ENV_PROD = @export $(shell cat /tmp/.env.docker.prod | grep -v "#" | xargs -d '\r')
@@ -21,9 +10,6 @@ EXPORT_ENV_PROD = @export $(shell cat /tmp/.env.docker.prod | grep -v "#" | xarg
 UPDATE_ENV_DEV = @$(shell pwd)/scripts/update_env.sh dev /tmp/.env.docker.dev
 UPDATE_ENV_TEST = @$(shell pwd)/scripts/update_env.sh test /tmp/.env.docker.test
 UPDATE_ENV_PROD = @$(shell pwd)/scripts/update_env.sh prod /tmp/.env.docker.prod
-
-env-options:
-	echo 	$(MOUNT_ENV_OPTIONS)
 
 build:
 	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
