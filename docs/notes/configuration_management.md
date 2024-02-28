@@ -1,4 +1,5 @@
 
+
 ---
 id: 
 title: Bloom App Configuraiton Management
@@ -71,6 +72,14 @@ To get values that will be extracted according to .env variable list, APP_ENV va
     print(settings.POSTGRES_USER)
    WARNING: Be carefull, bloom.config is case sensitive and is based on syntax used in ***.env*** file
    To get the whole list of variables available, consult [.env.template](.env.template)
+  
+## Switching environment (test=>prod, prod=>test,test<=>dev,...)
+
+To switch from environment to another, two ways are available:
+- modify .env.local and then set `APP_ENV=prod` to switch to prod **(recommended method)**
+- just change APP_ENV value by exporting/forcing new value : `export APP_ENV=prod` 
+
+Both technics are available for Docker conteneur too
 
 # Additional ways to manage configuration values
 ## By environment variable (prioritary on file)
