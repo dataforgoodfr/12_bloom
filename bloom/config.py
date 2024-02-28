@@ -43,49 +43,51 @@ class Settings(BaseSettings):
     db_url:str=None
     def __init__(self,*arg, **args):
         super().__init__(self,*arg, **args)
-        # Default APP_ENV is 'dev'
-        self.APP_ENV='dev'
-        
-        # Destination file of "env" merged config
-        # Usefull to set it to docker.${APP_ENV} when generated for docker
-        PATH_ENV=os.getenv('PATH_ENV',Path(os.path.dirname(__file__)).joinpath(f"../.env"))
         
         # dict to store temporary/overrided config parameters
         config={}
         
-        # Extract .env.template as default values
-        # The keys present in .env.template now will restrict keys that are extracted from following files
-        # So all parameters MUST HAVE a default value declared in .env.template to be loaded
-        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.template")
-        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True,env_priority=True)
+        # Here we extract value according to PHP Symfony Framework principles (https://symfony.com/doc/current/configuration.html#configuration-based-on-environment-variable)
+        # The idea is to load sequentialy
+        # - .env (for default values and common values for all runtime environment dev/test/prod/...). APP_ENV has to be defined here as default env (APP_ENV='dev' i.e.)
+        # - .env.local (for local common overrided values)
+        # - .env.${APP_ENV} (for default values for the specific environment APP_ENV defined and overrided before)
+        # - .env.${APP_ENV}.local (for local APP_ENV specific values)
+        #
+        # Some princpales are coming with that:
+        # - All configuration variables presents in theses files MUST be declare in .env file. If not they won't be accessible in application.
+        # This is a good way to have a file containging all parameters avialables, don't hésitate to document them in .env
+        # - All default files (.env, .env.APP_ENV) are optional but not ignored by git if created
+        # - All local files (*.local) are optionel and ignored by git if created so theses files are specific and locl to deployment platform
         
-        # Extract from file pointed by BLOOM_CONFIG en var
-        if os.environ.get('BLOOM_CONFIG') != None:
-            file_to_process=os.environ.get('BLOOM_CONFIG')
-            if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=True,env_priority=True)
+        # In addition we impement the Docker standard that manage configuration base on files AND enviornment variables
+        # - At each previous step, key=value pairs found in files are systematically override by its equivalent in environment variables if this one has been declared in env vars
+        # This mecanism is usefull when deploying application in Docker as docker specific values can override files configuration just by adding env vars
+        # -  All attributes can be set by a direct KEY=VALUE pair or indirectly by adding a _FILE suffix to the name of the KEY, this KEY_FILE pointing to a file local to the deployment system that will give the final value to the attribute
+        #    - Exemple: POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password will give a 
+        
+        # Extract .env.template as default values
+        file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env")
+        if os.path.isfile(file_to_process):
+            extract_values_from_file(file_to_process,config,allow_extend=True,env_priority=True)
         
         # Extract .env.local and override existing values
-        # We restrict extracted keys to the keys already existing in .env.template
         file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.local")
-        if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
+        if os.path.isfile(file_to_process):
+            extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
-        # Extract .env.${APP_ENV} and override existing values
-        # We restrict extracted keys to the keys already existing in .env.template
+        if APP_ENV has been defined
         if 'APP_ENV' in config:
+            # Extract .env.${APP_ENV} and override existing values
             file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['APP_ENV']}")
             if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
-        # Extract .env.${APP_ENV}.local and override existing values
-        # We restrict extracted keys to the keys already existing in .env.template
-        if 'APP_ENV' in config:
+            # Extract .env.${APP_ENV}.local and override existing values
             file_to_process=Path(os.path.dirname(__file__)).joinpath(f"../.env.{config['APP_ENV']}.local")
             if os.path.isfile(file_to_process): extract_values_from_file(file_to_process,config,allow_extend=False,env_priority=True)
         
-        # Extract and oerride values from environment variables
-        # We restrict extracted keys to the keys already existing in .env.template
-        extract_values_from_env(config,allow_extend=False)
-        
-        # Now we extract key/value pairs from new .env and add them to current class as attributes
+        # Now we extract key/value pairs from config and add/update them to current class Settings class as attributes
+        # All attributes declared in template
         self.__dict__.update(config)
         
         
@@ -95,6 +97,7 @@ class Settings(BaseSettings):
                         f"@{self.POSTGRES_HOSTNAME}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
         
         
+        # 
         # Destination file of "env" merged config
         # Usefull to set it to docker.${APP_ENV} when generated for docker
         # If not defined, is None and no merged file is generated
