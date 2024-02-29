@@ -39,32 +39,36 @@ def extract_values_from_file(filename:str,config:dict,
     Returns a dict contains key/value
     """ 
     filepath=Path(Path(__file__).parent).joinpath(filename)
-    for line in open(filepath):
-        # Split line at first occurence of '='.
-        # This allows to have values containing '=' character
-        split=line.strip().split('=',1)
-        # if extraction contains 2 items and strictly 2 items
-        if(len(split)==2):
-            k=split[0]
-            v=split[1]
-            # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
-            if k in [f"{k}_FILE" for k in config.keys()]\
-                and ( k.removesuffix('_FILE') in config.keys() or  allow_extend == True)\
-                and Path(v).is_file():
-                    with Path.open(v, mode='r') as file:
-                        config[k.removesuffix('_FILE')]=file.readline().strip()
-            # if extracted key already exist in config OR if allowed to add new keys to config
-            # Then adding/updating key/value
-            if k in config.keys() or allow_extend == True:
-                config[k]=v
-        if env_priority: extract_values_from_env(config,allow_extend=False)
+    with open(filepath) as file:
+        for line in file:
+            # Split line at first occurence of '='.
+            # This allows to have values containing '=' character
+            split=line.strip().split('=',1)
+            # if extraction contains 2 items and strictly 2 items
+            SPLIT_SUCCEED=2
+            if(len(split)==SPLIT_SUCCEED):
+                k=split[0]
+                v=split[1]
+                # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
+                if k in [f"{k}_FILE" for k in config.keys()]\
+                    and ( k.removesuffix('_FILE') in config.keys() or  allow_extend == True)\
+                    and Path(v).is_file():
+                        with Path.open(v, mode='r') as file:
+                            config[k.removesuffix('_FILE')]=file.readline().strip()
+                # if extracted key already exist in config OR if allowed to add new keys to
+                # config then adding/updating key/value
+                if k in config.keys() or allow_extend == True:
+                    config[k]=v
+            # If env priority True, then overriding all values with ENV values before ending
+            if env_priority:
+                extract_values_from_env(config,allow_extend=False)
     return config
     
 class Settings(BaseSettings):
     APP_ENV:str=None
     db_url:str=None
-    def __init__(self,*arg, **args):
-        super().__init__(self,*arg, **args)
+    def __init__(self):
+        super().__init__(self)
         
         # dict to store temporary/overrided config parameters
         config={}
@@ -143,16 +147,16 @@ class Settings(BaseSettings):
         # Destination file of "env" merged config
         # Usefull to set it to docker.${APP_ENV} when generated for docker
         # If not defined, is None and no merged file is generated
-        PATH_ENV=os.getenv('PATH_ENV')
-        if PATH_ENV != None:
+        path_env=os.getenv('PATH_ENV')
+        if path_env != None:
             # Now all .env.* files has been merged, we write the cumulated result to .env
             # .env is for compliance with docker/docker-compose standard
-            print(f"writing {PATH_ENV}")
-            f = open(PATH_ENV, "w")
-            f.truncate(0)
-            f.write("# This file was generated automaticaly by bloom.config\n"
-                    "# Don't modify values directly here\n"
-                    "# Use .env.* files instead then restart application\n")
+            print(f"writing {path_env}")
+            with Path.open(path_env,"w") as file:
+                file.truncate(0)
+                file.write("# This file was generated automaticaly by bloom.config\n"
+                        "# Don't modify values directly here\n"
+                        "# Use .env.* files instead then restart application\n")
             for k,v in config.items():
                 f.write(f"{k}={v}\n")
             f.close()
