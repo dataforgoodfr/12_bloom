@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  postgres:
+    container_name: ${POSTGRES_HOSTNAME:-postgres_bloom}-dev
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+  pgadmin:
+      container_name: pgadmin_bloom-dev
+      image: dpage/pgadmin4
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-test@test.com}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-test}
+        PGADMIN_SERVER_JSON_FILE: /run/secrets/servers.json
+      ports:
+        - "${PGADMIN_PORT:-5080}:80"
+      networks:
+        - bloom_net
+      restart: unless-stopped
+
+  app:
+      container_name: app_bloom-dev
+      build:
+        args:
+            APP_ENV: dev
+      environment:
+        APP_ENV: dev
+      volumes:
+        - ..:/source_code/
+      networks:
+        - bloom_net
+      restart: unless-stopped
+
+networks:
+  bloom_net:
+    name: bloom_net

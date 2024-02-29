@@ -1,0 +1,54 @@
+version: "3.7"
+services:
+  postgres:
+    container_name: ${POSTGRES_HOSTNAME:-postgres_bloom}
+    hostname: ${POSTGRES_HOSTNAME:-postgres_bloom}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloom}
+      POSTGRES_USER: ${POSTGRES_USER:-boom_user}
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    networks:
+        - bloom_net
+    restart: unless-stopped
+
+  app:
+      container_name: app_bloom
+      hostname: app_bloom
+      build:
+        context: ..
+        dockerfile: docker-env/Dockerfile
+        args:
+            CHROME_VERSION: "112.0.5615.165-1"
+            APP_DIR: ${APP_DIR:-/source_code}
+            FROM_IMAGE: ${FROM_IMAGE:-python:3.10-slim-bullseye}
+            APP_ENV: ${APP_ENV}
+      image: dataforgood/12_bloom
+      
+ 
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER:-boom_user}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloom}
+        POSTGRES_HOSTNAME: postgres
+        POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+        POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+        SPIRE_TOKEN_FILE: /run/secrets/spire_token
+      volumes:
+        - ../data:${APP_DIR:-/source_code}/data
+        - ../.env:${APP_DIR:-/source_code}/.env
+        - ../.env.local:${APP_DIR:-/source_code}/.env.local
+        - ../.env.dev:${APP_DIR:-/source_code}/.env.dev
+        - ../.env.test:${APP_DIR:-/source_code}/.env.test
+        - ../.env.prod:${APP_DIR:-/source_code}/.env.prod
+        - ../.env.dev.local:${APP_DIR:-/source_code}/.env.dev.local
+        - ../.env.test.local:${APP_DIR:-/source_code}/.env.test.local
+        - ../.env.prod.local:${APP_DIR:-/source_code}/.env.prod.local
+      networks:
+        - bloom_net
+      restart: unless-stopped
+
+networks:
+  bloom_net:
+    name: bloom_net
