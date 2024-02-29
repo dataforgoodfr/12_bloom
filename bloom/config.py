@@ -39,22 +39,22 @@ def extract_values_from_file(filename:str,config:dict,
     Returns a dict contains key/value
     """ 
     filepath=Path(Path(__file__).parent).joinpath(filename)
-    with open(filepath) as file:
+    with Path.open(filepath) as file:
         for line in file:
             # Split line at first occurence of '='.
             # This allows to have values containing '=' character
             split=line.strip().split('=',1)
             # if extraction contains 2 items and strictly 2 items
-            SPLIT_SUCCEED=2
-            if(len(split)==SPLIT_SUCCEED):
+            split_succeed=2
+            if(len(split)==split_succeed):
                 k=split[0]
                 v=split[1]
                 # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
                 if k in [f"{k}_FILE" for k in config.keys()]\
                     and ( k.removesuffix('_FILE') in config.keys() or  allow_extend == True)\
                     and Path(v).is_file():
-                        with Path.open(v, mode='r') as file:
-                            config[k.removesuffix('_FILE')]=file.readline().strip()
+                        with Path.open(v, mode='r') as file_value:
+                            config[k.removesuffix('_FILE')]=file_value.readline().strip()
                 # if extracted key already exist in config OR if allowed to add new keys to
                 # config then adding/updating key/value
                 if k in config.keys() or allow_extend == True:
@@ -157,9 +157,9 @@ class Settings(BaseSettings):
                 file.write("# This file was generated automaticaly by bloom.config\n"
                         "# Don't modify values directly here\n"
                         "# Use .env.* files instead then restart application\n")
-            for k,v in config.items():
-                f.write(f"{k}={v}\n")
-            f.close()
+                for k,v in config.items():
+                    file.write(f"{k}={v}\n")
+                file.close()
                         
 
     srid: int = 4326
