@@ -12,12 +12,12 @@ build:
 	@docker tag d4g/bloom:${VERSION} d4g/bloom:latest
 
 launch-dev-db:
-	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env\docker-compose-base.yaml up -d postgres
-	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env\docker-compose-base.yaml up -d app
+	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env/docker-compose-base.yaml up -d postgres
+	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env/docker-compose-base.yaml up -d app
 	$(EXPORT_ENV_DEV) && docker compose -f docker-env/docker-compose-db.yaml up -d
 	@sleep 20
-	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env\docker-compose-base.yaml exec app alembic upgrade head
-	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env\docker-compose-base.yaml exec app /venv/bin/python3 alembic/init_script/load_vessels_data.py
+	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env/docker-compose-base.yaml exec app alembic upgrade head
+	$(EXPORT_ENV_DEV) export APP_ENV=dev; docker compose -f docker-env/docker-compose-base.yaml exec app /venv/bin/python3 alembic/init_script/load_vessels_data.py
 
 load-amp-data:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
