@@ -86,7 +86,7 @@ class VesselTrajectory:
         return None
     
     @mpas.setter
-    def mpas(self, value):
+    def mpas(self, value:[])->None:
         self._mpas = value
 
     def get_closest_marine_protected_areas(self, radius: int = 100) -> None:
