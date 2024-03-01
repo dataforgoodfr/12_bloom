@@ -34,17 +34,19 @@ def main() -> None:
 
     if args.mode == ExecutionMode.LOCAL:
         logger.info("Starting scraping with internal scheduler")
-        scheduler = PeriodicScheduler(
-            function=marine_traffic_usecase.scrap_vessels,
-            interval=SCRAP_INTERVAL,
-        )
+        # Commented as marine_traffic_usecase was commented before
+        # error F821 Undefined name `marine_traffic_usecase`
+        #scheduler = PeriodicScheduler(
+        #    function=marine_traffic_usecase.scrap_vessels,
+        #    interval=SCRAP_INTERVAL,
+        #)
         spire_traffic_usecase.save_vessels(
             spire_traffic_usecase.get_all_vessels(timestamp),
         )
         #marine_traffic_usecase.scrap_vessels(timestamp)
         alert_usecase.generate_alerts(timestamp)
-        while True:
-            scheduler.start()
+        #while True:
+        #    scheduler.start()
     else:
         logger.info("Starting scraping with external scheduler")
         spire_traffic_usecase.save_vessels(
