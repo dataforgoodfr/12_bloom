@@ -4,29 +4,45 @@ BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(sh
 BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
 build:
-	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
-	@docker tag d4g/bloom:${VERSION} d4g/bloom:latest
+	@docker compose -f docker-env\docker-compose.yaml build
 
-launch-dev-db:
-	@docker compose -f docker-env/docker-compose-db.yaml up -d
-	@sleep 20
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} alembic upgrade head
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
+start-db-dev: 
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up db-dev -d
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up dbadmin-dev -d
+
+start-app-dev:
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up app-dev -d
+
+stop-db-dev:
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml down db-dev 
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml down dbadmin-dev 
+stop-app-dev:
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml down app-dev
+
+connect-app-dev:
+	@if [ -f $$(pwd)/.env.dev ]; then ln -sf $$(pwd)/.env.dev $$(pwd)/.env; else ( echo "ERROR: No file $$(pwd)/.env.dev"; exit 1) ; fi
+	@docker compose -f docker-env/docker-compose.yaml exec app-dev bash
 
 load-amp-data:
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_amp_data.py
+	@docker compose -f docker-env/docker-compose.yaml exec app-dev /venv/bin/python3 alembic/init_script/load_amp_data.py
 
-load-test-positions-data:
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_positions_data.py
+load-positions-data:
+	@docker compose -f docker-env/docker-compose.yaml exec app-dev /venv/bin/python3 alembic/init_script/load_positions_data.py
 
-launch-dev-container:
-	$(BLOOM_DEV_DOCKER) -dti  d4g/bloom:${VERSION} /bin/bash
+launch-app-dev:
+	@docker compose -f docker-env/docker-compose.yaml exec app-dev /venv/bin/python3 app.py 
 
-launch-dev-app:
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
+start-db-test: 
+	@if [ -f $$(pwd)/.env.test ]; then ln -sf $$(pwd)/.env.test $$(pwd)/.env; else ( echo "ERROR: No file $$(pwd)/.env.test"; exit 1) ; fi
+	@docker compose -f docker-env/docker-compose.yaml up db -d
+	@docker compose -f docker-env/docker-compose.yaml up dbadmin -d
 
-launch-test:
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} tox -vv
+start-app-test:
+	@if [ -f $$(pwd)/.env.test ]; then ln -sf $$(pwd)/.env.test $$(pwd)/.env; else ( echo "ERROR: No file $$(pwd)/.env.test"; exit 1) ; fi
+	@docker compose -f docker-env/docker-compose.yaml up app-test -d
+stop-app-test:
+	@if [ -f $$(pwd)/.env.test ]; then ln -sf $$(pwd)/.env.test $$(pwd)/.env; else ( echo "ERROR: No file $$(pwd)/.env.test"; exit 1) ; fi
+	@docker compose -f docker-env/docker-compose.yaml down app-test
 
 rm-dev-db:
 	@docker-compose -f docker-env/docker-compose-db.yaml stop
@@ -47,7 +63,7 @@ launch-production-app:
 	 $(BLOOM_PRODUCTION_DOCKER) --name bloom-production-app --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
 
 dump-dev-db:
-	$(BLOOM_DEV_DOCKER) --rm postgres:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /source_code/bloom_$(shell date +%Y%m%d_%H%M).dump'
+	$(BLOOM_DEV_DOCKER) --rm db:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /source_code/bloom_$(shell date +%Y%m%d_%H%M).dump'
 
 dump-db:
-	@docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net --rm postgres:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /source_code/bloom_$(shell date +%Y%m%d_%H%M).dump'
+	@docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net --rm db:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /source_code/bloom_$(shell date +%Y%m%d_%H%M).dump'

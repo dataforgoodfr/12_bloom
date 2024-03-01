@@ -1,0 +1,81 @@
+version: "3.7"
+
+x-common-infos:
+  # Env variables stored in a .env file
+  environment: &common-env
+    POSTGRES_HOST: ${POSTGRES_HOST:-postgres_bloom}
+    POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+    POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+    POSTGRES_USER: ${POSTGRES_USER:-boom_user}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloom}
+services:    
+  db-dev:
+    container_name: postgres_bloom-${APP_ENV}
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    env_file: ../.env.dev
+    environment:
+      <<: *common-env
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready --quiet --dbname=${POSTGRES_DB} --username=${POSTGRES_USER}']
+      interval: 100ms
+      timeout: 14s
+      retries: 140
+      start_period: 0s
+    networks:
+        - bloom_net
+    restart: unless-stopped
+
+  app-dev:
+      container_name: app_bloom-${APP_ENV:-dev}
+      hostname: app_bloom-${APP_ENV:-dev}
+      build:
+        context: ..
+        dockerfile: docker-env/Dockerfile
+        args:
+            CHROME_VERSION: "112.0.5615.165-1"
+            APP_DIR: /source_code
+            FROM_IMAGE: ${FROM_IMAGE:-python:3.10-slim-bullseye}
+            APP_ENV: ${APP_ENV:-dev}
+      image: dataforgood/bloom:${VERSION:-latest}
+      env_file:
+        - ../.env.dev
+
+      command: /bin/bash
+      tty: true
+      stdin_open: true
+      environment:
+        <<: *common-env
+        SPIRE_TOKEN_FILE: /run/secrets/spire_token
+      volumes:
+        - ../data:/source_code/data
+        - ../alembic:/source_code/alembic
+      networks:
+        - bloom_net
+      restart: unless-stopped
+      configs:
+        - source: .env.dev
+          target: /source_code/.env
+  
+  dbadmin-dev:
+    container_name: pgadmin_bloom-${APP_ENV} 
+    image: dpage/pgadmin4
+    environment:
+        <<: *common-env
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin@pgadmin.com}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-pgadmin}
+    env_file:
+      - ../.env.dev
+
+configs:
+  .env.dev:
+    file: ../.env.dev
+
+secrets:
+  spire_token_dev:
+    file: ../secrets/dev/spire_token  
+
+networks:
+  bloom_net:
+    name: bloom_net
