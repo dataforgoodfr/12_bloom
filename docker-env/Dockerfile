@@ -13,7 +13,8 @@ COPY container.py .
 COPY docker-env/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
-ENV POETRY_VERSION=1.4.0
+ARG POETRY_VERSION=1.8.1
+ENV POETRY_VERSION=${POETRY_VERSION}
 RUN pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
 COPY pyproject.toml poetry.lock ./
