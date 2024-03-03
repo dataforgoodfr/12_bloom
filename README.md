@@ -116,9 +116,9 @@ deactivate
 
 ## More information can be found there
 
-1. [Database initialisation and versioning](./docs/database.initialisation.md)
-2. [Development environment](./docs/development.environment.md)
-3. [Useful SQL examples](./docs/sql.examples.md)
+1. [Database initialisation and versioning](./docs/notes/database.initialisation.md)
+2. [Development environment](./docs/notes/development.environment.md)
+4. [Useful SQL examples](./docs/notes/sql.examples.md)
 4. [Data models](#todo)
 
 ## FAQ
