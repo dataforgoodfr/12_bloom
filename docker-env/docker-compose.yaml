@@ -26,10 +26,22 @@ services:
     networks:
         - bloom_net
     restart: unless-stopped
+  
+  dbadmin-dev:
+    container_name: pgadmin_bloom-${APP_ENV} 
+    image: dpage/pgadmin4
+    environment:
+        <<: *common-env
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin@pgadmin.com}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-pgadmin}
+    env_file:
+      - ../.env.dev
+    dependson:
+      - db-dev
 
   app-dev:
-      container_name: app_bloom-${APP_ENV:-dev}
-      hostname: app_bloom-${APP_ENV:-dev}
+      container_name: app_bloom-dev
+      hostname: app_bloom-dev
       build:
         context: ..
         dockerfile: docker-env/Dockerfile
@@ -37,7 +49,7 @@ services:
             CHROME_VERSION: "112.0.5615.165-1"
             APP_DIR: /source_code
             FROM_IMAGE: ${FROM_IMAGE:-python:3.10-slim-bullseye}
-            APP_ENV: ${APP_ENV:-dev}
+            APP_ENV: -dev
       image: dataforgood/bloom:${VERSION:-latest}
       env_file:
         - ../.env.dev
@@ -57,16 +69,29 @@ services:
       configs:
         - source: .env.dev
           target: /source_code/.env
-  
-  dbadmin-dev:
-    container_name: pgadmin_bloom-${APP_ENV} 
-    image: dpage/pgadmin4
-    environment:
+    dependson:
+      - init-dev
+          
+  init-dev:
+      container_name: init_bloom-dev
+      hostname: init_bloom-dev
+      image: dataforgood/bloom:${VERSION:-latest}
+      env_file:
+        - ../.env.dev
+
+      command: alembic current
+      environment:
         <<: *common-env
-        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin@pgadmin.com}
-        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-pgadmin}
-    env_file:
-      - ../.env.dev
+        SPIRE_TOKEN_FILE: /run/secrets/spire_token
+      volumes:
+        - ../data:/source_code/data
+        - ../alembic:/source_code/alembic
+      networks:
+        - bloom_net
+      restart: unless-stopped
+      configs:
+        - source: .env.dev
+          target: /source_code/.env
 
 configs:
   .env.dev:

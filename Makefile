@@ -11,6 +11,7 @@ start-db-dev:
 	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up dbadmin-dev -d
 
 start-app-dev:
+	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up init-dev -d
 	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up app-dev -d
 
 stop-db-dev:
