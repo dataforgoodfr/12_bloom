@@ -4,7 +4,7 @@ BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(sh
 BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
 build:
-	@docker compose -f docker-env\docker-compose.yaml build
+	@docker compose -f docker-env/docker-compose.yaml build
 
 start-db-dev: 
 	@docker compose --env-file .env.dev -f docker-env/docker-compose.yaml up db-dev -d
