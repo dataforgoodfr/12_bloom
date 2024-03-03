@@ -8,98 +8,94 @@ x-common-infos:
     POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
     POSTGRES_USER: ${POSTGRES_USER:-boom_user}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloom}
-services:    
-  db-dev:
-    container_name: postgres_bloom-${APP_ENV}
-    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
-    ports:
-      - ${POSTGRES_PORT:-5432}:5432
-    env_file: ../.env.dev
-    environment:
-      <<: *common-env
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready --quiet --dbname=${POSTGRES_DB} --username=${POSTGRES_USER}']
-      interval: 100ms
-      timeout: 14s
-      retries: 140
-      start_period: 0s
-    networks:
-        - bloom_net
-    restart: unless-stopped
-  
-  dbadmin-dev:
-    container_name: pgadmin_bloom-${APP_ENV} 
-    image: dpage/pgadmin4
-    environment:
-        <<: *common-env
-        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin@pgadmin.com}
-        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-pgadmin}
-    env_file:
-      - ../.env.dev
-    dependson:
-      - db-dev
 
-  app-dev:
-      container_name: app_bloom-dev
-      hostname: app_bloom-dev
-      build:
-        context: ..
-        dockerfile: docker-env/Dockerfile
-        args:
-            CHROME_VERSION: "112.0.5615.165-1"
-            APP_DIR: /source_code
-            FROM_IMAGE: ${FROM_IMAGE:-python:3.10-slim-bullseye}
-            APP_ENV: -dev
-      image: dataforgood/bloom:${VERSION:-latest}
-      env_file:
-        - ../.env.dev
+services:
+    db-dev:
+        container_name: postgres_bloom-dev
+        image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+        ports:
+            - ${POSTGRES_PORT:-5432}:5432
+        env_file: ../.env.dev
+        environment:
+            <<: *common-env
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready --quiet --dbname=${POSTGRES_DB} --username=${POSTGRES_USER}']
+            interval: 100ms
+            timeout: 14s
+            retries: 140
+            start_period: 0s
+        networks:
+            - bloom_net
+        restart: unless-stopped
 
-      command: /bin/bash
-      tty: true
-      stdin_open: true
-      environment:
-        <<: *common-env
-        SPIRE_TOKEN_FILE: /run/secrets/spire_token
-      volumes:
-        - ../data:/source_code/data
-        - ../alembic:/source_code/alembic
-      networks:
-        - bloom_net
-      restart: unless-stopped
-      configs:
-        - source: .env.dev
-          target: /source_code/.env
-    dependson:
-      - init-dev
-          
-  init-dev:
-      container_name: init_bloom-dev
-      hostname: init_bloom-dev
-      image: dataforgood/bloom:${VERSION:-latest}
-      env_file:
-        - ../.env.dev
 
-      command: alembic current
-      environment:
-        <<: *common-env
-        SPIRE_TOKEN_FILE: /run/secrets/spire_token
-      volumes:
-        - ../data:/source_code/data
-        - ../alembic:/source_code/alembic
-      networks:
-        - bloom_net
-      restart: unless-stopped
-      configs:
-        - source: .env.dev
-          target: /source_code/.env
+    dbadmin-dev:
+        container_name: pgadmin_bloom-${APP_ENV} 
+        image: dpage/pgadmin4
+        environment:
+            <<: *common-env
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-pgadmin@pgadmin.com}
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-pgadmin}
+        env_file:
+            - ../.env.dev
+        depends_on:
+            - db-dev
+
+    app-dev:
+        container_name: app_bloom-dev
+        hostname: app_bloom-dev
+        build:
+            context: ..
+            dockerfile: docker-env/Dockerfile
+            args:
+                CHROME_VERSION: "112.0.5615.165-1"
+                APP_DIR: /source_code
+                FROM_IMAGE: ${FROM_IMAGE:-python:3.10-slim-bullseye}
+        image: dataforgood/bloom:${VERSION:-latest}
+        env_file:
+            - ../.env.dev
+        command: /bin/bash
+        tty: true
+        stdin_open: true
+        environment:
+            <<: *common-env
+            SPIRE_TOKEN_FILE: /run/secrets/spire_token
+        volumes:
+            - ../data:/source_code/data
+            - ../alembic:/source_code/alembic
+        networks:
+            - bloom_net
+        restart: unless-stopped
+        configs:
+            - source: .env.dev
+              target: /source_code/.env
+        depends_on:
+            - init-dev
+
+    init-dev:
+        container_name: init_bloom-dev
+        hostname: init_bloom-dev
+        image: dataforgood/bloom:${VERSION:-latest}
+        env_file:
+            - ../.env.dev
+
+        command: alembic current
+        environment:
+            <<: *common-env
+            SPIRE_TOKEN_FILE: /run/secrets/spire_token
+        volumes:
+            - ../data:/source_code/data
+            - ../alembic:/source_code/alembic
+        networks:
+            - bloom_net
+        restart: unless-stopped
+        configs:
+            - source: .env.dev
+              target: /source_code/.env
 
 configs:
-  .env.dev:
-    file: ../.env.dev
-
-secrets:
-  spire_token_dev:
-    file: ../secrets/dev/spire_token  
+    .env.dev:
+        file: ../.env.dev
 
 networks:
   bloom_net:
