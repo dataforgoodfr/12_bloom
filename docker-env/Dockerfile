@@ -28,7 +28,7 @@ RUN poetry install
 # Install chrome in the latest version
 ARG CHROME_VERSION="112.0.5615.165-1"
 RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-RUN apt-get install -y /tmp/chrome.deb
+RUN apt-get install --fix-missing -y /tmp/chrome.deb
 RUN rm -f google-chrome-stable_current_amd64.deb
 
 

@@ -1,29 +1,90 @@
 import os
 
 from pydantic import BaseSettings
+from pathlib import Path
+
+def extract_values_from_env(config:dict,allow_extend:bool=False) -> dict:
+    """ function that extrat key=value pairs from a file
+    Parameters:
+    - config: dict to extend/update with new key/value pairs found in environment
+    - allow_extend: allows to extend extracted keys with new keys that are not in
+                    actuel config if True, restrict to already existing keys in config of False
+    Returns a dict contains key/value
+    """
+    for k,v in os.environ.items():
+        # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
+        if k.lower() in [f"{k}_FILE".lower() for k in config.keys()]\
+            and ( k.removesuffix('_FILE').lower() in config.keys() or  allow_extend == True)\
+            and Path(v).is_file():
+                with Path.open(v, mode='r') as file:
+                    config[k.removesuffix('_FILE').lower()]=file.readline().strip()
+        # Processing of direct affectation via ATTR=VALUE
+        # if extracted key already exist in config OR if allowed to add new keys to config
+        # Then adding/updating key/value
+        if k.lower() in [k.lower() for k in config.keys()] or allow_extend == True:
+            config[k.lower()]=v
+    return config
+
+def extract_values_from_file(filename:str,config:dict,
+                             allow_extend:bool=False,
+                             env_priority:bool=True
+                             )-> dict:
+    """ function that extrat key=value pairs from a file
+    Parameters:
+    - filename: filename/filepath from which to extract key/value pairs found in .env.* file
+    - config: dict to extend/update with new key/value pairs
+    - allow_extend: allows to extend extracted keys with new keys that are not in actuel
+                    config if True, restrict to already existing keys in config of False
+    Returns a dict contains key/value
+    """ 
+    filepath=Path(Path(__file__).parent).joinpath(filename)
+    with Path.open(filepath) as file:
+        for line in file:
+            # Split line at first occurence of '='.
+            # This allows to have values containing '=' character
+            split=line.strip().split('=',1)
+            # if extraction contains 2 items and strictly 2 items
+            split_succeed=2
+            if(len(split)==split_succeed):
+                k=split[0]
+                v=split[1]
+                # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
+                if k.lower() in [f"{k}_FILE".lower() for k in config.keys()]\
+                    and ( k.removesuffix('_FILE').lower() in config.keys() or  allow_extend == True)\
+                    and Path(v).is_file():
+                        with Path.open(v, mode='r') as file_value:
+                            config[k.removesuffix('_FILE').lower()]=file_value.readline().strip()
+                # if extracted key already exist in config OR if allowed to add new keys to
+                # config then adding/updating key/value
+                if k.lower() in [k.lower() for k in config.keys()] or allow_extend == True:
+                    config[k.lower()]=v
+            # If env priority True, then overriding all values with ENV values before ending
+            if env_priority:
+                extract_values_from_env(config,allow_extend=False)
+    return config
 
 class Settings(BaseSettings):
-    postgres_user = os.environ.get("POSTGRES_USER")
-    postgres_password = os.environ.get("POSTGRES_PASSWORD")
-    postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
-    postgres_port = os.environ.get("POSTGRES_PORT")
-    postgres_db = os.environ.get("POSTGRES_DB")
+
+    postgres_user:str=None
+    postgres_password:str=None
+    postgres_host:str=None
+    postgres_port:str=None
+    postgres_db:str=None
+    srid:int = 4326
+    db_url:str=None
+    spire_token:str=None
     
-    print("db_url: ", "postgresql://"+postgres_user+":"+postgres_password+"@"+postgres_hostname+":"+postgres_port+"/"+postgres_db)
+    def __init__(self):
+        super().__init__(self)
+        # Si le fichier de configuration à chargé est précisé par une variable d'environnement
+        # APP_CONFIG alors on charge ce fichier, sinon par défaut c'est ../.env
+        APP_CONFIG=os.getenv('APP_CONFIG',"../.env")
+        
+        extract_values_from_file(APP_CONFIG,self.__dict__,allow_extend=False,env_priority=True)
 
-    db_url = (
-        "postgresql://"
-        + postgres_user
-        + ":"
-        + postgres_password
-        + "@"
-        + postgres_hostname
-        + ":"
-        + postgres_port
-        + "/"
-        + postgres_db
-    )
+        self.db_url = ( f"postgresql://{self.postgres_user}:"
+                  f"{self.postgres_password}@{self.postgres_host}:"
+                  f"{self.postgres_port}/{self.postgres_db}")
 
-    srid: int = 4326
 
 settings = Settings()
