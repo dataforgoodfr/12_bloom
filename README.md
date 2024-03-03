@@ -108,23 +108,11 @@ pip install poetry
    poetry shell
    ```
 
-7.
-
 ### Once you're done working with the project, deactivate the virtual environment.
 
 ```bash
 deactivate
 ```
-
-## Documentation
-
-[Dendron](https://marketplace.visualstudio.com/items?itemName=dendron.dendron) is a powerful Visual Studio Code, or [VSCodium](https://vscodium.com/), extension designed to streamline and enhance the documentation process. With **Dendron**, documenting projects becomes intuitive and efficient, thanks to its hierarchical note-taking system. Users can organize their documentation into a tree-like structure, making it easy to navigate and manage. The extension offers robust features such as bidirectional linking, which allows for seamless navigation between related notes, and support for Markdown formatting, enabling users to create rich and visually appealing documentation. Additionally, **Dendron** provides powerful search functionality, enabling users to quickly locate specific information within their documentation vault. Overall, **Dendron** empowers developers, writers, and teams to create comprehensive and well-organized documentation, facilitating better knowledge management and collaboration. The documentation is locaed inside the `./docs/notes` directory.
-
-Here's some basic Dendron shortcuts:
-
-| Shortcut       | Description  |
-| -------------- | ------------ |
-| `Cmd/Ctrl + L` | Lookup notes |
 
 ## More information can be found there
 
