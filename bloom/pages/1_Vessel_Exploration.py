@@ -80,7 +80,7 @@ if st.session_state.vessel_mmsi is None:
     st.write("Select a vessel from the dropdown list")
 
 else:
-    mmsi = st.session_state.vessel_mmsi
+    mmsi = str(st.session_state.vessel_mmsi)
     v = load_trajectory(mmsi, load_mpa)
 
     # if "mpas" not in st.session_state:
