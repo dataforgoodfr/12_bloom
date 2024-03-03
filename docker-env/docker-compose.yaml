@@ -62,7 +62,6 @@ services:
             SPIRE_TOKEN_FILE: /run/secrets/spire_token
         volumes:
             - ../data:/source_code/data
-            - ../alembic:/source_code/alembic
         networks:
             - bloom_net
         restart: unless-stopped
@@ -80,13 +79,20 @@ services:
         env_file:
             - ../.env.dev
 
+        # Nominal start:
         command: alembic current
+        # Debug start:
+        #command: bash
+        #tty: true
+        #stdin_open: true
+        
         environment:
             <<: *common-env
             SPIRE_TOKEN_FILE: /run/secrets/spire_token
         volumes:
             - ../data:/source_code/data
             - ../alembic:/source_code/alembic
+            - ../alembic.ini:/source_code/alembic.ini
         networks:
             - bloom_net
         configs:
