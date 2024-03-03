@@ -28,7 +28,7 @@ RUN poetry install
 # Install chrome in the latest version
 ARG CHROME_VERSION="112.0.5615.165-1"
 RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-RUN apt-get install -y /tmp/chrome.deb
+RUN apt-get install -y --fix-missing --no-install-recommends /tmp/chrome.deb
 RUN rm -f google-chrome-stable_current_amd64.deb
 
 
@@ -56,7 +56,7 @@ RUN crontab /etc/cron.d/cron_scrapper
 COPY docker-env/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]
 
-ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+# ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 # https://manpages.ubuntu.com/manpages/trusty/man8/cron.8.html
 # -f | Stay in foreground mode, don't daemonize.
 # -L loglevel | Tell  cron  what to log about jobs (errors are logged regardless of this value) as the sum of the following values:
