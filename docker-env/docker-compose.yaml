@@ -30,7 +30,7 @@ services:
 
 
     dbadmin-dev:
-        container_name: pgadmin_bloom-${APP_ENV} 
+        container_name: pgadmin_bloom-dev 
         image: dpage/pgadmin4
         environment:
             <<: *common-env
@@ -70,7 +70,8 @@ services:
             - source: .env.dev
               target: /source_code/.env
         depends_on:
-            - init-dev
+            init-dev:
+                condition: service_completed_successfully
 
     init-dev:
         container_name: init_bloom-dev
@@ -88,7 +89,6 @@ services:
             - ../alembic:/source_code/alembic
         networks:
             - bloom_net
-        restart: unless-stopped
         configs:
             - source: .env.dev
               target: /source_code/.env
