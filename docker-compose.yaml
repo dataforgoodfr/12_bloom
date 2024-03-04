@@ -9,8 +9,11 @@ x-common-infos:
 
 services:
   bloom:
-    container_name: bloom-test
-    build: ./bloom/
+    container_name: bloom
+    image: d4g/bloom:${VERSION:-latest}
+    build:
+        context: ./bloom/
+        
     command: streamlit run Trawlwatcher.py
     volumes:
       - ./bloom:/source_code
@@ -21,8 +24,8 @@ services:
     networks:
         - bloom_net
     depends_on:
-      postgres:
-        condition: service_healthy # The service is working and still running
+      init:
+        condition: service_completed_successfully
 
   postgres:
     container_name: postgres_bloom
@@ -39,6 +42,31 @@ services:
       timeout: 14s
       retries: 140
       start_period: 0s
+
+  init:
+    container_name: init_bloom
+    hostname: init_bloom
+    image: d4g/bloom:${VERSION:-latest}
+
+    # Nominal start:
+    command: alembic check
+    # Debug start:
+    #command: bash
+    #tty: true
+    #stdin_open: true
+
+    environment:
+        <<: *common-env
+    volumes:
+        - ./bloom/data:/source_code/data
+        - ./bloom/alembic:/source_code/alembic
+        - ./bloom/alembic.ini:/source_code/alembic.ini
+        #- ./bloom/bloom:/source_code/bloom
+    networks:
+        - bloom_net
+    depends_on:
+      postgres:
+        condition: service_healthy # The service is working and still running
 
 networks:
   bloom_net:
