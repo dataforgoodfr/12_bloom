@@ -73,7 +73,7 @@ class Settings(BaseSettings):
     postgres_db:str = None
     srid: int = 4326
     db_url:str = None
-    spire_toekn:str = None
+    spire_token:str = None
     
     def __init__(self):
         super().__init__(self)
