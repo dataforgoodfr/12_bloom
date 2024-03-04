@@ -5,6 +5,8 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
+from bloom.config import settings
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -18,30 +20,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = None
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# ... etc.
-
-postgres_user = os.environ.get("POSTGRES_USER")
-postgres_password = os.environ.get("POSTGRES_PASSWORD")
-postgres_hostname = os.environ.get("POSTGRES_HOSTNAME")
-postgres_db = os.environ.get("POSTGRES_DB")
-postgres_port = os.environ.get("POSTGRES_PORT")
-
-db_url = (
-    "postgresql://"
-    + postgres_user
-    + ":"
-    + postgres_password
-    + "@"
-    + postgres_hostname
-    + ":"
-    + postgres_port
-    + "/"
-    + postgres_db
-)
-
-config.set_main_option("sqlalchemy.url", db_url)
+config.set_main_option("sqlalchemy.url", settings.db_url)
 
 
 def run_migrations_offline() -> None:
