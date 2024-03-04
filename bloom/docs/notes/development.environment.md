@@ -15,7 +15,7 @@ If you work with Mac m1, the containers may not work as expected
 
 ## Local Database
 
-You will need to source the .env.template file but before you should modify it according to your local configuration, for example using POSTGRES_HOST=localhost
+You will need to source the .env.template file but before you should modify it according to your local configuration, for example using POSTGRES_HOSTNAME=localhost
 
 ## Development Database
 

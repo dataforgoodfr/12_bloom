@@ -101,7 +101,7 @@ class Settings(BaseSettings):
         extract_values_from_file(APP_CONFIG,self.__dict__,allow_extend=False,env_priority=True)
     
         self.db_url = ( f"postgresql://{self.postgres_user}:"
-                  f"{self.postgres_password}@{self.postgres_host}:"
+                  f"{self.postgres_password}@{self.postgres_hostname}:"
                   f"{self.postgres_port}/{self.postgres_db}")
 
 
