@@ -12,6 +12,20 @@
 
 **BLOOM** is a non-profit organization founded in 2005 that works to preserve the marine environment and species from unnecessary destruction and to increase social benefits in the fishing sector. **BLOOM** wages awareness and advocacy campaigns in order to accelerate the adoption of concrete solutions for the ocean, humans and the climate. **BLOOM** carries out scientific research projects, independent studies and evaluations that highlight crucial and unaddressed issues such as the financing mechanisms of the fishing sector. **BLOOM**’s actions are meant for the general public as well as policy-makers and economic stakeholders.
 
+## Installing Trawl Watch with Docker Compose
+
+* git clone https://github.com/dataforgoodfr/12_bloom.git
+* cd 12_bloom
+* docker compose build
+* docker compose pull
+* copy and paste bloom/env.template at the same level than docker-compose.yaml and rename it .env
+* docker compose run --service-ports bloom /bin/bash
+* streamlit run Trawlwatcher.py
+* working mmsi : 261084090
+
+2. Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
+
+
 ## Installing Trawl Watch with `poetry`
 
 ### Prerequisites:
