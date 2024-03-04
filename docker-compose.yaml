@@ -14,7 +14,12 @@ services:
     build:
         context: ./bloom/
         
+    # Nominal start:
     command: streamlit run Trawlwatcher.py
+    # Debug start:
+    #command: bash
+    #tty: true
+    #stdin_open: true
     volumes:
       - ./bloom:/source_code
     environment:
@@ -49,7 +54,7 @@ services:
     image: d4g/bloom:${VERSION:-latest}
 
     # Nominal start:
-    command: alembic check
+    command: /bin/bash -c "sleep 20 && alembic upgrade head"
     # Debug start:
     #command: bash
     #tty: true
@@ -58,10 +63,7 @@ services:
     environment:
         <<: *common-env
     volumes:
-        - ./bloom/data:/source_code/data
-        - ./bloom/alembic:/source_code/alembic
-        - ./bloom/alembic.ini:/source_code/alembic.ini
-        #- ./bloom/bloom:/source_code/bloom
+        - ./bloom:/source_code
     networks:
         - bloom_net
     depends_on:
