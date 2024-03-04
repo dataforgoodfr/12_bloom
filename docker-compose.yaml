@@ -23,6 +23,7 @@ services:
     #stdin_open: true
     volumes:
       - ./src:/source_code
+      - ./data:/data
     environment:
       <<: *common-env
     ports:
