@@ -15,4 +15,4 @@ The second step is to load the [distance-from-port-v20201104.tiff](https://globa
 
 - install psql and raster2pgsql.
 - install raster type in db with postgis-raster using `create extension postgis_raster`
-- adapt this command for each file : `raster2pgsql -t auto -I -C -M /PATH_TO/distance-from-shore.tif public.distance_shore | PGPASSWORD='POSTGRES_PASSWORD' psql -h POSTGRES_HOSTNAME -d POSTGRES_DB -U POSTGRES_USER -p POSTGRES_PORT`
+- adapt this command for each file : `raster2pgsql -t auto -I -C -M /PATH_TO/distance-from-shore.tif public.distance_shore | PGPASSWORD='POSTGRES_PASSWORD' psql -h POSTGRES_HOST -d POSTGRES_DB -U POSTGRES_USER -p POSTGRES_PORT`
