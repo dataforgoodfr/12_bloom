@@ -1,4 +1,5 @@
-FROM python:3.10-slim-bullseye
+ARG IMAGE_PYTHON=${IMAGE_PYTHON:-python:3.10-slim-bullseye}
+FROM ${IMAGE_PYTHON}
 
 RUN apt-get update
 RUN apt-get -y install wget gcc g++
@@ -7,7 +8,6 @@ RUN apt-get install -y rsyslog
 # Define working directory
 WORKDIR /source_code
 COPY bloom/ ./bloom/
-COPY data/ ./data/
 COPY app.py .
 COPY container.py .
 COPY docker-env/rsyslog.conf /etc/rsyslog.conf
