@@ -8,7 +8,6 @@ RUN apt-get install -y rsyslog
 # Define working directory
 WORKDIR /source_code
 COPY bloom/ ./bloom/
-COPY data/ ./data/
 COPY app.py .
 COPY container.py .
 COPY docker-env/rsyslog.conf /etc/rsyslog.conf
