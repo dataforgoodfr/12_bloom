@@ -14,6 +14,7 @@
 
 ## Installing Trawl Watch with Docker Compose
 
+* Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
 * git clone https://github.com/dataforgoodfr/12_bloom.git
 * cd 12_bloom
 * docker compose build
@@ -23,7 +24,6 @@
 * streamlit run Trawlwatcher.py
 * working mmsi : 261084090
 
-2. Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
 
 
 ## Installing Trawl Watch with `poetry`
