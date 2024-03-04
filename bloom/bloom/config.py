@@ -82,7 +82,7 @@ class Settings(BaseSettings):
         
         # Si le fichier de configuration à charger est précisé par la variable d'environnement
         # BLOOM_CONFIG alors on charge ce fichier, sinon par défaut c'est ../.env
-        BLOOM_CONFIG=os.getenv('BLOOM_CONFIG',"../../.env")
+        BLOOM_CONFIG=os.getenv('BLOOM_CONFIG',Path(__file__).parent.joinpath(".env"))
         
         # Ici on charge les paramètres à partir du fichier BLOOM_CONFIG
         # et on mets à jour directement les valeurs des paramètres en tant qu'attribut de la
@@ -98,7 +98,10 @@ class Settings(BaseSettings):
         # mas aussi dans le fichier BLOOM_CONFIG ainsi qu'en tant que variable d'environnement
         # alors c'est la valeur de la variable d'environnement qui sera chargée au final
         # La priorité est donnée aux valeur de l'environnement selon le standard Docker
-        extract_values_from_file(APP_CONFIG,self.__dict__,allow_extend=False,env_priority=True)
+        if Path(BLOOM_CONFIG).exists():
+            extract_values_from_file(BLOOM_CONFIG,self.__dict__,allow_extend=False,env_priority=True)
+        else:
+            extract_values_from_env(self.__dict__,allow_extend=False)
     
         self.db_url = ( f"postgresql://{self.postgres_user}:"
                   f"{self.postgres_password}@{self.postgres_hostname}:"
