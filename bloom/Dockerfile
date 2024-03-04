@@ -1,4 +1,5 @@
-FROM python:3.10-slim-bullseye
+ARG IMAGE_PYTHON=${IMAGE_PYTHON:-python:3.10-slim-bullseye}
+FROM ${IMAGE_PYTHON}
 
 RUN apt-get update
 RUN apt-get -y install wget gcc g++
