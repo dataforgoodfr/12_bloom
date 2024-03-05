@@ -28,6 +28,7 @@ services:
       - ./data:/data
     environment:
       <<: *common-env
+      STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
     ports:
       - 8501:8501
     networks:
