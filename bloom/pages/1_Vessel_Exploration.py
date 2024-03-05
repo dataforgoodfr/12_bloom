@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 from streamlit_folium import st_folium
+from pathlib import Path
 
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
@@ -31,7 +32,7 @@ def load_trajectory(mmsi, mpa):
 
 # @st.cache_data  # 👈 Add the caching decorator
 def load_trawlers():
-    trawlers = pd.read_csv("data/chalutiers_pelagiques.csv", sep=";")
+    trawlers = pd.read_csv(Path(settings.data_folder).joinpath("./chalutiers_pelagiques.csv"), sep=";")
     return trawlers
 
 
