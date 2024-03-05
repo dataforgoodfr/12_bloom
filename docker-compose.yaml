@@ -14,7 +14,9 @@ services:
     build:
         context: .
         dockerfile: ./docker/Dockerfile
-        
+        args:
+            IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
+            POETRY_VERSION: ${POETRY_VERSION:-1.8.1}
     # Nominal start:
     command: streamlit run Trawlwatcher.py
     # Debug start:
