@@ -19,125 +19,40 @@ class RepositoryAlert:
         with self.session_factory() as session:
             sql = text(
                 f"""
-  INSERT INTO
-  alert(timestamp, vessel_id, cross_mpa, mpa_ids) (
-    SELECT
-      timestamp,
-      vessel_id,
-      (
-        CAST(
-          ST_Contains(mpa_fr_with_mn.geometry, current_position) AS INT
-        ) - CAST(
-          ST_Contains(mpa_fr_with_mn.geometry, previous_position) AS INT
-        )
-      ) as cross_mpa,
-      ARRAY_AGG(
-        mpa_fr_with_mn.index
-        ORDER BY
-          mpa_fr_with_mn.index DESC
-      ) AS mpa_ids
-    FROM
-      (
-        SELECT
-          spire_vessel_positions.vessel_id AS vessel_id,
-          spire_vessel_positions.position AS current_position,
-          spire_vessel_positions.timestamp AS timestamp,
-          LAG(spire_vessel_positions.position) OVER (
-            PARTITION BY spire_vessel_positions.vessel_id
-            ORDER BY
-              spire_vessel_positions.timestamp
-          ) AS previous_position
-        FROM
-          spire_vessel_positions
-        WHERE
-          spire_vessel_positions.timestamp >= TIMESTAMP '{timestamp}' - INTERVAL '15 minutes'
-          AND spire_vessel_positions.timestamp < TIMESTAMP '{timestamp}' + INTERVAL '15 minutes'
-      ) AS foo
-      CROSS JOIN mpa_fr_with_mn
-    WHERE
-      previous_position IS NOT NULL
-      and ST_Contains(mpa_fr_with_mn.geometry, current_position)
-            !=
-          ST_Contains(mpa_fr_with_mn.geometry, previous_position)
-    GROUP BY
-      vessel_id,
-      timestamp,
-      cross_mpa
-  );
-
+                    INSERT INTO alert(timestamp,vessel_id,cross_mpa,mpa_ids)
+                    (
+                        SELECT timestamp, vessel_id, (CAST(ST_Contains(mpa_fr_with_mn.geometry,current_position) AS INT) - CAST(ST_Contains(mpa_fr_with_mn.geometry,previous_position) AS INT)) as cross_mpa, ARRAY_AGG(mpa_fr_with_mn.index ORDER BY mpa_fr_with_mn.index DESC) AS mpa_ids FROM 
+                            (SELECT spire_vessel_positions.vessel_id AS vessel_id,
+                                    spire_vessel_positions.position AS current_position,
+                                    spire_vessel_positions.timestamp AS timestamp,
+                                    LAG(spire_vessel_positions.position) OVER (PARTITION BY spire_vessel_positions.vessel_id ORDER BY spire_vessel_positions.timestamp) AS previous_position
+                                FROM spire_vessel_positions WHERE spire_vessel_positions.timestamp >= TIMESTAMP '{timestamp}' - INTERVAL '15 minutes' AND spire_vessel_positions.timestamp < TIMESTAMP '{timestamp}' + INTERVAL '15 minutes' ) AS foo
+                            CROSS JOIN mpa_fr_with_mn WHERE previous_position IS NOT NULL and ST_Contains(mpa_fr_with_mn.geometry,current_position) != ST_Contains(mpa_fr_with_mn.geometry,previous_position) GROUP BY vessel_id, timestamp,cross_mpa
+                    );
                     """,  # nosec: B608
             )
             session.execute(sql)
             session.commit()
             return
         
-        # an other query with the same result :
-        # WITH cte_query1 AS (
-        #   SELECT
-        #     spire_vessel_positions.vessel_id AS vessel_id,
-        #     ARRAY_AGG(
-        #       mpa_fr_with_mn.index
-        #       ORDER BY
-        #         mpa_fr_with_mn.index DESC
-        #     ) AS mpa_ids
-        #   FROM
-        #     spire_vessel_positions
-        #     JOIN mpa_fr_with_mn ON ST_Contains(
-        #       mpa_fr_with_mn.geometry,
-        #       spire_vessel_positions.position
-        #     )
-        #   WHERE
-        #     spire_vessel_positions.timestamp = TO_TIMESTAMP('2023-11-17 12:00',
-        #                                                                'YYYY-MM-DD HH24:MI')
-        #   GROUP BY
-        #     vessel_id
-        # ),
-        # cte_query2 AS (
-        #   SELECT
-        #     DISTINCT spire_vessel_positions.vessel_id AS vessel_id,
-        #     ARRAY_AGG(
-        #       mpa_fr_with_mn.index
-        #       ORDER BY
-        #         mpa_fr_with_mn.index DESC
-        #     ) AS mpa_ids
-        #   FROM
-        #     spire_vessel_positions
-        #     JOIN mpa_fr_with_mn ON ST_Contains(
-        #       mpa_fr_with_mn.geometry,
-        #       spire_vessel_positions.position
-        #     )
-        #   WHERE
-        #     spire_vessel_positions.timestamp = TO_TIMESTAMP('2023-11-17 12:15', 'YYYY-MM-DD HH24:MI')
-        #   GROUP BY
-        #     vessel_id
-        # )
-        # SELECT
-        #   vessel_id,
-        #   mpa_ids,
-        #   -1 AS value
-        # FROM
-        #   cte_query1
-        # EXCEPT
-        # SELECT
-        #   vessel_id,
-        #   mpa_ids,
-        #   -1 AS value
-        # FROM
-        #   cte_query2
-        # UNION ALL
-        # SELECT
-        #   vessel_id,
-        #   mpa_ids,
-        #   1 AS value
-        # FROM
-        #   cte_query2
-        # EXCEPT
-        # SELECT
-        #   vessel_id,
-        #   mpa_ids,
-        #   1 AS value
-        # FROM
-        #   cte_query1
+    # an other query with the same result :
+    # WITH cte_query1 AS (
+    #    SELECT spire_vessel_positions.vessel_id AS vessel_id, ARRAY_AGG(mpa_fr_with_mn.index ORDER BY mpa_fr_with_mn.index DESC) AS mpa_ids
+    #    FROM spire_vessel_positions 
+    #    JOIN mpa_fr_with_mn ON ST_Contains(mpa_fr_with_mn.geometry, spire_vessel_positions.position) 
+    #    WHERE spire_vessel_positions.timestamp = TO_TIMESTAMP('2023-11-17 12:00', 'YYYY-MM-DD HH24:MI')
+    #    GROUP BY vessel_id
+    #    ),
+    #    cte_query2 AS (
+    #    SELECT DISTINCT spire_vessel_positions.vessel_id AS vessel_id, ARRAY_AGG(mpa_fr_with_mn.index ORDER BY mpa_fr_with_mn.index DESC) AS mpa_ids
+    #    FROM spire_vessel_positions 
+    #    JOIN mpa_fr_with_mn ON ST_Contains(mpa_fr_with_mn.geometry, spire_vessel_positions.position) 
+    #    WHERE spire_vessel_positions.timestamp = TO_TIMESTAMP('2023-11-17 12:15', 'YYYY-MM-DD HH24:MI')
+    #    GROUP BY vessel_id
+    #    )
+    #    SELECT vessel_id, mpa_ids, -1 AS value FROM cte_query1 EXCEPT SELECT vessel_id, mpa_ids, -1 AS value FROM cte_query2
+    #    UNION ALL
+    #    SELECT vessel_id, mpa_ids, 1 AS value FROM cte_query2 EXCEPT SELECT vessel_id, mpa_ids, 1 AS value FROM cte_query1
 
     def load_alert(self, timestamp: datetime) -> list[Alert]:
         with self.session_factory() as session:
