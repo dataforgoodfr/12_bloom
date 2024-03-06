@@ -2,7 +2,6 @@ x-common-infos:
   # Env variables stored in a .env file at same level than docker-compose.yaml
   environment: &common-env
     POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-    POSTGRES_PORT: ${POSTGRES_PORT}
     POSTGRES_DB: ${POSTGRES_DB}
     POSTGRES_USER: ${POSTGRES_USER}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -29,6 +28,7 @@ services:
       - ./data:/data
     environment:
       <<: *common-env
+      POSTGRES_PORT: 5432
       STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
     ports:
       - 8501:8501
@@ -68,6 +68,7 @@ services:
 
     environment:
         <<: *common-env
+        POSTGRES_PORT: 5432
     volumes:
         - ./src:/source_code
     networks:
