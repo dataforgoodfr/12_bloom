@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     db_url:str = None
     spire_token:str = None
     data_folder:str=None
+    logging_level:str="INFO"
     
     def __init__(self):
         super().__init__(self)
