@@ -24,7 +24,7 @@ services:
     #tty: true
     #stdin_open: true
     volumes:
-      #- ./src:/project/src
+      - ./src:/project/src
       - ./data:/project/data
     environment:
       <<: *common-env
