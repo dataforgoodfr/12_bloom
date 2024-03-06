@@ -1,8 +1,8 @@
 VERSION ?= 1.0.0
 
-#BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net -p 8501:8501
-BLOOM_DEV_DOCKER = @docker run --name bloom-test -v "$(shell pwd)/data:/data" -v "$(shell pwd)/src:/source_code" --env-file ./.env.template --network=bloom_net -p 8501:8501
-BLOOM_PRODUCTION_DOCKER = @docker run -v "$(shell pwd)/data:/data" -v "$(shell pwd)/src:/source_code" --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
+#BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(shell pwd)",target=/project --env-file ./.env.test --network=bloom_net -p 8501:8501
+BLOOM_DEV_DOCKER = @docker run --name bloom-test -v "$(shell pwd)/data:/data" -v "$(shell pwd)/src:/project" --env-file ./.env.template --network=bloom_net -p 8501:8501
+BLOOM_PRODUCTION_DOCKER = @docker run -v "$(shell pwd)/data:/data" -v "$(shell pwd)/src:/project" --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
 build:
 	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker/Dockerfile .
@@ -48,7 +48,7 @@ launch-production-app:
 	 $(BLOOM_PRODUCTION_DOCKER) --name bloom-production-app --rm d4g/bloom:${VERSION} /venv/bin/python3 app.py
 
 dump-dev-db:
-	$(BLOOM_DEV_DOCKER) --rm postgres:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /source_code/bloom_$(shell date +%Y%m%d_%H%M).dump'
+	$(BLOOM_DEV_DOCKER) --rm postgres:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /project/bloom_$(shell date +%Y%m%d_%H%M).dump'
 
 dump-db:
-	@docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net --rm postgres:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /source_code/bloom_$(shell date +%Y%m%d_%H%M).dump'
+	@docker run --mount type=bind,source="$(shell pwd)",target=/project --env-file ./.env.test --network=bloom_net --rm postgres:latest sh -c 'export PGPASSWORD=$$POSTGRES_PASSWORD && pg_dump -Fc $$POSTGRES_DB -h $$POSTGRES_HOSTNAME -p $$POSTGRES_PORT -U $$POSTGRES_USER> /project/bloom_$(shell date +%Y%m%d_%H%M).dump'
