@@ -47,13 +47,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y
 # Then the cron line include some command to load these ENV vars from file before launching app.py
 # This mecanism allows to give access to the same ENV vars for app.py launch in terminal and launch via cron
 RUN echo "*/15 * * * *	root export \$(cat ~/.env | grep -v '#' | xargs);/venv/bin/python3 ${PROJECT_DIR}/app.py 2>&1 | /usr/bin/logger -t bloom"  >> ./cron_scrapper &&\
-	chmod 744 ./cron_scrapper &&\
+	chmod 744 ./cron_scrapper
 
 # Move cron tab into the right directory
-	mv ./cron_scrapper /etc/cron.d/cron_scrapper &&\
+RUN	mv ./cron_scrapper /etc/cron.d/cron_scrapper
 
 # Run file
-	crontab /etc/cron.d/cron_scrapper
+RUN	crontab /etc/cron.d/cron_scrapper
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]
