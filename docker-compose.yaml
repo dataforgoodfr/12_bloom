@@ -18,14 +18,14 @@ services:
             IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
             POETRY_VERSION: ${POETRY_VERSION:-1.8.1}
     # Nominal start:
-    command: streamlit run Trawlwatcher.py
+    command: streamlit run src/Trawlwatcher.py
     # Debug start:
     #command: bash
     #tty: true
     #stdin_open: true
     volumes:
-      - ./src:/source_code
-      - ./data:/data
+      #- ./src:/project/src
+      - ./data:/project/data
     environment:
       <<: *common-env
       POSTGRES_PORT: 5432
@@ -60,7 +60,11 @@ services:
     image: d4g/bloom:${VERSION:-latest}
 
     # Nominal start:
-    command: /bin/bash -c "sleep 20 && alembic upgrade head"
+    # As postgres+postgis gt available, then unavialable, then avialable at database init
+    # it happens that init is launch before second and definitve postgres healthy state
+    # and fails
+    # so giving init 3 chances and 15 seconds to init before failing
+    command: /bin/bash -c "for i in 1 2 3; do alembic upgrade head && break || sleep 5; done"
     # Debug start:
     #command: bash
     #tty: true
@@ -70,7 +74,7 @@ services:
         <<: *common-env
         POSTGRES_PORT: 5432
     volumes:
-        - ./src:/source_code
+        - ./src:/project/src
     networks:
         - bloom_net
     depends_on:

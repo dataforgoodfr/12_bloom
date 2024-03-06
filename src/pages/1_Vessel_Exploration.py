@@ -16,7 +16,7 @@ def local_css(file_name):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
-local_css("styles.css")
+local_css(Path(__file__).parent.parent.joinpath("./styles.css"))
 
 db = Database(settings.db_url)
 rep = RepositoryVessel(db.session)
