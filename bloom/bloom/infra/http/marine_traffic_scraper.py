@@ -2,6 +2,8 @@ import os
 import re
 from datetime import datetime, timezone
 
+from typing import Union
+
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -135,7 +137,7 @@ class MarineTrafficVesselScraper:
         return vessels_list
 
     @staticmethod
-    def _extract_speed_from_scrapped_field(speed_field: str) -> float | None:
+    def _extract_speed_from_scrapped_field(speed_field: str) -> Union[ float , None ]:
         speed = re.findall(r"[\d]*[.][\d]*", speed_field)
         if len(speed) > 0:
             return float(speed[0])
