@@ -1,7 +1,7 @@
 from contextlib import AbstractContextManager
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import geopandas as gpd
 import pandas as pd
@@ -219,8 +219,8 @@ class RepositoryVessel:
         self,
         mmsi: str,
         as_trajectory: bool = True,
-    ) -> Point | None: #Point ?
-        def convert_wkb_to_point(x: Any) -> Point | None:
+    ) -> Union[ Point, None ]:
+        def convert_wkb_to_point(x: Any) -> Union[ Point, None ]:
             try:
                 point = wkb.loads(bytes(x.data))
                 return point  # noqa: TRY300
