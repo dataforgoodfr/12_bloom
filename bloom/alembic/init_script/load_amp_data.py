@@ -34,7 +34,7 @@ db_url = (
 engine = create_engine(db_url, echo=False)
 
 df = pd.read_csv(
-    Path(os.path.dirname(__file__)).joinpath("../../data/zones_subset_02022024.csv"),
+    Path(__file__).parent.joinpath("../../data/zones_subset_02022024.csv"),
     sep=",",
 )
 

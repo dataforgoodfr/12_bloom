@@ -10,10 +10,14 @@ st.set_page_config(
     layout="wide",
 )
 
+class EnvFileNotFoundError(FileNotFoundError):
+  def __init__(self, env_path:str) -> None:
+    super().__init__(f"Couldn't find .env file at {env_path}")
+
 # FILL IN YOUR CREDENTIALS .env file HERE !!
-env_path = Path('.') / '.env.template'
+env_path = Path('.') / '.env.template2'
 if not env_path.is_file():
-    raise FileNotFoundError(f"Couldn't find .env file at {env_path.absolute()}")
+    raise EnvFileNotFoundError(env_path.absolute())
 load_dotenv(env_path)
 
 def local_css(file_name: str) -> None:

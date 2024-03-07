@@ -7,6 +7,7 @@ Create Date: 2024-02-11 22:10:19.010986
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import Inspector
 import geoalchemy2
 
 # revision identifiers, used by Alembic.
@@ -26,7 +27,8 @@ def upgrade() -> None:
                     sa.Column("iucn_cat", sa.String),
                     sa.Column("parent_iso", sa.String),
                     sa.Column("iso3", sa.String),
-                    sa.Column("geometry", geoalchemy2.types.Geometry(geometry_type="GEOMETRY", srid=4326)),
+                    sa.Column("geometry", geoalchemy2.types.Geometry(geometry_type="GEOMETRY",
+                                          srid=4326)),
                     sa.Column("benificiaries", sa.String)
                     )
 

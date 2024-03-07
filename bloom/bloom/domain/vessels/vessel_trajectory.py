@@ -84,6 +84,10 @@ class VesselTrajectory:
         if hasattr(self, "_mpas"):
             return self._mpas
         return None
+    
+    @mpas.setter
+    def mpas(self, value:[])->None:
+        self._mpas = value
 
     def get_closest_marine_protected_areas(self, radius: int = 100) -> None:
         self._mpas, self._mpas_gdf = get_closest_marine_protected_areas(
@@ -121,8 +125,7 @@ class VesselTrajectory:
         assert len(filtered_data) > 0
         filtered_vessel = VesselTrajectory(self.metadata, filtered_data.copy())
 
-        if hasattr(self, "_mpas"):
-            filtered_vessel._mpas = self._mpas
+        filtered_vessel.mpas(self.mpas())
 
         filtered_vessel.positions.index = filtered_data.index
 
