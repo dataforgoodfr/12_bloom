@@ -23,7 +23,7 @@ class RepositoryVessel:
         session_factory: Callable,
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
-        self.vessels_path = Path.joinpath(Path.cwd(), "data/chalutiers_pelagiques.csv")
+        self.vessels_path = Path(settings.data_folder).joinpath("./chalutiers_pelagiques.csv")
 
     def load_vessel_metadata(self) -> list[Vessel]:
         with self.session_factory() as session:

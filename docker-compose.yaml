@@ -2,31 +2,45 @@ x-common-infos:
   # Env variables stored in a .env file at same level than docker-compose.yaml
   environment: &common-env
     POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME}
-    POSTGRES_PORT: ${POSTGRES_PORT}
     POSTGRES_DB: ${POSTGRES_DB}
     POSTGRES_USER: ${POSTGRES_USER}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
 
 services:
   bloom:
-    container_name: bloom-test
-    build: ./bloom/
-    command: streamlit run Trawlwatcher.py
+    container_name: bloom
+    image: d4g/bloom:${VERSION:-latest}
+    build:
+        context: .
+        dockerfile: ./docker/Dockerfile
+        args:
+            IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
+            POETRY_VERSION: ${POETRY_VERSION:-1.8.1}
+    # Nominal start:
+    command: streamlit run src/Trawlwatcher.py
+    # Debug start:
+    #command: bash
+    #tty: true
+    #stdin_open: true
     volumes:
-      - ./bloom:/source_code
+      - ./src:/project/src
+      - ./data:/project/data
     environment:
       <<: *common-env
+      POSTGRES_PORT: 5432
+      STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
     ports:
       - 8501:8501
     networks:
         - bloom_net
     depends_on:
-      postgres:
-        condition: service_healthy # The service is working and still running
+      init:
+        condition: service_completed_successfully
 
   postgres:
     container_name: postgres_bloom
-    image: docker.pkg.github.com/wbarillon/docker-packages/trawlwatcher_local_db:0.2
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
     environment:
       <<: *common-env
     ports:
@@ -39,6 +53,33 @@ services:
       timeout: 14s
       retries: 140
       start_period: 0s
+
+  init:
+    container_name: init_bloom
+    hostname: init_bloom
+    image: d4g/bloom:${VERSION:-latest}
+
+    # Nominal start:
+    # As postgres+postgis gt available, then unavialable, then avialable at database init
+    # it happens that init is launch before second and definitve postgres healthy state
+    # and fails
+    # so giving init 3 chances and 15 seconds to init before failing
+    command: /bin/bash -c "for i in 1 2 3; do alembic upgrade head && break || sleep 5; done"
+    # Debug start:
+    #command: bash
+    #tty: true
+    #stdin_open: true
+
+    environment:
+        <<: *common-env
+        POSTGRES_PORT: 5432
+    volumes:
+        - ./src:/project/src
+    networks:
+        - bloom_net
+    depends_on:
+      postgres:
+        condition: service_healthy # The service is working and still running
 
 networks:
   bloom_net:

@@ -1,4 +1,5 @@
 import logging
+from bloom.config import settings
 
 logger = logging.getLogger("bloom")
 formatter = logging.Formatter(
@@ -9,4 +10,4 @@ handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 if not logger.handlers:
     logger.addHandler(handler)
-logger.setLevel(level="INFO")
+logger.setLevel(level=settings.logging_level)
