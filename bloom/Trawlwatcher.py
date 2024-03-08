@@ -3,6 +3,8 @@ from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 
+from bloom.config import settings
+
 
 st.set_page_config(
     page_title="Bloom Trawlwatcher Demo app",
@@ -15,17 +17,18 @@ class EnvFileNotFoundError(FileNotFoundError):
     super().__init__(f"Couldn't find .env file at {env_path}")
 
 # FILL IN YOUR CREDENTIALS .env file HERE !!
-env_path = Path('.') / '.env.template2'
-if not env_path.is_file():
-    raise EnvFileNotFoundError(env_path.absolute())
-load_dotenv(env_path)
+
+#env_path = Path('.') / '.env.template'
+#if not env_path.is_file():
+#    raise FileNotFoundError(f"Couldn't find .env file at {env_path.absolute()}")
+#load_dotenv(env_path)
 
 def local_css(file_name: str) -> None:
     with Path.open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
         return
 
-local_css(Path("styles.css"))
+local_css(Path(__file__).parent.joinpath("./styles.css"))
 
 st.write("![](https://upload.wikimedia.org/wikipedia/fr/e/e8/Logo_BLOOM.jpg)")
 st.write("## Welcome to Bloom Trawlwatcher Demo app! 🐟")
