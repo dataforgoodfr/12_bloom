@@ -21,7 +21,7 @@
 * docker compose pull
 * copy and paste bloom/env.template at the same level than docker-compose.yaml and rename it .env
 * docker compose run --service-ports bloom /bin/bash
-* streamlit run Trawlwatcher.py
+* streamlit run src/Trawlwatcher.py
 * working mmsi : 261084090
 
 
@@ -128,9 +128,9 @@ Here's some basic Dendron shortcuts:
 
 ## More information can be found there
 
-1. [Database initialisation and versioning](./docs/database.initialisation.md)
-2. [Development environment](./docs/development.environment.md)
-3. [Useful SQL examples](./docs/sql.examples.md)
+1. [Database initialisation and versioning](./docs/notes/database.initialisation.md)
+2. [Development environment](./docs/notes/development.environment.md)
+3. [Useful SQL examples](./docs/notes/sql.examples.md)
 4. [Data models](#todo)
 
 ## FAQ
