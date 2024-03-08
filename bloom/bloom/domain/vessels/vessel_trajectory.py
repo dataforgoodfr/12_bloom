@@ -84,7 +84,7 @@ class VesselTrajectory:
         if hasattr(self, "_mpas"):
             return self._mpas
         return None
-    
+
     @mpas.setter
     def mpas(self, value:[])->None:
         self._mpas = value
@@ -125,7 +125,7 @@ class VesselTrajectory:
         assert len(filtered_data) > 0
         filtered_vessel = VesselTrajectory(self.metadata, filtered_data.copy())
 
-        filtered_vessel.mpas(self.mpas())
+        filtered_vessel.mpas = self.mpas
 
         filtered_vessel.positions.index = filtered_data.index
 
