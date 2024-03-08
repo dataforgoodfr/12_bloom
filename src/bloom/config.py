@@ -74,12 +74,14 @@ class Settings(BaseSettings):
     srid: int = 4326
     db_url:str = None
     spire_token:str = None
+    data_folder:str=None
     
     def __init__(self):
         super().__init__(self)
         # Default values
-        srid: int = 4326
-        
+        self.srid = 4326
+        self.data_folder = Path(__file__).parent.parent.parent.joinpath('./data')
+
         # Si le fichier de configuration à charger est précisé par la variable d'environnement
         # BLOOM_CONFIG alors on charge ce fichier, sinon par défaut c'est ../.env
         BLOOM_CONFIG=os.getenv('BLOOM_CONFIG',Path(__file__).parent.joinpath(".env"))

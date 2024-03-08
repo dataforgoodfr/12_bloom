@@ -11,7 +11,7 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
 engine = create_engine(settings.db_url)
 df = pd.read_csv(
-    Path(__file__).parent.joinpath("../../data/chalutiers_pelagiques.csv"),
+    Path(settings.data_folder).joinpath("./chalutiers_pelagiques.csv"),
     sep=";",
     dtype={"loa": float, "IMO": str},
 )

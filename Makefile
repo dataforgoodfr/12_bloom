@@ -1,15 +1,15 @@
 VERSION ?= 1.0.0
 
 #BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env.test --network=bloom_net -p 8501:8501
-BLOOM_DEV_DOCKER = @docker run --name bloom-test  --mount type=bind,source=.,target=/source_code --env-file ./.env.template --network=bloom_net -p 8501:8501
-BLOOM_PRODUCTION_DOCKER = @docker run --mount type=bind,source="$(shell pwd)",target=/source_code --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
+BLOOM_DEV_DOCKER = @docker run --name bloom-test -v "$(shell pwd)/data:/data" -v "$(shell pwd)/src:/source_code" --env-file ./.env.template --network=bloom_net -p 8501:8501
+BLOOM_PRODUCTION_DOCKER = @docker run -v "$(shell pwd)/data:/data" -v "$(shell pwd)/src:/source_code" --env-file ./.env --log-driver json-file --log-opt max-size=10M --log-opt max-file=3 --entrypoint /entrypoint.sh
 
 build:
-	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker-env/Dockerfile .
+	@docker build -t d4g/bloom:${VERSION} --platform linux/amd64  -f docker/Dockerfile .
 	@docker tag d4g/bloom:${VERSION} d4g/bloom:latest
 
 launch-dev-db:
-	@docker compose -f docker-env/docker-compose-db.yaml up -d
+	@docker compose -f docker/docker-compose-db.yaml up -d
 	@sleep 20
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} alembic upgrade head
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_vessels_data.py
@@ -30,8 +30,8 @@ launch-test:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} tox -vv
 
 rm-dev-db:
-	@docker-compose -f docker-env/docker-compose-db.yaml stop
-	@docker-compose -f docker-env/docker-compose-db.yaml rm
+	@docker compose -f docker/docker-compose-db.yaml stop
+	@docker compose -f docker/docker-compose-db.yaml rm
 
 rm-dev-env:
 	@docker stop bloom-test

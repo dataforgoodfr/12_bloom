@@ -7,10 +7,10 @@ RUN apt-get install -y rsyslog
 
 # Define working directory
 WORKDIR /source_code
-COPY bloom/ ./bloom/
-COPY app.py .
-COPY container.py .
-COPY docker-env/rsyslog.conf /etc/rsyslog.conf
+COPY src/bloom/ ./bloom/
+COPY src/app.py .
+COPY src/container.py .
+COPY docker/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
 ARG POETRY_VERSION=1.8.1
@@ -53,7 +53,7 @@ RUN mv ./cron_scrapper /etc/cron.d/cron_scrapper
 # Run file
 RUN crontab /etc/cron.d/cron_scrapper
 
-COPY docker-env/entrypoint.sh /entrypoint.sh
+COPY docker/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]
 
 # ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
