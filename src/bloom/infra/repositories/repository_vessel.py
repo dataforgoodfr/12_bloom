@@ -194,14 +194,36 @@ class RepositoryVessel:
                 self.get_all_positions(mmsi, session) if vessel is not None else []
             )
 
-        df = (
-            pd.DataFrame([p.__dict__ for p in positions])
-            .drop(columns=["_sa_instance_state"])
-            .sort_values("timestamp")
-            .drop_duplicates(subset=["mmsi", "timestamp"])
-            .reset_index(drop=True)
-        )
-
+        if not positions:
+            # Create empty dataframe with expected columns when vessel has no trajectory
+            df = pd.DataFrame(columns=["timestamp",
+                                       "ship_name",
+                                       "IMO",
+                                       "vessel_id",
+                                       "mmsi",
+                                       "last_position_time",
+                                        "position",
+                                        "speed",
+                                        "navigation_status",
+                                        "vessel_length",
+                                        "vessel_width",
+                                        "voyage_destination",
+                                        "voyage_draught",
+                                        "voyage_eta",
+                                        "accuracy",
+                                        "position_sensors",
+                                        "course",
+                                        "heading",
+                                        "rot"])
+            df = df.astype({"timestamp": 'datetime64'})
+        else:
+            df = (
+                pd.DataFrame([p.__dict__ for p in positions])
+                .drop(columns=["_sa_instance_state"])
+                .sort_values("timestamp")
+                .drop_duplicates(subset=["mmsi", "timestamp"])
+                .reset_index(drop=True)
+            )
         df["geometry"] = df["position"].map(convert_wkb_to_point)
 
         # With CRS 4326, the coordinates are reversed
