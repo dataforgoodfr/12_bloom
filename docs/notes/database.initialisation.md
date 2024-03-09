@@ -1,11 +1,3 @@
----
-id: 8vo1vo09y37hwnrkmcy7w77
-title: Database initialisation
-desc: ""
-updated: 1708410470701
-created: 1708410417004
----
-
 First you need to run scripts which are in alembic/init_script :
 
 - the load_vessels_data.py script will load vessels metadata from the data/chalutier_pelagique.csv file.

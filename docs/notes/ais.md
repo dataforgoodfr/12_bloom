@@ -1,11 +1,3 @@
----
-id: g1i0o9ctmib83n4mydtsqfo
-title: Automatic identification system
-desc: ""
-updated: 1708461719224
-created: 1708461557185
----
-
 The automatic identification system (AIS) is an automatic tracking system that uses transceivers on ships and is used by vessel traffic services (VTS). When satellites are used to receive AIS signatures, the term Satellite-AIS (S-AIS) is used. AIS information supplements marine radar, which continues to be the primary method of collision avoidance for water transport. Although technically and operationally distinct, the ADS-B system is analogous to AIS and performs a similar function for aircraft.[^1]
 
 ## Limits
