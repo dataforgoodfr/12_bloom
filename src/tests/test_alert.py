@@ -1,4 +1,4 @@
-from container import UseCases
+from bloom.container import UseCases
 from bloom.domain.alert import Alert
 from datetime import datetime, timezone
 
