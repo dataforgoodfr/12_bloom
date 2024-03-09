@@ -116,7 +116,7 @@ deactivate
 
 ## More information can be found there
 
-1. [Database initialisation and versioning](./docs/notes/database.initialisation.md) # outdated
+1. [Database initialisation](./docs/notes/database.initialisation.md)
 2. [Development environment](./docs/notes/development.environment.md) # outdated
 3. [Architecture description](./docs/notes/technical.architecture.md)
 4. [Useful SQL examples](./docs/notes/sql.examples.md)
