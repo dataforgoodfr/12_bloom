@@ -1,4 +1,4 @@
-![banner](images/banner.png)
+![banner](src/images/banner.png)
 
 ## What is Trawl Watch
 
