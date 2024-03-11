@@ -1,6 +1,7 @@
 # APP BLOOM
 
-/data/
+data/*.csv
+data/*.xlsx
 !/data/README.md
 
 
