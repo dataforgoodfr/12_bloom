@@ -152,10 +152,10 @@ After having succeed with [With Docker/Docker Compose stack](#with-docker) or [O
 * Access to http://localhost:8501
 ![Home](docs/images/trawlwatch_home.png)
 * Navigate to "Vessel Exploration"
-* #TODO add screenshot
 * Enter MMSI 261084090 as example
 * Clic on "Load"
 * You can select voyage_id and view track of vessel
+![Loaded](docs/images/trawlwatch_loaded_voyage.png)
 
 ## Contributing
 
