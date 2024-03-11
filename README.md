@@ -20,18 +20,15 @@
 - [Principles](#principles)
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
-- [Installing from PyPI](#installing-from-pypi)
+    - [Installation with Docker/Docker Compose stack (Recommended)](#installation-with-docker-docker-compose-stack-recommended)
+    - [Installation on local machine](#installation-on-local-machine)
 - [Official source code](#official-source-code)
-- [User Interface](#user-interface)
-- [Semantic versioning](#semantic-versioning)
-- [Version Life Cycle](#version-life-cycle)
 - [Contributing](#contributing)
 - [Who uses Trawl Watch?](#who-uses-trawl-watch)
 - [Who maintains Trawl Watch?](#who-maintains-traw-watch)
 - [What goes into the next release?](#what-goes-into-the-next-release)
 - [Can I use the Trawl Watch logo in my presentation?](#can-i-use-the-trawl-watch-logo-in-my-presentation)
 - [Links](#links)
-- [Sponsors](#sponsors)
 
 ## Principles
 
@@ -155,11 +152,31 @@ After having succeed with [With Docker/Docker Compose stack](#with-docker) or [O
 * You can select voyage_id and view track of vessel
 ![Loaded](docs/images/trawlwatch_loaded_voyage.png)
 
+
+## Official source code
+
+You cna find official source code on [Github Repository](https://github.com/dataforgoodfr/12_bloom/)
+
 ## Contributing
 
 Want to help build Bloom Application Check out our [contributing documentation](https://github.com/dataforgoodfr/12_bloom/tree/main/docs/contributing/README.md).
 
 Official Docker (container) images for Bloom Application are described in [images](https://github.com/dataforgoodfr/12_bloom/tree/main/docker/).
+
+## Who uses Trawl Watch?
+
+## What goes into the next release?
+
+#TODO
+
+## Can I use the Trawl Watch logo in my presentation?
+
+#TODO
+
+## Links
+
+#TODO
+
 
 ## More information can be found there
 
