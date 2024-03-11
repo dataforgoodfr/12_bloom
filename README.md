@@ -1,3 +1,4 @@
+
 ![banner](src/images/banner.png)
 
 ## What is Trawl Watch
@@ -12,110 +13,122 @@
 
 **BLOOM** is a non-profit organization founded in 2005 that works to preserve the marine environment and species from unnecessary destruction and to increase social benefits in the fishing sector. **BLOOM** wages awareness and advocacy campaigns in order to accelerate the adoption of concrete solutions for the ocean, humans and the climate. **BLOOM** carries out scientific research projects, independent studies and evaluations that highlight crucial and unaddressed issues such as the financing mechanisms of the fishing sector. **BLOOM**’s actions are meant for the general public as well as policy-makers and economic stakeholders.
 
+
+**Table of contents**
+
+- [Principles](#principles)
+- [Requirements](#requirements)
+- [Getting started](#getting-started)
+- [Installing from PyPI](#installing-from-pypi)
+- [Official source code](#official-source-code)
+- [User Interface](#user-interface)
+- [Semantic versioning](#semantic-versioning)
+- [Version Life Cycle](#version-life-cycle)
+- [Contributing](#contributing)
+- [Who uses Trawl Watch?](#who-uses-trawl-watch)
+- [Who maintains Trawl Watch?](#who-maintains-traw-watch)
+- [What goes into the next release?](#what-goes-into-the-next-release)
+- [Can I use the Trawl Watch logo in my presentation?](#can-i-use-the-trawl-watch-logo-in-my-presentation)
+- [Links](#links)
+- [Sponsors](#sponsors)
+
+## Principles
+
+#TODO
+
+## Requirements
+
+Bloom is tested with:
+
+|             | Main version (dev)           | Stable version (1.0.0) |
+|-------------|------------------------------|------------------------|
+| Python      | 3.8, 3.9, 3.10, 3.11         | 3.8, 3.9, 3.10, 3.11   |
+| Platform    | AMD64/ARM64(\*)              | AMD64/ARM64(\*)        |
+| Docker      | 24                           | 24                     |
+| PostgreSQL  | 13                           | 13                     |
+
+## Getting started
+### Clone the Bloom application repository
+
+```bash
+    git clone https://github.com/dataforgoodfr/12_bloom.git
+    cd 12_bloom
+```
+
+### With Docker/Docker Compose stack
+#### Prerequistes
+* **Docker Engine** (version >= **18.06.0**) with **Compose** plugin
+
+#### Building image
+
+```bash
+    docker compose build
+```
+
+> When official Docker image will be available, the building step could be optionnal for user as docker compose up will pull official image from repository
+
+#### Starting the application
+
+```bash
+    docker compose up
+```
+
+You can now jump to [Use the Bloom Application](#use-the-bloom-application)
+
+### On local machine
+#### Prerequistes
+* **Python**: 3.9, 3.10, 3.11
+* **Postgresql**: 12, 13, 14, 15, 16
+
+You must have a functionnal PostgreSQL instance with connexion informations (database server hostname or ip, user, password, database name, port to use)
+
+#### Install with Poetry
+
+```bash
+    # Install poetry
+    pip install --user "poetry==1.8.1"
+    # Ensure that poetry will create a `.venv` directory into the project with the command
+    poetry config virtualenvs.in-project true
+    # Install dependencies from pyproject.toml
+    poetry install
+    # Make sure everything is all right using
+    poetry env info
+    # Enable virtual poetry project environment
+    poetry shell
+    # TODO configure cron
+```
+    
+#### Minimal configuration
+```bash
+    # TODO if needed
+```
+
+#### Starting the application
+```bash
+    source /venv/bin/activate
+    python src/Trawlwatcher.py
+```
+
+You can now jump to [Use the Bloom Application](#use-the-bloom-application)
+
+### Use the Bloom Application
+
+#### Load demonstration data
+To use Trawl Watch application, some data have to be initialy loaded for demonstration. As these data are protected and can't be publicly published, you just have to contact the Trawl Watch application team. Informations on [Who maintains Trawl Watch?](#who-maintains-traw-watch)
+After having succeed with [With Docker/Docker Compose stack](#with-docker) or [On local machine](#on-local-machine) installation, you should now access the Bloom application with you favorite web browser 
+* Access to http://localhost:8501
+![Home](docs/images/trawlwatch_home.png)
+* Navigate to "Vessel Exploration"
+* #TODO add screenshot
+* Enter MMSI 261084090 as example
+* Clic on "Load"
+* You can select voyage_id and view track of vessel
+
 ## Contributing
 
-#todo
+Want to help build Bloom Application Check out our [contributing documentation](https://github.com/dataforgoodfr/12_bloom/tree/main/docs/contributing/README.md).
 
-## Installing Trawl Watch with Docker Compose
-
-* Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
-* git clone https://github.com/dataforgoodfr/12_bloom.git
-* cd 12_bloom
-* docker compose build
-* docker compose pull
-* copy and paste bloom/env.template at the same level than docker-compose.yaml and rename it .env
-* docker compose run --service-ports bloom /bin/bash
-* streamlit run Trawlwatcher.py
-* working mmsi : 261084090
-
-
-## Installing Trawl Watch with `poetry`
-
-### Prerequisites:
-
-1. Python (≥ `3.10`) installed on your system.
-2. Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
-3. Ensure you have `poetry` installed. If not, you can install them using `pip`.
-
-```bash
-pip install poetry
-```
-
-### Steps:
-
-1. **Clone the GitHub Repository:**
-
-   Clone the GitHub repository you want to install locally using the `git clone` command.
-
-   ```bash
-   git clone https://github.com/dataforgoodfr/12_bloom.git
-   ```
-
-2. **Navigate to the Repository Directory:**
-
-   Use the `cd` command to navigate into the repository directory.
-
-   ```bash
-   cd 12_bloom/
-   ```
-
-3. **Configure `poetry` to create a Virtual Environment inside the project:**
-
-   Ensure that poetry will create a `.venv` directory into the project with the command:
-
-   ```bash
-   poetry config virtualenvs.in-project true
-   ```
-
-4. **Install Project Dependencies using `poetry`:**
-
-   Use `poetry` to install the project dependencies.
-
-   ```bash
-   poetry install
-   ```
-
-   This will read the `pyproject.toml` file in the repository and install all the dependencies specified.
-
-5. **Make sure everything is all right using `poetry env info`:**
-
-   ```bash
-   poetry env info
-   ```
-
-   It should looks something likes:
-
-   ```bash
-   Virtualenv
-   Python:         3.11.2
-   Implementation: CPython
-   Path:           /home/guillaume/12_bloom/.venv
-   Executable:     /home/guillaume/12_bloom/.venv/bin/python
-   Valid:          True
-
-   System
-   Platform:   linux
-   OS:         posix
-   Python:     3.11.2
-   Path:       /usr
-   Executable: /usr/bin/python3.11
-   ```
-
-6. **Activate the Virtual Environment:**
-
-   Activate the virtual environment to work within its isolated environment.
-
-   On Unix or MacOS:
-
-   ```bash
-   poetry shell
-   ```
-
-### Once you're done working with the project, deactivate the virtual environment.
-
-```bash
-deactivate
-```
+Official Docker (container) images for Bloom Application are described in [images](https://github.com/dataforgoodfr/12_bloom/tree/main/docker/).
 
 ## More information can be found there
 
