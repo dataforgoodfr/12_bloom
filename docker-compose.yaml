@@ -48,7 +48,7 @@ services:
     networks:
         - bloom_net
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready --quiet --dbname=${POSTGRES_DB} --username=${POSTGRES_USER}']
+      test: ['CMD-SHELL', "pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user}"]
       interval: 100ms
       timeout: 14s
       retries: 140
