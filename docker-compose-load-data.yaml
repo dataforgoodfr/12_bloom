@@ -19,7 +19,7 @@ services:
           /venv/bin/python3 src/alembic/init_script/load_positions_data.py &&
           /venv/bin/python3 src/alembic/init_script/load_amp_data.py
     volumes:
-      - ./src:/project/src
+      - ./:/project/
       - ./data:/project/data
     environment:
       <<: *common-env
