@@ -73,7 +73,18 @@ Bloom is tested with:
 ```bash
     docker compose up
 ```
+#### Load demonstration data
+To use Trawl Watch application, some data have to be initialy loaded for demonstration. As these data are protected and can't be publicly published, you just have to contact the Trawl Watch application team. Informations on [Who maintains Trawl Watch?](#who-maintains-traw-watch)
 
+After having filled 12_bloom/data folder with data files get from project team, rename files as following:
+* data/chalutiers_pelagiques.csv
+* data/spire_positions_subset.csv
+* data/vessels_subset.csv
+* data/zones_subset.csv
+
+Then launch docker compose stack using docker compose file extension to add loading data service
+
+    docker compose -f docker-compose.yaml -f docker-compose-load-data.yaml up
 You can now jump to [Use the Bloom Application](#use-the-bloom-application)
 
 ### Installation on local machine
@@ -133,19 +144,6 @@ You must have a functionnal PostgreSQL instance with connexion informations (dat
 You can now jump to [Use the Bloom Application](#use-the-bloom-application)
 
 ### Use the Bloom Application
-
-#### Load demonstration data
-To use Trawl Watch application, some data have to be initialy loaded for demonstration. As these data are protected and can't be publicly published, you just have to contact the Trawl Watch application team. Informations on [Who maintains Trawl Watch?](#who-maintains-traw-watch)
-
-After having filled 12_bloom/data folder with data files get from project team, rename files as following:
-* data/chalutiers_pelagiques.csv
-* data/spire_positions_subset.csv
-* data/vessels_subset.csv
-* data/zones_subset.csv
-
-Then launch docker compose stack using docker compose file extension to add loading data service
-
-    docker compose -f docker-compose.yaml -f docker-compose-load-data.yaml up
 
 #### Access Web Interface
 After having succeed with [With Docker/Docker Compose stack](#with-docker) or [On local machine](#on-local-machine) installation and managed to [Load demonstration data](#load-demonstration-data) you should now access the Bloom application with you favorite web browser 
