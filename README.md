@@ -56,7 +56,7 @@ Bloom is tested with:
     cd 12_bloom
 ```
 
-### With Docker/Docker Compose stack
+### Installation with Docker/Docker Compose stack (Recommended)
 #### Prerequistes
 * **Docker Engine** (version >= **18.06.0**) with **Compose** plugin
 
@@ -76,9 +76,10 @@ Bloom is tested with:
 
 You can now jump to [Use the Bloom Application](#use-the-bloom-application)
 
-### On local machine
+### Installation on local machine
 #### Prerequistes
 * **Python**: 3.9, 3.10, 3.11
+* **Python-pip**: >=20
 * **Postgresql**: 12, 13, 14, 15, 16
 
 You must have a functionnal PostgreSQL instance with connexion informations (database server hostname or ip, user, password, database name, port to use)
@@ -88,6 +89,8 @@ You must have a functionnal PostgreSQL instance with connexion informations (dat
 ```bash
     # Install poetry
     pip install --user "poetry==1.8.1"
+    # Mise à disposition de l'exécutable de manière temporaire
+    export PATH=$PATH:~/.local/bin/
     # Ensure that poetry will create a `.venv` directory into the project with the command
     poetry config virtualenvs.in-project true
     # Install dependencies from pyproject.toml
@@ -97,16 +100,34 @@ You must have a functionnal PostgreSQL instance with connexion informations (dat
     # Enable virtual poetry project environment
     poetry shell
 ```
-    
-#### Minimal configuration
+#### Initial configuration
+ 
 ```bash
-    # TODO if needed
+    # Create initial ocnfiguration
+    cp .env.template .env
+    # Edit .env file
+    # Replace POSTGRES_HOSTNAME/PORT with the postgres server hostname:port (localhost if local default port server)
+    # Replace POSTGRES_USER/PASSWORD with already configured user on serverside
+    # Check if database is up to date with alembic revisions
+    alembic upgrade head
+    # If upgrade is successful you can load the data
+    # Demonstration data must be recovered from TrawlWatch Project Team
+    # and put in <project>/data/ folder with correct names
+    # * data/chalutiers_pelagiques.csv
+    # * data/spire_positions_subset.csv
+    # * data/vessels_subset.csv
+    # * data/zones_subset.csv
+    python src/alembic/init_script/load_vessels_data.py
+    python src/alembic/init_script/load_positions_data.py
+    python src/alembic/init_script/load_amp_data.py
 ```
-
+    
 #### Starting the application
 ```bash
-    source /venv/bin/activate
-    python src/Trawlwatcher.py
+    # Enable virtual poetry project environment
+    poetry shell
+    # Start streamlit application
+    streamlit run src/Trawlwatcher.py
 ```
 
 You can now jump to [Use the Bloom Application](#use-the-bloom-application)
