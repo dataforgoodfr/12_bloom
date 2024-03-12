@@ -1,4 +1,6 @@
-![banner](images/banner.png)
+
+
+![banner](src/images/banner.png)
 
 ## What is Trawl Watch
 
@@ -12,126 +14,176 @@
 
 **BLOOM** is a non-profit organization founded in 2005 that works to preserve the marine environment and species from unnecessary destruction and to increase social benefits in the fishing sector. **BLOOM** wages awareness and advocacy campaigns in order to accelerate the adoption of concrete solutions for the ocean, humans and the climate. **BLOOM** carries out scientific research projects, independent studies and evaluations that highlight crucial and unaddressed issues such as the financing mechanisms of the fishing sector. **BLOOM**’s actions are meant for the general public as well as policy-makers and economic stakeholders.
 
-## Installing Trawl Watch with Docker Compose
 
-* Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
-* git clone https://github.com/dataforgoodfr/12_bloom.git
-* cd 12_bloom
-* docker compose build
-* docker compose pull
-* copy and paste bloom/env.template at the same level than docker-compose.yaml and rename it .env
-* docker compose run --service-ports bloom /bin/bash
-* streamlit run Trawlwatcher.py
-* working mmsi : 261084090
+**Table of contents**
 
+- [Principles](#principles)
+- [Requirements](#requirements)
+- [Getting started](#getting-started)
+    - [Installation with Docker/Docker Compose stack (Recommended)](#installation-with-docker-docker-compose-stack-recommended)
+    - [Installation on local machine](#installation-on-local-machine)
+- [Official source code](#official-source-code)
+- [Contributing](#contributing)
+- [Who uses Trawl Watch?](#who-uses-trawl-watch)
+- [Who maintains Trawl Watch?](#who-maintains-traw-watch)
+- [What goes into the next release?](#what-goes-into-the-next-release)
+- [Can I use the Trawl Watch logo in my presentation?](#can-i-use-the-trawl-watch-logo-in-my-presentation)
+- [Links](#links)
 
+## Principles
 
-## Installing Trawl Watch with `poetry`
+#TODO
 
-### Prerequisites:
+## Requirements
 
-1. Python (≥ `3.10`) installed on your system.
-2. Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
-3. Ensure you have `poetry` installed. If not, you can install them using `pip`.
+Bloom is tested with:
 
-```bash
-pip install poetry
-```
+|             | Main version (dev)           | Stable version (1.0.0) |
+|-------------|------------------------------|------------------------|
+| Python      | 3.8, 3.9, 3.10, 3.11         | 3.8, 3.9, 3.10, 3.11   |
+| Platform    | AMD64/ARM64(\*)              | AMD64/ARM64(\*)        |
+| Docker      | 24                           | 24                     |
+| PostgreSQL  | 13                           | 13                     |
 
-### Steps:
-
-1. **Clone the GitHub Repository:**
-
-   Clone the GitHub repository you want to install locally using the `git clone` command.
-
-   ```bash
-   git clone https://github.com/dataforgoodfr/12_bloom.git
-   ```
-
-2. **Navigate to the Repository Directory:**
-
-   Use the `cd` command to navigate into the repository directory.
-
-   ```bash
-   cd 12_bloom/
-   ```
-
-3. **Configure `poetry` to create a Virtual Environment inside the project:**
-
-   Ensure that poetry will create a `.venv` directory into the project with the command:
-
-   ```bash
-   poetry config virtualenvs.in-project true
-   ```
-
-4. **Install Project Dependencies using `poetry`:**
-
-   Use `poetry` to install the project dependencies.
-
-   ```bash
-   poetry install
-   ```
-
-   This will read the `pyproject.toml` file in the repository and install all the dependencies specified.
-
-5. **Make sure everything is all right using `poetry env info`:**
-
-   ```bash
-   poetry env info
-   ```
-
-   It should looks something likes:
-
-   ```bash
-   Virtualenv
-   Python:         3.11.2
-   Implementation: CPython
-   Path:           /home/guillaume/12_bloom/.venv
-   Executable:     /home/guillaume/12_bloom/.venv/bin/python
-   Valid:          True
-
-   System
-   Platform:   linux
-   OS:         posix
-   Python:     3.11.2
-   Path:       /usr
-   Executable: /usr/bin/python3.11
-   ```
-
-6. **Activate the Virtual Environment:**
-
-   Activate the virtual environment to work within its isolated environment.
-
-   On Unix or MacOS:
-
-   ```bash
-   poetry shell
-   ```
-
-7.
-
-### Once you're done working with the project, deactivate the virtual environment.
+## Getting started
+### Clone the Bloom application repository
 
 ```bash
-deactivate
+    git clone https://github.com/dataforgoodfr/12_bloom.git
+    cd 12_bloom
 ```
 
-## Documentation
+### Installation with Docker/Docker Compose stack (Recommended)
+#### Prerequistes
+* **Docker Engine** (version >= **18.06.0**) with **Compose** plugin
 
-[Dendron](https://marketplace.visualstudio.com/items?itemName=dendron.dendron) is a powerful Visual Studio Code, or [VSCodium](https://vscodium.com/), extension designed to streamline and enhance the documentation process. With **Dendron**, documenting projects becomes intuitive and efficient, thanks to its hierarchical note-taking system. Users can organize their documentation into a tree-like structure, making it easy to navigate and manage. The extension offers robust features such as bidirectional linking, which allows for seamless navigation between related notes, and support for Markdown formatting, enabling users to create rich and visually appealing documentation. Additionally, **Dendron** provides powerful search functionality, enabling users to quickly locate specific information within their documentation vault. Overall, **Dendron** empowers developers, writers, and teams to create comprehensive and well-organized documentation, facilitating better knowledge management and collaboration. The documentation is locaed inside the `./docs/notes` directory.
+#### Building image
 
-Here's some basic Dendron shortcuts:
+```bash
+    docker compose build
+```
 
-| Shortcut       | Description  |
-| -------------- | ------------ |
-| `Cmd/Ctrl + L` | Lookup notes |
+> When official Docker image will be available, the building step could be optionnal for user as docker compose up will pull official image from repository
+
+#### Starting the application
+
+```bash
+    docker compose up
+```
+#### Load demonstration data
+To use Trawl Watch application, some data have to be initialy loaded for demonstration. As these data are protected and can't be publicly published, you just have to contact the Trawl Watch application team. Informations on [Who maintains Trawl Watch?](#who-maintains-traw-watch)
+
+After having filled 12_bloom/data folder with data files get from project team, rename files as following:
+* data/chalutiers_pelagiques.csv
+* data/spire_positions_subset.csv
+* data/vessels_subset.csv
+* data/zones_subset.csv
+
+Then launch docker compose stack using docker compose file extension to add loading data service
+
+    docker compose -f docker-compose.yaml -f docker-compose-load-data.yaml up
+You can now jump to [Use the Bloom Application](#use-the-bloom-application)
+
+### Installation on local machine
+#### Prerequistes
+* **Python**: 3.9, 3.10, 3.11
+* **Python-pip**: >=20
+* **Postgresql**: 12, 13, 14, 15, 16
+
+You must have a functionnal PostgreSQL instance with connexion informations (database server hostname or ip, user, password, database name, port to use)
+
+#### Install with Poetry
+
+```bash
+    # Install poetry
+    pip install --user "poetry==1.8.1"
+    # Mise à disposition de l'exécutable de manière temporaire
+    export PATH=$PATH:~/.local/bin/
+    # Ensure that poetry will create a `.venv` directory into the project with the command
+    poetry config virtualenvs.in-project true
+    # Install dependencies from pyproject.toml
+    poetry install
+    # Make sure everything is all right using
+    poetry env info
+    # Enable virtual poetry project environment
+    poetry shell
+```
+#### Initial configuration
+ 
+```bash
+    # Create initial ocnfiguration
+    cp .env.template .env
+    # Edit .env file
+    # Replace POSTGRES_HOSTNAME/PORT with the postgres server hostname:port (localhost if local default port server)
+    # Replace POSTGRES_USER/PASSWORD with already configured user on serverside
+    # Check if database is up to date with alembic revisions
+    alembic upgrade head
+    # If upgrade is successful you can load the data
+    # Demonstration data must be recovered from TrawlWatch Project Team
+    # and put in <project>/data/ folder with correct names
+    # * data/chalutiers_pelagiques.csv
+    # * data/spire_positions_subset.csv
+    # * data/vessels_subset.csv
+    # * data/zones_subset.csv
+    python src/alembic/init_script/load_vessels_data.py
+    python src/alembic/init_script/load_positions_data.py
+    python src/alembic/init_script/load_amp_data.py
+```
+    
+#### Starting the application
+```bash
+    # Enable virtual poetry project environment
+    poetry shell
+    # Start streamlit application
+    streamlit run src/Trawlwatcher.py
+```
+
+You can now jump to [Use the Bloom Application](#use-the-bloom-application)
+
+### Use the Bloom Application
+
+#### Access Web Interface
+After having succeed with [With Docker/Docker Compose stack](#with-docker) or [On local machine](#on-local-machine) installation and managed to [Load demonstration data](#load-demonstration-data) you should now access the Bloom application with you favorite web browser 
+* Access to http://localhost:8501
+![Home](docs/images/trawlwatch_home.png)
+* Navigate to "Vessel Exploration"
+* Enter MMSI 261084090 as example
+* Clic on "Load"
+* You can select voyage_id and view track of vessel
+![Loaded](docs/images/trawlwatch_loaded_voyage.png)
+
+
+## Official source code
+
+You cna find official source code on [Github Repository](https://github.com/dataforgoodfr/12_bloom/)
+
+## Contributing
+
+Want to help build Bloom Application Check out our [contributing documentation](https://github.com/dataforgoodfr/12_bloom/tree/main/docs/contributing/README.md).
+
+Official Docker (container) images for Bloom Application are described in [images](https://github.com/dataforgoodfr/12_bloom/tree/main/docker/).
+
+## Who uses Trawl Watch?
+
+## What goes into the next release?
+
+#TODO
+
+## Can I use the Trawl Watch logo in my presentation?
+
+#TODO
+
+## Links
+
+#TODO
+
 
 ## More information can be found there
 
-1. [Database initialisation and versioning](./docs/database.initialisation.md)
-2. [Development environment](./docs/development.environment.md)
-3. [Useful SQL examples](./docs/sql.examples.md)
-4. [Data models](#todo)
+1. [Database initialisation](./docs/notes/database.initialisation.md)
+2. [Development environment](./docs/notes/development.environment.md) # outdated
+3. [Architecture description](./docs/notes/technical.architecture.md)
+4. [Useful SQL examples](./docs/notes/sql.examples.md)
 
 ## FAQ
 

@@ -1,0 +1,35 @@
+x-common-infos:
+  # Env variables stored in a .env file at same level than docker-compose.yaml
+  environment: &common-env
+    POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME:-postgres_bloom}
+    POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+    POSTGRES_USER: ${POSTGRES_USER:-bloom_user}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloom}
+    LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
+
+services:
+  load-data:
+    container_name: bloom-load-data
+    image: d4g/bloom:${VERSION:-latest}
+    entrypoint: /bin/bash
+    # Nominal start:
+    command: 
+        - -c
+        - /venv/bin/python3 src/alembic/init_script/load_vessels_data.py &&
+          /venv/bin/python3 src/alembic/init_script/load_positions_data.py &&
+          /venv/bin/python3 src/alembic/init_script/load_amp_data.py
+    volumes:
+      - ./:/project/
+      - ./data:/project/data
+    environment:
+      <<: *common-env
+      POSTGRES_PORT: 5432
+    networks:
+        - bloom_net
+    depends_on:
+      init:
+        condition: service_completed_successfully
+
+networks:
+  bloom_net:
+    name: bloom_net

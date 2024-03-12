@@ -1,11 +1,3 @@
----
-id: 6gumcsjv53j1xsyandigv97
-title: Development environment
-desc: ""
-updated: 1708410800063
-created: 1708410548545
----
-
 You can develop locally using Poetry and your own database but you can also use the Makefile to :
 
 1. launch a local postgresql dockerized
