@@ -1,18 +1,41 @@
----
-id: 8vo1vo09y37hwnrkmcy7w77
-title: Database initialisation
-desc: ""
-updated: 1708410470701
-created: 1708410417004
----
+### Prerequisites:
 
-First you need to run scripts which are in alembic/init_script :
+1. Ensure [Docker](https://docs.docker.com/get-docker/) is installed.
+2. Ask for zones data subset and saves it into data folder as zones_subset.csv
+3. Ask for spire positions data subset and saves it into data folder as spire_positions_subset.csv
 
-- the load_vessels_data.py script will load vessels metadata from the data/chalutier_pelagique.csv file.
-- the load_geometry_data.py file will load shape data from the Nonterrestrial_WDPA_Jan2023.shp file. This file is not included in this github project but you can ask for it. It's only used for the alerting part.
 
-The second step is to load the [distance-from-port-v20201104.tiff](https://globalfishingwatch.org/data-download/datasets/public-distance-from-port-v1) and [distance-from-shore.tif](https://globalfishingwatch.org/data-download/datasets/public-distance-from-shore-v1) files. They are only used for the alerting part.
+### Steps:
 
-- install psql and raster2pgsql.
-- install raster type in db with postgis-raster using `create extension postgis_raster`
-- adapt this command for each file : `raster2pgsql -t auto -I -C -M /PATH_TO/distance-from-shore.tif public.distance_shore | PGPASSWORD='POSTGRES_PASSWORD' psql -h POSTGRES_HOSTNAME -d POSTGRES_DB -U POSTGRES_USER -p POSTGRES_PORT`
+1. **Launch development database**
+
+    ```bash
+    make launch-dev-db
+    ```
+
+    It consists in 3 steps :
+    1. create database with docker compose (docker-compose-db.yaml)
+    2. upgrade to last schema version with alembic
+    3. load chalutiers_palagiques.csv into vessels table
+
+2. **Load amp data subset**
+
+    ```bash
+    make load-amp-data
+    ```
+
+    It consists in loading zones_subset.csv into mpa_fr_with_mn table.
+
+3. **Load spire positions data**
+
+    ```bash
+    make load-test-positions-data
+    ```
+
+    It consists in loading spire_positions_subset.csv into spire_vessel_positions table.
+
+
+### Notes:
+
+- If you have an empty table for alerts, it's normal since it's the application that generates these data.
+- You may not have all vessels from vessels table with data in the spire_vessel_positions, so make sure to select mmsi with positions in your subset if you want to test the application.

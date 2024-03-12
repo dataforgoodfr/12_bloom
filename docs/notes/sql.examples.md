@@ -1,11 +1,3 @@
----
-id: dgw0omk9y2u92olzvdxgddp
-title: Useful SQL examples
-desc: ""
-updated: 1708410750577
-created: 1708410619351
----
-
 ## List of mmi scrapped since last update
 
 ```sql
