@@ -1,8 +1,8 @@
 ARG IMAGE_PYTHON=${IMAGE_PYTHON:-python:3.10-slim-bullseye}
 FROM ${IMAGE_PYTHON}
 
-RUN apt-get update
-RUN apt-get -y install wget &&\
+RUN apt-get update &&\
+	apt-get -y install wget &&\
 	apt-get install -y rsyslog &&\
 # prerequisites for python 3.11
 	apt-get install -y gcc g++ &&\
