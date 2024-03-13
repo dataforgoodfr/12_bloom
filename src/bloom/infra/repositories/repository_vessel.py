@@ -11,7 +11,7 @@ from shapely import Point, wkb
 from sqlalchemy.orm import Session
 
 from bloom.config import settings
-from bloom.domain.vessel import Vessel, VesselPositionMarineTraffic
+from bloom.domain.vessel import Vessel
 from bloom.domain.vessels.vessel_trajectory import VesselTrajectory
 from bloom.infra.database import sql_model
 from bloom.logger import logger
@@ -49,24 +49,6 @@ class RepositoryVessel:
         df = pd.read_csv(self.vessels_path, sep=";")
         vessel_identifiers_list = df["mmsi"].tolist()
         return [Vessel(mmsi=mmsi) for mmsi in vessel_identifiers_list]
-
-    def save_marine_traffic_vessels_positions(
-        self,
-        vessels_positions_list: list[VesselPositionMarineTraffic],
-        timestamp: datetime,
-        # according to me, domain class is useless here if we have two tables
-    ) -> None:
-        with self.session_factory() as session:
-            sql_vessel_position_objects = [
-                self.map_schema_marine_traffic_to_sql_vessel_position(vessel, timestamp)
-                for vessel in vessels_positions_list
-            ]
-            session.add_all(sql_vessel_position_objects)
-            session.commit()
-            logger.info(
-                f"{len(sql_vessel_position_objects)} "
-                f"positions have been saved in base.",
-            )
 
     def save_spire_vessels_positions(
         self,
@@ -179,27 +161,6 @@ class RepositoryVessel:
             ),
         )
 
-    @staticmethod
-    def map_schema_marine_traffic_to_sql_vessel_position(
-        vessel_position: VesselPositionMarineTraffic,
-        timestamp: datetime,
-    ) -> sql_model.VesselPositionMarineTraffic:
-        return sql_model.VesselPositionMarineTraffic(
-            timestamp=timestamp,
-            ship_name=vessel_position.ship_name,
-            IMO=vessel_position.IMO,
-            vessel_id=vessel_position.vessel_id,
-            mmsi=vessel_position.mmsi,
-            last_position_time=vessel_position.last_position_time,
-            fishing=vessel_position.fishing,
-            at_port=vessel_position.at_port,
-            port_name=vessel_position.current_port,
-            position=from_shape(vessel_position.position, srid=settings.srid),
-            status=vessel_position.status,
-            speed=vessel_position.speed,
-            navigation_status=vessel_position.navigation_status,
-        )
-
     def get_all_positions(
         self,
         mmsi: str,
@@ -233,14 +194,36 @@ class RepositoryVessel:
                 self.get_all_positions(mmsi, session) if vessel is not None else []
             )
 
-        df = (
-            pd.DataFrame([p.__dict__ for p in positions])
-            .drop(columns=["_sa_instance_state"])
-            .sort_values("timestamp")
-            .drop_duplicates(subset=["mmsi", "timestamp"])
-            .reset_index(drop=True)
-        )
-
+        if not positions:
+            # Create empty dataframe with expected columns when vessel has no trajectory
+            df = pd.DataFrame(columns=["timestamp",
+                                       "ship_name",
+                                       "IMO",
+                                       "vessel_id",
+                                       "mmsi",
+                                       "last_position_time",
+                                        "position",
+                                        "speed",
+                                        "navigation_status",
+                                        "vessel_length",
+                                        "vessel_width",
+                                        "voyage_destination",
+                                        "voyage_draught",
+                                        "voyage_eta",
+                                        "accuracy",
+                                        "position_sensors",
+                                        "course",
+                                        "heading",
+                                        "rot"])
+            df = df.astype({"timestamp": 'datetime64'})
+        else:
+            df = (
+                pd.DataFrame([p.__dict__ for p in positions])
+                .drop(columns=["_sa_instance_state"])
+                .sort_values("timestamp")
+                .drop_duplicates(subset=["mmsi", "timestamp"])
+                .reset_index(drop=True)
+            )
         df["geometry"] = df["position"].map(convert_wkb_to_point)
 
         # With CRS 4326, the coordinates are reversed

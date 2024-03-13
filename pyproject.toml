@@ -29,13 +29,11 @@ python-dotenv = "^1.0.0"
 pyyaml = "^6.0"
 requests = "^2.31"
 requests-toolbelt = "^1.0"
-selenium = "4.18.1"
 shapely = "2.0.1"
 slack-sdk = "^3.21.3"
 sqlalchemy = "^2.0"
 streamlit = "^1.27.2"
 streamlit-folium = "^0.15.0"
-undetected-chromedriver = "3.4.6"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -75,7 +73,16 @@ select = [
     "W",
     "YTT",
 ]
-ignore = ["A003", "ANN101", "ANN401", "N805", "N818", "PLR0913", "RET504", "RET505"]
+ignore = [
+    "A003",
+    "ANN101",
+    "ANN401",
+    "N805",
+    "N818",
+    "PLR0913",
+    "RET504",
+    "RET505",
+]
 
 fixable = [
     "A",
@@ -127,7 +134,7 @@ exclude = [
     "dist",
     "venv",
     "pages",
-    "tests"
+    "tests",
 ]
 
 line-length = 96

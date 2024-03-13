@@ -46,13 +46,14 @@ class VesselTrajectory:
 
         self.chunk_data(24)
 
-        # Warning in CRS 4326 - the order is longitude,latitude
-        self.positions["lat"] = self.positions["geometry"].map(lambda pos: pos.y)
-        self.positions["lon"] = self.positions["geometry"].map(lambda pos: pos.x)
-        self.positions = self.compute_angle(self.positions)
-        self.positions = self.compute_change_direction_flag(self.positions, 50)
-        self.positions = self.compute_change_direction_flag(self.positions, 150)
-        self.positions = self.compute_rolling_deviation(self.positions, "3H")
+        if not self.positions.empty:
+            # Warning in CRS 4326 - the order is longitude,latitude
+            self.positions["lat"] = self.positions["geometry"].map(lambda pos: pos.y)
+            self.positions["lon"] = self.positions["geometry"].map(lambda pos: pos.x)
+            self.positions = self.compute_angle(self.positions)
+            self.positions = self.compute_change_direction_flag(self.positions, 50)
+            self.positions = self.compute_change_direction_flag(self.positions, 150)
+            self.positions = self.compute_rolling_deviation(self.positions, "3H")
 
     # def __init__(self, data: pd.DataFrame,vessel_id = None,crs = "EPSG:3857"):
 
