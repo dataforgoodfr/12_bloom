@@ -14,17 +14,17 @@ jobs:
             python-version: [3.8, 3.9, 3.10, 3.11]
     steps:
         - name: Checkout repository
-            uses: actions/checkout@v2
+          uses: actions/checkout@v2
         - name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v2
-            with:
-                python-version: ${{ matrix.python-version }}
+          uses: actions/setup-python@v2
+          with:
+            python-version: ${{ matrix.python-version }}
         - name: Install poetry
-            run: |
+          run: |
                 python -m pip install --upgrade pip
                 python -m pip install poetry
         - name: Installing dependencies
-            run: |
+          run: |
                 poetry install
         - name: Run tests
-            run: pytest
+          run: pytest
