@@ -17,7 +17,8 @@ services:
         - -c
         - /venv/bin/python3 src/alembic/init_script/load_vessels_data.py &&
           /venv/bin/python3 src/alembic/init_script/load_positions_data.py &&
-          /venv/bin/python3 src/alembic/init_script/load_amp_data.py
+          /venv/bin/python3 src/alembic/init_script/load_amp_data.py &&
+          /venv/bin/python3 src/alembic/init_script/load_ports_data.py
     volumes:
       - ./:/project/
       - ./data:/project/data
