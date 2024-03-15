@@ -215,7 +215,7 @@ class RepositoryVessel:
                                         "course",
                                         "heading",
                                         "rot"])
-            df = df.astype({"timestamp": 'datetime64'})
+            df = df.astype({"timestamp": 'datetime64[ms]'})
         else:
             df = (
                 pd.DataFrame([p.__dict__ for p in positions])
