@@ -25,7 +25,6 @@ services:
     #stdin_open: true
     volumes:
       - ./:/project/
-      - ./data:/project/data
     environment:
       <<: *common-env
       POSTGRES_PORT: 5432
