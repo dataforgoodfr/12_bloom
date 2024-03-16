@@ -27,14 +27,6 @@ ENV PATH=/venv/bin:$PATH \
 RUN python -m venv /venv &&\
     poetry install
 
-
-# Install chrome in the latest version
-ARG CHROME_VERSION="112.0.5615.165-1"
-RUN wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb &&\
-    apt-get install -y --fix-missing --no-install-recommends /tmp/chrome.deb &&\
-    rm -f google-chrome-stable_current_amd64.deb
-
-
 # Launch cron services
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y cron \
     # Remove package lists for smaller image sizes
