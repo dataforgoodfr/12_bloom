@@ -1,6 +1,7 @@
 """
-Another method with geodesic to have exactly radius_m meters around a port, no matter where on the globe
-(polygons of the ports in the north seams to be flat, it's normal, it's the projection)
+Another method with geodesic to have exactly radius_m meters around a port, no matter where on
+the globe (polygons of the ports in the north seams to be flat, it's normal, it's the
+projection)
 """
 
 import os
@@ -9,13 +10,14 @@ import pandas as pd
 import pyproj
 from shapely import wkt
 from shapely.geometry import Polygon
+from pathlib import Path
 
 radius_m = 3000  # Radius in kilometers
 resolution = 10  # Number of points in the resulting polygon
 crs_epsg = 4326  # CRS for WGS84
 
-csv_input = os.path.join(os.path.dirname(__file__), "../ports.csv")
-csv_output = os.path.join(os.path.dirname(__file__), f"../ports_rad{radius_m}_res{resolution}.csv")
+csv_input = Path(__file__).parent.joinpath("../ports.csv")
+csv_output = Path(__file__).parent.joinpath(f"../ports_rad{radius_m}_res{resolution}.csv")
 
 # Load CSV into DataFrame and convert WKT to geometry
 df = pd.read_csv(csv_input, sep=";")

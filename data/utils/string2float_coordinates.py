@@ -2,12 +2,13 @@ import os
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
+from pathlib import Path
 
-csv_input = os.path.join(os.path.dirname(__file__), "../ports.csv")
-csv_output = os.path.join(os.path.dirname(__file__), "../ports.csv")
+csv_input = Path(__file__).parent.joinpath("../ports.csv")
+csv_output = Path(__file__).parent.joinpath("../ports.csv")
 
 
-def convert_coords(coord):
+def convert_coords(coord) -> float:
     """
     Convert a string coordinate to a float coordinate
     """

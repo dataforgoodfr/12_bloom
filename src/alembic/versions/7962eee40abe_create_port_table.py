@@ -21,7 +21,7 @@ def upgrade() -> None:
     """
     ports.csv contains data for ports
     url;country;port;locode;latitude;longitude;geometry_point;geometry_buffer
-    https://www.vesselfinder.com/ports/ALSAR001;Albania;Sarande;ALSAR;39.8701;20.0062;POINT (20.0062 39.8701
+    https://www.vesselfinder.com/ports/ALSAR001;Albania;Sarande;ALSAR;39.8701;20.0062;POINT(20.0062 39.8701 # noqa E501
     """
     op.create_table(
         "ports",
