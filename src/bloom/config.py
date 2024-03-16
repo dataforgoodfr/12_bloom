@@ -1,116 +1,66 @@
 import os
 from pathlib import Path
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Any
 
-def extract_values_from_env(config:dict,allow_extend:bool=False) -> dict:
-    """ function that extrat key=value pairs from a file
-    Parameters:
-    - config: dict to extend/update with new key/value pairs found in environment
-    - allow_extend: allows to extend extracted keys with new keys that are not in
-                    actuel config if True, restrict to already existing keys in config of False
-    Returns a dict contains key/value
-    """
-    for k,v in os.environ.items():
-        # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
-        if k.lower() in [f"{k}_FILE".lower() for k in config.keys()]\
-            and ( k.removesuffix('_FILE').lower() in config.keys() or  allow_extend == True)\
-            and Path(v).is_file():
-                with Path.open(v, mode='r') as file:
-                    config[k.removesuffix('_FILE').lower()]=file.readline().strip()
-        # Processing of direct affectation via ATTR=VALUE
-        # if extracted key already exist in config OR if allowed to add new keys to config
-        # Then adding/updating key/value
-        if k.lower() in [k.lower() for k in config.keys()] or allow_extend == True:
-            config[k.lower()]=v
-    return config
-
-def extract_values_from_file(filename:str,config:dict,
-                             allow_extend:bool=False,
-                             env_priority:bool=True
-                             )-> dict:
-    """ function that extrat key=value pairs from a file
-    Parameters:
-    - filename: filename/filepath from which to extract key/value pairs found in .env.* file
-    - config: dict to extend/update with new key/value pairs
-    - allow_extend: allows to extend extracted keys with new keys that are not in actuel
-                    config if True, restrict to already existing keys in config of False
-    Returns a dict contains key/value
-    """ 
-    filepath=Path(Path(__file__).parent).joinpath(filename)
-    with Path.open(filepath) as file:
-        for line in file:
-            # Split line at first occurence of '='.
-            # This allows to have values containing '=' character
-            split=line.strip().split('=',1)
-            # if extraction contains 2 items and strictly 2 items
-            split_succeed=2
-            if(len(split)==split_succeed):
-                k=split[0]
-                v=split[1]
-                # Processing of indirect affectation via [ATTR]_FILE=VALUE_PATH => ATTR=VALUE
-                if k.lower() in [f"{k}_FILE".lower() for k in config.keys()]\
-                    and ( k.removesuffix('_FILE').lower() in config.keys() or  allow_extend == True)\
-                    and Path(v).is_file():
-                        with Path(v).open( mode='r') as file_value:
-                            config[k.removesuffix('_FILE').lower()]=file_value.readline().strip()
-                # if extracted key already exist in config OR if allowed to add new keys to
-                # config then adding/updating key/value
-                if k.lower() in [k.lower() for k in config.keys()] or allow_extend == True:
-                    config[k.lower()]=v
-            # If env priority True, then overriding all values with ENV values before ending
-            if env_priority:
-                extract_values_from_env(config,allow_extend=False)
-    return config
-
+from pydantic import (
+    AliasChoices,
+    AmqpDsn,
+    BaseModel,
+    Field,
+    ImportString,
+    PostgresDsn,
+    RedisDsn,
+    field_validator,
+    model_validator
+)
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        # validate_assignment=True allows to update db_url value as soon as one of
+        # postgres_user, postgres_password, postgres_hostname, postgres_port, postgres_db
+        # is modified then db_url_update is called
+        validate_assignment=True,
+        # env_ignore_empty=False take env as it is and if declared but empty then empty
+        # the setting value
+        env_ignore_empty=True,
+        env_nested_delimiter='__',
+        env_file='.env',
+        env_file_encoding = 'utf-8',
+        extra='ignore'
+        )
+    
     # Déclaration des attributs/paramètres disponibles au sein de la class settings
-    postgres_user:str = None
-    postgres_password:str = None
-    postgres_hostname:str = None
-    postgres_port:str = None
-    postgres_db:str = None
-    srid: int = 4326
-    db_url:str = None
-    spire_token:str = None
-    data_folder:str=None
-    logging_level:str="INFO"
+    postgres_user:str = Field(default='')
+    postgres_password:str = Field(default='')
+    postgres_hostname:str = Field(min_length=1,
+                                  default='localhost')
+    postgres_port:int = Field(gt=1024,
+                                  default=5432)
+
+    postgres_db:str = Field(min_length=1,max_length=32,pattern=r'^(?:[a-zA-Z]|_)[\w\d_]*$')
+    srid: int = Field(default=4326)
+    spire_token:str = Field(default='')
+    data_folder:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')))
+    db_url:str=Field(default='')
     
-    def __init__(self):
-        super().__init__(self)
-        # Default values
-        self.srid = 4326
-        self.data_folder = Path(__file__).parent.parent.parent.joinpath('./data')
+    logging_level:str=Field(
+                                default="INFO",
+                                pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
+                            )
 
-        # Si le fichier de configuration à charger est précisé par la variable d'environnement
-        # BLOOM_CONFIG alors on charge ce fichier, sinon par défaut c'est <project>/.env
-        bloom_config=os.getenv('BLOOM_CONFIG',Path(__file__).parent.parent.parent
-                                                                            .joinpath(".env"))
-        
-        # Ici on charge les paramètres à partir du fichier BLOOM_CONFIG
-        # et on mets à jour directement les valeurs des paramètres en tant qu'attribut de la
-        # la classe courante Settings en attanquant le self.__dict__
-        # Ces variables sont systmétiquement convertie en lower case
-        # 
-        # allow_extend=False précise que seuls les attributs déjà existants dans la config
-        # passée en paramètres (ici self.__dict__) sont mis à jour. Pas de nouveau paramètres
-        # Cela singifie que pour rendre accessible un nouveau paramètre il faut le déclaré
-        # dans la liste des attributs de la classe Settings
-        #
-        # env_priority=true signifie que si un paramètres est présent dans la classe Settings,
-        # mas aussi dans le fichier BLOOM_CONFIG ainsi qu'en tant que variable d'environnement
-        # alors c'est la valeur de la variable d'environnement qui sera chargée au final
-        # La priorité est donnée aux valeur de l'environnement selon le standard Docker
-        if Path(bloom_config).exists():
-            extract_values_from_file(bloom_config,self.__dict__,allow_extend=False,
-                                                                            env_priority=True)
-        else:
-            extract_values_from_env(self.__dict__,allow_extend=False)
-    
-        self.db_url = ( f"postgresql://{self.postgres_user}:"
-                  f"{self.postgres_password}@{self.postgres_hostname}:"
-                  f"{self.postgres_port}/{self.postgres_db}")
+    @model_validator(mode='after')
+    def update_db_url(self)->dict:
+        new_url= f"postgresql://{self.postgres_user}:"\
+                          f"{self.postgres_password}@{self.postgres_hostname}:"\
+                          f"{self.postgres_port}/{self.postgres_db}"
+        if self.db_url != new_url:
+           self.db_url = new_url
+        return self
 
 
-settings = Settings()
+settings = Settings(_env_file=os.getenv('BLOOM_CONFIG',
+                                    Path(__file__).parent.parent.parent.joinpath('.env')),
+                    _secrets_dir=os.getenv('BLOOM_SECRETS_DIR',
+                                    Path(__file__).parent.parent.parent.joinpath('./secrets')))
