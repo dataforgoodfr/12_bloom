@@ -3,11 +3,7 @@ FROM ${IMAGE_PYTHON}
 
 RUN apt-get update &&\
 	apt-get -y install wget &&\
-	apt-get install -y rsyslog &&\
-# prerequisites for python 3.11
-	apt-get install -y gcc g++ &&\
-# prerequisites for python 3.12
-	apt-get install -y 	libgeos-dev
+	apt-get install -y rsyslog
 
 # Define working directory
 ARG PROJECT_DIR=/project
