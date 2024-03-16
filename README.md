@@ -78,6 +78,8 @@ After having filled 12_bloom/data folder with data files get from project team, 
 * data/spire_positions_subset.csv
 * data/vessels_subset.csv
 * data/zones_subset.csv
+* data/ports.csv
+* data/ports_rad3000_res10.csv
 
 Then launch docker compose stack using docker compose file extension to add loading data service
 
@@ -128,6 +130,7 @@ You must have a functionnal PostgreSQL instance with connexion informations (dat
     python src/alembic/init_script/load_vessels_data.py
     python src/alembic/init_script/load_positions_data.py
     python src/alembic/init_script/load_amp_data.py
+    python src/alembic/init_script/load_ports_data.py
 ```
     
 #### Starting the application
