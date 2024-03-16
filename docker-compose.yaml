@@ -43,7 +43,7 @@ services:
     environment:
       <<: *common-env
     ports:
-      - ${POSTGRES_PORT}:5432
+      - ${POSTGRES_PORT:-5432}:5432
     networks:
         - bloom_net
     healthcheck:
