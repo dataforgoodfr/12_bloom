@@ -2,10 +2,8 @@ ARG IMAGE_PYTHON=${IMAGE_PYTHON:-python:3.10-slim-bullseye}
 FROM ${IMAGE_PYTHON}
 
 RUN apt-get update &&\
-	apt-get -y install wget gcc &&\
-	apt-get install -y rsyslog &&\
-# added for python 3.11/12 compliance
-	apt-get install -y g++ libgeos-dev
+	apt-get -y install wget &&\
+	apt-get install -y rsyslog
 
 # Define working directory
 ARG PROJECT_DIR=/project
