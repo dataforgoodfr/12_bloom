@@ -1,6 +1,6 @@
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
-from bloom.infra.repositories.port_repository import PortRepository
+from bloom.infra.repositories.repository_port import PortRepository
 from bloom.infra.repositories.repository_alert import RepositoryAlert
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
