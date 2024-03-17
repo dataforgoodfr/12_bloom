@@ -15,7 +15,7 @@ launch-dev-db:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 src/alembic/init_script/load_vessels_data.py
 
 load-ports-data:
-	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 alembic/init_script/load_ports_data.py
+	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 src/alembic/init_script/load_ports_data.py
 
 load-amp-data:
 	$(BLOOM_DEV_DOCKER) --rm d4g/bloom:${VERSION} /venv/bin/python3 src/alembic/init_script/load_amp_data.py

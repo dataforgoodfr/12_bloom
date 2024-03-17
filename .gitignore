@@ -3,6 +3,7 @@
 data/*.csv
 data/*.xlsx
 !/data/README.md
+!/data/dim_port.csv
 /secrets/
 
 
