@@ -13,12 +13,9 @@ services:
     image: d4g/bloom:${VERSION:-latest}
     entrypoint: /bin/bash
     # Nominal start:
-    command: 
-        - -c
-        - /venv/bin/python3 src/alembic/init_script/load_vessels_data.py &&
-          /venv/bin/python3 src/alembic/init_script/load_positions_data.py &&
-          /venv/bin/python3 src/alembic/init_script/load_amp_data.py &&
-          /venv/bin/python3 src/alembic/init_script/load_ports_data.py
+    command:
+      - -c
+      - /venv/bin/python3 src/alembic/init_script/load_vessels_data.py && /venv/bin/python3 src/alembic/init_script/load_positions_data.py && /venv/bin/python3 src/alembic/init_script/load_amp_data.py && /venv/bin/python3 src/alembic/init_script/src/bloom/tasks/load_port_data_from_csv.py && /venv/bin/python3 src/alembic/init_script/src/bloom/tasks/compute_port_geometry_buffer.py
     volumes:
       - ./:/project/
       - ./data:/project/data
@@ -26,7 +23,7 @@ services:
       <<: *common-env
       POSTGRES_PORT: 5432
     networks:
-        - bloom_net
+      - bloom_net
     depends_on:
       init:
         condition: service_completed_successfully

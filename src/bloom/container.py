@@ -1,12 +1,12 @@
-from dependency_injector import containers, providers
-
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
+from bloom.infra.repositories.port_repository import PortRepository
 from bloom.infra.repositories.repository_alert import RepositoryAlert
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from bloom.usecase.GetVesselsFromSpire import GetVesselsFromSpire
+from dependency_injector import containers, providers
 
 
 class UseCases(containers.DeclarativeContainer):
@@ -29,6 +29,11 @@ class UseCases(containers.DeclarativeContainer):
 
     raster_repository = providers.Factory(
         RepositoryRaster,
+        session_factory=db.provided.session,
+    )
+
+    port_repository = providers.Factory(
+        PortRepository,
         session_factory=db.provided.session,
     )
 
