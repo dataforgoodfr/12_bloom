@@ -12,11 +12,11 @@ services:
     container_name: bloom
     image: d4g/bloom:${VERSION:-latest}
     build:
-        context: .
-        dockerfile: ./docker/Dockerfile
-        args:
-            IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
-            POETRY_VERSION: ${POETRY_VERSION:-1.8.1}
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.1}
     # Nominal start:
     command: streamlit run src/Trawlwatcher.py
     # Debug start:
@@ -32,7 +32,7 @@ services:
     ports:
       - 8501:8501
     networks:
-        - bloom_net
+      - bloom_net
     depends_on:
       init:
         condition: service_completed_successfully
@@ -45,9 +45,13 @@ services:
     ports:
       - ${POSTGRES_PORT}:5432
     networks:
-        - bloom_net
+      - bloom_net
     healthcheck:
-      test: ['CMD-SHELL', "pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user}"]
+      test:
+        [
+          'CMD-SHELL',
+          "pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user}"
+        ]
       interval: 100ms
       timeout: 14s
       retries: 140
@@ -70,12 +74,12 @@ services:
     #stdin_open: true
 
     environment:
-        <<: *common-env
-        POSTGRES_PORT: 5432
+      <<: *common-env
+      POSTGRES_PORT: 5432
     volumes:
-        - ./:/project/
+      - ./:/project/
     networks:
-        - bloom_net
+      - bloom_net
     depends_on:
       postgres:
         condition: service_healthy # The service is working and still running
