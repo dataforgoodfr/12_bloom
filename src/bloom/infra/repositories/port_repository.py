@@ -4,12 +4,14 @@ from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon
 
+# For python 3.9 syntax compliance
+from typing import Union
 
 class PortRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def get_port_by_id(self, port_id: int) -> Port | None:
+    def get_port_by_id(self, port_id: int) -> Union[Port , None]:
         with self.session_factory() as session:
             entity = session.get(OrmPort, port_id)
             if entity is not None:
