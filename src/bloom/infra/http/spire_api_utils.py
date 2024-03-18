@@ -35,7 +35,7 @@ class Paging:
         self,
         client: Client,
         query: str,
-    ) -> dict[str, Any]:
+    ) -> list[dict[str, Any]]:
         """
         Args:
             client: gql client
