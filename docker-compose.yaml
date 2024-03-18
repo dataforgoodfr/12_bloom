@@ -39,13 +39,15 @@ services:
 
   postgres:
     container_name: postgres_bloom
-    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+    image: ${POSTGIS_IMAGE:-postgis/postgis:16}
     environment:
       <<: *common-env
     ports:
       - ${POSTGRES_PORT:-5432}:5432
     networks:
       - bloom_net
+    volumes:
+        - bloom-postgres:/var/lib/postgresql
     healthcheck:
       test:
         [
@@ -87,3 +89,6 @@ services:
 networks:
   bloom_net:
     name: bloom_net
+    
+volumes:
+    bloom-postgres:
