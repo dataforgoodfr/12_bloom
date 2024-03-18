@@ -3,6 +3,10 @@
 data/*.csv
 data/*.xlsx
 !/data/README.md
+!/data/dim_port.csv
+!/data/ports.csv
+!/data/ports_rad3000_res10.csv
+!/data/*subset.csv
 /secrets/
 
 

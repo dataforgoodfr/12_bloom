@@ -35,6 +35,7 @@ slack-sdk = "~3.27"
 SQLAlchemy = "~2.0"
 streamlit = "~1.32"
 streamlit-folium = "~0.18"
+pycountry = "23.12.11"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -2,21 +2,22 @@ import uuid
 from typing import Any
 
 import folium
+from bloom.config import settings
+from bloom.infra.database.database_manager import Base
 from geoalchemy2 import Geometry
 from shapely import wkb
 from sqlalchemy import (
     UUID,
-    BigInteger,
     Boolean,
     Column,
     DateTime,
+    Double,
     Float,
     Integer,
     String,
     Text,
 )
-
-from bloom.infra.database.database_manager import Base
+from sqlalchemy.sql import func
 
 
 class Vessel(Base):
@@ -90,7 +91,7 @@ IUCN_CATEGORIES = {
 class MPA(Base):
     __tablename__ = "mpa_fr_with_mn"
     geometry = Column("geometry", Geometry("POLYGON"))
-    #gov_type = Column("GOV_TYPE", Text)
+    # gov_type = Column("GOV_TYPE", Text)
     iucn_category = Column("IUCN_CAT", Text)
     name = Column("name", Text, nullable=False)
     type = Column("DESIG_TYPE", Text)
@@ -139,7 +140,17 @@ class MPA(Base):
             folium.GeoJson(polygon).add_to(m)
 
 
-# class DistanceShore(Base):
-
-
-# class DistancePort(Base):
+class Port(Base):
+    __tablename__ = "dim_port"
+    id = Column("id", Integer, primary_key=True, index=True)
+    name = Column("name", String, nullable=False)
+    locode = Column("locode", String, nullable=False)
+    url = Column("url", String)
+    country_iso3 = Column("country_iso3", String)
+    latitude = Column("latitude", Double)
+    longitude = Column("longitude", Double)
+    geometry_point = Column("geometry_point", Geometry("POINT", srid=settings.srid))
+    geometry_buffer = Column("geometry_buffer", Geometry("POLYGON", srid=settings.srid))
+    has_excursion = Column("has_excursion", Boolean, default=False)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())

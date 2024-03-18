@@ -4,15 +4,15 @@ the globe (polygons of the ports in the north seams to be flat, it's normal, it'
 projection)
 """
 
-import os
+from pathlib import Path
+
 import geopandas as gpd
 import pandas as pd
 import pyproj
 from shapely import wkt
 from shapely.geometry import Polygon
-from pathlib import Path
 
-radius_m = 3000  # Radius in kilometers
+radius_m = 3000  # Radius in meters
 resolution = 10  # Number of points in the resulting polygon
 crs_epsg = 4326  # CRS for WGS84
 
@@ -23,6 +23,7 @@ csv_output = Path(__file__).parent.joinpath(f"../ports_rad{radius_m}_res{resolut
 df = pd.read_csv(csv_input, sep=";")
 df["geometry_point"] = df["geometry_point"].apply(wkt.loads)
 gdf = gpd.GeoDataFrame(df, geometry="geometry_point", crs=crs_epsg)
+
 
 # Function to create geodesic buffer around a point
 def geodesic_point_buffer(lat, lon, radius_m, resolution):
