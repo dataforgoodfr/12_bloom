@@ -12,9 +12,6 @@ from bloom.logger import logger
 from pydantic import ValidationError
 from shapely import wkt
 
-port_repository = UseCases.port_repository()
-db = UseCases.db()
-
 
 def map_to_domain(row) -> Port:
     iso_code = pycountry.countries.get(name=row["country"])
@@ -32,6 +29,10 @@ def map_to_domain(row) -> Port:
 
 
 def run(csv_file_name: str) -> None:
+    use_cases = UseCases()
+    port_repository = use_cases.port_repository()
+    db = use_cases.db()
+
     ports = []
     total = 0
     try:
@@ -47,7 +48,7 @@ def run(csv_file_name: str) -> None:
         logger.error("Erreur de validation des données de port")
         logger.error(e.errors())
     except DBException as e:
-        logger.error("Erreur d'insertion en base", exc_info=e)
+        logger.error("Erreur d'insertion en base")
     logger.info(f"{total} ports(s) créés")
 
 

@@ -13,9 +13,6 @@ from shapely.geometry import Polygon
 radius_m = 3000  # Radius in meters
 resolution = 10  # Number of points in the resulting polygon
 
-port_repository = UseCases.port_repository()
-db = UseCases.db()
-
 
 # Function to create geodesic buffer around a point
 def geodesic_point_buffer(lat: float, lon: float, radius_m: int, resolution: int) -> Polygon:
@@ -39,6 +36,9 @@ def geodesic_point_buffer(lat: float, lon: float, radius_m: int, resolution: int
 
 
 def run() -> None:
+    use_cases = UseCases()
+    port_repository = use_cases.port_repository()
+    db = use_cases.db()
     total = 0
     ports = port_repository.get_empty_geometry_buffer_ports()
     if ports != []:
