@@ -14,8 +14,8 @@ class SpireAisData(BaseModel):
     vessel_flag: str | None
     vessel_name: str | None
     vessel_callsign: str | None
-    vessel_timestamp: datetime
-    vessel_update_timestamp: datetime
+    vessel_timestamp: datetime | None
+    vessel_update_timestamp: datetime | None
     vessel_ship_type: str | None
     vessel_sub_ship_type: str | None
     vessel_mmsi: int | None
@@ -32,13 +32,13 @@ class SpireAisData(BaseModel):
     position_navigational_status: str | None
     position_rot: float | None
     position_speed: float | None
-    position_timestamp: datetime
-    position_update_timestamp: datetime
+    position_timestamp: datetime | None
+    position_update_timestamp: datetime | None
     voyage_destination: str | None
     voyage_draught: float | None
     voyage_eta: datetime | None
-    voyage_timestamp: datetime
-    voyage_update_timestamp: datetime
+    voyage_timestamp: datetime | None
+    voyage_update_timestamp: datetime | None
     created_at: Union[datetime, None] = None
 
     def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]) -> Self:
