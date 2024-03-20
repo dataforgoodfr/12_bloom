@@ -1,6 +1,7 @@
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database.sql_model import SpireAisData as OrmSpireAisData
 from dependency_injector.providers import Callable
+from sqlalchemy.orm import Session
 
 
 class SpireAisDataRepository:
@@ -14,12 +15,12 @@ class SpireAisDataRepository:
             session.commit()
             return SpireAisDataRepository.map_to_domain(sql_ais_data)
 
-    def batch_create_ais_data(self, ais_list: list[SpireAisData]) -> list[SpireAisData]:
-        with self.session_factory() as session:
-            orm_list = [SpireAisDataRepository.map_to_orm(ais) for ais in ais_list]
-            session.add_all(orm_list)
-            session.commit()
-            return [SpireAisDataRepository.map_to_domain(orm) for orm in orm_list]
+    def batch_create_ais_data(
+        self, ais_list: list[SpireAisData], session: Session
+    ) -> list[SpireAisData]:
+        orm_list = [SpireAisDataRepository.map_to_orm(ais) for ais in ais_list]
+        session.add_all(orm_list)
+        return [SpireAisDataRepository.map_to_domain(orm) for orm in orm_list]
 
     def map_to_orm(data: SpireAisData) -> OrmSpireAisData:
         return OrmSpireAisData(**data.__dict__)
