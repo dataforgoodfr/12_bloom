@@ -1,16 +1,13 @@
-import os
-from datetime import datetime
+from typing import Any
 
-from gql import Client
-from gql.transport.requests import RequestsHTTPTransport
-from requests import exceptions
-
+from bloom.config import settings
 from bloom.domain.vessel import Vessel
-from bloom.infra.database import sql_model
 from bloom.infra.http.spire_api_utils import Paging
 from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.logger import logger
-from bloom.config import settings
+from gql import Client
+from gql.transport.requests import RequestsHTTPTransport
+from requests import exceptions
 
 
 class GetVesselsFromSpire:
@@ -104,36 +101,13 @@ class GetVesselsFromSpire:
         """
         )
 
-    def get_raw_vessels(self, vessels: list[Vessel]) -> list[str]:
+    def get_raw_vessels_from_spire(self, vessels: list[Vessel]) -> list[dict[str, Any]]:
         query_string = self.create_query_string(vessels)
         client = self.create_client()
         paging = Paging()
 
-        return paging.page_and_get_response(
+        raw_vessels = paging.page_and_get_response(
             client,
             query_string,
         )
-
-    def get_all_vessels(
-        self,
-        timestamp: datetime,
-    ) -> list[sql_model.VesselPositionSpire]:
-        vessels: list[Vessel] = self.vessel_repository.load_all_vessel_metadata()
-        raw_vessels = self.get_raw_vessels(vessels)
-
-        map_id = {}
-        for vessel in vessels:
-            map_id[int(vessel.get_mmsi())] = vessel.vessel_id
-
-        return [
-            RepositoryVessel.map_json_vessel_to_sql_spire(
-                vessel,
-                map_id.get(vessel["staticData"]["mmsi"]),
-                timestamp,
-            )
-            for vessel in raw_vessels
-            if vessel["lastPositionUpdate"] is not None
-        ]
-
-    def save_vessels(self, vessels: list[sql_model.VesselPositionSpire]) -> None:
-        self.vessel_repository.save_spire_vessels_positions(vessels)
+        return raw_vessels

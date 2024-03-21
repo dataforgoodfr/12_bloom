@@ -1,20 +1,19 @@
 from contextlib import AbstractContextManager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Generator, Union
 
 import geopandas as gpd
 import pandas as pd
-from dependency_injector.providers import Callable
-from geoalchemy2.shape import from_shape
-from shapely import Point, wkb
-from sqlalchemy.orm import Session
-
 from bloom.config import settings
 from bloom.domain.vessel import Vessel
 from bloom.domain.vessels.vessel_trajectory import VesselTrajectory
 from bloom.infra.database import sql_model
 from bloom.logger import logger
+from dependency_injector.providers import Callable
+from geoalchemy2.shape import from_shape
+from shapely import Point, wkb
+from sqlalchemy.orm import Session
 
 
 class RepositoryVessel:
@@ -58,8 +57,7 @@ class RepositoryVessel:
             session.add_all(sql_vessels_positions_list)
             session.commit()
             logger.info(
-                f"{len(sql_vessels_positions_list)} "
-                f"positions have been saved in base.",
+                f"{len(sql_vessels_positions_list)} " f"positions have been saved in base.",
             )
 
     @staticmethod
@@ -69,96 +67,6 @@ class RepositoryVessel:
             ship_name=sql_vessel.ship_name,
             IMO=sql_vessel.IMO,
             mmsi=sql_vessel.mmsi,
-        )
-
-    @staticmethod
-    def map_json_vessel_to_sql_spire(
-        vessel: str,
-        vessel_id: int,
-        timestamp: datetime,
-    ) -> sql_model.VesselPositionSpire:
-        return sql_model.VesselPositionSpire(
-            timestamp=timestamp,
-            ship_name=vessel["staticData"]["name"],
-            IMO=vessel["staticData"]["imo"],
-            vessel_id=vessel_id,
-            mmsi=vessel["staticData"]["mmsi"],
-            last_position_time=(
-                vessel["lastPositionUpdate"]["timestamp"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            position=(
-                from_shape(
-                    Point(
-                        vessel["lastPositionUpdate"]["longitude"],
-                        vessel["lastPositionUpdate"]["latitude"],
-                    ),
-                    srid=settings.srid,
-                )
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            speed=(
-                vessel["lastPositionUpdate"]["speed"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            navigation_status=(
-                vessel["lastPositionUpdate"]["navigationalStatus"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            vessel_length=(
-                vessel["staticData"]["dimensions"]["width"]
-                if vessel["staticData"]["dimensions"] is not None
-                else None
-            ),
-            vessel_width=(
-                vessel["staticData"]["dimensions"]["length"]
-                if vessel["staticData"]["dimensions"] is not None
-                else None
-            ),
-            voyage_destination=(
-                vessel["currentVoyage"]["destination"]
-                if vessel["currentVoyage"] is not None
-                else None
-            ),
-            voyage_draught=(
-                vessel["currentVoyage"]["draught"]
-                if vessel["currentVoyage"] is not None
-                else None
-            ),
-            voyage_eta=(
-                vessel["currentVoyage"]["eta"]
-                if vessel["currentVoyage"] is not None
-                else None
-            ),
-            accuracy=(
-                vessel["lastPositionUpdate"]["accuracy"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            position_sensors=(
-                vessel["lastPositionUpdate"]["collectionType"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            course=(
-                vessel["lastPositionUpdate"]["course"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            heading=(
-                vessel["lastPositionUpdate"]["heading"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
-            rot=(
-                vessel["lastPositionUpdate"]["rot"]
-                if vessel["lastPositionUpdate"] is not None
-                else None
-            ),
         )
 
     def get_all_positions(
@@ -176,12 +84,19 @@ class RepositoryVessel:
         else:
             return []
 
+    def get_all_spire_vessels_position(
+        self,
+        session: Session,
+        batch_size: int,
+    ) -> Generator[sql_model.VesselPositionSpire, None, None]:
+        yield from session.query(sql_model.VesselPositionSpire).yield_per(batch_size)
+
     def get_vessel_trajectory(
         self,
         mmsi: str,
         as_trajectory: bool = True,
-    ) -> Union[ Point, None ]:
-        def convert_wkb_to_point(x: Any) -> Union[ Point, None ]:
+    ) -> Union[Point, None]:
+        def convert_wkb_to_point(x: Any) -> Union[Point, None]:
             try:
                 point = wkb.loads(bytes(x.data))
                 return point  # noqa: TRY300
@@ -190,32 +105,34 @@ class RepositoryVessel:
 
         with self.session_factory() as session:
             vessel = session.query(sql_model.Vessel).filter_by(mmsi=mmsi).first()
-            positions = (
-                self.get_all_positions(mmsi, session) if vessel is not None else []
-            )
+            positions = self.get_all_positions(mmsi, session) if vessel is not None else []
 
         if not positions:
             # Create empty dataframe with expected columns when vessel has no trajectory
-            df = pd.DataFrame(columns=["timestamp",
-                                       "ship_name",
-                                       "IMO",
-                                       "vessel_id",
-                                       "mmsi",
-                                       "last_position_time",
-                                        "position",
-                                        "speed",
-                                        "navigation_status",
-                                        "vessel_length",
-                                        "vessel_width",
-                                        "voyage_destination",
-                                        "voyage_draught",
-                                        "voyage_eta",
-                                        "accuracy",
-                                        "position_sensors",
-                                        "course",
-                                        "heading",
-                                        "rot"])
-            df = df.astype({"timestamp": 'datetime64[ms]'})
+            df = pd.DataFrame(
+                columns=[
+                    "timestamp",
+                    "ship_name",
+                    "IMO",
+                    "vessel_id",
+                    "mmsi",
+                    "last_position_time",
+                    "position",
+                    "speed",
+                    "navigation_status",
+                    "vessel_length",
+                    "vessel_width",
+                    "voyage_destination",
+                    "voyage_draught",
+                    "voyage_eta",
+                    "accuracy",
+                    "position_sensors",
+                    "course",
+                    "heading",
+                    "rot",
+                ]
+            )
+            df = df.astype({"timestamp": "datetime64[ms]"})
         else:
             df = (
                 pd.DataFrame([p.__dict__ for p in positions])
@@ -228,9 +145,9 @@ class RepositoryVessel:
 
         # With CRS 4326, the coordinates are reversed
         # Temporary fix
-        #df.loc[df["timestamp"] <= "2023-06-28 14:44:00", "geometry"] = df[
+        # df.loc[df["timestamp"] <= "2023-06-28 14:44:00", "geometry"] = df[
         #    "geometry"
-        #].apply(lambda point: Point(point.y, point.x))
+        # ].apply(lambda point: Point(point.y, point.x))
 
         df["is_fishing"] = df["navigation_status"] == "ENGAGED_IN_FISHING"
 
@@ -244,9 +161,7 @@ class RepositoryVessel:
         df["voyage_id"] = condition.cumsum()
 
         positions = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
-        metadata = {
-            k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"
-        }
+        metadata = {k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"}
 
         if as_trajectory:
             trajectory = VesselTrajectory(metadata, positions)

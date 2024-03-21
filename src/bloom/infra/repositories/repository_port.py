@@ -1,17 +1,19 @@
+# For python 3.9 syntax compliance
+from typing import Union
+
 from bloom.domain.port import Port
 from bloom.infra.database.sql_model import Port as OrmPort
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon
+from sqlalchemy.orm import Session
 
-# For python 3.9 syntax compliance
-from typing import Union
 
 class PortRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def get_port_by_id(self, port_id: int) -> Union[Port , None]:
+    def get_port_by_id(self, port_id: int) -> Union[Port, None]:
         with self.session_factory() as session:
             entity = session.get(OrmPort, port_id)
             if entity is not None:
@@ -26,22 +28,25 @@ class PortRepository:
                 return []
             return [self.map_to_domain(entity) for entity in q]
 
-    def update_geometry_buffer(self, port_id: int, buffer: Polygon) -> Port:
-        with self.session_factory() as session:
-            entity = session.query(OrmPort).get(port_id)
-            entity.geometry_buffer = from_shape(buffer)
-            session.commit()
-            if entity is not None:
-                return self.map_to_domain(entity)
-            else:
-                return None
+    def update_geometry_buffer(self, port_id: int, buffer: Polygon, session: Session) -> Port:
+        entity = session.query(OrmPort).get(port_id)
+        entity.geometry_buffer = from_shape(buffer)
+        if entity is not None:
+            return self.map_to_domain(entity)
+        else:
+            return None
 
     def create_port(self, port: Port) -> Port:
-        orm_port = self.map_to_sql(port)
+        orm_port = PortRepository.map_to_sql(port)
         with self.session_factory() as session:
             session.add(orm_port)
             session.commit()
             return self.map_to_domain(orm_port)
+
+    def batch_create_port(self, ports: list[Port], session: Session) -> list[Port]:
+        orm_list = [PortRepository.map_to_sql(port) for port in ports]
+        session.add_all(orm_list)
+        return [PortRepository.map_to_domain(orm) for orm in orm_list]
 
     @staticmethod
     def map_to_domain(orm_port: OrmPort) -> Port:

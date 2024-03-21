@@ -1,8 +1,15 @@
 from typing import Any
-
+from bloom.domain.spire_ais_data import SpireAisData
 from gql import Client, gql
 
 from bloom.logger import logger
+
+
+def map_raw_vessels_to_domain(raw_vessels: list[dict[str, Any]]) -> list[SpireAisData]:
+    spire_ais_data = []
+    for vessel in raw_vessels:
+        spire_ais_data.append(SpireAisData.map_from_spire(vessel["updateTimestamp"], vessel))
+    return spire_ais_data
 
 
 class Paging:
@@ -35,7 +42,7 @@ class Paging:
         self,
         client: Client,
         query: str,
-    ) -> dict[str, Any]:
+    ) -> list[dict[str, Any]]:
         """
         Args:
             client: gql client
