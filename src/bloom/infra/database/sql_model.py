@@ -16,24 +16,31 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    ForeignKey,
 )
 from sqlalchemy.sql import func
 
 
 class Vessel(Base):
-    __tablename__ = "vessels"
-    id = Column("id", Integer, primary_key=True, index=True)
-    country_iso3 = Column(String)
-    cfr = Column(String)
-    IMO = Column(String, index=True, nullable=False)
-    registration_number = Column(String)
-    external_marking = Column(String)
-    ship_name = Column(String)
-    ircs = Column(String)
-    mmsi = Column(String)
-    loa = Column(Float)
-    type = Column(String)
-    mt_activated = Column(Boolean)
+    __tablename__ = "dim_vessel"
+    id = Column("id", Integer, primary_key=True)
+    mmsi = Column("mmsi", Integer, unique=True)
+    ship_name = Column("ship_name", String, nullable=False)
+    width = Column("width", Double)
+    length = Column("length", Double)
+    country_iso3 = Column("country_iso3", String, nullable=False)
+    type = Column("type", String)
+    imo = Column("imo", Integer)
+    cfr = Column("cfr", String)
+    registration_number = Column("registration_number", String)
+    external_marking = Column("external_marking", String)
+    ircs = Column("ircs", String)
+    mt_activated = Column("mt_activated", Boolean, nullable=False)
+    home_port_id = Column("home_port_id", Integer, ForeignKey("dim_port.id"))
+    created_at = Column(
+        "created_at", DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 
 
 class VesselPositionSpire(Base):
