@@ -46,7 +46,10 @@ def upgrade() -> None:
         ),
         sa.Column("has_excursion", sa.Boolean, default=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=func.now()
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=func.now(),
         ),
         sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=func.now()),
     )

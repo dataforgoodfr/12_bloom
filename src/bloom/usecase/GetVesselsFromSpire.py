@@ -3,7 +3,6 @@ from typing import Any
 from bloom.config import settings
 from bloom.domain.vessel import Vessel
 from bloom.infra.http.spire_api_utils import Paging
-from bloom.infra.repositories.repository_vessel import RepositoryVessel
 from bloom.logger import logger
 from gql import Client
 from gql.transport.requests import RequestsHTTPTransport
@@ -11,12 +10,7 @@ from requests import exceptions
 
 
 class GetVesselsFromSpire:
-    def __init__(
-        self,
-        vessel_repository: RepositoryVessel,
-    ) -> None:
-        self.vessel_repository: RepositoryVessel = vessel_repository
-
+    def __init__(self) -> None:
         spire_token = settings.spire_token
 
         self.transport = RequestsHTTPTransport(
@@ -36,7 +30,7 @@ class GetVesselsFromSpire:
         return client
 
     def create_query_string(self, vessels: list[Vessel]) -> str:
-        mmsi_list = [vessel.get_mmsi() for vessel in vessels]
+        mmsi_list = [vessel.mmsi for vessel in vessels]
 
         return (
             """
@@ -64,12 +58,7 @@ class GetVesselsFromSpire:
                         shipSubType
                         mmsi
                         imo
-                        callsign
                         dimensions {
-                            a
-                            b
-                            c
-                            d
                             width
                             length
                         }
