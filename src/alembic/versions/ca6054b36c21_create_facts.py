@@ -10,7 +10,6 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import func
 
-
 # revision identifiers, used by Alembic.
 revision = "ca6054b36c21"
 down_revision = "4d475167ca65"
@@ -32,11 +31,11 @@ def upgrade() -> None:
         sa.Column("excursion_duration", sa.Interval),
         sa.Column("total_time_at_sea", sa.Interval),
         sa.Column("total_time_in_amp", sa.Interval),
-        sa.Column("total_time_in_territoral_waters", sa.Interval),
+        sa.Column("total_time_in_territorial_waters", sa.Interval),
         sa.Column("total_time_in_costal_waters", sa.Interval),
         sa.Column("total_time_fishing", sa.Interval),
         sa.Column("total_time_fishing_in_amp", sa.Interval),
-        sa.Column("total_time_fishing_in_territoral_waters", sa.Interval),
+        sa.Column("total_time_fishing_in_territorial_waters", sa.Interval),
         sa.Column("total_time_fishing_in_costal_waters", sa.Interval),
         sa.Column("total_time_extincting_amp", sa.Interval),
         sa.Column(
@@ -69,8 +68,8 @@ def upgrade() -> None:
         sa.Column("heading", sa.Double),
         sa.Column("distance", sa.Double),
         sa.Column("average_speed", sa.Double),
-        sa.Column("speed_at_start", sa.Double),
-        sa.Column("speed_at_end", sa.Double),
+        # sa.Column("speed_at_start", sa.Double),
+        # sa.Column("speed_at_end", sa.Double),
         sa.Column("type", sa.String),
         sa.Column("in_amp_zone", sa.Boolean),
         sa.Column("in_territorial_waters", sa.Boolean),

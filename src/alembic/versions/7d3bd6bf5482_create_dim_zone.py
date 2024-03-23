@@ -8,7 +8,6 @@ Create Date: 2024-03-22 22:21:41.210821
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.sql import func
 from geoalchemy2 import Geometry
 from sqlalchemy.sql import func
 from bloom.config import settings
