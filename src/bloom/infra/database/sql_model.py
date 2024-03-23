@@ -11,6 +11,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Interval,
     Double,
     Float,
     Integer,
@@ -19,6 +20,7 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class Vessel(Base):
@@ -139,8 +141,8 @@ class MPA(Base):
                     "color": color,
                 },
                 tooltip=f"Protected area : {self.name}, "
-                f"IUCN category :{self.iucn_category} "
-                f"{self.protected_area_category}",
+                        f"IUCN category :{self.iucn_category} "
+                        f"{self.protected_area_category}",
             ).add_to(m)
 
         else:
@@ -198,3 +200,118 @@ class SpireAisData(Base):
     voyage_timestamp = Column("voyage_timestamp", DateTime(timezone=True))
     voyage_update_timestamp = Column("voyage_update_timestamp", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
+
+class Zone(Base):
+    __tablename__ = "dim_zone"
+    id = Column("id", Integer, primary_key=True)
+    category = Column("category", String, nullable=False)
+    sub_category = Column("sub_category", String)
+    name = Column("name", String, nullable=False)
+    geometry = Column("geometry", Geometry(geometry_type="POLYGON", srid=settings.srid))
+    centroid = Column("centroid", Geometry(geometry_type="POINT", srid=settings.srid))
+    json_data = Column("json_data", JSONB)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
+
+class WhiteZone(Base):
+    __tablename__ = "dim_white_zone",
+    id = Column("id", Integer, primary_key=True)
+    geometry = Column("geometry", Geometry(geometry_type="POLYGON", srid=settings.srid))
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+
+
+class VesselPosition(Base):
+    __tablename__ = "vessel_positions",
+    id = Column("id", Integer, primary_key=True)
+    timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
+    accuracy = Column("accuracy", String)
+    collection_type = Column("collection_type", String)
+    course = Column("course", Double)
+    heading = Column("heading", Double)
+    position = Column("position", Geometry(geometry_type="POINT", srid=settings.srid), nullable=False)
+    latitude = Column("latitude", Double)
+    longitude = Column("longitude", Double)
+    maneuver = Column("maneuver", String)
+    navigational_status = Column("navigational_status", String)
+    rot = Column("rot", Double)
+    speed = Column("speed", Double)
+    vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
+
+class VesselData(Base):
+    __tablename__ = "vessel_data"
+    id = Column("id", Integer, primary_key=True)
+    timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
+    ais_class = Column("ais_class", String)
+    flag = Column("flag", String)
+    name = Column("name", String)
+    callsign = Column("callsign", String)
+    ship_type = Column("ship_type", String)
+    sub_ship_type = Column("sub_ship_type", String)
+    mmsi = Column("mmsi", Integer)
+    imo = Column("imo", Integer)
+    width = Column("width", Integer)
+    length = Column("length", Integer)
+    vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
+
+class VesselVoyage(Base):
+    __tablename__ = "vessel_voyage"
+    id = Column("id", Integer, primary_key=True)
+    timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
+    destination = Column("destination", String)
+    draught = Column("draught", Double)
+    eta = Column("eta", DateTime(timezone=True))
+    vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
+
+class Excursion(Base):
+    __tablename__ = "fct_excursion"
+    id = Column("id", Integer, primary_key=True)
+    vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
+    departure_port_id = Column("departure_port_id", Integer, ForeignKey("dim_port.id"))
+    departure_at = Column("departure_at", DateTime(timezone=True))
+    departure_position_id = Column("departure_position_id", Integer, ForeignKey("vessel_positions.id"))
+    arrival_port_id = Column("arrival_port_id", Integer, ForeignKey("dim_port.id"))
+    arrival_at = Column("arrival_at", DateTime(timezone=True))
+    arrival_position_id = Column("arrival_position_id", Integer, ForeignKey("vessel_positions.id"))
+    excursion_duration = Column("excursion_duration", Interval)
+    total_time_at_sea = Column("total_time_at_sea", Interval)
+    total_time_in_amp = Column("total_time_in_amp", Interval)
+    total_time_in_territorial_waters = Column("total_time_in_territorial_waters", Interval)
+    total_time_in_costal_waters = Column("total_time_in_costal_waters", Interval)
+    total_time_fishing = Column("total_time_fishing", Interval)
+    total_time_fishing_in_amp = Column("total_time_fishing_in_amp", Interval)
+    total_time_fishing_in_territorial_waters = Column("total_time_fishing_in_territorial_waters", Interval)
+    total_time_fishing_in_costal_waters = Column("total_time_fishing_in_costal_waters", Interval)
+    total_time_extincting_amp = Column("total_time_extincting_amp", Interval)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+
+
+class Segment(Base):
+    __tablename__ = "fct_segment",
+    id = Column("id", Integer, primary_key=True)
+    excursion_id = Column("excursion_id", Integer, ForeignKey("fct_excursion.id"), nullable=False)
+    timestamp_start = Column("timestamp_start", DateTime(timezone=True))
+    timestamp_end = Column("timestamp_end", DateTime(timezone=True))
+    segment_duration = Column("segment_duration", Interval)
+    start_position_id = Column("start_position_id", Integer, ForeignKey("vessel_positions.id"))
+    end_position_id = Column("end_position_id", Integer, ForeignKey("vessel_positions.id"))
+    heading = Column("heading", Double)
+    distance = Column("distance", Double)
+    average_speed = Column("average_speed", Double)
+    # speed_at_start = Column("speed_at_start", Double)
+    # speed_at_end = Column("speed_at_end", Double)
+    type = Column("type", String)
+    in_amp_zone = Column("in_amp_zone", Boolean)
+    in_territorial_waters = Column("in_territorial_waters", Boolean)
+    in_costal_waters = Column("in_costal_waters", Boolean)
+    last_vessel_segment = Column("last_vessel_segment", Boolean)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
