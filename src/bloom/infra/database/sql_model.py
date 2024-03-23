@@ -11,16 +11,16 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
-    Interval,
     Double,
     Float,
+    ForeignKey,
     Integer,
+    Interval,
     String,
     Text,
-    ForeignKey,
 )
-from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql import func
 
 
 class Vessel(Base):
@@ -40,7 +40,7 @@ class Vessel(Base):
     mt_activated = Column("mt_activated", Boolean, nullable=False)
     home_port_id = Column("home_port_id", Integer, ForeignKey("dim_port.id"))
     created_at = Column(
-        "created_at", DateTime(timezone=True), nullable=False, server_default=func.now()
+        "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 
@@ -208,7 +208,7 @@ class Zone(Base):
     category = Column("category", String, nullable=False)
     sub_category = Column("sub_category", String)
     name = Column("name", String, nullable=False)
-    geometry = Column("geometry", Geometry(geometry_type="POLYGON", srid=settings.srid))
+    geometry = Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid))
     centroid = Column("centroid", Geometry(geometry_type="POINT", srid=settings.srid))
     json_data = Column("json_data", JSONB)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
@@ -217,7 +217,7 @@ class Zone(Base):
 class WhiteZone(Base):
     __tablename__ = "dim_white_zone",
     id = Column("id", Integer, primary_key=True)
-    geometry = Column("geometry", Geometry(geometry_type="POLYGON", srid=settings.srid))
+    geometry = Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 

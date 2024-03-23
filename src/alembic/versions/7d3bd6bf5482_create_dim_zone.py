@@ -6,12 +6,12 @@ Create Date: 2024-03-22 22:21:41.210821
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-from geoalchemy2 import Geometry
-from sqlalchemy.sql import func
+from alembic import op
 from bloom.config import settings
+from geoalchemy2 import Geometry
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
 revision = "7d3bd6bf5482"
@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("category", sa.String, nullable=False),
         sa.Column("sub_category", sa.String),
         sa.Column("name", sa.String, nullable=False),
-        sa.Column("geometry", Geometry(geometry_type="POLYGON", srid=settings.srid)),
+        sa.Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid)),
         sa.Column("centroid", Geometry(geometry_type="POINT", srid=settings.srid)),
         sa.Column("json_data", JSONB),
         sa.Column(

@@ -5,6 +5,7 @@ from bloom.infra.repositories.repository_port import PortRepository
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepository
 from bloom.infra.repositories.repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from bloom.usecase.GetVesselsFromSpire import GetVesselsFromSpire
 from dependency_injector import containers, providers
@@ -35,6 +36,11 @@ class UseCases(containers.DeclarativeContainer):
 
     port_repository = providers.Factory(
         PortRepository,
+        session_factory=db.provided.session,
+    )
+
+    zone_repository = providers.Factory(
+        ZoneRepository,
         session_factory=db.provided.session,
     )
 

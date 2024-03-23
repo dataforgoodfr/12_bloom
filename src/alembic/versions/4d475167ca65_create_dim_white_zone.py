@@ -6,12 +6,11 @@ Create Date: 2024-03-22 22:44:53.858393
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+from bloom.config import settings
 from geoalchemy2 import Geometry
 from sqlalchemy.sql import func
-from bloom.config import settings
-
 
 # revision identifiers, used by Alembic.
 revision = "4d475167ca65"
@@ -24,7 +23,7 @@ def upgrade() -> None:
     op.create_table(
         "dim_white_zone",
         sa.Column("id", sa.Integer, sa.Identity(), primary_key=True),
-        sa.Column("geometry", Geometry(geometry_type="POLYGON", srid=settings.srid)),
+        sa.Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid)),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
