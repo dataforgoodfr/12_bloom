@@ -5,8 +5,6 @@ import pandas as pd
 import pyproj
 from bloom.config import settings
 from bloom.container import UseCases
-from bloom.domain.port import Port
-from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from shapely.geometry import Polygon
 
@@ -39,10 +37,10 @@ def run() -> None:
     use_cases = UseCases()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
-    total = 0
-    ports = port_repository.get_empty_geometry_buffer_ports()
-    if ports != []:
-        try:
+    items = []
+    with db.session() as session:
+        ports = port_repository.get_empty_geometry_buffer_ports(session)
+        if ports:
             df = pd.DataFrame(
                 [[p.id, p.geometry_point, p.latitude, p.longitude] for p in ports],
                 columns=["id", "geometry_point", "latitude", "longitude"],
@@ -59,14 +57,11 @@ def run() -> None:
                 ),
                 axis=1,
             )
-            with db.session() as session:
-                for row in gdf.itertuples():
-                    port_repository.update_geometry_buffer(row.id, row.geometry_buffer, session)
-                    total += 1
-                session.commit()
-        except DBException as e:
-            logger.error("Erreur de mise à jour en base")
-    logger.info(f"{total} buffer de ports mis à jour")
+            for row in gdf.itertuples():
+                items.append({"id": row.id, "geometry_buffer": row.geometry_buffer})
+            port_repository.batch_update_geometry_buffer(items, session)
+            session.commit()
+    logger.info(f"{len(items)} buffer de ports mis à jour")
 
 
 if __name__ == "__main__":
