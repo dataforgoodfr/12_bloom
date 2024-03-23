@@ -50,6 +50,7 @@ def upgrade() -> None:
     op.create_index(
         "i_fct_excursion_created_updated", "fct_excursion", ["created_at", "updated_at"]
     )
+    op.create_index("i_fct_excursion_arrival_at", "fct_excursion", ["arrival_at"])
 
     op.create_table(
         "fct_segment",
