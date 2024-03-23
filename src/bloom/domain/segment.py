@@ -8,22 +8,19 @@ from typing import Union
 
 class Excursion(BaseModel):
     id: int | None = None
-    vessel_id: int
-    departure_port_id: Union[int, None] = None
-    departure_at: Union[datetime, None] = None
-    departure_position_id: int
-    arrival_port_id: Union[int, None] = None
-    arrival_at: Union[datetime, None] = None
-    arrival_position_id: int
-    excursion_duration: Union[timedelta, None] = None
-    total_time_at_sea: Union[timedelta, None] = None
-    total_time_in_amp: Union[timedelta, None] = None
-    total_time_in_territorial_waters: Union[timedelta, None] = None
-    total_time_in_costal_waters: Union[timedelta, None] = None
-    total_time_fishing: Union[timedelta, None] = None
-    total_time_fishing_in_amp: Union[timedelta, None] = None
-    total_time_fishing_in_territorial_waters: Union[timedelta, None] = None
-    total_time_fishing_in_costal_waters: Union[timedelta, None] = None
-    total_time_extincting_amp: Union[timedelta, None] = None
+    excursion_id: int
+    timestamp_start: Union[datetime, None] = None
+    timestamp_end: Union[datetime, None] = None
+    segment_duration: Union[timedelta, None] = None
+    start_position_id: Union[int, None] = None
+    end_position_id: Union[int, None] = None
+    heading: Union[float | None] = None
+    distance: Union[float | None] = None
+    average_speed: Union[float | None] = None
+    type: Union[str | None] = None
+    in_amp_zone: Union[bool | None] = None
+    in_territorial_waters: Union[bool | None] = None
+    in_costal_waters: Union[bool | None] = None
+    last_vessel_segment: Union[bool | None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
