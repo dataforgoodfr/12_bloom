@@ -1,7 +1,5 @@
 from tasks.base import BaseTask
 
-
-import logging
 from pathlib import Path
 
 import geopandas as gpd
@@ -11,7 +9,7 @@ from sqlalchemy import create_engine
 from bloom.config import settings
 
 class LoadVesselPositionsDataTask(BaseTask):
-    def run(self):
+    def run(self,*args,**kwargs):
         engine = create_engine(settings.db_url)
 
         df = pd.read_csv(
