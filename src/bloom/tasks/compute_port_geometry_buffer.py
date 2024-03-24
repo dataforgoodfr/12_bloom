@@ -6,11 +6,10 @@ import pyproj
 import shapely
 from bloom.config import settings
 from bloom.container import UseCases
-from bloom.domain.port import Port
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
-from shapely.geometry import Polygon, LineString
 from scipy.spatial import Voronoi
+from shapely.geometry import LineString, Polygon
 
 radius_m = 3000  # Radius in meters
 resolution = 10  # Number of points in the resulting polygon
@@ -35,6 +34,7 @@ def geodesic_point_buffer(lat: float, lon: float, radius_m: int, resolution: int
         circle_points.append((lon2, lat2))
     # Create a polygon from these points
     return Polygon(circle_points)
+
 
 def assign_voronoi_buffer(ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Computes a buffer around each port such as buffers do not overlap each other
@@ -81,7 +81,7 @@ def assign_voronoi_buffer(ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     # Get intersection between fixed-size buffer and Voronoi polygon to get final buffer
     vor_ports["geometry_buffer"] = vor_ports.apply(
-        lambda row: shapely.intersection(row["buffer"], row["voronoi_poly"]), 
+        lambda row: shapely.intersection(row["buffer"], row["voronoi_poly"]),
         axis=1
     )
     vor_ports["buffer_voronoi"] = vor_ports["geometry_buffer"].copy()
@@ -90,9 +90,6 @@ def assign_voronoi_buffer(ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     return vor_ports
 
-def write_polygon_buffers_to_csv(gdf: gpd.GeoDataFrame):
-    gdf["geometry_buffer"] = gdf["geometry_buffer"].apply(lambda g: g.wkt)
-    gdf.to_csv("data/ports_voronoi_buffer.csv", index=False)
 
 def run() -> None:
     use_cases = UseCases()
@@ -117,8 +114,6 @@ def run() -> None:
                     port_repository.update_geometry_buffer(row.id, row.geometry_buffer, session)
                     total += 1
                 session.commit()
-
-            write_polygon_buffers_to_csv(gdf)
 
         except DBException as e:
             logger.error("Erreur de mise à jour en base")
