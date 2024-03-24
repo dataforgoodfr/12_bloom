@@ -56,7 +56,9 @@ def upgrade() -> None:
 
     op.create_index("i_spire_ais_data_vessel_timesamp", "spire_ais_data", ["vessel_timestamp"])
     op.create_index(
-        "i_spire_ais_data_position_timesamp", "spire_ais_data", ["position_timestamp"]
+        "i_spire_ais_data_position_timesamp",
+        "spire_ais_data",
+        ["position_timestamp"],
     )
     op.create_index("i_spire_ais_data_voyage_timesamp", "spire_ais_data", ["voyage_timestamp"])
 

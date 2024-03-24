@@ -1,31 +1,52 @@
 from bloom.domain.spire_ais_data import SpireAisData
-from bloom.infra.database.sql_model import SpireAisData as OrmSpireAisData
+from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from datetime import datetime
 
 
 class SpireAisDataRepository:
+    ORDER_BY_VESSEL = "vessel"
+    ORDER_BY_POSITION = "position"
+    ORDER_BY_VOYAGE = "VOYAGE"
+
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def create_ais_data(self, ais_data: SpireAisData) -> OrmSpireAisData:
-        with self.session_factory() as session:
-            sql_ais_data = SpireAisDataRepository.map_to_orm(ais_data)
-            session.add(sql_ais_data)
-            session.commit()
-            return SpireAisDataRepository.map_to_domain(sql_ais_data)
+    def create_ais_data(self, ais_data: SpireAisData, session: Session) -> sql_model.SpireAisData:
+        sql_ais_data = SpireAisDataRepository.map_to_orm(ais_data)
+        session.add(sql_ais_data)
+        return SpireAisDataRepository.map_to_domain(sql_ais_data)
 
     def batch_create_ais_data(
-        self, ais_list: list[SpireAisData], session: Session
+            self, ais_list: list[SpireAisData], session: Session
     ) -> list[SpireAisData]:
         orm_list = [SpireAisDataRepository.map_to_orm(ais) for ais in ais_list]
         session.add_all(orm_list)
         return [SpireAisDataRepository.map_to_domain(orm) for orm in orm_list]
 
-    def map_to_orm(data: SpireAisData) -> OrmSpireAisData:
-        return OrmSpireAisData(**data.__dict__)
+    def get_all_data_by_mmsi(self, session: Session, mmsi: int, order_by: str = None,
+                             created_updated_after: datetime = None) -> list[SpireAisData]:
+        stmt = select(sql_model.SpireAisData).where(sql_model.SpireAisData.vessel_mmsi == mmsi)
+        if created_updated_after:
+            stmt = stmt.where(sql_model.SpireAisData.created_at >= created_updated_after)
 
-    def map_to_domain(orm_data: OrmSpireAisData) -> SpireAisData:
+        if order_by == SpireAisDataRepository.ORDER_BY_VESSEL:
+            stmt = stmt.order_by(sql_model.SpireAisData.vessel_timestamp.asc())
+        elif order_by == SpireAisDataRepository.ORDER_BY_POSITION:
+            stmt = stmt.order_by(sql_model.SpireAisData.position_timestamp.asc())
+        elif order_by == SpireAisDataRepository.ORDER_BY_VOYAGE:
+            stmt = stmt.order_by(sql_model.SpireAisData.voyage_timestamp.asc())
+        result = session.execute(stmt).scalars()
+        return [SpireAisDataRepository.map_to_domain(e) for e in result]
+
+    @staticmethod
+    def map_to_orm(data: SpireAisData) -> sql_model.SpireAisData:
+        return sql_model.SpireAisData(**data.__dict__)
+
+    @staticmethod
+    def map_to_domain(orm_data: sql_model.SpireAisData) -> SpireAisData:
         return SpireAisData(
             id=orm_data.id,
             spire_update_statement=orm_data.spire_update_statement,

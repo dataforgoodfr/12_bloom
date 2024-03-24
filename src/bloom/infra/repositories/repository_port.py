@@ -1,62 +1,80 @@
 # For python 3.9 syntax compliance
-from typing import Union, List
+from typing import Union, List, Any
 
 from bloom.domain.port import Port
-from bloom.infra.database.sql_model import Port as OrmPort
+from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon
 from sqlalchemy.orm import Session
+from sqlalchemy import select, update, or_
+from shapely import Point
+from sqlalchemy import func
+from geoalchemy2.shape import from_shape
+from bloom.config import settings
+from datetime import datetime
 
 
 class PortRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def get_port_by_id(self, port_id: int) -> Union[Port, None]:
-        with self.session_factory() as session:
-            entity = session.get(OrmPort, port_id)
-            if entity is not None:
-                return self.map_to_domain(entity)
-            else:
-                return None
-
-    def get_empty_geometry_buffer_ports(self) -> List[Port]:
-        with self.session_factory() as session:
-            q = session.query(OrmPort).filter(OrmPort.geometry_buffer == None)
-            if not q:
-                return []
-            return [self.map_to_domain(entity) for entity in q]
-        
-    def get_all_ports(self) -> List[Port]:
-        with self.session_factory() as session:
-            q = session.query(OrmPort)
-            if not q:
-                return []
-            return [self.map_to_domain(entity) for entity in q]
-
-    def update_geometry_buffer(self, port_id: int, buffer: Polygon, session: Session) -> Port:
-        entity = session.query(OrmPort).get(port_id)
-        entity.geometry_buffer = from_shape(buffer)
+    def get_port_by_id(self, session: Session, port_id: int) -> Union[Port, None]:
+        entity = session.get(sql_model.Port, port_id).scalar()
         if entity is not None:
-            return self.map_to_domain(entity)
+            return PortRepository.map_to_domain(entity)
         else:
             return None
 
-    def create_port(self, port: Port) -> Port:
-        orm_port = PortRepository.map_to_sql(port)
-        with self.session_factory() as session:
-            session.add(orm_port)
-            session.commit()
-            return self.map_to_domain(orm_port)
+    def get_all_ports(self, session: Session) -> List[Port]:
+        q = session.query(sql_model.Port)
+        if not q:
+            return []
+        return [PortRepository.map_to_domain(entity) for entity in q]
 
-    def batch_create_port(self, ports: list[Port], session: Session) -> list[Port]:
+    def get_empty_geometry_buffer_ports(self, session: Session) -> list[Port]:
+        stmt = select(sql_model.Port).where(sql_model.Port.geometry_buffer.is_(None))
+        q = session.execute(stmt).scalars()
+        if not q:
+            return []
+        return [PortRepository.map_to_domain(entity) for entity in q]
+
+    def get_ports_updated_created_after(self, session: Session, created_updated_after: datetime) -> list[Port]:
+        stmt = select(sql_model.Port).where(or_(sql_model.Port.created_at >= created_updated_after,
+                                                sql_model.Port.updated_at >= created_updated_after))
+        q = session.execute(stmt).scalars()
+        if not q:
+            return []
+        return [PortRepository.map_to_domain(entity) for entity in q]
+
+    def update_geometry_buffer(self, session: Session, port_id: int, buffer: Polygon) -> None:
+        session.execute(update(sql_model.Port), [{"id": port_id, "geometry_buffer": from_shape(buffer)}])
+
+    def batch_update_geometry_buffer(self, session: Session, id_buffers: list[dict[str, Any]]) -> None:
+        items = [{"id": item["id"], "geometry_buffer": from_shape(item["geometry_buffer"])} for item in id_buffers]
+        session.execute(update(sql_model.Port), items)
+
+    def create_port(self, session: Session, port: Port) -> Port:
+        orm_port = PortRepository.map_to_sql(port)
+        session.add(orm_port)
+        return PortRepository.map_to_domain(orm_port)
+
+    def batch_create_port(self, session: Session, ports: list[Port]) -> list[Port]:
         orm_list = [PortRepository.map_to_sql(port) for port in ports]
         session.add_all(orm_list)
         return [PortRepository.map_to_domain(orm) for orm in orm_list]
 
+    def find_port_by_position_in_port_buffer(self, session: Session, position: Point) -> Union[Port | None]:
+        stmt = select(sql_model.Port).where(
+            func.ST_contains(sql_model.Port.geometry_buffer, from_shape(position, srid=settings.srid)) == True)
+        port = session.execute(stmt).scalar()
+        if not port:
+            return None
+        else:
+            return PortRepository.map_to_domain(port)
+
     @staticmethod
-    def map_to_domain(orm_port: OrmPort) -> Port:
+    def map_to_domain(orm_port: sql_model.Port) -> Port:
         return Port(
             id=orm_port.id,
             name=orm_port.name,
@@ -75,8 +93,8 @@ class PortRepository:
         )
 
     @staticmethod
-    def map_to_sql(port: Port) -> OrmPort:
-        return OrmPort(
+    def map_to_sql(port: Port) -> sql_model.Port:
+        return sql_model.Port(
             name=port.name,
             locode=port.locode,
             url=port.url,

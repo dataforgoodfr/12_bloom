@@ -6,10 +6,11 @@ import pyproj
 import shapely
 from bloom.config import settings
 from bloom.container import UseCases
-from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from scipy.spatial import Voronoi
 from shapely.geometry import LineString, Polygon
+from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
+from datetime import datetime, timezone
 
 radius_m = 3000  # Radius in meters
 resolution = 10  # Number of points in the resulting polygon
@@ -51,13 +52,13 @@ def assign_voronoi_buffer(ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     # FIXME: maybe put the buffer distance as a global parameter
     ports["buffer"] = ports["geometry_point"].apply(lambda p: shapely.buffer(p, 8000))
 
-    # Convert points back to CRS 4326 (lat/lon) --> buffers are still expressed in 6933 
+    # Convert points back to CRS 4326 (lat/lon) --> buffers are still expressed in 6933
     ports.to_crs(settings.srid, inplace=True)
 
     # Convert buffers to 4326
     ports = gpd.GeoDataFrame(ports, geometry="buffer", crs=6933).to_crs(settings.srid)
 
-    # Create Voronoi polygons, i.e. match each port to the area which is closest to this port 
+    # Create Voronoi polygons, i.e. match each port to the area which is closest to this port
     vor = Voronoi(list(zip(ports.longitude, ports.latitude)))
     lines = []
     for line in vor.ridge_vertices:
@@ -95,10 +96,13 @@ def run() -> None:
     use_cases = UseCases()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
-    total = 0
-    ports = port_repository.get_all_ports()
-    if ports != []:
-        try:
+    items = []
+    with db.session() as session:
+        point_in_time = TaskExecutionRepository.get_point_in_time(session, "compute_port_geometry_buffer")
+        logger.info(f"Point in time={point_in_time}")
+        now = datetime.now(timezone.utc)
+        ports = port_repository.get_ports_updated_created_after(session, point_in_time)
+        if ports:
             df = pd.DataFrame(
                 [[p.id, p.geometry_point, p.latitude, p.longitude] for p in ports],
                 columns=["id", "geometry_point", "latitude", "longitude"],
@@ -108,16 +112,12 @@ def run() -> None:
             # Apply the buffer function to create buffers
             gdf = assign_voronoi_buffer(gdf)
 
-            with db.session() as session:
-                # FIXME : is it possible to write to DB by batch to speed up execution?
-                for row in gdf.itertuples():
-                    port_repository.update_geometry_buffer(row.id, row.geometry_buffer, session)
-                    total += 1
-                session.commit()
-
-        except DBException as e:
-            logger.error("Erreur de mise à jour en base")
-    logger.info(f"{total} buffer de ports mis à jour")
+            for row in gdf.itertuples():
+                items.append({"id": row.id, "geometry_buffer": row.geometry_buffer})
+            port_repository.batch_update_geometry_buffer(session, items)
+        TaskExecutionRepository.set_point_in_time(session, "compute_port_geometry_buffer", now)
+        session.commit()
+    logger.info(f"{len(items)} buffer de ports mis à jour")
 
 
 if __name__ == "__main__":

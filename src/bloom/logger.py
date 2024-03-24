@@ -11,3 +11,4 @@ handler.setFormatter(formatter)
 if not logger.handlers:
     logger.addHandler(handler)
 logger.setLevel(level=settings.logging_level)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)

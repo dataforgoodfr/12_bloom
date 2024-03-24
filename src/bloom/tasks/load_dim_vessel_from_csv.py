@@ -41,7 +41,7 @@ def run(csv_file_name: str) -> None:
         df = pd.read_csv(csv_file_name, sep=";")
         vessels = df.apply(map_to_domain, axis=1)
         with db.session() as session:
-            ports = vessel_repository.batch_create_vessel(list(vessels), session)
+            ports = vessel_repository.batch_create_vessel(session, list(vessels))
             session.commit()
             total = len(ports)
     except ValidationError as e:
