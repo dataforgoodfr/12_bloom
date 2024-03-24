@@ -10,21 +10,20 @@ from bloom.logger import logger
 from dependency_injector.providers import Callable
 from shapely import Point, wkb
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 
 class VesselRepository:
     def __init__(
-        self,
-        session_factory: Callable,
+            self,
+            session_factory: Callable,
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
     def load_vessel_metadata(self, session: Session) -> list[Vessel]:
-        e = session.query(sql_model.Vessel).filter(
-            sql_model.Vessel.mt_activated == True,  # noqa: E712
-            sql_model.Vessel.mmsi != None,  # noqa: E711
-            # sqlAlchemy doesn't tolerate is True
-        )
+        stmt = select(sql_model.Vessel).where(sql_model.Vessel.mt_activated == True).where(  # noqa: E712
+            sql_model.Vessel.mmsi.isnot(None))
+        e = session.execute(stmt).scalars()
         if not e:
             return []
         return [VesselRepository.map_to_domain(vessel) for vessel in e]
@@ -35,23 +34,12 @@ class VesselRepository:
         return [VesselRepository.map_to_domain(orm) for orm in orm_list]
 
     def load_all_vessel_metadata(self, session: Session) -> list[Vessel]:
-        e = session.query(sql_model.Vessel).filter(
-            sql_model.Vessel.mmsi != None,  # noqa: E711
-        )
+        stmt = select(sql_model.Vessel).where(sql_model.Vessel.mmsi.isnot(None))
+        e = session.execute(stmt).scalars()
+
         if not e:
             return []
         return [VesselRepository.map_to_domain(vessel) for vessel in e]
-
-    def save_spire_vessels_positions(
-        self,
-        sql_vessels_positions_list: list[sql_model.VesselPositionSpire],
-    ) -> None:
-        with self.session_factory() as session:
-            session.add_all(sql_vessels_positions_list)
-            session.commit()
-            logger.info(
-                f"{len(sql_vessels_positions_list)} " f"positions have been saved in base.",
-            )
 
     @staticmethod
     def map_to_domain(sql_vessel: sql_model.Vessel) -> Vessel:
@@ -96,9 +84,9 @@ class VesselRepository:
         )
 
     def get_all_positions(
-        self,
-        mmsi: str,
-        session: Session,
+            self,
+            mmsi: str,
+            session: Session,
     ) -> list[sql_model.VesselPositionSpire]:
         positions = (
             session.query(sql_model.VesselPositionSpire)
@@ -111,16 +99,16 @@ class VesselRepository:
             return []
 
     def get_all_spire_vessels_position(
-        self,
-        session: Session,
-        batch_size: int,
+            self,
+            session: Session,
+            batch_size: int,
     ) -> Generator[sql_model.VesselPositionSpire, None, None]:
         yield from session.query(sql_model.VesselPositionSpire).yield_per(batch_size)
 
     def get_vessel_trajectory(
-        self,
-        mmsi: str,
-        as_trajectory: bool = True,
+            self,
+            mmsi: str,
+            as_trajectory: bool = True,
     ) -> Union[Point, None]:
         def convert_wkb_to_point(x: Any) -> Union[Point, None]:
             try:
@@ -179,7 +167,7 @@ class VesselRepository:
 
         # Create a boolean Series where True represents a change from 'MOORED' to something else
         condition = (df["navigation_status"].shift() == "MOORED") & (
-            df["navigation_status"] != "MOORED"
+                df["navigation_status"] != "MOORED"
         )
 
         # Use cumsum to generate the 'voyage_id'.

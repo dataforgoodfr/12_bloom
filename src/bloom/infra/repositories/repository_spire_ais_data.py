@@ -8,23 +8,23 @@ class SpireAisDataRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def create_ais_data(self, ais_data: SpireAisData) -> OrmSpireAisData:
-        with self.session_factory() as session:
-            sql_ais_data = SpireAisDataRepository.map_to_orm(ais_data)
-            session.add(sql_ais_data)
-            session.commit()
-            return SpireAisDataRepository.map_to_domain(sql_ais_data)
+    def create_ais_data(self, ais_data: SpireAisData, session: Session) -> OrmSpireAisData:
+        sql_ais_data = SpireAisDataRepository.map_to_orm(ais_data)
+        session.add(sql_ais_data)
+        return SpireAisDataRepository.map_to_domain(sql_ais_data)
 
     def batch_create_ais_data(
-        self, ais_list: list[SpireAisData], session: Session
+            self, ais_list: list[SpireAisData], session: Session
     ) -> list[SpireAisData]:
         orm_list = [SpireAisDataRepository.map_to_orm(ais) for ais in ais_list]
         session.add_all(orm_list)
         return [SpireAisDataRepository.map_to_domain(orm) for orm in orm_list]
 
+    @staticmethod
     def map_to_orm(data: SpireAisData) -> OrmSpireAisData:
         return OrmSpireAisData(**data.__dict__)
 
+    @staticmethod
     def map_to_domain(orm_data: OrmSpireAisData) -> SpireAisData:
         return SpireAisData(
             id=orm_data.id,
