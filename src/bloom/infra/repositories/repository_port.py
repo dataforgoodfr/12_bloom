@@ -7,11 +7,12 @@ from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon
 from sqlalchemy.orm import Session
-from sqlalchemy import select, update
+from sqlalchemy import select, update, or_
 from shapely import Point
 from sqlalchemy import func
 from geoalchemy2.shape import from_shape
 from bloom.config import settings
+from datetime import datetime
 
 
 class PortRepository:
@@ -27,6 +28,14 @@ class PortRepository:
 
     def get_empty_geometry_buffer_ports(self, session: Session) -> list[Port]:
         stmt = select(sql_model.Port).where(sql_model.Port.geometry_buffer.is_(None))
+        q = session.execute(stmt).scalars()
+        if not q:
+            return []
+        return [self.map_to_domain(entity) for entity in q]
+
+    def get_ports_updated_created_after(self, session: Session, created_updated_after: datetime) -> list[Port]:
+        stmt = select(sql_model.Port).where(or_(sql_model.Port.created_at >= created_updated_after,
+                                                sql_model.Port.updated_at >= created_updated_after))
         q = session.execute(stmt).scalars()
         if not q:
             return []
