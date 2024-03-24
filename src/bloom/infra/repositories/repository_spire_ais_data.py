@@ -3,6 +3,7 @@ from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from datetime import datetime
 
 
 class SpireAisDataRepository:
@@ -25,8 +26,12 @@ class SpireAisDataRepository:
         session.add_all(orm_list)
         return [SpireAisDataRepository.map_to_domain(orm) for orm in orm_list]
 
-    def get_all_data_by_mmsi(self, session: Session, mmsi: int, order_by: str = None) -> list[SpireAisData]:
+    def get_all_data_by_mmsi(self, session: Session, mmsi: int, order_by: str = None,
+                             created_updated_after: datetime = None) -> list[SpireAisData]:
         stmt = select(sql_model.SpireAisData).where(sql_model.SpireAisData.vessel_mmsi == mmsi)
+        if created_updated_after:
+            stmt = stmt.where(sql_model.SpireAisData.created_at >= created_updated_after)
+
         if order_by == SpireAisDataRepository.ORDER_BY_VESSEL:
             stmt = stmt.order_by(sql_model.SpireAisData.vessel_timestamp.asc())
         elif order_by == SpireAisDataRepository.ORDER_BY_POSITION:
