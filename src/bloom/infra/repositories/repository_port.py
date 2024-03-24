@@ -38,8 +38,11 @@ class PortRepository:
         return [PortRepository.map_to_domain(entity) for entity in q]
 
     def get_ports_updated_created_after(self, session: Session, created_updated_after: datetime) -> list[Port]:
-        stmt = select(sql_model.Port).where(or_(sql_model.Port.created_at >= created_updated_after,
-                                                sql_model.Port.updated_at >= created_updated_after))
+        if created_updated_after is None:
+            stmt = select(sql_model.Port)
+        else:
+            stmt = select(sql_model.Port).where(or_(sql_model.Port.created_at >= created_updated_after,
+                                                    sql_model.Port.updated_at >= created_updated_after))
         q = session.execute(stmt).scalars()
         if not q:
             return []

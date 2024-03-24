@@ -15,7 +15,7 @@ class LoadPortDataTask(BaseTask):
         engine = create_engine(settings.db_url, echo=False)
 
         df = pd.read_csv(
-            settings.port_data_csv_path,
+            settings.port_polygon_data_csv_path,
             sep=";",
         )
 

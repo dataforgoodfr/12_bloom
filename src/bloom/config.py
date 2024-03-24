@@ -51,7 +51,10 @@ class Settings(BaseSettings):
                             )
                             
     amp_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/zones_subset.csv")
-    port_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/ports_rad3000_res10.csv")
+    port_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/ports.csv")
+    port_polygon_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/ports_rad3000_res10.csv")
+    port_radius_m:int = 3000    # Radius in meters
+    port_resolution:int = 10    # Number of points in the resulting polygon
     vessel_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/chalutiers_pelagiques.csv")
     
     
