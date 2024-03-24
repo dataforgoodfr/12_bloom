@@ -8,6 +8,10 @@ from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
+from shapely import Point
+from sqlalchemy import func
+from geoalchemy2.shape import from_shape
+from bloom.config import settings
 
 
 class PortRepository:
@@ -38,12 +42,21 @@ class PortRepository:
     def create_port(self, session: Session, port: Port) -> Port:
         orm_port = PortRepository.map_to_sql(port)
         session.add(orm_port)
-        return self.map_to_domain(orm_port)
+        return PortRepository.map_to_domain(orm_port)
 
     def batch_create_port(self, session: Session, ports: list[Port]) -> list[Port]:
         orm_list = [PortRepository.map_to_sql(port) for port in ports]
         session.add_all(orm_list)
         return [PortRepository.map_to_domain(orm) for orm in orm_list]
+
+    def find_port_by_position_in_port_buffer(self, session: Session, position: Point) -> Union[Port | None]:
+        stmt = select(sql_model.Port).where(
+            func.ST_contains(sql_model.Port.geometry_buffer, from_shape(position, srid=settings.srid)) == True)
+        port = session.execute(stmt).scalar()
+        if not port:
+            return None
+        else:
+            return PortRepository.map_to_domain(port)
 
     @staticmethod
     def map_to_domain(orm_port: sql_model.Port) -> Port:
