@@ -1,0 +1,92 @@
+x-common-infos:
+  # Env variables stored in a .env file at same level than docker-compose.yaml
+  environment: &common-env
+    POSTGRES_HOSTNAME: ${POSTGRES_HOSTNAME:-postgres_bloom}
+    POSTGRES_DB: ${POSTGRES_DB:-bloom_db}
+    POSTGRES_USER: ${POSTGRES_USER:-bloom_user}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bloom}
+    LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
+
+services:
+
+  postgres-14:
+    container_name: postgres_bloom_14
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+    environment:
+      <<: *common-env
+    networks:
+        - bloom_net
+    volumes:
+        - bloom-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', "pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user}"]
+      interval: 100ms
+      timeout: 14s
+      retries: 140
+      start_period: 0s
+      
+  
+  postgres-16:
+    container_name: postgres_16
+    image: ${POSTGIS_IMAGE:-postgis/postgis:16}
+    environment:
+      <<: *common-env
+    networks:
+        - bloom_net
+    healthcheck:
+      test: ['CMD-SHELL', "pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user}"]
+      interval: 100ms
+      timeout: 14s
+      retries: 140
+      start_period: 0s
+
+
+  dump-postgres-16:
+    container_name: migrate_from_14
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
+    environment:
+      <<: *common-env
+    networks:
+        - bloom_net
+    volumes:
+        #- bloom-data-migration-14:/var/lib/postgresql
+        - ./data/migration:/migration
+    command: >
+        sh -c "
+            for i in 1 2 3; do pg_isready -U ${POSTGRES_USER} --dbname ${POSTGRES_DB} --host postgres-16 && break || sleep 5; done
+            export PGPASSWORD=${POSTGRES_PASSWORD}
+            pg_dump --host postgres-14 -U ${POSTGRES_USER} --dbname ${POSTGRES_DB} > /migration/dump-16.sql
+            "
+    depends_on:
+      postgres-16:
+        condition: service_healthy
+   
+  downgrade-postgres-14:
+    container_name: downgrade_postgres_14
+    image: ${POSTGIS_IMAGE:-postgis/postgis:14}
+    environment:
+      <<: *common-env
+    networks:
+        - bloom_net
+    volumes:
+        - bloom-postgres:/var/lib/postgresql
+        - ./data/migration:/migration
+    command: >
+        sh -c "
+            for i in 1 2 3; do pg_isready -U ${POSTGRES_USER} --dbname ${POSTGRES_DB} --host postgres-14 && break || sleep 5; done
+            export PGPASSWORD=${POSTGRES_PASSWORD}
+            psql --host postgres-14 -U ${POSTGRES_USER} --dbname ${POSTGRES_DB} < /migration/dump-16.sql
+            "
+    depends_on:
+      postgres-14:
+        condition: service_healthy
+      dump-postgres-16:
+        condition: service_completed_successfully
+
+networks:
+  bloom_net:
+    name: bloom_net
+    
+volumes:
+    bloom-data-migration-share:
+    bloom-postgres:
