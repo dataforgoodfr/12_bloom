@@ -215,7 +215,7 @@ class Zone(Base):
 
 
 class WhiteZone(Base):
-    __tablename__ = "dim_white_zone",
+    __tablename__ = "dim_white_zone"
     id = Column("id", Integer, primary_key=True)
     geometry = Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
@@ -223,7 +223,7 @@ class WhiteZone(Base):
 
 
 class VesselPosition(Base):
-    __tablename__ = "vessel_positions",
+    __tablename__ = "vessel_positions"
     id = Column("id", Integer, primary_key=True)
     timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
     accuracy = Column("accuracy", String)
@@ -295,7 +295,7 @@ class Excursion(Base):
 
 
 class Segment(Base):
-    __tablename__ = "fct_segment",
+    __tablename__ = "fct_segment"
     id = Column("id", Integer, primary_key=True)
     excursion_id = Column("excursion_id", Integer, ForeignKey("fct_excursion.id"), nullable=False)
     timestamp_start = Column("timestamp_start", DateTime(timezone=True))
