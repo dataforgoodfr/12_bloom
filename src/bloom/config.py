@@ -49,6 +49,13 @@ class Settings(BaseSettings):
                                 default="INFO",
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
                             )
+                            
+    amp_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/zones_subset.csv")
+    port_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/ports_rad3000_res10.csv")
+    vessel_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/chalutiers_pelagiques.csv")
+    
+    
+    vessel_positions_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/spire_positions_subset.csv")
 
     @model_validator(mode='after')
     def update_db_url(self)->dict:
