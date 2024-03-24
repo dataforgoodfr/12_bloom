@@ -1,5 +1,5 @@
 # For python 3.9 syntax compliance
-from typing import Union
+from typing import Union, List
 
 from bloom.domain.port import Port
 from bloom.infra.database.sql_model import Port as OrmPort
@@ -21,9 +21,16 @@ class PortRepository:
             else:
                 return None
 
-    def get_empty_geometry_buffer_ports(self) -> list[Port]:
+    def get_empty_geometry_buffer_ports(self) -> List[Port]:
         with self.session_factory() as session:
             q = session.query(OrmPort).filter(OrmPort.geometry_buffer == None)
+            if not q:
+                return []
+            return [self.map_to_domain(entity) for entity in q]
+        
+    def get_all_ports(self) -> List[Port]:
+        with self.session_factory() as session:
+            q = session.query(OrmPort)
             if not q:
                 return []
             return [self.map_to_domain(entity) for entity in q]

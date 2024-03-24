@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Self
+from typing import Any # FIXME: Self only supported by python3.11 and onwards
 
 from pydantic import BaseModel
 from functools import reduce
@@ -41,7 +41,7 @@ class SpireAisData(BaseModel):
     voyage_update_timestamp: datetime | None
     created_at: Union[datetime, None] = None
 
-    def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]) -> Self:
+    def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]):
         def deep_get(dictionary: dict[str, Any], *keys) -> str:
             return reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
 
