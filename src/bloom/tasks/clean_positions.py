@@ -7,6 +7,8 @@ from bloom.domain.spire_ais_data import SpireAisData
 from bloom.domain.vessel import Vessel
 from bloom.domain.vessel_position import VesselPosition
 from shapely import Point
+from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
+from datetime import datetime, timezone
 
 
 def map_ais_data_to_vessel_position(ais_data: SpireAisData, vessel: Vessel) -> VesselPosition:
@@ -35,6 +37,9 @@ def run():
     vessel_position_repository = use_cases.vessel_position_repository()
     db = use_cases.db()
     with db.session() as session:
+        point_in_time = TaskExecutionRepository.get_point_in_time(session, "clean_positions")
+        logger.info(f"Point in time={point_in_time}")
+        now = datetime.now(timezone.utc)
         nb_donnees = 0
         nb_au_port = 0
         nb_pas_au_port = 0
@@ -42,8 +47,10 @@ def run():
         logger.info(f"{len(vessels)} bateaux à traiter")
         # Foreach vessel
         for vessel in vessels:
+            # Recheche des données AIS de chaque bateau créées depuis la dernière exécution du traitement (point in time)
             spire_datas = spire_ais_data_repository.get_all_data_by_mmsi(session, vessel.mmsi,
-                                                                         SpireAisDataRepository.ORDER_BY_POSITION)
+                                                                         SpireAisDataRepository.ORDER_BY_POSITION,
+                                                                         point_in_time)
             for spire_data in spire_datas:
                 nb_donnees += 1
                 # Foreach position
@@ -57,6 +64,7 @@ def run():
                     nb_au_port += 1
                 # TODO: A poursuivre, voir MIRO pour l'algorithme
                 pass
+        TaskExecutionRepository.set_point_in_time(session, "clean_positions", now)
         session.commit()
     logger.info(f"{nb_donnees} données SPIRE traitées")
     logger.info(f"{nb_au_port} données ignorées pour des bateaux au port")

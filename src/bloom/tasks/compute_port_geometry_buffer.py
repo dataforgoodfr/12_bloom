@@ -7,6 +7,8 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.logger import logger
 from shapely.geometry import Polygon
+from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
+from datetime import datetime, timezone
 
 radius_m = 3000  # Radius in meters
 resolution = 10  # Number of points in the resulting polygon
@@ -39,7 +41,11 @@ def run() -> None:
     db = use_cases.db()
     items = []
     with db.session() as session:
-        ports = port_repository.get_empty_geometry_buffer_ports(session)
+        point_in_time = TaskExecutionRepository.get_point_in_time(session, "compute_port_geometry_buffer")
+        logger.info(f"Point in time={point_in_time}")
+        now = datetime.now(timezone.utc)
+        # ports = port_repository.get_empty_geometry_buffer_ports(session)
+        ports = port_repository.get_ports_updated_created_after(session, point_in_time)
         if ports:
             df = pd.DataFrame(
                 [[p.id, p.geometry_point, p.latitude, p.longitude] for p in ports],
@@ -60,7 +66,8 @@ def run() -> None:
             for row in gdf.itertuples():
                 items.append({"id": row.id, "geometry_buffer": row.geometry_buffer})
             port_repository.batch_update_geometry_buffer(session, items)
-            session.commit()
+        TaskExecutionRepository.set_point_in_time(session, "compute_port_geometry_buffer", now)
+        session.commit()
     logger.info(f"{len(items)} buffer de ports mis à jour")
 
 
