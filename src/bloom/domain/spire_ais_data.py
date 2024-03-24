@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Self
+from typing import Any  # FIXME: Self only supported by python3.11 and onwards
 
 from pydantic import BaseModel
 from functools import reduce
@@ -8,40 +8,40 @@ from typing import Union
 
 
 class SpireAisData(BaseModel):
-    id: int | None = None
+    id: Union[int | None] = None  # noqa: UP007
     spire_update_statement: datetime
-    vessel_ais_class: str | None
-    vessel_flag: str | None
-    vessel_name: str | None
-    vessel_callsign: str | None
-    vessel_timestamp: datetime | None
-    vessel_update_timestamp: datetime | None
-    vessel_ship_type: str | None
-    vessel_sub_ship_type: str | None
-    vessel_mmsi: int | None
-    vessel_imo: int | None
-    vessel_width: int | None
-    vessel_length: int | None
-    position_accuracy: str | None
-    position_collection_type: str | None
-    position_course: float | None
-    position_heading: float | None
-    position_latitude: float | None
-    position_longitude: float | None
-    position_maneuver: str | None
-    position_navigational_status: str | None
-    position_rot: float | None
-    position_speed: float | None
-    position_timestamp: datetime | None
-    position_update_timestamp: datetime | None
-    voyage_destination: str | None
-    voyage_draught: float | None
-    voyage_eta: datetime | None
-    voyage_timestamp: datetime | None
-    voyage_update_timestamp: datetime | None
-    created_at: Union[datetime, None] = None
+    vessel_ais_class: Union[str | None] = None  # noqa: UP007
+    vessel_flag: Union[str | None] = None  # noqa: UP007
+    vessel_name: Union[str | None] = None  # noqa: UP007
+    vessel_callsign: Union[str | None] = None  # noqa: UP007
+    vessel_timestamp: Union[datetime | None] = None  # noqa: UP007
+    vessel_update_timestamp: Union[datetime | None] = None  # noqa: UP007
+    vessel_ship_type: Union[str | None] = None  # noqa: UP007
+    vessel_sub_ship_type: Union[str | None] = None  # noqa: UP007
+    vessel_mmsi: Union[int | None] = None  # noqa: UP007
+    vessel_imo: Union[int | None] = None  # noqa: UP007
+    vessel_width: Union[int | None] = None  # noqa: UP007
+    vessel_length: Union[int | None] = None  # noqa: UP007
+    position_accuracy: Union[str | None] = None  # noqa: UP007
+    position_collection_type: Union[str | None] = None  # noqa: UP007
+    position_course: Union[float | None] = None  # noqa: UP007
+    position_heading: Union[float | None] = None  # noqa: UP007
+    position_latitude: Union[float | None] = None  # noqa: UP007
+    position_longitude: Union[float | None] = None  # noqa: UP007
+    position_maneuver: Union[str | None] = None  # noqa: UP007
+    position_navigational_status: Union[str | None] = None  # noqa: UP007
+    position_rot: Union[float | None] = None  # noqa: UP007
+    position_speed: Union[float | None] = None  # noqa: UP007
+    position_timestamp: Union[datetime | None] = None  # noqa: UP007
+    position_update_timestamp: Union[datetime | None] = None  # noqa: UP007
+    voyage_destination: Union[str | None] = None  # noqa: UP007
+    voyage_draught: Union[float | None] = None  # noqa: UP007
+    voyage_eta: Union[datetime | None] = None  # noqa: UP007
+    voyage_timestamp: Union[datetime | None] = None  # noqa: UP007
+    voyage_update_timestamp: Union[datetime | None] = None  # noqa: UP007
+    created_at: Union[datetime, None] = None  # noqa: UP007
 
-    def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]) -> Self:
+    def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]):  # noqa: ANN201
         def deep_get(dictionary: dict[str, Any], *keys) -> str:
             return reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
 

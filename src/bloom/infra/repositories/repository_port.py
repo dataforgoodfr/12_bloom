@@ -1,5 +1,5 @@
 # For python 3.9 syntax compliance
-from typing import Union, Any
+from typing import Union, List, Any
 
 from bloom.domain.port import Port
 from bloom.infra.database import sql_model
@@ -22,16 +22,22 @@ class PortRepository:
     def get_port_by_id(self, session: Session, port_id: int) -> Union[Port, None]:
         entity = session.get(sql_model.Port, port_id).scalar()
         if entity is not None:
-            return self.map_to_domain(entity)
+            return PortRepository.map_to_domain(entity)
         else:
             return None
+
+    def get_all_ports(self, session: Session) -> List[Port]:
+        q = session.query(sql_model.Port)
+        if not q:
+            return []
+        return [PortRepository.map_to_domain(entity) for entity in q]
 
     def get_empty_geometry_buffer_ports(self, session: Session) -> list[Port]:
         stmt = select(sql_model.Port).where(sql_model.Port.geometry_buffer.is_(None))
         q = session.execute(stmt).scalars()
         if not q:
             return []
-        return [self.map_to_domain(entity) for entity in q]
+        return [PortRepository.map_to_domain(entity) for entity in q]
 
     def get_ports_updated_created_after(self, session: Session, created_updated_after: datetime) -> list[Port]:
         stmt = select(sql_model.Port).where(or_(sql_model.Port.created_at >= created_updated_after,
@@ -39,7 +45,7 @@ class PortRepository:
         q = session.execute(stmt).scalars()
         if not q:
             return []
-        return [self.map_to_domain(entity) for entity in q]
+        return [PortRepository.map_to_domain(entity) for entity in q]
 
     def update_geometry_buffer(self, session: Session, port_id: int, buffer: Polygon) -> None:
         session.execute(update(sql_model.Port), [{"id": port_id, "geometry_buffer": from_shape(buffer)}])
