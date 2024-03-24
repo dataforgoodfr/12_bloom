@@ -59,7 +59,7 @@ def run() -> None:
             )
             for row in gdf.itertuples():
                 items.append({"id": row.id, "geometry_buffer": row.geometry_buffer})
-            port_repository.batch_update_geometry_buffer(items, session)
+            port_repository.batch_update_geometry_buffer(session, items)
             session.commit()
     logger.info(f"{len(items)} buffer de ports mis à jour")
 

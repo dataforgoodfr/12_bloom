@@ -28,7 +28,7 @@ class VesselRepository:
             return []
         return [VesselRepository.map_to_domain(vessel) for vessel in e]
 
-    def batch_create_vessel(self, ports: list[Vessel], session: Session) -> list[Vessel]:
+    def batch_create_vessel(self, session: Session, ports: list[Vessel]) -> list[Vessel]:
         orm_list = [VesselRepository.map_to_sql(port) for port in ports]
         session.add_all(orm_list)
         return [VesselRepository.map_to_domain(orm) for orm in orm_list]

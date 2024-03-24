@@ -41,7 +41,7 @@ def run(csv_file_name: str) -> None:
         gdf = gpd.GeoDataFrame(df, geometry="geometry_point", crs=settings.srid)
         ports = gdf.apply(map_to_domain, axis=1)
         with db.session() as session:
-            ports = port_repository.batch_create_port(list(ports), session)
+            ports = port_repository.batch_create_port(session, list(ports))
             session.commit()
             total = len(ports)
     except ValidationError as e:

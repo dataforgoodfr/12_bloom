@@ -1,5 +1,5 @@
 # For python 3.9 syntax compliance
-from typing import Union
+from typing import Union, Any
 
 from bloom.domain.port import Port
 from bloom.infra.database import sql_model
@@ -14,8 +14,8 @@ class PortRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def get_port_by_id(self, port_id: int, session: Session) -> Union[Port, None]:
-        entity = session.get(sql_model.Port, port_id)
+    def get_port_by_id(self, session: Session, port_id: int) -> Union[Port, None]:
+        entity = session.get(sql_model.Port, port_id).scalar()
         if entity is not None:
             return self.map_to_domain(entity)
         else:
@@ -28,19 +28,19 @@ class PortRepository:
             return []
         return [self.map_to_domain(entity) for entity in q]
 
-    def update_geometry_buffer(self, port_id: int, buffer: Polygon, session: Session) -> None:
+    def update_geometry_buffer(self, session: Session, port_id: int, buffer: Polygon) -> None:
         session.execute(update(sql_model.Port), [{"id": port_id, "geometry_buffer": from_shape(buffer)}])
 
-    def batch_update_geometry_buffer(self, id_buffers: list[dict[int, Polygon]], session: Session) -> None:
+    def batch_update_geometry_buffer(self, session: Session, id_buffers: list[dict[str, Any]]) -> None:
         items = [{"id": item["id"], "geometry_buffer": from_shape(item["geometry_buffer"])} for item in id_buffers]
         session.execute(update(sql_model.Port), items)
 
-    def create_port(self, port: Port, session: Session) -> Port:
+    def create_port(self, session: Session, port: Port) -> Port:
         orm_port = PortRepository.map_to_sql(port)
         session.add(orm_port)
         return self.map_to_domain(orm_port)
 
-    def batch_create_port(self, ports: list[Port], session: Session) -> list[Port]:
+    def batch_create_port(self, session: Session, ports: list[Port]) -> list[Port]:
         orm_list = [PortRepository.map_to_sql(port) for port in ports]
         session.add_all(orm_list)
         return [PortRepository.map_to_domain(orm) for orm in orm_list]

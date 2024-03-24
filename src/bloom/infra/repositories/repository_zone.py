@@ -14,7 +14,7 @@ class ZoneRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def batch_create_zone(self, zones: list[Zone], session: Session) -> list[Zone]:
+    def batch_create_zone(self, session: Session, zones: list[Zone]) -> list[Zone]:
         orm_list = [ZoneRepository.map_to_orm(zone) for zone in zones]
         session.add_all(orm_list)
         return [ZoneRepository.map_to_domain(orm) for orm in orm_list]

@@ -45,7 +45,7 @@ def run(csv_file_name: str):
         df["geometry"] = df["geometry"].apply(wkb.loads)
         zones = df.apply(map_to_domain, axis=1)
         with db.session() as session:
-            zones = zone_repository.batch_create_zone(list(zones), session)
+            zones = zone_repository.batch_create_zone(session, list(zones))
             session.commit()
             total = len(zones)
             print(zones)
