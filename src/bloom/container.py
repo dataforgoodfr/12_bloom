@@ -7,6 +7,7 @@ from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepos
 from bloom.infra.repositories.repository_vessel import VesselRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.infra.repositories.repository_excursion import ExcursionRepository
+from bloom.infra.repositories.repository_vessel_position import VesselPositionRepository
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from bloom.usecase.GetVesselsFromSpire import GetVesselsFromSpire
 from dependency_injector import containers, providers
@@ -47,6 +48,11 @@ class UseCases(containers.DeclarativeContainer):
 
     excursion_repository = providers.Factory(
         ExcursionRepository,
+        session_factory=db.provided.session,
+    )
+
+    vessel_position_repository = providers.Factory(
+        VesselPositionRepository,
         session_factory=db.provided.session,
     )
 
