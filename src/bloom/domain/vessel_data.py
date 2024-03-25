@@ -13,7 +13,6 @@ class VesselData(BaseModel):
     name: str | None
     callsign: str | None
     timestamp: datetime | None
-    update_timestamp: datetime | None
     ship_type: str | None
     sub_ship_type: str | None
     mmsi: int | None
