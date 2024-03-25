@@ -2,11 +2,11 @@
 
 Liste et description des traitements disponibles dans le répertoire `src/bloom/tasks/`:
 
-* `load_spire_data_from_api.py`: Appel l'API Spire et enregistre les données AIS receuillies dans la
+* `load_spire_data_from_api.py`: Appel l'API Spire et enregistre les données AIS recueillies dans la
   table `spire_ais_data`
     * le paramètre `-d <dump_path>` permet de stocker la réponse SPIRE dans un fichier JSON. Dans ce cas la réponse
       n'est pas enregistrée en base. Cas d'usage: récupération de jeu de données SPIRE depuis la production.
-* `load_spire_data_from_json.py`: Lit un fichier JSON et enregistre les données AIS receuillies dans la
+* `load_spire_data_from_json.py`: Lit un fichier JSON et enregistre les données AIS recueillies dans la
   table `spire_ais_data`
 * `load_dim_port_from_csv.py`: Charge dans la table `dim_port` les données provenant d'un fichier csv au
   format `url;country;port;locode;latitude;longitude;geometry_point`
@@ -20,3 +20,5 @@ Liste et description des traitements disponibles dans le répertoire `src/bloom/
 * `load_dim_zone_amp_from_csv.py`: Charge le contenu d'un fichier CSV des AMP dans la table `dim_zone`. Le format
   attendu
   est `"index","WDPAID","name","DESIG_ENG","DESIG_TYPE","IUCN_CAT","PARENT_ISO","ISO3","geometry","Benificiaries"`.
+* `update_vessel_data_voyage.py`: alimente les tables des données statiques (`vessel_data`) et de
+  voyage (`vessel_voyage`) à partir des données AIS.

@@ -8,8 +8,8 @@ from typing import Union
 class VesselVoyage(BaseModel):
     id: int | None = None
     timestamp: datetime
-    voyage_destination: str | None
-    voyage_draught: float | None
-    voyage_eta: datetime | None
+    destination: str | None
+    draught: float | None
+    eta: datetime | None
     vessel_id: int
     created_at: Union[datetime, None] = None
