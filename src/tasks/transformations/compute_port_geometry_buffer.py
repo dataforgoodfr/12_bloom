@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 
 
 
-class ComputePort_GeometryBuffer(BaseTask):
+class ComputePortGeometryBuffer(BaseTask):
     radius_m = settings.port_radius_m       # Radius in meters
     resolution = settings.port_resolution   # Number of points in the resulting polygon
     
@@ -123,7 +123,7 @@ class ComputePort_GeometryBuffer(BaseTask):
 if __name__ == "__main__":
     time_start = perf_counter()
     logger.info("DEBUT - Calcul des buffer de ports")
-    ComputePort_GeometryBuffer().start()
+    ComputePortGeometryBuffer().start()
     time_end = perf_counter()
     duration = time_end - time_start
     logger.info(f"FIN - Calcul des buffer de ports en {duration:.2f}s")
