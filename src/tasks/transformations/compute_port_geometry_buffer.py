@@ -19,7 +19,7 @@ class ComputePort_GeometryBuffer(BaseTask):
     resolution = settings.port_resolution   # Number of points in the resulting polygon
     
     # Function to create geodesic buffer around a point
-    def geodesic_point_buffer(lat: float, lon: float, radius_m: int, resolution: int) -> Polygon:
+    def geodesic_point_buffer(self,lat: float, lon: float, radius_m: int, resolution: int) -> Polygon:
         """
         Input
         lat: latitude of the center point
