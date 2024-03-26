@@ -1,17 +1,20 @@
+import sys
+
 from tasks.base import BaseTask
-from tasks.data import LoadAmpDataTask, LoadPortDataTask, LoadVesselsDataTask, LoadVesselPositionsDataTask
+from tasks.load_dimensions import LoadDimensions
+from tasks.load_facts import LoadFacts
 from bloom.config import settings
 from bloom.logger import logger
 
 class InitTask(BaseTask):
     
-    def run(self):
+    def run(self,*args,**kwargs):
     
-        LoadAmpDataTask().start()
-        LoadPortDataTask().start()
-        LoadVesselsDataTask().start()
+        LoadDimensions(*args,**kwargs).start()
+        LoadFacts(*args,**kwargs).start()
 
 
 if __name__ == "__main__":
-    task= InitTask()
+    task= InitTask(*list(arg for arg in sys.argv[1:] if arg.find('=') <= 0 ),
+                         **dict(arg.split('=') for arg in sys.argv[1:] if arg.find('=') > 0))
     task.start()
