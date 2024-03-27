@@ -1,23 +1,20 @@
-from tasks.base import BaseTask
-from bloom.config import settings
-
-from pathlib import Path
 from time import perf_counter
 
 import geopandas as gpd
 import pandas as pd
 import pycountry
+from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.port import Port
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from pydantic import ValidationError
 from shapely import wkt
-
+from tasks.base import BaseTask
 
 
 class LoadDimPortFromCsv(BaseTask):
-    def map_to_domain(self,row) -> Port:
+    def map_to_domain(self, row) -> Port:
         iso_code = pycountry.countries.get(name=row["country"])
         iso_code = iso_code.alpha_3 if iso_code is not None else "XXX"
 
@@ -30,7 +27,8 @@ class LoadDimPortFromCsv(BaseTask):
             longitude=float(row["longitude"]),
             geometry_point=row["geometry_point"],
         )
-    def run(self,*args,**kwargs):
+
+    def run(self, *args, **kwargs):
         use_cases = UseCases()
         port_repository = use_cases.port_repository()
         db = use_cases.db()

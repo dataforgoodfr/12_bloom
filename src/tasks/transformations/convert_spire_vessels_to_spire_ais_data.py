@@ -1,7 +1,6 @@
 from time import perf_counter
 from typing import Generator
 
-from tasks.base import BaseTask
 from bloom.container import UseCases
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database.sql_model import VesselPositionSpire
@@ -9,12 +8,14 @@ from bloom.logger import logger
 from geoalchemy2.shape import to_shape
 from shapely import Point
 from sqlalchemy.orm.session import Session
+from tasks.base import BaseTask
+
 
 class ConvertSpireVesselsToSpireAisData(BaseTask):
     batch_size = 1000
     vessel_repo = None
 
-    def map_to_ais_spire_data(self,vessel_position: VesselPositionSpire) -> SpireAisData:
+    def map_to_ais_spire_data(self, vessel_position: VesselPositionSpire) -> SpireAisData:
         position: Point = to_shape(vessel_position.position)
         return SpireAisData(
             spire_update_statement=vessel_position.timestamp,
@@ -49,8 +50,7 @@ class ConvertSpireVesselsToSpireAisData(BaseTask):
             voyage_update_timestamp=None,
         )
 
-
-    def batch_convert(self,session: Session) -> Generator[list[SpireAisData], None, None]:
+    def batch_convert(self, session: Session) -> Generator[list[SpireAisData], None, None]:
         batch = []
         for vessel_position in self.vessel_repo.get_all_spire_vessels_position(session, self.batch_size):
             batch.append(map_to_ais_spire_data(vessel_position))
@@ -59,8 +59,7 @@ class ConvertSpireVesselsToSpireAisData(BaseTask):
                 batch = []
         yield batch
 
-
-    def run(self,*args,**kwargs) -> None:
+    def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
         self.vessel_repo = use_cases.vessel_repository()
         spire_ais_data_repo = use_cases.spire_ais_data_repository()
@@ -81,7 +80,7 @@ class ConvertSpireVesselsToSpireAisData(BaseTask):
 
 if __name__ == "__main__":
     time_start = perf_counter()
-    task=ConvertSpireVesselsToSpireAisData()
+    task = ConvertSpireVesselsToSpireAisData()
     logger.info(
         f"Conversion spire_vessel_positions -> spire_ais_data (taille des lots: {task.batch_size})"
     )

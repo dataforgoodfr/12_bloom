@@ -1,25 +1,25 @@
+from datetime import datetime, timezone
 from time import perf_counter
-from tasks.base import BaseTask
+
 import geopandas as gpd
 import pandas as pd
 import pyproj
 import shapely
 from bloom.config import settings
 from bloom.container import UseCases
+from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
 from bloom.logger import logger
 from scipy.spatial import Voronoi
 from shapely.geometry import LineString, Polygon
-from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
-from datetime import datetime, timezone
-
+from tasks.base import BaseTask
 
 
 class ComputePortGeometryBuffer(BaseTask):
-    radius_m = settings.port_radius_m       # Radius in meters
-    resolution = settings.port_resolution   # Number of points in the resulting polygon
-    
+    radius_m = settings.port_radius_m  # Radius in meters
+    resolution = settings.port_resolution  # Number of points in the resulting polygon
+
     # Function to create geodesic buffer around a point
-    def geodesic_point_buffer(self,lat: float, lon: float, radius_m: int, resolution: int) -> Polygon:
+    def geodesic_point_buffer(self, lat: float, lon: float, radius_m: int, resolution: int) -> Polygon:
         """
         Input
         lat: latitude of the center point
@@ -38,7 +38,7 @@ class ComputePortGeometryBuffer(BaseTask):
         # Create a polygon from these points
         return Polygon(circle_points)
 
-    def assign_voronoi_buffer(self,ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    def assign_voronoi_buffer(self, ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         """Computes a buffer around each port such as buffers do not overlap each other
 
         :param gpd.GeoDataFrame ports: fields "id", "latitude", "longitude", "geometry_point"
@@ -92,8 +92,7 @@ class ComputePortGeometryBuffer(BaseTask):
 
         return vor_ports
 
-
-    def run(self,*args,**kwargs)-> None:
+    def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
         port_repository = use_cases.port_repository()
         db = use_cases.db()
@@ -119,6 +118,7 @@ class ComputePortGeometryBuffer(BaseTask):
             TaskExecutionRepository.set_point_in_time(session, "compute_port_geometry_buffer", now)
             session.commit()
         logger.info(f"{len(items)} buffer de ports mis à jour")
+
 
 if __name__ == "__main__":
     time_start = perf_counter()

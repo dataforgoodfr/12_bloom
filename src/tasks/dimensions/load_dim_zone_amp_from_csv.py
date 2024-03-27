@@ -1,8 +1,6 @@
-from pathlib import Path
 from time import perf_counter
 
 import pandas as pd
-from tasks.base import BaseTask
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.zone import Zone
@@ -10,9 +8,11 @@ from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from pydantic import ValidationError
 from shapely import wkb
+from tasks.base import BaseTask
+
 
 class LoadDimZoneAmpFromCsv(BaseTask):
-    def map_to_domain(self,row: pd.Series) -> Zone:
+    def map_to_domain(self, row: pd.Series) -> Zone:
         isna = row.isna()
 
         return Zone(
@@ -22,11 +22,10 @@ class LoadDimZoneAmpFromCsv(BaseTask):
             geometry=row["geometry"],
             centroid=row["geometry"].centroid,
             json_data={k: row[k] if not isna[k] else None for k in
-                    ["index", "desig_eng", "desig_type", "iucn_cat", "parent_iso", "iso3", "benificiaries"]},
+                       ["index", "desig_eng", "desig_type", "iucn_cat", "parent_iso", "iso3", "benificiaries"]},
         )
 
-
-    def run(self,*args,**kwargs):
+    def run(self, *args, **kwargs):
         use_cases = UseCases()
         db = use_cases.db()
         zone_repository = use_cases.zone_repository()

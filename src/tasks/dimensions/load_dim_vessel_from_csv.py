@@ -1,18 +1,17 @@
-from pathlib import Path
 from time import perf_counter
 
 import pandas as pd
-from tasks.base import BaseTask
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from pydantic import ValidationError
+from tasks.base import BaseTask
 
 
 class LoadDimVesselFromCsv(BaseTask):
-    def map_to_domain(self,row: pd.Series) -> Vessel:
+    def map_to_domain(self, row: pd.Series) -> Vessel:
         isna = row.isna()
         return Vessel(
             mmsi=int(row["mmsi"]) if not isna["mmsi"] else None,
@@ -31,8 +30,7 @@ class LoadDimVesselFromCsv(BaseTask):
             mt_activated=row["mt_activated"].strip(),
         )
 
-
-    def run(self,*args,**kwarg) -> None:
+    def run(self, *args, **kwarg) -> None:
         use_cases = UseCases()
         vessel_repository = use_cases.vessel_repository()
         db = use_cases.db()

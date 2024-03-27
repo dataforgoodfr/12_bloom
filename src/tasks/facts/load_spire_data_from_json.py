@@ -3,16 +3,16 @@ import json
 from pathlib import Path
 from time import perf_counter
 
-from tasks.base import BaseTask
 from bloom.container import UseCases
 from bloom.infra.http.spire_api_utils import map_raw_vessels_to_domain
 from bloom.logger import logger
 from pydantic import ValidationError
+from tasks.base import BaseTask
 
 
 class ComputePortGeometryBuffer(BaseTask):
 
-    def run(self,*args,**kwargs) -> None:
+    def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
         spire_ais_data_repository = use_cases.spire_ais_data_repository()
         db = use_cases.db()

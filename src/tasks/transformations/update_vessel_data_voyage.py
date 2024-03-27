@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from time import perf_counter
 
-from tasks.base import BaseTask
 from bloom.container import UseCases
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.domain.vessel import Vessel
@@ -12,10 +11,12 @@ from bloom.infra.repositories.repository_task_execution import TaskExecutionRepo
 from bloom.infra.repositories.repository_vessel_data import VesselDataRepository
 from bloom.infra.repositories.repository_vessel_voyage import VesselVoyageRepository
 from bloom.logger import logger
+from tasks.base import BaseTask
+
 
 class UpdateVesselDataVoyage(BaseTask):
-    
-    def map_ais_data_to_vessel_data(self,ais_data: SpireAisData, vessel: Vessel) -> VesselData:
+
+    def map_ais_data_to_vessel_data(self, ais_data: SpireAisData, vessel: Vessel) -> VesselData:
         return VesselData(
             timestamp=ais_data.vessel_timestamp,
             ais_class=ais_data.vessel_ais_class,
@@ -31,8 +32,7 @@ class UpdateVesselDataVoyage(BaseTask):
             vessel_id=vessel.id
         )
 
-
-    def map_ais_data_to_vessel_voyage(self,ais_data: SpireAisData, vessel: Vessel) -> VesselVoyage:
+    def map_ais_data_to_vessel_voyage(self, ais_data: SpireAisData, vessel: Vessel) -> VesselVoyage:
         return VesselVoyage(
             timestamp=ais_data.voyage_timestamp,
             destination=ais_data.voyage_destination,
@@ -41,8 +41,7 @@ class UpdateVesselDataVoyage(BaseTask):
             vessel_id=vessel.id,
         )
 
-
-    def run(self,*args,**kwargs) -> None:
+    def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
         spire_ais_data_repository = use_cases.spire_ais_data_repository()
         vessel_repository = use_cases.vessel_repository()

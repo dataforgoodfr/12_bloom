@@ -4,20 +4,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 
-from tasks.base import BaseTask
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 from bloom.infra.http.spire_api_utils import map_raw_vessels_to_domain
 from bloom.logger import logger
 from pydantic import ValidationError
-
-from bloom.config import settings
+from tasks.base import BaseTask
 
 
 class LoadSpireDataFromApi(BaseTask):
 
-    
-    def run(self,*args,**kwargs) -> None:
+    def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
         spire_ais_data_repository = use_cases.spire_ais_data_repository()
         spire_traffic_usecase = use_cases.get_spire_data_usecase()
