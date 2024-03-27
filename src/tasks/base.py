@@ -16,7 +16,7 @@ class BaseTask():
         return self._stop_on_error
     
     @stop_on_error.setter
-    def temperature(self, value:bool) -> None:
+    def stop_on_error(self, value:bool) -> None:
         self._stop_on_error=value
     
     def __init__(self,*args,**kwargs):
