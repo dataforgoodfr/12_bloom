@@ -156,10 +156,8 @@ password, database name, port to use)
     # * data/spire_positions_subset.csv
     # * data/vessels_subset.csv
     # * data/zones_subset.csv
-    $ python3 src/bloom/tasks/load_dim_vessel_from_csv.py 
-    $ python3 src/bloom/tasks/load_dim_port_from_csv.py
-    $ python3 src/bloom/tasks/load_dim_zone_amp_from_csv.py
-    $ python3 src/bloom/tasks/compute_port_geometry_buffer.py
+    $ python3 src/tasks/init.py &&
+    $ python3 src/tasks/pipeline_ais_data.py
 ```
 
 #### Starting the application
