@@ -10,7 +10,7 @@ x-common-infos:
 services:
   bloom:
     container_name: bloom
-    image: d4g/bloom:${VERSION:-latest}
+    image: ghcr.io/dataforgoodfr/12_bloom:${VERSION:-latest}
     build:
       context: .
       dockerfile: ./docker/Dockerfile
@@ -60,7 +60,7 @@ services:
   init:
     container_name: init_bloom
     hostname: init_bloom
-    image: d4g/bloom:${VERSION:-latest}
+    image: ghcr.io/dataforgoodfr/12_bloom:${VERSION:-latest}
 
     # Nominal start:
     # As postgres+postgis gt available, then unavialable, then avialable at database init
