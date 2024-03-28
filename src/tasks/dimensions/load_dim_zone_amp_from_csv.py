@@ -50,11 +50,11 @@ class LoadDimZoneAmpFromCsv(BaseTask):
                 total = len(zones)
                 print(zones)
         except ValidationError as e:
-            logger.error("Erreur de validation des données de bateau")
+            logger.error("Erreur de validation des données de zone AMP")
             logger.error(e.errors())
         except DBException:
             logger.error("Erreur d'insertion en base")
-        logger.info(f"{total} bateau(x) créés")
+        logger.info(f"{total} zone(s) AMP créés")
 
 
 if __name__ == "__main__":
