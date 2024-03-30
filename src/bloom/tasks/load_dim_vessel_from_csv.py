@@ -13,20 +13,22 @@ from pydantic import ValidationError
 def map_to_domain(row: pd.Series) -> Vessel:
     isna = row.isna()
     return Vessel(
+        id=int(row["id"]) if not isna["id"] else None,
         mmsi=int(row["mmsi"]) if not isna["mmsi"] else None,
         ship_name=row["ship_name"],
-        width=None,
-        length=row["loa"],
+        width=int(row["width"]) if not isna["width"] else None,
+        length=int(row["length"]) if not isna["length"] else None,
         country_iso3=row["country_iso3"] if not isna["country_iso3"] else "XXX",
         type=row["type"],
-        imo=row["IMO"] if not isna["IMO"] else None,
+        imo=row["imo"] if not isna["imo"] else None,
         cfr=row["cfr"] if not isna["cfr"] else None,
         registration_number=row["registration_number"]
         if not isna["registration_number"]
         else None,
         external_marking=row["external_marking"] if not isna["external_marking"] else None,
         ircs=row["ircs"] if not isna["ircs"] else None,
-        mt_activated=row["mt_activated"].strip(),
+        tracking_activated=row["tracking_activated"],
+        tracking_status=row["tracking_status"] if not isna["tracking_status"] else None,
     )
 
 
@@ -35,21 +37,54 @@ def run(csv_file_name: str) -> None:
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
 
-    ports = []
-    total = 0
+    inserted_ports = []
+    deleted_ports = []
     try:
         df = pd.read_csv(csv_file_name, sep=";")
         vessels = df.apply(map_to_domain, axis=1)
         with db.session() as session:
-            ports = vessel_repository.batch_create_vessel(session, list(vessels))
-            session.commit()
-            total = len(ports)
+            ports_inserts = []
+            ports_updates = []
+            # Pour chaque enregistrement du fichier CSV
+            for vessel in vessels:
+                if vessel.id and vessel_repository.get_vessel_by_id(session, vessel.id):
+                    # si la valeur du champ id n'est pas vide:
+                    #     rechercher l'enregistrement correspondant dans la table dim_vessel
+                    #     mettre à jour l'enregistrement à partir des données CSV.
+                    ports_updates.append(vessel)
+                else:
+                    # sinon:
+                    #     insérer les données CSV dans la table dim_vessel;
+                    ports_inserts.append(vessel)
+            # Insertions / MAJ en batch
+            inserted_ports = vessel_repository.batch_create_vessel(session, ports_inserts)
+            vessel_repository.batch_update_vessel(session, ports_updates)
+
+            # En fin de traitement:
+            # les enregistrements de la table dim_vessel pourtant un MMSI absent du fichier CSV sont mis à jour
+            # avec la valeur tracking_activated=FALSE
+            csv_mmsi = list(df['mmsi'])
+            deleted_ports = list(
+                filter(lambda v: v.mmsi not in csv_mmsi, vessel_repository.get_all_vessels_list(session)))
+            vessel_repository.set_tracking(session, [v.id for v in deleted_ports], False,
+                                           "Suppression logique suite import nouveau fichier CSV")
+            # le traitement vérifie qu'il n'existe qu'un seul enregistrement à l'état tracking_activated==True
+            # pour chaque valeur distincte de MMSI.
+            integrity_errors = vessel_repository.check_mmsi_integrity(session)
+            if not integrity_errors:
+                session.commit()
+            else:
+                logger.error(
+                    f"Erreur d'intégrité fonctionnelle, plusieurs bateaux actifs avec le même MMSI: {integrity_errors}")
+                session.rollback()
     except ValidationError as e:
         logger.error("Erreur de validation des données de bateau")
         logger.error(e.errors())
-    except DBException as e:
+    except DBException:
         logger.error("Erreur d'insertion en base")
-    logger.info(f"{total} bateau(x) créés")
+    logger.info(f"{len(inserted_ports)} bateau(x) créés")
+    logger.info(f"{len(ports_updates)} bateau(x) mise à jour ou inchangés")
+    logger.info(f"{len(deleted_ports)} bateau(x) désactivés")
 
 
 if __name__ == "__main__":
