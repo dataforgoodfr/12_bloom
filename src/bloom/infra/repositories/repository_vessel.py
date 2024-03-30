@@ -20,9 +20,11 @@ class VesselRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def load_vessel_metadata(self, session: Session) -> list[Vessel]:
-        stmt = select(sql_model.Vessel).where(sql_model.Vessel.mt_activated == True).where(  # noqa: E712
-            sql_model.Vessel.mmsi.isnot(None))
+    def get_vessels_list(self, session: Session) -> list[Vessel]:
+        """
+        Liste l'ensemble des vessels actifs
+        """
+        stmt = select(sql_model.Vessel).where(sql_model.Vessel.tracking_activated == True)
         e = session.execute(stmt).scalars()
         if not e:
             return []
@@ -33,8 +35,11 @@ class VesselRepository:
         session.add_all(orm_list)
         return [VesselRepository.map_to_domain(orm) for orm in orm_list]
 
-    def load_all_vessel_metadata(self, session: Session) -> list[Vessel]:
-        stmt = select(sql_model.Vessel).where(sql_model.Vessel.mmsi.isnot(None))
+    def get_all_vessels_list(self, session: Session) -> list[Vessel]:
+        """
+        Liste l'ensemble des vessels actifs ou inactifs
+        """
+        stmt = select(sql_model.Vessel)
         e = session.execute(stmt).scalars()
 
         if not e:
@@ -56,7 +61,8 @@ class VesselRepository:
             registration_number=sql_vessel.registration_number,
             external_marking=sql_vessel.external_marking,
             ircs=sql_vessel.ircs,
-            mt_activated=sql_vessel.mt_activated,
+            tracking_activated=sql_vessel.tracking_activated,
+            tracking_status=sql_vessel.tracking_status,
             home_port_id=sql_vessel.home_port_id,
             created_at=sql_vessel.created_at,
             updated_at=sql_vessel.updated_at,
@@ -77,7 +83,8 @@ class VesselRepository:
             registration_number=vessel.registration_number,
             external_marking=vessel.external_marking,
             ircs=vessel.ircs,
-            mt_activated=vessel.mt_activated,
+            tracking_activated=vessel.tracking_activated,
+            tracking_status=vessel.tracking_status,
             home_port_id=vessel.home_port_id,
             created_at=vessel.created_at,
             updated_at=vessel.updated_at,

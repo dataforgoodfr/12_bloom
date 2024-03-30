@@ -21,7 +21,7 @@ def run(dump_path: str) -> None:
     orm_data = []
     try:
         with db.session() as session:
-            vessels: list[Vessel] = vessel_repository.load_all_vessel_metadata(session)
+            vessels: list[Vessel] = vessel_repository.get_vessels_list(session)
 
             raw_vessels = spire_traffic_usecase.get_raw_vessels_from_spire(vessels)
             if dump_path is not None:
@@ -44,7 +44,7 @@ def run(dump_path: str) -> None:
         logger.error(e.errors())
     except Exception as e:
         logger.error("Echec de l'appel API", exc_info=e)
-    logger.info(f"{len(orm_data)} vessel data loaded")
+    logger.info(f"{len(orm_data)} données chargées")
 
 
 if __name__ == "__main__":

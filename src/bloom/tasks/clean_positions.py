@@ -43,7 +43,7 @@ def run():
         nb_donnees = 0
         nb_au_port = 0
         nb_pas_au_port = 0
-        vessels = vessel_repository.load_vessel_metadata(session)
+        vessels = vessel_repository.get_vessels_list(session)
         logger.info(f"{len(vessels)} bateaux à traiter")
         # Foreach vessel
         for vessel in vessels:
