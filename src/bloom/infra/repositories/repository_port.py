@@ -1,22 +1,16 @@
 # For python 3.9 syntax compliance
-from typing import Union, List, Any
+from datetime import datetime
+from typing import Any, List, Union
 
 from bloom.config import settings
 from bloom.domain.port import Port
 from bloom.infra.database import sql_model
-from bloom.logger import logger
-
-import pandas as pd
-import geopandas as gpd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
-from shapely.geometry import Polygon
-from sqlalchemy.orm import Session
-from sqlalchemy import select, update, or_
 from shapely import Point
-from sqlalchemy import func
-from geoalchemy2.shape import from_shape
-from datetime import datetime
+from shapely.geometry import Polygon
+from sqlalchemy import func, or_, select, update
+from sqlalchemy.orm import Session
 
 
 class PortRepository:
