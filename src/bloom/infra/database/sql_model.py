@@ -26,7 +26,7 @@ from sqlalchemy.sql import func
 class Vessel(Base):
     __tablename__ = "dim_vessel"
     id = Column("id", Integer, primary_key=True)
-    mmsi = Column("mmsi", Integer, unique=True)
+    mmsi = Column("mmsi", Integer)
     ship_name = Column("ship_name", String, nullable=False)
     width = Column("width", Double)
     length = Column("length", Double)
@@ -37,7 +37,8 @@ class Vessel(Base):
     registration_number = Column("registration_number", String)
     external_marking = Column("external_marking", String)
     ircs = Column("ircs", String)
-    mt_activated = Column("mt_activated", Boolean, nullable=False)
+    tracking_activated = Column("tracking_activated", Boolean, nullable=False)
+    tracking_status = Column("tracking_status", String)
     home_port_id = Column("home_port_id", Integer, ForeignKey("dim_port.id"))
     created_at = Column(
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),

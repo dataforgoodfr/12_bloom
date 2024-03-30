@@ -10,7 +10,7 @@ from bloom.logger import logger
 from dependency_injector.providers import Callable
 from shapely import Point, wkb
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, update, func
 
 
 class VesselRepository:
@@ -20,26 +20,57 @@ class VesselRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def load_vessel_metadata(self, session: Session) -> list[Vessel]:
-        stmt = select(sql_model.Vessel).where(sql_model.Vessel.mt_activated == True).where(  # noqa: E712
-            sql_model.Vessel.mmsi.isnot(None))
+    def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel | None]:
+        return session.get(sql_model.Vessel, vessel_id)
+
+    def get_vessels_list(self, session: Session) -> list[Vessel]:
+        """
+        Liste l'ensemble des vessels actifs
+        """
+        stmt = select(sql_model.Vessel).where(sql_model.Vessel.tracking_activated == True)
         e = session.execute(stmt).scalars()
         if not e:
             return []
         return [VesselRepository.map_to_domain(vessel) for vessel in e]
 
-    def batch_create_vessel(self, session: Session, ports: list[Vessel]) -> list[Vessel]:
-        orm_list = [VesselRepository.map_to_sql(port) for port in ports]
+    def get_all_vessels_list(self, session: Session) -> list[Vessel]:
+        """
+        Liste l'ensemble des vessels actifs ou inactifs
+        """
+        stmt = select(sql_model.Vessel)
+        e = session.execute(stmt).scalars()
+
+        if not e:
+            return []
+        return [VesselRepository.map_to_domain(vessel) for vessel in e]
+
+    def batch_create_vessel(self, session: Session, vessels: list[Vessel]) -> list[Vessel]:
+        orm_list = [VesselRepository.map_to_sql(port) for port in vessels]
         session.add_all(orm_list)
         return [VesselRepository.map_to_domain(orm) for orm in orm_list]
 
-    def load_all_vessel_metadata(self, session: Session) -> list[Vessel]:
-        stmt = select(sql_model.Vessel).where(sql_model.Vessel.mmsi.isnot(None))
-        e = session.execute(stmt).scalars()
+    def batch_update_vessel(self, session: Session, vessels: list[Vessel]) -> None:
+        updates = [{"id": v.id, "mmsi": v.mmsi, "ship_name": v.ship_name, "width": v.width, "length": v.length,
+                    "country_iso3": v.country_iso3, "type": v.type, "imo": v.imo, "cfr": v.cfr,
+                    "registration_number": v.registration_number, "external_marking": v.external_marking,
+                    "ircs": v.ircs, "tracking_activated": v.tracking_activated, "tracking_status": v.tracking_status,
+                    "home_port_id": v.home_port_id} for v in
+                   vessels]
+        session.execute(update(sql_model.Vessel), updates)
 
-        if not e:
-            return []
-        return [VesselRepository.map_to_domain(vessel) for vessel in e]
+    def set_tracking(self, session: Session, vessel_ids: list[int], tracking_activated: bool,
+                     tracking_status: str) -> None:
+        updates = [{"id": id, "tracking_activated": tracking_activated, "tracking_status": tracking_status} for id in
+                   vessel_ids]
+        session.execute(update(sql_model.Vessel), updates)
+
+    def check_mmsi_integrity(self, session: Session) -> list[(int, int)]:
+        # Recherche des valeurs distinctes de MMSI ayant un nombre de résultats actif > 1
+        stmt = select(sql_model.Vessel.mmsi, func.count(sql_model.Vessel.id).label("count")).group_by(
+            sql_model.Vessel.mmsi).having(
+            func.count(sql_model.Vessel.id) > 1).where(
+            sql_model.Vessel.tracking_activated == True)
+        return session.execute(stmt).all()
 
     @staticmethod
     def map_to_domain(sql_vessel: sql_model.Vessel) -> Vessel:
@@ -56,7 +87,8 @@ class VesselRepository:
             registration_number=sql_vessel.registration_number,
             external_marking=sql_vessel.external_marking,
             ircs=sql_vessel.ircs,
-            mt_activated=sql_vessel.mt_activated,
+            tracking_activated=sql_vessel.tracking_activated,
+            tracking_status=sql_vessel.tracking_status,
             home_port_id=sql_vessel.home_port_id,
             created_at=sql_vessel.created_at,
             updated_at=sql_vessel.updated_at,
@@ -77,7 +109,8 @@ class VesselRepository:
             registration_number=vessel.registration_number,
             external_marking=vessel.external_marking,
             ircs=vessel.ircs,
-            mt_activated=vessel.mt_activated,
+            tracking_activated=vessel.tracking_activated,
+            tracking_status=vessel.tracking_status,
             home_port_id=vessel.home_port_id,
             created_at=vessel.created_at,
             updated_at=vessel.updated_at,
