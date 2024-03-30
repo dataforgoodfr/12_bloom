@@ -1,8 +1,9 @@
-from bloom.infra.database import sql_model
-from sqlalchemy.orm import Session
-from sqlalchemy import select
 from datetime import datetime, timezone
+
+from bloom.infra.database import sql_model
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import Session
 
 
 class TaskExecutionRepository:
@@ -11,7 +12,7 @@ class TaskExecutionRepository:
         stmt = select(sql_model.TaskExecution).where(sql_model.TaskExecution.task_name == task_name)
         e = session.execute(stmt).scalar()
         if not e:
-            return None
+            return datetime.fromtimestamp(0, timezone.utc)
         else:
             return e.point_in_time
 
