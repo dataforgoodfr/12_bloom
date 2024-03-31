@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from tasks.base import BaseTask
 
 
-class ComputePortGeometryBuffer(BaseTask):
+class ExtractSpireDataFromCsv(BaseTask):
 
     def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
@@ -20,7 +20,8 @@ class ComputePortGeometryBuffer(BaseTask):
         logger.info(f"Loading spire data from {kwargs['file_name']}")
         orm_data = []
         try:
-            with Path(kwargs['file_name']).open() as json_data, db.session() as session:
+            df = pd.read_csv(settings.spire_data_csv_path, sep=";")
+            with Path.open(kwargs['file_name']) as json_data, db.session() as session:
                 raw_vessels = json.load(json_data)
                 spire_ais_data = map_raw_vessels_to_domain(raw_vessels)
                 orm_data = spire_ais_data_repository.batch_create_ais_data(spire_ais_data, session)
@@ -32,15 +33,15 @@ class ComputePortGeometryBuffer(BaseTask):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Load Spire data from file JSON file")
+    parser = argparse.ArgumentParser(description="Load Spire data from file CSV file")
     parser.add_argument(
         "filename",
-        help="Path to JSON file to load",
+        help="Path to CSV file to load",
     )
     args = parser.parse_args()
     time_start = perf_counter()
-    logger.info(f"DEBUT - Chargement des données JSON depuis le fichier {args.filename}")
-    ComputePortGeometryBuffer(file_name=args.filename).start()
+    logger.info(f"DEBUT - Chargement des données CSV depuis le fichier {args.filename}")
+    ExtractSpireDataFromCsv(file_name=args.filename).start()
     time_end = perf_counter()
     duration = time_end - time_start
-    logger.info(f"FIN - Chargement des données JSON en {duration:.2f}s")
+    logger.info(f"FIN - Chargement des données CSV en {duration:.2f}s")

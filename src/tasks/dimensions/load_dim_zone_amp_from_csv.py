@@ -29,10 +29,12 @@ class LoadDimZoneAmpFromCsv(BaseTask):
         use_cases = UseCases()
         db = use_cases.db()
         zone_repository = use_cases.zone_repository()
+        
+        amp_data_csv_path= kwargs['amp_data_csv_path'] if 'amp_data_csv_path' in kwargs else settings.amp_data_csv_path
 
         total = 0
         try:
-            df = pd.read_csv(kwargs['amp_data_csv_path'], sep=",")
+            df = pd.read_csv(amp_data_csv_path, sep=',')
             df = df.rename(columns={"Geometry": "geometry",
                                     "Index": "index", "WDPAID": "wdpaid",
                                     "Name": "name",
@@ -48,7 +50,6 @@ class LoadDimZoneAmpFromCsv(BaseTask):
                 zones = zone_repository.batch_create_zone(session, list(zones))
                 session.commit()
                 total = len(zones)
-                print(zones)
         except ValidationError as e:
             logger.error("Erreur de validation des données de zone AMP")
             logger.error(e.errors())

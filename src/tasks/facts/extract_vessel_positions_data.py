@@ -5,7 +5,7 @@ from bloom.config import settings
 from tasks.base import BaseTask
 
 
-class LoadVesselPositionsDataTask(BaseTask):
+class ExtractVesselPositionsDataTask(BaseTask):
     def run(self, *args, **kwargs):
         engine = create_engine(settings.db_url)
 
@@ -18,4 +18,4 @@ class LoadVesselPositionsDataTask(BaseTask):
 
 
 if __name__ == "__main__":
-    LoadVesselPositionsDataTask().start()
+    ExtractVesselPositionsDataTask().start()

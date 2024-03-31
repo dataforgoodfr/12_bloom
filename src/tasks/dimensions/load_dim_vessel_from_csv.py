@@ -14,7 +14,6 @@ class LoadDimVesselFromCsv(BaseTask):
     def map_to_domain(self, row: pd.Series) -> Vessel:
         isna = row.isna()
         return Vessel(
-            id=int(row['id']),
             mmsi=int(row["mmsi"]) if not isna["mmsi"] else None,
             ship_name=row["ship_name"],
             width=int(row["width"]) if not isna["width"] else None,

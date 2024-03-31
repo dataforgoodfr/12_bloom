@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from tasks.base import BaseTask
 
 
-class LoadSpireDataFromApi(BaseTask):
+class ExtractSpireDataFromApi(BaseTask):
 
     def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     time_start = perf_counter()
     logger.info("DEBUT - Chargement des données JSON depuis l'API SPIRE")
-    LoadSpireDataFromApi(dump_path=args.dump_path).start()
+    ExtractSpireDataFromApi(dump_path=args.dump_path).start()
     time_end = perf_counter()
     duration = time_end - time_start
     logger.info(f"FIN - Chargement des données depuis l'API SPIRE en {duration:.2f}s")

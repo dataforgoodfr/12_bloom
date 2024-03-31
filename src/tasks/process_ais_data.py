@@ -8,7 +8,6 @@ from tasks.transformations import UpdateVesselDataVoyage
 class PipelinePorts(BaseTask):
 
     def run(self, *args, **kwargs):
-        LoadSpireDataFromApi(*args, **kwargs).start()
         UpdateVesselDataVoyage(*args, **kwargs).start()
         CleanPositionsTask(*args, **kwargs).start()
 

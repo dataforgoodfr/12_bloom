@@ -1,13 +1,13 @@
 import sys
 
 from tasks.base import BaseTask
-from tasks.facts import LoadVesselPositionsDataTask
+from tasks.facts import CleanPositionsTask
 
 
 class LoadFacts(BaseTask):
 
     def run(self, *args, **kwargs):
-        LoadVesselPositionsDataTask(*args, **kwargs).start()
+        CleanPositionsTask(*args, **kwargs).start()
 
 
 if __name__ == "__main__":
