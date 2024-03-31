@@ -5,11 +5,18 @@ from tasks.load_dimensions import LoadDimensions
 from tasks.load_facts import LoadFacts
 from bloom.config import settings
 from bloom.logger import logger
+from bloom.config import settings
 
 class InitTask(BaseTask):
     
     def run(self,*args,**kwargs):
-    
+        
+        args={
+            'port_data_csv_path': settings.port_data_csv_path,
+            'amp_data_csv_path': settings.amp_data_csv_path,
+            'vessel_data_csv_path': settings.vessel_data_csv_path,
+        }
+        kwargs={**args, **kwargs}
         LoadDimensions(*args,**kwargs).start()
         LoadFacts(*args,**kwargs).start()
 
