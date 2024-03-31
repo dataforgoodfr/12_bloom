@@ -31,7 +31,7 @@ class LoadDimVesselFromCsv(BaseTask):
             tracking_status=row["tracking_status"] if not isna["tracking_status"] else None,
         )
 
-    def run(self, *args, **kwarg) -> None:
+    def run(self, *args, **kwargs) -> None:
         use_cases = UseCases()
         vessel_repository = use_cases.vessel_repository()
         db = use_cases.db()
@@ -42,7 +42,7 @@ class LoadDimVesselFromCsv(BaseTask):
         inserted_ports = []
         deleted_ports = []
         try:
-            df = pd.read_csv(csv_file_name, sep=";")
+            df = pd.read_csv(kwargs['vessel_data_csv_path'], sep=",")
             vessels = df.apply(self.map_to_domain, axis=1)
             with db.session() as session:
                 ports_inserts = []
