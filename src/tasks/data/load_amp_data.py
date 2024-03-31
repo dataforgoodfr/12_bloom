@@ -1,16 +1,14 @@
-from tasks.base import BaseTask
-from pathlib import Path
-
 import geopandas as gpd
 import pandas as pd
-from shapely import wkb
-from sqlalchemy import create_engine
 from bloom.config import settings
 from bloom.logger import logger
+from shapely import wkb
+from sqlalchemy import create_engine
+from tasks.base import BaseTask
 
 
 class LoadAmpDataTask(BaseTask):
-    def run(self,*args,**kwargs):
+    def run(self, *args, **kwargs):
         logger.debug(f"args={args} kwargs={kwargs}")
         engine = create_engine(settings.db_url, echo=False)
         df = pd.read_csv(
