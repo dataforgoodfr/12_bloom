@@ -33,10 +33,13 @@ class LoadDimPortFromCsv(BaseTask):
         port_repository = use_cases.port_repository()
         db = use_cases.db()
 
+        csv_file_name = kwargs['port_data_csv_path'] if 'port_data_csv_path' in kwargs \
+                                                       else settings.port_data_csv_path
+
         ports = []
         total = 0
         try:
-            df = pd.read_csv(settings.port_data_csv_path, sep=";")
+            df = pd.read_csv(csv_file_name, sep=";")
             df["geometry_point"] = df["geometry_point"].apply(wkt.loads)
             gdf = gpd.GeoDataFrame(df, geometry="geometry_point", crs=settings.srid)
             ports = gdf.apply(self.map_to_domain, axis=1)
@@ -55,7 +58,7 @@ class LoadDimPortFromCsv(BaseTask):
 if __name__ == "__main__":
     time_start = perf_counter()
     logger.info(f"DEBUT - Chargement des données de ports depuis le fichier {settings.port_data_csv_path}")
-    LoadDimPortFromCsv().start()
+    LoadDimPortFromCsv(port_data_csv_path=settings.port_data_csv_path).start()
     time_end = perf_counter()
     duration = time_end - time_start
     logger.info(f"FIN - Chargement des données de ports en {duration:.2f}s")
