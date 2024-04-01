@@ -30,6 +30,8 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8',
         extra='ignore'
         )
+        
+    logging_format:str="[%(name)s %(levelname)s @ %(asctime)s] %(message)s"
     
     # Déclaration des attributs/paramètres disponibles au sein de la class settings
     postgres_user:str = Field(default='')
@@ -56,6 +58,7 @@ class Settings(BaseSettings):
     port_radius_m:int = 3000    # Radius in meters
     port_resolution:int = 10    # Number of points in the resulting polygon
     vessel_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/vessels_subset.csv")
+    spire_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/spire_positions_subset.csv")
     
     
     vessel_positions_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/spire_positions_subset.csv")
