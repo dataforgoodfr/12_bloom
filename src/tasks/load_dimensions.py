@@ -1,8 +1,13 @@
 import sys
 
+from bloom.logger import logger
 from tasks.base import BaseTask
 from tasks.dimensions import LoadDimPortFromCsv, LoadDimVesselFromCsv, LoadDimZoneAmpFromCsv,\
                              ComputePortGeometryBuffer
+
+import hashlib
+from datetime import datetime
+
 
 
 class LoadDimensions(BaseTask):
@@ -12,6 +17,11 @@ class LoadDimensions(BaseTask):
         ComputePortGeometryBuffer(*args, **kwargs).start()
         LoadDimPortFromCsv(*args, **kwargs).start()
         LoadDimVesselFromCsv(*args, **kwargs).start()
+
+    def on_error(self, *args, **kwargs):
+        logger.error("LoadDimensions::on_error")
+        logger.error(f"batch:{kwargs['batch']}")
+        pass
 
 
 if __name__ == "__main__":

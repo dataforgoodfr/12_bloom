@@ -21,3 +21,4 @@ class Port(BaseModel):
     has_excursion: bool = False
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+    batch: Union[str, None] = None

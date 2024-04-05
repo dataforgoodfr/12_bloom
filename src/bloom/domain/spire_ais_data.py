@@ -40,6 +40,7 @@ class SpireAisData(BaseModel):
     voyage_timestamp: Union[datetime , None] = None  # noqa: UP007
     voyage_update_timestamp: Union[datetime , None] = None  # noqa: UP007
     created_at: Union[datetime, None] = None  # noqa: UP007
+    batch: Union[str, None] = None
 
     def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]):  # noqa: ANN201
         def deep_get(dictionary: dict[str, Any], *keys) -> str:

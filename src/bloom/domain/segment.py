@@ -33,3 +33,4 @@ class Segment(BaseModel):
     last_vessel_segment: Union[bool , None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+    batch: Union[str, None] = None

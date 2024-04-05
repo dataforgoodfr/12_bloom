@@ -50,8 +50,10 @@ class LoadDimPortFromCsv(BaseTask):
         except ValidationError as e:
             logger.error("Erreur de validation des données de port")
             logger.error(e.errors())
+            raise(e)
         except DBException as e:
             logger.error("Erreur d'insertion en base")
+            raise(e)
         logger.info(f"{total} ports(s) créés")
 
 
