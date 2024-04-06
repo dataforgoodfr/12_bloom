@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from shapely import Point
 
 
 class Segment(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     id: int | None = None
     excursion_id: int
     timestamp_start: Union[datetime, None] = None
