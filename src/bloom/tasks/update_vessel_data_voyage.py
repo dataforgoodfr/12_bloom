@@ -73,13 +73,20 @@ def run() -> None:
                 last_data = VesselDataRepository.get_last_vessel_data(session, vessel.id)
                 last_voyage = VesselVoyageRepository.get_last_vessel_voyage(session, vessel.id)
                 # Foreach position
-                if not last_data or vessel_data.timestamp > last_data.timestamp:
+                if not last_data:
                     VesselDataRepository.create_vessel_data(session, vessel_data)
                     nb_insert_data += 1
-                if vessel_voyage and (not last_voyage or vessel_voyage.timestamp > last_voyage.timestamp):
-                    VesselVoyageRepository.create_vessel_voyage(session, vessel_voyage)
-                    nb_insert_voyage += 1
-        TaskExecutionRepository.set_point_in_time(session, "update_vessel_data_voyage", now)
+                elif vessel_data.timestamp > last_data.timestamp:
+                    VesselDataRepository.create_vessel_data(session, vessel_data)
+                nb_insert_data += 1
+                if vessel_voyage:
+                    if not last_voyage:
+                        VesselVoyageRepository.create_vessel_voyage(session, vessel_voyage)
+                        nb_insert_voyage += 1
+                    elif vessel_voyage.timestamp > last_voyage.timestamp:
+                        VesselVoyageRepository.create_vessel_voyage(session, vessel_voyage)
+                        nb_insert_voyage += 1
+                TaskExecutionRepository.set_point_in_time(session, "update_vessel_data_voyage", now)
         session.commit()
     logger.info(f"{nb_donnees} données SPIRE traitées")
     logger.info(f"{nb_insert_data} données statiques mises à jour")
