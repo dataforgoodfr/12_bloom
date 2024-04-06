@@ -309,6 +309,8 @@ class Segment(Base):
     average_speed = Column("average_speed", Double)
     speed_at_start = Column("speed_at_start", Double)
     speed_at_end = Column("speed_at_end", Double)
+    heading_at_start = Column("speed_at_start", Double)
+    heading_at_end = Column("speed_at_end", Double)
     type = Column("type", String)
     in_amp_zone = Column("in_amp_zone", Boolean)
     in_territorial_waters = Column("in_territorial_waters", Boolean)

@@ -18,6 +18,8 @@ class Segment(BaseModel):
     average_speed: Union[float | None] = None
     speed_at_start: Union[float | None] = None
     speed_at_end: Union[float | None] = None
+    heading_at_start: Union[float | None] = None
+    heading_at_end: Union[float | None] = None
     type: Union[str | None] = None
     in_amp_zone: Union[bool | None] = None
     in_territorial_waters: Union[bool | None] = None

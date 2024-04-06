@@ -24,6 +24,8 @@ def upgrade() -> None:
     op.add_column("fct_segment", sa.Column("end_position", Geometry(geometry_type="POINT", srid=settings.srid)))
     op.add_column("fct_segment", sa.Column("speed_at_start", sa.Float))
     op.add_column("fct_segment", sa.Column("speed_at_end", sa.Float))
+    op.add_column("fct_segment", sa.Column("heading_at_start", sa.Float))
+    op.add_column("fct_segment", sa.Column("heading_at_end", sa.Float))
 
     op.drop_column("fct_excursion", "departure_position_id")
     op.drop_column("fct_excursion", "arrival_position_id")
@@ -36,6 +38,8 @@ def downgrade() -> None:
     op.drop_column("fct_segment", "end_position")
     op.drop_column("fct_segment", "speed_at_start")
     op.drop_column("fct_segment", "speed_at_end")
+    op.drop_column("fct_segment", "heading_at_start")
+    op.drop_column("fct_segment", "heading_at_end")
     op.add_column("fct_segment", sa.Column("start_position_id", sa.Integer, sa.ForeignKey("vessel_positions.id")))
     op.add_column("fct_segment", sa.Column("end_position_id", sa.Integer, sa.ForeignKey("vessel_positions.id")))
 
