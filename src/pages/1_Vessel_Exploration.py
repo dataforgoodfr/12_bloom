@@ -6,7 +6,7 @@ from pathlib import Path
 
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
-from bloom.infra.repositories.repository_vessel import RepositoryVessel
+from bloom.infra.repositories.repository_vessel import VesselRepository
 
 st.set_page_config(page_title="Vessel Exploration", page_icon="⚓", layout="wide")
 
@@ -19,7 +19,7 @@ def local_css(file_name):
 local_css(Path(__file__).parent.parent.joinpath("./styles.css"))
 
 db = Database(settings.db_url)
-rep = RepositoryVessel(db.session)
+rep = VesselRepository(db.session)
 
 
 # @st.cache_data  # 👈 Add the caching decorator
