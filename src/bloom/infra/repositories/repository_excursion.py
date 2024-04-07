@@ -15,7 +15,7 @@ class ExcursionRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def get_vessel_current_excursion(self, session: Session, vessel_id: int) -> Union[Excursion | None]:
+    def get_vessel_current_excursion(self, session: Session, vessel_id: int) -> Union[Excursion , None]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
         sql = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id).where(
             sql_model.Excursion.arrival_at.isnot(None))

@@ -65,7 +65,7 @@ class PortRepository:
         session.add_all(orm_list)
         return [PortRepository.map_to_domain(orm) for orm in orm_list]
 
-    def find_port_by_position_in_port_buffer(self, session: Session, position: Point) -> Union[Port | None]:
+    def find_port_by_position_in_port_buffer(self, session: Session, position: Point) -> Union[Port, None]:
         stmt = select(sql_model.Port).where(
             func.ST_contains(sql_model.Port.geometry_buffer, from_shape(position, srid=settings.srid)) == True)
         port = session.execute(stmt).scalar()

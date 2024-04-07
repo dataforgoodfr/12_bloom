@@ -8,37 +8,37 @@ from typing import Union
 
 
 class SpireAisData(BaseModel):
-    id: Union[int | None] = None  # noqa: UP007
+    id: Union[int , None] = None  # noqa: UP007
     spire_update_statement: datetime
-    vessel_ais_class: Union[str | None] = None  # noqa: UP007
-    vessel_flag: Union[str | None] = None  # noqa: UP007
-    vessel_name: Union[str | None] = None  # noqa: UP007
-    vessel_callsign: Union[str | None] = None  # noqa: UP007
-    vessel_timestamp: Union[datetime | None] = None  # noqa: UP007
-    vessel_update_timestamp: Union[datetime | None] = None  # noqa: UP007
-    vessel_ship_type: Union[str | None] = None  # noqa: UP007
-    vessel_sub_ship_type: Union[str | None] = None  # noqa: UP007
-    vessel_mmsi: Union[int | None] = None  # noqa: UP007
-    vessel_imo: Union[int | None] = None  # noqa: UP007
-    vessel_width: Union[int | None] = None  # noqa: UP007
-    vessel_length: Union[int | None] = None  # noqa: UP007
-    position_accuracy: Union[str | None] = None  # noqa: UP007
-    position_collection_type: Union[str | None] = None  # noqa: UP007
-    position_course: Union[float | None] = None  # noqa: UP007
-    position_heading: Union[float | None] = None  # noqa: UP007
-    position_latitude: Union[float | None] = None  # noqa: UP007
-    position_longitude: Union[float | None] = None  # noqa: UP007
-    position_maneuver: Union[str | None] = None  # noqa: UP007
-    position_navigational_status: Union[str | None] = None  # noqa: UP007
-    position_rot: Union[float | None] = None  # noqa: UP007
-    position_speed: Union[float | None] = None  # noqa: UP007
-    position_timestamp: Union[datetime | None] = None  # noqa: UP007
-    position_update_timestamp: Union[datetime | None] = None  # noqa: UP007
-    voyage_destination: Union[str | None] = None  # noqa: UP007
-    voyage_draught: Union[float | None] = None  # noqa: UP007
-    voyage_eta: Union[datetime | None] = None  # noqa: UP007
-    voyage_timestamp: Union[datetime | None] = None  # noqa: UP007
-    voyage_update_timestamp: Union[datetime | None] = None  # noqa: UP007
+    vessel_ais_class: Union[str , None] = None  # noqa: UP007
+    vessel_flag: Union[str , None] = None  # noqa: UP007
+    vessel_name: Union[str , None] = None  # noqa: UP007
+    vessel_callsign: Union[str , None] = None  # noqa: UP007
+    vessel_timestamp: Union[datetime , None] = None  # noqa: UP007
+    vessel_update_timestamp: Union[datetime , None] = None  # noqa: UP007
+    vessel_ship_type: Union[str , None] = None  # noqa: UP007
+    vessel_sub_ship_type: Union[str , None] = None  # noqa: UP007
+    vessel_mmsi: Union[int , None] = None  # noqa: UP007
+    vessel_imo: Union[int , None] = None  # noqa: UP007
+    vessel_width: Union[int , None] = None  # noqa: UP007
+    vessel_length: Union[int , None] = None  # noqa: UP007
+    position_accuracy: Union[str , None] = None  # noqa: UP007
+    position_collection_type: Union[str , None] = None  # noqa: UP007
+    position_course: Union[float , None] = None  # noqa: UP007
+    position_heading: Union[float , None] = None  # noqa: UP007
+    position_latitude: Union[float , None] = None  # noqa: UP007
+    position_longitude: Union[float , None] = None  # noqa: UP007
+    position_maneuver: Union[str , None] = None  # noqa: UP007
+    position_navigational_status: Union[str , None] = None  # noqa: UP007
+    position_rot: Union[float , None] = None  # noqa: UP007
+    position_speed: Union[float , None] = None  # noqa: UP007
+    position_timestamp: Union[datetime , None] = None  # noqa: UP007
+    position_update_timestamp: Union[datetime , None] = None  # noqa: UP007
+    voyage_destination: Union[str , None] = None  # noqa: UP007
+    voyage_draught: Union[float , None] = None  # noqa: UP007
+    voyage_eta: Union[datetime , None] = None  # noqa: UP007
+    voyage_timestamp: Union[datetime , None] = None  # noqa: UP007
+    voyage_update_timestamp: Union[datetime , None] = None  # noqa: UP007
     created_at: Union[datetime, None] = None  # noqa: UP007
 
     def map_from_spire(spire_update_timestamp: datetime, vessel: dict[str, Any]):  # noqa: ANN201
