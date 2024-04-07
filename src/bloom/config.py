@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     spire_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/spire_positions_subset.csv")
     
     
-    vessel_positions_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/spire_positions_subset.csv")
+    segment_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/segments_subset.csv")
 
     @model_validator(mode='after')
     def update_db_url(self)->dict:

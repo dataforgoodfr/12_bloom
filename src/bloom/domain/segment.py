@@ -1,4 +1,10 @@
 from datetime import datetime, timedelta
+<<<<<<< HEAD
+=======
+
+from pydantic import BaseModel
+
+>>>>>>> 576cbd6 (fix/feat: load SpireDataFromCsv task)
 from typing import Union
 
 from pydantic import BaseModel, ConfigDict
