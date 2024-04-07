@@ -6,18 +6,22 @@ from typing import Union
 
 
 class VesselData(BaseModel):
-    id: int | None = None
+    id: Union[ int , None ]
     timestamp: datetime
-    ais_class: str | None
-    flag: str | None
-    name: str | None
-    callsign: str | None
-    timestamp: datetime | None
-    ship_type: str | None
-    sub_ship_type: str | None
-    mmsi: int | None
-    imo: int | None
-    width: int | None
-    length: int | None
+    ais_class:  Union[str , None]
+    flag:  Union[str , None]
+    name:  Union[str , None]
+    callsign:  Union[str , None]
+    timestamp:  Union[datetime , None]
+    ship_type:  Union[str , None]
+    sub_ship_type:  Union[str , None]
+    mmsi:  Union[int , None]
+    imo:  Union[int , None]
+    width:  Union[int , None]
+    length:  Union[int , None]
     vessel_id: int
-    created_at: Union[datetime, None] = None
+    created_at: Union[datetime, None]
+
+    def __init__(self):
+        self.id = None
+        self.created_at = None

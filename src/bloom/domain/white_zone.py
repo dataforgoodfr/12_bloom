@@ -6,7 +6,7 @@ from shapely import Geometry
 
 
 class WhiteZone(BaseModel):
-    id: int | None = None
+    id: Union[ int | None ] = None
     geometry: Union[Geometry, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None

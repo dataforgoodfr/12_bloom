@@ -20,7 +20,7 @@ class VesselRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel | None]:
+    def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel, None]:
         return session.get(sql_model.Vessel, vessel_id)
 
     def get_vessels_list(self, session: Session) -> list[Vessel]:

@@ -30,6 +30,8 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8',
         extra='ignore'
         )
+        
+    logging_format:str="[%(name)s %(levelname)s @ %(asctime)s] %(message)s"
     
     # Déclaration des attributs/paramètres disponibles au sein de la class settings
     postgres_user:str = Field(default='')
@@ -49,6 +51,17 @@ class Settings(BaseSettings):
                                 default="INFO",
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
                             )
+                            
+    amp_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/zones_subset.csv")
+    port_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/ports.csv")
+    port_polygon_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/ports_rad3000_res10.csv")
+    port_radius_m:int = 3000    # Radius in meters
+    port_resolution:int = 10    # Number of points in the resulting polygon
+    vessel_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/vessels_subset.csv")
+    spire_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/spire_positions_subset.csv")
+    
+    
+    segment_data_csv_path:Path = Path(__file__).parent.joinpath("../../data/segments_subset.csv")
 
     @model_validator(mode='after')
     def update_db_url(self)->dict:

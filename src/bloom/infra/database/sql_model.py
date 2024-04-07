@@ -44,6 +44,7 @@ class Vessel(Base):
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    batch = Column("batch", String)
 
 
 class VesselPositionSpire(Base):
@@ -164,6 +165,7 @@ class Port(Base):
     has_excursion = Column("has_excursion", Boolean, default=False)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    batch = Column("batch", String)
 
 
 class SpireAisData(Base):
@@ -201,6 +203,7 @@ class SpireAisData(Base):
     voyage_timestamp = Column("voyage_timestamp", DateTime(timezone=True))
     voyage_update_timestamp = Column("voyage_update_timestamp", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    batch = Column("batch", String)
 
 
 class Zone(Base):
@@ -213,6 +216,7 @@ class Zone(Base):
     centroid = Column("centroid", Geometry(geometry_type="POINT", srid=settings.srid))
     json_data = Column("json_data", JSONB)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    batch = Column("batch", String)
 
 
 class WhiteZone(Base):
@@ -293,6 +297,7 @@ class Excursion(Base):
     total_time_extincting_amp = Column("total_time_extincting_amp", Interval)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    batch = Column("batch", String)
 
 
 class Segment(Base):
@@ -318,6 +323,7 @@ class Segment(Base):
     last_vessel_segment = Column("last_vessel_segment", Boolean)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    batch = Column("batch", String)
 
 
 class TaskExecution(Base):

@@ -7,7 +7,7 @@ from shapely import Point
 
 class Excursion(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    id: int | None = None
+    id: Union[int , None] = None
     vessel_id: int
     departure_port_id: Union[int, None] = None
     departure_at: Union[datetime, None] = None
@@ -27,3 +27,4 @@ class Excursion(BaseModel):
     total_time_extincting_amp: Union[timedelta, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+    batch: Union[str, None] = None

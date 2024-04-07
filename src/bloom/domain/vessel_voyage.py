@@ -6,7 +6,7 @@ from typing import Union
 
 
 class VesselVoyage(BaseModel):
-    id: int | None = None
+    id: Union[ int , None ] = None
     timestamp: datetime
     destination: str | None
     draught: float | None

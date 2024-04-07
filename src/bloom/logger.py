@@ -3,7 +3,7 @@ from bloom.config import settings
 
 logger = logging.getLogger("bloom")
 formatter = logging.Formatter(
-    "[%(name)s %(levelname)s @ %(asctime)s] %(message)s",
+    settings.logging_format,
     datefmt="%H:%M:%S",
 )
 handler = logging.StreamHandler()
