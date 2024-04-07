@@ -71,6 +71,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=func.now(),
         ),
+        sa.Column('comment', sa.String)
     )
     op.create_index("i_vessel_data_timesamp", "vessel_data", ["timestamp"])
     op.create_index("i_vessel_data_vessel_id", "vessel_data", ["vessel_id"])

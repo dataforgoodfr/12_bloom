@@ -22,3 +22,4 @@ class Vessel(BaseModel):
     home_port_id: Union[int, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+    comment: str

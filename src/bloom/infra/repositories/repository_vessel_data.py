@@ -40,7 +40,8 @@ class VesselDataRepository:
             width=data.width,
             length=data.length,
             vessel_id=data.vessel_id,
-            created_at=data.created_at
+            created_at=data.created_at,
+            commenr=data.comment
         )
 
     @staticmethod
@@ -59,5 +60,6 @@ class VesselDataRepository:
             width=data.width,
             length=data.length,
             vessel_id=data.vessel_id,
-            created_at=data.created_at
+            created_at=data.created_at,
+            comment=data.comment
         )

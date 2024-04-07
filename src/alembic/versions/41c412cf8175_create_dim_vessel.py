@@ -41,7 +41,8 @@ def upgrade() -> None:
             server_default=func.now(),
         ),
         sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=func.now()),
-    )
+    ),
+        sa.Column("comment", sa.String)
 
 
 def downgrade() -> None:
