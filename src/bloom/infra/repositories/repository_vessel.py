@@ -92,6 +92,7 @@ class VesselRepository:
             home_port_id=sql_vessel.home_port_id,
             created_at=sql_vessel.created_at,
             updated_at=sql_vessel.updated_at,
+            comment = sql_vessel.comment,
         )
 
     @staticmethod
@@ -114,6 +115,8 @@ class VesselRepository:
             home_port_id=vessel.home_port_id,
             created_at=vessel.created_at,
             updated_at=vessel.updated_at,
+            comment = vessel.comment,
+
         )
 
     def get_all_positions(
