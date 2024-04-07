@@ -34,15 +34,16 @@ def upgrade() -> None:
         sa.Column("ircs", sa.String),
         sa.Column("mt_activated", sa.Boolean, nullable=False),
         sa.Column("home_port_id", sa.Integer, sa.ForeignKey("dim_port.id")),
+        sa.Column("comment", sa.String),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
             nullable=False,
             server_default=func.now(),
         ),
-        sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=func.now()),
+        sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=func.now())
     ),
-        sa.Column("comment", sa.String)
+        
 
 
 def downgrade() -> None:
