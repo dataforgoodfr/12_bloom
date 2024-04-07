@@ -79,7 +79,7 @@ def run() -> None:
                 if vessel_voyage and (not last_voyage or vessel_voyage.timestamp > last_voyage.timestamp):
                     last_voyage = VesselVoyageRepository.create_vessel_voyage(session, vessel_voyage)
                     nb_insert_voyage += 1
-                TaskExecutionRepository.set_point_in_time(session, "update_vessel_data_voyage", now)
+        TaskExecutionRepository.set_point_in_time(session, "update_vessel_data_voyage", now)
         session.commit()
     logger.info(f"{nb_donnees} données SPIRE traitées")
     logger.info(f"{nb_insert_data} données statiques mises à jour")
