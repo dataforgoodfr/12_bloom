@@ -34,7 +34,6 @@ class Vessel(Base):
     type = Column("type", String)
     imo = Column("imo", Integer)
     cfr = Column("cfr", String)
-    registration_number = Column("registration_number", String)
     external_marking = Column("external_marking", String)
     ircs = Column("ircs", String)
     tracking_activated = Column("tracking_activated", Boolean, nullable=False)

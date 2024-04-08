@@ -14,7 +14,6 @@ class Vessel(BaseModel):
     type: str
     imo: Union[int, None]
     cfr: Union[str, None]
-    registration_number: Union[str, None]
     external_marking: Union[str, None]
     ircs: Union[str, None]
     tracking_activated: Union[bool, None] = None

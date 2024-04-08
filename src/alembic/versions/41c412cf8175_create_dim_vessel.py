@@ -29,7 +29,6 @@ def upgrade() -> None:
         sa.Column("type", sa.String),
         sa.Column("imo", sa.Integer),
         sa.Column("cfr", sa.String),
-        sa.Column("registration_number", sa.String),
         sa.Column("external_marking", sa.String),
         sa.Column("ircs", sa.String),
         sa.Column("mt_activated", sa.Boolean, nullable=False),

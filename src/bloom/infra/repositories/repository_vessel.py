@@ -52,7 +52,7 @@ class VesselRepository:
     def batch_update_vessel(self, session: Session, vessels: list[Vessel]) -> None:
         updates = [{"id": v.id, "mmsi": v.mmsi, "ship_name": v.ship_name, "width": v.width, "length": v.length,
                     "country_iso3": v.country_iso3, "type": v.type, "imo": v.imo, "cfr": v.cfr,
-                    "registration_number": v.registration_number, "external_marking": v.external_marking,
+                    "external_marking": v.external_marking,
                     "ircs": v.ircs, "tracking_activated": v.tracking_activated, "tracking_status": v.tracking_status,
                     "home_port_id": v.home_port_id} for v in
                    vessels]
@@ -84,7 +84,6 @@ class VesselRepository:
             type=sql_vessel.type,
             imo=sql_vessel.imo,
             cfr=sql_vessel.cfr,
-            registration_number=sql_vessel.registration_number,
             external_marking=sql_vessel.external_marking,
             ircs=sql_vessel.ircs,
             tracking_activated=sql_vessel.tracking_activated,
@@ -107,7 +106,6 @@ class VesselRepository:
             type=vessel.type,
             imo=vessel.imo,
             cfr=vessel.cfr,
-            registration_number=vessel.registration_number,
             external_marking=vessel.external_marking,
             ircs=vessel.ircs,
             tracking_activated=vessel.tracking_activated,
@@ -211,7 +209,8 @@ class VesselRepository:
         df["voyage_id"] = condition.cumsum()
 
         positions = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
-        metadata = {k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"}
+        if type(vessel) != 'NoneType':
+            metadata = {k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"
 
         if as_trajectory:
             trajectory = VesselTrajectory(metadata, positions)

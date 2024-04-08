@@ -22,9 +22,6 @@ def map_to_domain(row: pd.Series) -> Vessel:
         type=row["type"],
         imo=row["imo"] if not isna["imo"] else None,
         cfr=row["cfr"] if not isna["cfr"] else None,
-        registration_number=row["registration_number"]
-        if not isna["registration_number"]
-        else None,
         external_marking=row["external_marking"] if not isna["external_marking"] else None,
         ircs=row["ircs"] if not isna["ircs"] else None,
         tracking_activated=row["tracking_activated"],
