@@ -21,4 +21,3 @@ class VesselData(BaseModel):
     length: int | None
     vessel_id: int
     created_at: Union[datetime, None] = None
-    details: str
