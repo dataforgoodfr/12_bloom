@@ -40,8 +40,8 @@ def upgrade() -> None:
             nullable=False,
             server_default=func.now(),
         ),
-        sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=func.now())
-    ),
+        sa.Column("updated_at", sa.DateTime(timezone=True), onupdate=func.now()),
+    )
         
 
 
