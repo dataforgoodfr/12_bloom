@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.Column("ircs", sa.String),
         sa.Column("mt_activated", sa.Boolean, nullable=False),
         sa.Column("home_port_id", sa.Integer, sa.ForeignKey("dim_port.id")),
-        sa.Column("comment", sa.String),
+        sa.Column("details", sa.String),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

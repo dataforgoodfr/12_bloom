@@ -43,7 +43,7 @@ class Vessel(Base):
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
-    comment = Column("comment", String)
+    details = Column("details", String)
 
 
 class VesselPositionSpire(Base):
@@ -258,7 +258,6 @@ class VesselData(Base):
     length = Column("length", Integer)
     vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
-    comment = Column("comment", String)
 
 
 class VesselVoyage(Base):

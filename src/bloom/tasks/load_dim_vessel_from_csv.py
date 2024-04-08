@@ -26,7 +26,7 @@ def map_to_domain(row: pd.Series) -> Vessel:
         ircs=row["ircs"] if not isna["ircs"] else None,
         tracking_activated=row["tracking_activated"],
         tracking_status=row["tracking_status"] if not isna["tracking_status"] else None,
-        comment=row["comment"] if not isna["comment"] else None,
+        details=row["details"] if not isna["details"] else None,
     )
 
 
