@@ -1,5 +1,7 @@
 # APP BLOOM
 
+#.DS_Store
+
 data/*.csv
 data/*.xlsx
 !/data/README.md
