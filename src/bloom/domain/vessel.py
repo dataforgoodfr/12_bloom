@@ -14,7 +14,6 @@ class Vessel(BaseModel):
     type: str
     imo: Union[int, None]
     cfr: Union[str, None]
-    registration_number: Union[str, None]
     external_marking: Union[str, None]
     ircs: Union[str, None]
     tracking_activated: Union[bool, None] = None
@@ -22,3 +21,4 @@ class Vessel(BaseModel):
     home_port_id: Union[int, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+    details: Union[str, None] = None

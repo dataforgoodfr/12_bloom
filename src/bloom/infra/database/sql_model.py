@@ -34,7 +34,6 @@ class Vessel(Base):
     type = Column("type", String)
     imo = Column("imo", Integer)
     cfr = Column("cfr", String)
-    registration_number = Column("registration_number", String)
     external_marking = Column("external_marking", String)
     ircs = Column("ircs", String)
     tracking_activated = Column("tracking_activated", Boolean, nullable=False)
@@ -44,6 +43,7 @@ class Vessel(Base):
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    details = Column("details", String)
 
 
 class VesselPositionSpire(Base):
