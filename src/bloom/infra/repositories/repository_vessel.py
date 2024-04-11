@@ -1,16 +1,11 @@
 from contextlib import AbstractContextManager
 from typing import Any, Generator, Union
 
-import geopandas as gpd
-import pandas as pd
 from bloom.domain.vessel import Vessel
-from bloom.domain.vessels.vessel_trajectory import VesselTrajectory
 from bloom.infra.database import sql_model
-from bloom.logger import logger
 from dependency_injector.providers import Callable
-from shapely import Point, wkb
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
-from sqlalchemy import select, update, func
 
 
 class VesselRepository:
@@ -93,7 +88,7 @@ class VesselRepository:
             updated_at=sql_vessel.updated_at,
             details=sql_vessel.details,
             check=sql_vessel.check,
-            length_class=sql_vessel.length_class
+            length_class=sql_vessel.length_class,
         )
 
     @staticmethod
@@ -117,107 +112,5 @@ class VesselRepository:
             updated_at=vessel.updated_at,
             details=vessel.details,
             check=vessel.check,
-            length_class=vessel.length_class
-
+            length_class=vessel.length_class,
         )
-
-    def get_all_positions(
-            self,
-            mmsi: str,
-            session: Session,
-    ) -> list[sql_model.VesselPositionSpire]:
-        positions = (
-            session.query(sql_model.VesselPositionSpire)
-            .filter(sql_model.VesselPositionSpire.mmsi == mmsi)
-            .all()
-        )
-        if positions:
-            return positions
-        else:
-            return []
-
-    def get_all_spire_vessels_position(
-            self,
-            session: Session,
-            batch_size: int,
-    ) -> Generator[sql_model.VesselPositionSpire, None, None]:
-        yield from session.query(sql_model.VesselPositionSpire).yield_per(batch_size)
-
-    def get_vessel_trajectory(
-            self,
-            mmsi: str,
-            as_trajectory: bool = True,
-    ) -> Union[Point, None]:
-        def convert_wkb_to_point(x: Any) -> Union[Point, None]:
-            try:
-                point = wkb.loads(bytes(x.data))
-                return point  # noqa: TRY300
-            except:  # noqa: E722
-                return None
-
-        with self.session_factory() as session:
-            vessel = session.query(sql_model.Vessel).filter_by(mmsi=mmsi).first()
-            positions = self.get_all_positions(mmsi, session) if vessel is not None else []
-
-        if not positions:
-            # Create empty dataframe with expected columns when vessel has no trajectory
-            df = pd.DataFrame(
-                columns=[
-                    "timestamp",
-                    "ship_name",
-                    "IMO",
-                    "vessel_id",
-                    "mmsi",
-                    "last_position_time",
-                    "position",
-                    "speed",
-                    "navigation_status",
-                    "vessel_length",
-                    "vessel_width",
-                    "voyage_destination",
-                    "voyage_draught",
-                    "voyage_eta",
-                    "accuracy",
-                    "position_sensors",
-                    "course",
-                    "heading",
-                    "rot",
-                ]
-            )
-            df = df.astype({"timestamp": "datetime64[ms]"})
-        else:
-            df = (
-                pd.DataFrame([p.__dict__ for p in positions])
-                .drop(columns=["_sa_instance_state"])
-                .sort_values("timestamp")
-                .drop_duplicates(subset=["mmsi", "timestamp"])
-                .reset_index(drop=True)
-            )
-        df["geometry"] = df["position"].map(convert_wkb_to_point)
-
-        # With CRS 4326, the coordinates are reversed
-        # Temporary fix
-        # df.loc[df["timestamp"] <= "2023-06-28 14:44:00", "geometry"] = df[
-        #    "geometry"
-        # ].apply(lambda point: Point(point.y, point.x))
-
-        df["is_fishing"] = df["navigation_status"] == "ENGAGED_IN_FISHING"
-
-        # Create a boolean Series where True represents a change from 'MOORED' to something else
-        condition = (df["navigation_status"].shift() == "MOORED") & (
-                df["navigation_status"] != "MOORED"
-        )
-
-        # Use cumsum to generate the 'voyage_id'.
-        # The cumsum operation works because 'True' is treated as 1 and 'False' as 0.
-        df["voyage_id"] = condition.cumsum()
-
-        positions = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
-        if type(vessel) != 'NoneType':
-            metadata = {k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"}
-
-        if as_trajectory:
-            trajectory = VesselTrajectory(metadata, positions)
-            return trajectory
-        else:
-            return metadata, positions

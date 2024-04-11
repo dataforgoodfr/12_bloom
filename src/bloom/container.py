@@ -1,15 +1,15 @@
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.repositories.repository_alert import RepositoryAlert
+from bloom.infra.repositories.repository_excursion import ExcursionRepository
 from bloom.infra.repositories.repository_port import PortRepository
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepository
 from bloom.infra.repositories.repository_vessel import VesselRepository
-from bloom.infra.repositories.repository_zone import ZoneRepository
-from bloom.infra.repositories.repository_excursion import ExcursionRepository
 from bloom.infra.repositories.repository_vessel_position import VesselPositionRepository
+from bloom.infra.repositories.repository_zone import ZoneRepository
+from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.usecase.GenerateAlerts import GenerateAlerts
-from bloom.usecase.GetVesselsFromSpire import GetVesselsFromSpire
 from dependency_injector import containers, providers
 
 
