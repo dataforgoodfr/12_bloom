@@ -27,6 +27,8 @@ def map_to_domain(row: pd.Series) -> Vessel:
         tracking_activated=row["tracking_activated"],
         tracking_status=row["tracking_status"] if not isna["tracking_status"] else None,
         details=row["details"] if not isna["details"] else None,
+        length_class=row["length_class"] if not isna["length_class"] else None,
+        check=row["check"] if not isna["length_class"] else None,
     )
 
 
@@ -38,7 +40,7 @@ def run(csv_file_name: str) -> None:
     inserted_ports = []
     deleted_ports = []
     try:
-        df = pd.read_csv(csv_file_name, sep=";")
+        df = pd.read_csv(csv_file_name, sep=",")
         vessels = df.apply(map_to_domain, axis=1)
         with db.session() as session:
             ports_inserts = []
@@ -87,7 +89,7 @@ def run(csv_file_name: str) -> None:
 
 if __name__ == "__main__":
     time_start = perf_counter()
-    file_name = Path(settings.data_folder).joinpath("./chalutiers_pelagiques.csv")
+    file_name = Path(settings.data_folder).joinpath("./updated_vessels_table.csv")
     logger.info(f"DEBUT - Chargement des données de bateaux depuis le fichier {file_name}")
     run(file_name)
     time_end = perf_counter()

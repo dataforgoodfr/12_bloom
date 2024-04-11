@@ -22,3 +22,5 @@ class Vessel(BaseModel):
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
     details: Union[str, None] = None
+    check: Union[str, None] = None
+    length_class: Union[str, None] = None
