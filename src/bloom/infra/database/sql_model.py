@@ -39,11 +39,13 @@ class Vessel(Base):
     tracking_activated = Column("tracking_activated", Boolean, nullable=False)
     tracking_status = Column("tracking_status", String)
     home_port_id = Column("home_port_id", Integer, ForeignKey("dim_port.id"))
+    details = Column("details", String)
+    check = Column("check", String)
+    length_class = Column("length_class", String)
     created_at = Column(
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
-    details = Column("details", String)
 
 
 class VesselPositionSpire(Base):

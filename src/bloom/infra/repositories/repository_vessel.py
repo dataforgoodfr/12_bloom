@@ -91,7 +91,9 @@ class VesselRepository:
             home_port_id=sql_vessel.home_port_id,
             created_at=sql_vessel.created_at,
             updated_at=sql_vessel.updated_at,
-            comment = sql_vessel.comment,
+            details=sql_vessel.details,
+            check=sql_vessel.check,
+            length_class=sql_vessel.length_class
         )
 
     @staticmethod
@@ -113,7 +115,9 @@ class VesselRepository:
             home_port_id=vessel.home_port_id,
             created_at=vessel.created_at,
             updated_at=vessel.updated_at,
-            comment = vessel.comment,
+            details=vessel.details,
+            check=vessel.check,
+            length_class=vessel.length_class
 
         )
 
@@ -210,7 +214,7 @@ class VesselRepository:
 
         positions = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
         if type(vessel) != 'NoneType':
-            metadata = {k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"
+            metadata = {k: v for k, v in vessel.__dict__.items() if k != "_sa_instance_state"}
 
         if as_trajectory:
             trajectory = VesselTrajectory(metadata, positions)
