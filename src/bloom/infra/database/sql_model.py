@@ -65,7 +65,7 @@ class Port(Base):
 
 
 class SpireAisData(Base):
-    __tablename__ = "spire_ais_data"
+    __tablename__ = "stg_spire_ais_data"
 
     id = Column("id", Integer, primary_key=True)
     spire_update_statement = Column("spire_update_statement", DateTime(timezone=True))
