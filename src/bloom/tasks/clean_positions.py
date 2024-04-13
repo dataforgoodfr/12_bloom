@@ -106,6 +106,13 @@ def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
         speed=row["speed"]
     )
 
+def to_coords(row: pd.Series) -> pd.Series:
+    if pd.isna(row["end_position"]) is False:
+        row["longitude"] = row["end_position"].x
+        row["latitude"] = row["end_position"].y
+
+    return row
+
 def run():
     use_cases = UseCases()
     db = use_cases.db()
@@ -127,7 +134,7 @@ def run():
 
         # Step 3: load last_segment where last_vessel_segment == 1
         last_segment = segment_repository.get_last_vessel_id_segments(session)
-        # last_segment = pd.DataFrame(columns=last_segment.columns)
+        last_segment = last_segment.apply(to_coords, axis=1)
 
     # Step 4: merge batch with last_segment on vessel_id.
     # If column _merge == "left_only" --> this is a new vessel (keep it)

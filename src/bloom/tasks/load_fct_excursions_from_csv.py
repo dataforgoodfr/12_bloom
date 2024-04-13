@@ -58,10 +58,10 @@ def map_excursion_to_domain(row) -> Excursion:
         departure_port_id=None,
         departure_at=None,
         # FIXME: missing in test data excursions.csv
-        departure_position_id=row["departure_position_id"],
+        departure_position=row["start_position"],
         arrival_port_id=None,
         arrival_at=None if pd.isna(row["arrival_at"]) else row["arrival_at"],
-        arrival_position_id=row["departure_position_id"],  # FIXME: cannot be None
+        arrival_position=row["start_position"],
         excursion_duration=None,
         total_time_at_sea=None,
         total_time_in_amp=None,
@@ -83,8 +83,8 @@ def map_segment_to_domain(row) -> Segment:
         timestamp_start=None,
         timestamp_end=row["timestamp_end"],
         segment_duration=None,
-        start_position_id=row["start_position_id"],
-        end_position_id=row["end_position_id"],
+        start_position=row["start_position"],
+        end_position=row["end_position"],
         heading=None,
         distance=None,
         average_speed=None,
@@ -97,27 +97,31 @@ def map_segment_to_domain(row) -> Segment:
         updated_at=None,
     )
 
-def generate_vessel_positions(df_segment: pd.DataFrame, now: datetime):
-    end_positions = []
-    df_segment["start_position_id"] = list(range(1, len(df_segment) + 1))
-    df_segment["end_position_id"] = list(range(1, len(df_segment) + 1))
-    for i, (_, row) in enumerate(df_segment.iterrows()):
-        vp = VesselPosition(
-            id=i + 1,
-            vessel_id=row["vessel_id"],
-            timestamp=now,
-            position=Point(row["end_position"][1], row["end_position"][0]),
-            latitude=row["end_position"][0],
-            longitude=row["end_position"][1],
-        )
-        end_positions.append(vp)
+# def generate_vessel_positions(df_segment: pd.DataFrame, now: datetime):
+#     end_positions = []
+#     df_segment["start_position_id"] = list(range(1, len(df_segment) + 1))
+#     df_segment["end_position_id"] = list(range(1, len(df_segment) + 1))
+#     for i, (_, row) in enumerate(df_segment.iterrows()):
+#         vp = VesselPosition(
+#             id=i + 1,
+#             vessel_id=row["vessel_id"],
+#             timestamp=now,
+#             position=Point(row["end_position"][1], row["end_position"][0]),
+#             latitude=row["end_position"][0],
+#             longitude=row["end_position"][1],
+#         )
+#         end_positions.append(vp)
 
-    return df_segment, end_positions
+#     return df_segment, end_positions
+
+def get_point(end_position: str) -> Point:
+    end_position = json.loads(end_position)
+    return Point(end_position[1], end_position[0])
 
 def run(excursion_csv_filename: str, segment_csv_filename: str, spire_csv_filename: str) -> None:
     use_cases = UseCases()
     excursion_repository = use_cases.excursion_repository()
-    vessel_position_repository = use_cases.vessel_position_repository()
+    # vessel_position_repository = use_cases.vessel_position_repository()
     segment_repository = use_cases.segment_repository()
     spire_repository = use_cases.spire_ais_data_repository()
     db = use_cases.db()
@@ -126,12 +130,13 @@ def run(excursion_csv_filename: str, segment_csv_filename: str, spire_csv_filena
     try:
         now = datetime.now()
         df_excursions = pd.read_csv(excursion_csv_filename)
-        df_excursions["departure_position_id"] = list(range(1, len(df_excursions) + 1))
         df_segment = pd.read_csv(segment_csv_filename)
-        df_segment["end_position"] = df_segment["end_position"].apply(json.loads)
+        df_segment["end_position"] = df_segment["end_position"].apply(get_point)
+        df_segment["start_position"] = df_segment["end_position"].copy()
         df_segment = df_segment.merge(df_excursions, left_on="excursion_id", right_on="id")
+        df_excursions = df_excursions.merge(df_segment[["excursion_id", "start_position", "end_position"]], right_on="excursion_id", left_on="id")
         df_spire_ais_data = pd.read_csv(spire_csv_filename)
-        df_segment, end_positions = generate_vessel_positions(df_segment, now)
+        # df_segment, end_positions = generate_vessel_positions(df_segment, now)
         excursions = df_excursions.apply(map_excursion_to_domain, axis=1)
         segments = df_segment.apply(map_segment_to_domain, axis=1)
         spire_ais_data = df_spire_ais_data.apply(map_spire_to_domain, axis=1)
@@ -140,11 +145,11 @@ def run(excursion_csv_filename: str, segment_csv_filename: str, spire_csv_filena
             spire_repository.batch_create_ais_data(spire_ais_data, session)
             session.commit()
         
-        with db.session() as session:
-            end_positions = vessel_position_repository.batch_create_vessel_position(
-                session, end_positions
-            )
-            session.commit()
+        # with db.session() as session:
+        #     end_positions = vessel_position_repository.batch_create_vessel_position(
+        #         session, end_positions
+        #     )
+        #     session.commit()
         
         with db.session() as session:
             excursions = excursion_repository.batch_create_excursion(

@@ -11,6 +11,8 @@ from bloom.infra.repositories.repository_task_execution import TaskExecutionRepo
 from bloom.infra.repositories.repository_vessel_data import VesselDataRepository
 from bloom.infra.repositories.repository_vessel_voyage import VesselVoyageRepository
 from bloom.logger import logger
+from pydantic import ValidationError
+from typing import Union
 
 
 def map_ais_data_to_vessel_data(ais_data: SpireAisData, vessel: Vessel) -> VesselData:
@@ -30,14 +32,18 @@ def map_ais_data_to_vessel_data(ais_data: SpireAisData, vessel: Vessel) -> Vesse
     )
 
 
-def map_ais_data_to_vessel_voyage(ais_data: SpireAisData, vessel: Vessel) -> VesselVoyage:
-    return VesselVoyage(
-        timestamp=ais_data.voyage_timestamp,
-        destination=ais_data.voyage_destination,
-        draught=ais_data.voyage_draught,
-        eta=ais_data.voyage_eta,
-        vessel_id=vessel.id,
-    )
+def map_ais_data_to_vessel_voyage(ais_data: SpireAisData, vessel: Vessel) -> Union[VesselVoyage | None]:
+    try:
+        return VesselVoyage(
+            timestamp=ais_data.voyage_timestamp,
+            destination=ais_data.voyage_destination,
+            draught=ais_data.voyage_draught,
+            eta=ais_data.voyage_eta,
+            vessel_id=vessel.id,
+        )
+    except ValidationError as e:
+        logger.debug("Données de voyage invalides")
+        return None
 
 
 def run() -> None:
@@ -60,18 +66,18 @@ def run() -> None:
             spire_datas = spire_ais_data_repository.get_all_data_by_mmsi(session, vessel.mmsi,
                                                                          SpireAisDataRepository.ORDER_BY_POSITION,
                                                                          point_in_time)
+            last_data = VesselDataRepository.get_last_vessel_data(session, vessel.id)
+            last_voyage = VesselVoyageRepository.get_last_vessel_voyage(session, vessel.id)
             for spire_data in spire_datas:
                 vessel_data = map_ais_data_to_vessel_data(spire_data, vessel)
                 vessel_voyage = map_ais_data_to_vessel_voyage(spire_data, vessel)
                 nb_donnees += 1
-                last_data = VesselDataRepository.get_last_vessel_data(session, vessel.id)
-                last_voyage = VesselVoyageRepository.get_last_vessel_voyage(session, vessel.id)
                 # Foreach position
                 if not last_data or vessel_data.timestamp > last_data.timestamp:
-                    VesselDataRepository.create_vessel_data(session, vessel_data)
+                    last_data = VesselDataRepository.create_vessel_data(session, vessel_data)
                     nb_insert_data += 1
-                if not last_voyage or vessel_voyage.timestamp > last_voyage.timestamp:
-                    VesselVoyageRepository.create_vessel_voyage(session, vessel_voyage)
+                if vessel_voyage and (not last_voyage or vessel_voyage.timestamp > last_voyage.timestamp):
+                    last_voyage = VesselVoyageRepository.create_vessel_voyage(session, vessel_voyage)
                     nb_insert_voyage += 1
         TaskExecutionRepository.set_point_in_time(session, "update_vessel_data_voyage", now)
         session.commit()

@@ -40,8 +40,8 @@ class VesselDataRepository:
             width=data.width,
             length=data.length,
             vessel_id=data.vessel_id,
-            created_at=data.created_at
-        )
+            created_at=data.created_at,
+            )
 
     @staticmethod
     def map_to_domain(data: sql_model.VesselData) -> VesselData:
@@ -59,5 +59,5 @@ class VesselDataRepository:
             width=data.width,
             length=data.length,
             vessel_id=data.vessel_id,
-            created_at=data.created_at
-        )
+            created_at=data.created_at,
+            )
