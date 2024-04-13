@@ -35,66 +35,12 @@ def map_ais_data_to_vessel_position(
     )
 
 
-def deprecated_run():
-    use_cases = UseCases()
-    spire_ais_data_repository = use_cases.spire_ais_data_repository()
-    vessel_repository = use_cases.vessel_repository()
-    port_repository = use_cases.port_repository()
-    vessel_position_repository = use_cases.vessel_position_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        point_in_time = TaskExecutionRepository.get_point_in_time(
-            session, "clean_positions"
-        )
-        logger.info(f"Point in time={point_in_time}")
-        now = datetime.now(timezone.utc)
-        nb_donnees = 0
-        nb_au_port = 0
-        nb_pas_au_port = 0
-        vessels = vessel_repository.get_vessels_list(session)
-        logger.info(f"{len(vessels)} bateaux à traiter")
-        # Foreach vessel
-        for vessel in vessels:
-            # Recheche des données AIS de chaque bateau créées depuis la dernière exécution du traitement (point in time)
-            spire_datas = spire_ais_data_repository.get_all_data_by_mmsi(
-                session,
-                vessel.mmsi,
-                SpireAisDataRepository.ORDER_BY_POSITION,
-                point_in_time,
-            )
-            for spire_data in spire_datas:
-                nb_donnees += 1
-                # Foreach position
-                position = Point(
-                    spire_data.position_longitude, spire_data.position_latitude
-                )
-                port = port_repository.find_port_by_position_in_port_buffer(
-                    session, position
-                )
-                if not port:
-                    vessel_position = map_ais_data_to_vessel_position(
-                        spire_data, vessel
-                    )
-                    vessel_position_repository.create_vessel_position(
-                        session, vessel_position
-                    )
-                    nb_pas_au_port += 1
-                else:
-                    nb_au_port += 1
-                # TODO: A poursuivre, voir MIRO pour l'algorithme
-                pass
-        TaskExecutionRepository.set_point_in_time(session, "clean_positions", now)
-        session.commit()
-    logger.info(f"{nb_donnees} données SPIRE traitées")
-    logger.info(f"{nb_au_port} données ignorées pour des bateaux au port")
-    logger.info(f"{nb_pas_au_port} données importées dans vessel_positions")
-
-
 def get_distance(current_position: tuple, last_position: tuple):
     if np.isnan(last_position[0]) or np.isnan(last_position[1]):
         return np.nan
 
     return distance.geodesic(current_position, last_position).km
+
 
 def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
     return VesselPosition(
@@ -103,8 +49,9 @@ def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
         position=Point(row["position_longitude"], row["position_latitude"]),
         latitude=row["position_latitude"],
         longitude=row["position_longitude"],
-        speed=row["speed"]
+        speed=row["speed"],
     )
+
 
 def to_coords(row: pd.Series) -> pd.Series:
     if pd.isna(row["end_position"]) is False:
@@ -112,6 +59,7 @@ def to_coords(row: pd.Series) -> pd.Series:
         row["latitude"] = row["end_position"].y
 
     return row
+
 
 def run():
     use_cases = UseCases()
@@ -183,6 +131,7 @@ def run():
     batch["speed"] = (
         batch["distance_since_last_position"] / batch["hours_since_last_position"]
     )
+    batch["speed"] *= 0.5399568 # Conversion km/h to noeuds
 
     # Step 7: apply to_keep flag: keep only positions WHERE:
     # - row["new_vessel"] is True, i.e. there is a new vessel_id
