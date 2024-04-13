@@ -14,10 +14,16 @@ class VesselPositionRepository:
         orm_position = VesselPositionRepository.map_to_sql(position)
         session.add(orm_position)
         return VesselPositionRepository.map_to_domain(orm_position)
+    
+    def batch_create_vessel_position(self, session: Session, vessel_positions: list[VesselPosition]) -> list[VesselPosition]:
+        orm_list = [VesselPositionRepository.map_to_sql(vessel_position) for vessel_position in vessel_positions]
+        session.add_all(orm_list)
+        return [VesselPositionRepository.map_to_domain(orm) for orm in orm_list]
 
     @staticmethod
     def map_to_sql(position: VesselPosition) -> sql_model.VesselPosition:
         return sql_model.VesselPosition(
+            id=position.id,
             timestamp=position.timestamp,
             accuracy=position.accuracy,
             collection_type=position.collection_type,
@@ -36,6 +42,7 @@ class VesselPositionRepository:
     @staticmethod
     def map_to_domain(position: sql_model.VesselPosition) -> VesselPosition:
         return VesselPosition(
+            id=position.id,
             timestamp=position.timestamp,
             accuracy=position.accuracy,
             collection_type=position.collection_type,

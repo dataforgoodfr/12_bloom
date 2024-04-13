@@ -6,7 +6,7 @@ from shapely import Point, Polygon
 from typing import Union
 
 
-class Excursion(BaseModel):
+class Segment(BaseModel):
     id: int | None = None
     excursion_id: int
     timestamp_start: Union[datetime, None] = None
