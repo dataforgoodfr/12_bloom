@@ -121,7 +121,12 @@ def run():
     )
 
     # Step 6.2. Compute time in hours between last and current position
-    # Quelle est la date à prendre ?
+    ## If timestamp_end is NULL --> new_vessel is TRUE (record will be kept)
+    ## --> fillna with anything to avoid exception
+    batch.loc[batch["timestamp_end"].isna(), "timestamp_end"] = batch.loc[
+        batch["timestamp_end"].isna(), "position_timestamp"
+    ].copy()
+    batch["timestamp_end"] = pd.to_datetime(batch["timestamp_end"])
     batch["time_since_last_position"] = (
         batch["position_timestamp"] - batch["timestamp_end"]
     )
@@ -133,14 +138,14 @@ def run():
     batch["speed"] = (
         batch["distance_since_last_position"] / batch["hours_since_last_position"]
     )
-    batch["speed"] *= 0.5399568 # Conversion km/h to noeuds
+    batch["speed"] *= 0.5399568  # Conversion km/h to noeuds
 
     # Step 7: apply to_keep flag: keep only positions WHERE:
     # - row["new_vessel"] is True, i.e. there is a new vessel_id
     # - OR speed is not close to 0, i.e. vessel moved significantly since last position
     batch["to_keep"] = (batch["new_vessel"] == True) | ~(  # detect new vessels
-        (batch["excursion_closed"] == True)  # si last excursion closed
-        & (batch["speed"] <= 0.01)  # et speed < 0.01: on ne garde pas
+        (batch["excursion_closed"] == True)  # if last excursion closed
+        & (batch["speed"] <= 0.01)  # and speed < 0.01: don't keep
     )
 
     # Step 8: filter unflagged rows to insert to DB
