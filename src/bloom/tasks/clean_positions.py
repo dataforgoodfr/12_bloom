@@ -82,6 +82,8 @@ def run():
 
         # Step 3: load last_segment where last_vessel_segment == 1
         last_segment = segment_repository.get_last_vessel_id_segments(session)
+        last_segment["longitude"] = None
+        last_segment["latitude"] = None
         last_segment = last_segment.apply(to_coords, axis=1)
 
     # Step 4: merge batch with last_segment on vessel_id.
