@@ -75,8 +75,17 @@ def run():
         now = datetime.now(timezone.utc)
         # Step 1: load SPIRE batch: read from SpireAisData
         batch = spire_repository.get_all_data_after_date(session, point_in_time)
+        batch.dropna(
+            subset=[
+                "position_latitude",
+                "position_longitude",
+                "position_timestamp",
+                "position_update_timestamp",
+            ],
+            inplace=True,
+        )
         logger.info(f"Réception de {len(batch)} nouvelles positions de Spire")
-
+        
         # Step 2: load excursion from fct_excursion where date_arrival IS NULL
         excursions = excursion_repository.get_current_excursions(session)
 
