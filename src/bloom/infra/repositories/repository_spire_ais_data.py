@@ -1,9 +1,11 @@
+import pandas as pd
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from datetime import datetime
+from bloom.logger import logger
 
 
 class SpireAisDataRepository:
@@ -14,23 +16,68 @@ class SpireAisDataRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def create_ais_data(self, ais_data: SpireAisData, session: Session) -> sql_model.SpireAisData:
+    def create_ais_data(
+        self, ais_data: SpireAisData, session: Session
+    ) -> sql_model.SpireAisData:
         sql_ais_data = SpireAisDataRepository.map_to_orm(ais_data)
         session.add(sql_ais_data)
         return SpireAisDataRepository.map_to_domain(sql_ais_data)
 
     def batch_create_ais_data(
-            self, ais_list: list[SpireAisData], session: Session
+        self, ais_list: list[SpireAisData], session: Session
     ) -> list[SpireAisData]:
         orm_list = [SpireAisDataRepository.map_to_orm(ais) for ais in ais_list]
         session.add_all(orm_list)
         return [SpireAisDataRepository.map_to_domain(orm) for orm in orm_list]
 
-    def get_all_data_by_mmsi(self, session: Session, mmsi: int, order_by: str = None,
-                             created_updated_after: datetime = None) -> list[SpireAisData]:
-        stmt = select(sql_model.SpireAisData).where(sql_model.SpireAisData.vessel_mmsi == mmsi)
+    def get_all_data_after_date(
+        self, session: Session, created_updated_after: datetime
+    ) -> pd.DataFrame:
+        stmt = select(
+            sql_model.SpireAisData.id,
+            sql_model.SpireAisData.spire_update_statement,
+            sql_model.SpireAisData.vessel_mmsi,
+            sql_model.Vessel.id,
+            sql_model.SpireAisData.position_latitude,
+            sql_model.SpireAisData.position_longitude,
+            sql_model.SpireAisData.position_timestamp,
+            sql_model.SpireAisData.position_update_timestamp,
+        ).join(
+            sql_model.Vessel,
+            sql_model.Vessel.mmsi == sql_model.SpireAisData.vessel_mmsi
+        ).where(
+            and_(
+                sql_model.Vessel.tracking_activated == True, 
+                sql_model.SpireAisData.created_at >= created_updated_after
+            )
+        )
+        result = session.execute(stmt)
+        return pd.DataFrame(result, columns=[
+                "id",
+                "spire_update_statement",
+                "vessel_mmsi",
+                "vessel_id",
+                "position_latitude",
+                "position_longitude",
+                "position_timestamp",
+                "position_update_timestamp",
+            ],
+        )
+
+    def get_all_data_by_mmsi(
+        self,
+        session: Session,
+        mmsi: int,
+        order_by: str = None,
+        created_updated_after: datetime = None,
+    ) -> list[SpireAisData]:
+        stmt = select(sql_model.SpireAisData).where(
+            sql_model.SpireAisData.vessel_mmsi == mmsi
+        )
         if created_updated_after:
-            stmt = stmt.where(sql_model.SpireAisData.created_at >= created_updated_after)
+            stmt = stmt.where(
+                sql_model.SpireAisData.created_at >= created_updated_after
+            )
 
         if order_by == SpireAisDataRepository.ORDER_BY_VESSEL:
             stmt = stmt.order_by(sql_model.SpireAisData.vessel_timestamp.asc())

@@ -5,6 +5,8 @@
 data/*.csv
 data/*.xlsx
 !/data/README.md
+!/data/ports.csv
+!/data/updated_vessels_table.csv
 /secrets/
 
 
