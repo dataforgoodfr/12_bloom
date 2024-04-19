@@ -8,21 +8,22 @@ x-common-infos:
     LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
 
 services:
-  bloom:
-    container_name: bloom
+  bloom-backend:
+    container_name: bloom-backend
+    hostname: bloom-backend
     image: d4g/bloom:${VERSION:-latest}
     build:
       context: .
       dockerfile: ./docker/Dockerfile
       args:
         IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
-        POETRY_VERSION: ${POETRY_VERSION:-1.8.1}
-    # Nominal start:
-    command: streamlit run src/Trawlwatcher.py
-    # Debug start:
-    #command: bash
-    #tty: true
-    #stdin_open: true
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.2}
+    command:
+        - bash
+        - -c
+        - |
+            echo "Starting Scheduler" &&
+            cron -f -L 2
     volumes:
       - ./:/project/
     environment:
@@ -34,11 +35,12 @@ services:
     networks:
       - bloom_net
     depends_on:
-      init:
+      bloom-init:
         condition: service_completed_successfully
 
-  postgres:
-    container_name: postgres_bloom
+  bloom-postgres:
+    container_name: bloom-postgres
+    hostname: bloom-postgres
     image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
     environment:
       <<: *common-env
@@ -57,9 +59,27 @@ services:
       retries: 140
       start_period: 0s
 
-  init:
-    container_name: init_bloom
-    hostname: init_bloom
+  bloom-frontend:
+    container_name: bloom-frontend
+    hostname: bloom-frontend
+    image: d4g/bloom:${VERSION:-latest}
+    command: env node ./node_modules/next/dist/bin/next start --hostname 0.0.0.0
+    working_dir: /project/frontend
+    volumes:
+      - ./:/project/
+    environment:
+      <<: *common-env
+    networks:
+      - bloom_net
+    ports:
+      - ${HTTP_PORT:-3000}:3000
+    depends_on:
+      bloom-init:
+        condition: service_completed_successfully
+
+  bloom-init:
+    container_name: bloom-init
+    hostname: bloom-init
     image: d4g/bloom:${VERSION:-latest}
 
     # Nominal start:
@@ -81,7 +101,7 @@ services:
     networks:
       - bloom_net
     depends_on:
-      postgres:
+      bloom-postgres:
         condition: service_healthy # The service is working and still running
 
 networks:
