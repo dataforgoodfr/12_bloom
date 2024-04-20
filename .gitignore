@@ -1,12 +1,7 @@
 # APP BLOOM
 
-+/data/**/*.csv
+/data/
 !/data/README.md
-!/data/ports.csv
-!/data/updated_vessels_table.csv
-+/data/**/*.json
-+/data/**/*.gz
-+data/*.xlsx
 /secrets/
 
 

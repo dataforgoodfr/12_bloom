@@ -61,6 +61,7 @@ services:
     working_dir: /project/frontend
     volumes:
       - ./:/project/
+      - ./data:/project/frontend/public/data
     environment:
       LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
     networks:

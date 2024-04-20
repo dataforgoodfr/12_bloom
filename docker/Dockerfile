@@ -52,8 +52,8 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NPM_VERSION}/install
 	ln -sf `nvm which node` /usr/local/bin/node &&\
 	ln -sf ${PROJECT_DIR}/frontend/node_modules/next/dist/bin/next /usr/local/bin/next &&\
 	cd frontend &&\
-	npm install &&\
-	next build
+	npm install && (echo "NPM: Install OK") || (echo "NPM: Install error"; exit 1) &&\
+    npm run build && (echo "NPM: Build OK") || (echo "NPM: Build error"; exit 1)
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]
