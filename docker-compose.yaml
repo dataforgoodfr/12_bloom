@@ -9,15 +9,9 @@ x-common-infos:
 
 services:
   bloom-backend:
-    container_name: bloom-backend
+    container_name: bloom_backend
     hostname: bloom-backend
     image: d4g/bloom:${VERSION:-latest}
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile
-      args:
-        IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
-        POETRY_VERSION: ${POETRY_VERSION:-1.8.2}
     command:
         - bash
         - -c
@@ -39,7 +33,7 @@ services:
         condition: service_completed_successfully
 
   bloom-postgres:
-    container_name: bloom-postgres
+    container_name: postgres_bloom
     hostname: bloom-postgres
     image: ${POSTGIS_IMAGE:-postgis/postgis:14-3.3-alpine}
     environment:
@@ -60,7 +54,7 @@ services:
       start_period: 0s
 
   bloom-frontend:
-    container_name: bloom-frontend
+    container_name: bloom_frontend
     hostname: bloom-frontend
     image: d4g/bloom:${VERSION:-latest}
     command: env node ./node_modules/next/dist/bin/next start --hostname 0.0.0.0
@@ -68,7 +62,7 @@ services:
     volumes:
       - ./:/project/
     environment:
-      <<: *common-env
+      LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
     networks:
       - bloom_net
     ports:
@@ -78,7 +72,7 @@ services:
         condition: service_completed_successfully
 
   bloom-init:
-    container_name: bloom-init
+    container_name: bloom_init
     hostname: bloom-init
     image: d4g/bloom:${VERSION:-latest}
 
@@ -87,11 +81,17 @@ services:
     # it happens that init is launch before second and definitve postgres healthy state
     # and fails
     # so giving init 3 chances and 15 seconds to init before failing
-    command: /bin/bash -c "for i in 1 2 3; do alembic upgrade head && break || sleep 5; done"
+    command: /bin/bash -c "cd backend; for i in 1 2 3; do alembic upgrade head && break || sleep 5; done"
     # Debug start:
     #command: bash
     #tty: true
     #stdin_open: true
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        IMAGE_PYTHON: ${IMAGE_PYTHON:-python:3.10-slim-bullseye}
+        POETRY_VERSION: ${POETRY_VERSION:-1.8.2}
 
     environment:
       <<: *common-env
