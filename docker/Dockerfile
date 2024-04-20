@@ -14,6 +14,7 @@ ENV PROJECT_DIR=${PROJECT_DIR}
 WORKDIR ${PROJECT_DIR}
 
 # BACKEND
+ENV PYTHONPATH=${PROJECT_DIR}/backend
 COPY ./backend/ ${PROJECT_DIR}/backend
 COPY docker/rsyslog.conf /etc/rsyslog.conf
 
