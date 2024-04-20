@@ -16,7 +16,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("dim_vessel", sa.Column("details", sa.String))
+    #op.add_column("dim_vessel", sa.Column("details", sa.String))
     op.add_column("dim_vessel", sa.Column("length_class", sa.String))
     op.add_column("dim_vessel", sa.Column("check", sa.String))
 
@@ -25,6 +25,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.add_column("dim_vessel", sa.Column("registration_number", sa.String))
-    op.drop_column("dim_vessel", "details")
+    #op.drop_column("dim_vessel", "details")
     op.drop_column("dim_vessel", "length_class")
     op.drop_column("dim_vessel", "check")
