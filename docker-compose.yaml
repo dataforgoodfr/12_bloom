@@ -20,6 +20,7 @@ services:
             cron -f -L 2
     volumes:
       - ./:/project/
+      - ./data:/project/data
     environment:
       <<: *common-env
       POSTGRES_PORT: 5432
