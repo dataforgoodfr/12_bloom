@@ -66,7 +66,9 @@ Bloom is tested with:
 ### Clone the Bloom application repository
 
 ```bash
+    # clone git repository
     git clone https://github.com/dataforgoodfr/12_bloom.git
+    # change to project root directory
     cd 12_bloom
 ```
 
@@ -104,6 +106,7 @@ After having filled 12_bloom/data folder with data files get from project team, 
 * data/vessels_subset.csv
 * data/zones_subset.csv
 * data/ports.csv
+* data/geometries/*.json
 
 Then launch docker compose stack using docker compose file extension to add loading data service
 
@@ -122,9 +125,11 @@ You can now jump to [Use the Bloom Application](#use-the-bloom-application)
 You must have a functionnal PostgreSQL instance with connexion informations (database server hostname or ip, user,
 password, database name, port to use)
 
-#### Install with Poetry
+#### Install Backend Application with Poetry
 
 ```bash
+    # From project diretory
+    cd ./backend
     # Install poetry
     pip install --user "poetry==1.8.1"
     # Mise à disposition de l'exécutable de manière temporaire
@@ -142,11 +147,18 @@ password, database name, port to use)
 #### Initial configuration
 
 ```bash
+    # From project root diretory
     # Create initial ocnfiguration
     cp .env.template .env
     # Edit .env file
     # Replace POSTGRES_HOSTNAME/PORT with the postgres server hostname:port (localhost if local default port server)
     # Replace POSTGRES_USER/PASSWORD with already configured user on serverside
+```
+#### Loading initial data for backend
+
+```bash
+    # From project root diretory
+    cd ./backend
     # Check if database is up to date with alembic revisions
     alembic upgrade head
     # If upgrade is successful you can load the data
@@ -156,10 +168,10 @@ password, database name, port to use)
     # * data/spire_positions_subset.csv
     # * data/vessels_subset.csv
     # * data/zones_subset.csv
-    $ python3 backend/bloom/tasks/load_dim_vessel_from_csv.py 
-    $ python3 backend/bloom/tasks/load_dim_port_from_csv.py
-    $ python3 backend/bloom/tasks/load_dim_zone_amp_from_csv.py
-    $ python3 backend/bloom/tasks/compute_port_geometry_buffer.py
+    $ python3 bloom/tasks/load_dim_vessel_from_csv.py 
+    $ python3 bloom/tasks/load_dim_port_from_csv.py
+    $ python3 bloom/tasks/load_dim_zone_amp_from_csv.py
+    $ python3 bloom/tasks/compute_port_geometry_buffer.py
 ```
 
 #### Starting the application
