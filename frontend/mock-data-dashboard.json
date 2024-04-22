@@ -1,0 +1,82 @@
+{
+  "total-vessels-active": 342,
+  "total-vessels": 1700,
+  "total-amps-visited": 150,
+  "total-amps": 720,
+  "fishing-effort-hours": 2400,
+  "fishing-area-km2": 32000,
+  "top-amps": [
+    {
+      "id": "amp-1",
+      "title": "Réserve naturelle nationale de la Baie de l'Aiguillon",
+      "description": "Réserve naturelle nationale",
+      "value": "1435h",
+      "type": "amp"
+    },
+    {
+      "id": "amp-2",
+      "title": "Parc naturel marin d'Iroise",
+      "description": "Réserve naturelle nationale",
+      "value": "904h",
+      "type": "amp"
+    },
+    {
+      "id": "amp-3",
+      "title": "Lower Fal & Helford Intertidal",
+      "description": "Réserve naturelle nationale",
+      "value": "761h",
+      "type": "amp"
+    },
+    {
+      "id": "amp-4",
+      "title": "Chesil & The Fleet",
+      "description": "Réserve naturelle nationale",
+      "value": "320h",
+      "type": "amp"
+    },
+    {
+      "id": "amp-5",
+      "title": "Chesil & The Fleet",
+      "description": "Réserve naturelle nationale",
+      "value": "320h",
+      "type": "amp"
+    }
+  ],
+  "top-vessels": [
+    {
+      "id": "vessel-1",
+      "title": "Prins Bernhard",
+      "description": "IMO 8224406 / MMSI 227302000 / 46 mètre",
+      "value": "1435h",
+      "type": "vessel" 
+    },
+    {
+      "id": "vessel-2",
+      "title": "Nom navire",
+      "description": "IMO 8224406 / MMSI 227302000 / 46 mètre",
+      "value": "904h",
+      "type": "vessel"
+    },
+    {
+      "id": "vessel-3",
+      "title": "Nom navire",
+      "description": "IMO 8224406 / MMSI 227302000 / 46 mètre",
+      "value": "761h",
+      "type": "vessel"
+    },
+    {
+      "id": "vessel-4",
+      "title": "Nom navire",
+      "description": "IMO 8224406 / MMSI 227302000 / 46 mètre",
+      "value": "320h",
+      "type": "vessel"
+    },
+    {
+      "id": "vessel-5",
+      "title": "Nom navire",
+      "description": "IMO 8224406 / MMSI 227302000 / 46 mètre",
+      "value": "320h",
+      "type": "vessel"
+    }
+  ]
+}

@@ -2,7 +2,7 @@ ARG IMAGE_PYTHON=${IMAGE_PYTHON:-python:3.10-slim-bullseye}
 FROM ${IMAGE_PYTHON}
 
 RUN apt-get update &&\
-    apt-get -y install wget &&\
+    apt-get -y install curl &&\
     apt-get install -y rsyslog &&\
     apt-get install -y libgdal-dev &&\
     apt-get install -y g++
@@ -12,19 +12,24 @@ RUN apt-get update &&\
 ARG PROJECT_DIR=/project
 ENV PROJECT_DIR=${PROJECT_DIR}
 WORKDIR ${PROJECT_DIR}
-COPY src ${PROJECT_DIR}/src/
+
+# BACKEND
+ENV PYTHONPATH=${PROJECT_DIR}/backend
+COPY ./backend/ ${PROJECT_DIR}/backend
 COPY docker/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
-ARG POETRY_VERSION=1.8.1
+ARG POETRY_VERSION=1.8.2
 ENV POETRY_VERSION=${POETRY_VERSION}
-RUN pip install --user "poetry==$POETRY_VERSION"
+RUN pip install --upgrade pip && pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
-COPY pyproject.toml poetry.lock alembic.ini ./
+COPY ./backend/pyproject.toml ./backend/poetry.lock ./backend/alembic.ini ./backend/
 
 ENV PATH=/venv/bin:$PATH \
     VIRTUAL_ENV=/venv
 RUN python -m venv /venv &&\
+    echo ". /venv/bin/activate" >> /root/.bashrc &&\
+    cd backend &&\
     poetry install
 
 # Launch cron services
@@ -34,19 +39,22 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y
     && which cron \
     && rm -rf /etc/cron.*/*
 
-# Create cron task inside container
-# Due to the fact that cron process doesn't access to declared ENV vars and doesn't load user profiles
-# The entrypoint.sh script stores ENV vars at runtime in the ~/.env file as key=value pairs
-# Then the cron line include some command to load these ENV vars from file before launching app.py
-# This mecanism allows to give access to the same ENV vars for app.py launch in terminal and launch via cron
-RUN echo "*/15 * * * *	root export \$(cat ~/.env | grep -v '#' | xargs);/venv/bin/python3 ${PROJECT_DIR}/app.py 2>&1 | /usr/bin/logger -t bloom"  >> ./cron_scrapper &&\
-    chmod 744 ./cron_scrapper
-
-# Move cron tab into the right directory
-RUN	mv ./cron_scrapper /etc/cron.d/cron_scrapper
-
-# Run file
-RUN	crontab /etc/cron.d/cron_scrapper
+# FRONTEND
+ARG NPM_VERSION=v0.39.7
+ENV NPM_VERSION=${NPM_VERSION}
+ARG NODE_VERSION=18
+ENV NODE_VERSION=${NODE_VERSION}
+COPY frontend ${PROJECT_DIR}/frontend
+# installs NVM (Node Version Manager)
+# download and install Node.js
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NPM_VERSION}/install.sh | bash &&\
+	. /root/.bashrc &&\
+	nvm install $NODE_VERSION &&\
+	ln -sf `nvm which node` /usr/local/bin/node &&\
+	ln -sf ${PROJECT_DIR}/frontend/node_modules/next/dist/bin/next /usr/local/bin/next &&\
+	cd frontend &&\
+	npm install && (echo "NPM: Install OK") || (echo "NPM: Install error"; exit 1) &&\
+    npm run build && (echo "NPM: Build OK") || (echo "NPM: Build error"; exit 1)
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]

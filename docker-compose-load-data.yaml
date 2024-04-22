@@ -15,11 +15,11 @@ services:
     # Nominal start:
     command:
       - -c
-      - "/venv/bin/python3 src/bloom/tasks/load_dim_vessel_from_csv.py &&
-        /venv/bin/python3 src/alembic/init_script/load_positions_data.py &&
-        /venv/bin/python3 src/alembic/init_script/load_amp_data.py &&
-        /venv/bin/python3 src/bloom/tasks/load_dim_port_from_csv.py &&
-        /venv/bin/python3 src/bloom/tasks/compute_port_geometry_buffer.py"
+      - "/venv/bin/python3 backend/bloom/tasks/load_dim_vessel_from_csv.py &&
+        /venv/bin/python3 backend/alembic/init_script/load_positions_data.py &&
+        /venv/bin/python3 backend/alembic/init_script/load_amp_data.py &&
+        /venv/bin/python3 backend/bloom/tasks/load_dim_port_from_csv.py &&
+        /venv/bin/python3 backend/bloom/tasks/compute_port_geometry_buffer.py"
     volumes:
       - ./:/project/
       - ./data:/project/data

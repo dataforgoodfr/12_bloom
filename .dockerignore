@@ -1,0 +1,5 @@
+**.venv/
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/data/

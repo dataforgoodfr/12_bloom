@@ -1,12 +1,7 @@
 # APP BLOOM
 
-#.DS_Store
-
-data/*.csv
-data/*.xlsx
+/data/
 !/data/README.md
-!/data/ports.csv
-!/data/updated_vessels_table.csv
 /secrets/
 
 

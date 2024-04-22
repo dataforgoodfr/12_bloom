@@ -14,6 +14,7 @@ jobs:
 
     - name: Install poetry
       run: |
+        cd backend
         python -m pip install poetry
         poetry export --with dev --format=requirements.txt --output=requirements.txt
     - name: set PY
