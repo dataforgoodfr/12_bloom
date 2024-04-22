@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     data_folder:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')))
     db_url:str=Field(default='')
     
+    vessel_data:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')\
+                                .joinpath('./geometries/all_vessels.json')))
+    tracks_by_vessel_and_voyage_data:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')\
+                                .joinpath('./geometries/all_tracks_by_vessel_and_voyage.geo.json')))
+    vessel_last_position_data:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')\
+                                .joinpath('./geometries/vessels_latest_positions.json')))
+
     logging_level:str=Field(
                                 default="INFO",
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'

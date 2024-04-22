@@ -27,7 +27,7 @@ services:
       POSTGRES_PORT: 5432
       STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
     ports:
-      - 8501:8501
+      - 8000:8000
     networks:
       - bloom_net
     depends_on:
