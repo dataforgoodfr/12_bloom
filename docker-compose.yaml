@@ -12,6 +12,7 @@ services:
     container_name: bloom_backend
     hostname: bloom-backend
     image: d4g/bloom:${VERSION:-latest}
+    working_dir: /project/backend
     command:
         - bash
         - -c
