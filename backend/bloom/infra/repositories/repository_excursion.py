@@ -11,6 +11,7 @@ from geoalchemy2.shape import from_shape, to_shape
 
 from bloom.logger import logger
 
+
 class ExcursionRepository:
     def __init__(
             self,
@@ -18,7 +19,7 @@ class ExcursionRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def get_vessel_current_excursion(self, session: Session, vessel_id: int) -> Union[Excursion | None]:
+    def get_vessel_current_excursion(self, session: Session, vessel_id: int) -> Union[Excursion, None]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
         sql = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id).where(
             sql_model.Excursion.arrival_at.isnot(None))
@@ -38,7 +39,7 @@ class ExcursionRepository:
         if not excursions:
             return None
         return pd.DataFrame(excursions, columns=["excursion_id", "vessel_id", "arrival_at"])
-    
+
     def batch_create_excursion(self, session: Session, ports: list[Excursion]) -> list[Excursion]:
         orm_list = [ExcursionRepository.map_to_sql(port) for port in ports]
         session.add_all(orm_list)
@@ -76,10 +77,12 @@ class ExcursionRepository:
             vessel_id=excursion.vessel_id,
             departure_port_id=excursion.departure_port_id,
             departure_at=excursion.departure_at,
-            departure_position=to_shape(excursion.departure_position), # if isinstance(excursion.departure_position, Point) is False else excursion.departure_position,
+            departure_position=to_shape(excursion.departure_position),
+            # if isinstance(excursion.departure_position, Point) is False else excursion.departure_position,
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=to_shape(excursion.arrival_position), # if isinstance(excursion.departure_position, Point) is False else excursion.arrival_position,
+            arrival_position=to_shape(excursion.arrival_position),
+            # if isinstance(excursion.departure_position, Point) is False else excursion.arrival_position,
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,

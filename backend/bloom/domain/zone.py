@@ -7,7 +7,7 @@ from shapely import Geometry, Point
 
 class Zone(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    id: int | None = None
+    id: Union[int, None] = None
     category: str
     sub_category: Union[str, None] = None
     name: str
