@@ -54,7 +54,7 @@ def run(csv_file_name: str):
         logger.error(e.errors())
     except DBException:
         logger.error("Erreur d'insertion en base")
-    logger.info(f"{total} bateau(x) créés")
+    logger.info(f"{total} zone(s) créés")
 
 
 if __name__ == "__main__":
