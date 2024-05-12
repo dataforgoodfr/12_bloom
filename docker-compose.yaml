@@ -45,14 +45,20 @@ services:
     networks:
       - bloom_net
     healthcheck:
+      # PostGis database initialization is done with two steps (postgres+postgis)
+      # This causes healthcheck to be valid before real full initialization
+      # and so causing dependent containers starting before full db initialization
+      # This lines check 3 consecutive times database status instead of only 1
+      # This is suffisiant to avoir first valid check and cover full initialization
+      # If check fails, waiting 5s to recheck, max 3 times and then fails.
       test:
         [
           'CMD-SHELL',
-          "pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user}"
+          "for i in 1 2 3; do pg_isready --quiet --dbname=$${POSTGRES_DB:-bloom_db} --username=$${POSTGRES_USER:-bloom_user} && break || sleep 5; done"
         ]
-      interval: 100ms
-      timeout: 14s
-      retries: 140
+      interval: 15s
+      timeout: 45s
+      retries: 3
       start_period: 0s
 
   bloom-frontend:
@@ -84,7 +90,7 @@ services:
     # it happens that init is launch before second and definitve postgres healthy state
     # and fails
     # so giving init 3 chances and 15 seconds to init before failing
-    command: /bin/bash -c "cd backend; for i in 1 2 3; do alembic upgrade head && break || sleep 5; done"
+    command: /bin/bash -c "cd backend;alembic upgrade head"
     # Debug start:
     #command: bash
     #tty: true
