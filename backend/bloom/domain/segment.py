@@ -14,7 +14,7 @@ class Segment(BaseModel):
     segment_duration: Union[timedelta, None] = None
     start_position: Union[Point, None] = None
     end_position: Union[Point, None] = None
-    heading: Union[float, None] = None
+    course: Union[float, None] = None
     distance: Union[float, None] = None
     average_speed: Union[float, None] = None
     speed_at_start: Union[float, None] = None
