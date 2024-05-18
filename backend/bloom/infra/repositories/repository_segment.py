@@ -29,11 +29,11 @@ class SegmentRepository:
         ).join(
             sql_model.Excursion,
             sql_model.Segment.excursion_id == sql_model.Excursion.id
-            
+
         ).join(
             sql_model.Vessel,
             sql_model.Excursion.vessel_id == sql_model.Vessel.id
-            
+
         ).filter(
             sql_model.Segment.last_vessel_segment == True
         )
@@ -43,7 +43,7 @@ class SegmentRepository:
         df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end"])
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
-    
+
     def batch_create_segment(
             self, session: Session, segments: list[Segment]
     ) -> list[Segment]:
@@ -61,7 +61,7 @@ class SegmentRepository:
             segment_duration=segment.segment_duration,
             start_position=to_shape(segment.start_position),
             end_position=to_shape(segment.end_position),
-            heading=segment.heading,
+            course=segment.course,
             distance=segment.distance,
             average_speed=segment.average_speed,
             speed_at_start=segment.speed_at_start,
@@ -87,7 +87,7 @@ class SegmentRepository:
             segment_duration=segment.segment_duration,
             start_position=from_shape(segment.start_position),
             end_position=from_shape(segment.end_position),
-            heading=segment.heading,
+            course=segment.course,
             distance=segment.distance,
             average_speed=segment.average_speed,
             speed_at_start=segment.speed_at_start,
