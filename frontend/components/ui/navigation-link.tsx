@@ -22,7 +22,7 @@ const NavigationLink = ({
     >
       {children}
       {wide && (
-        <p className="font-unito text-clip whitespace-nowrap tracking-wide text-inherit">
+        <p className="text-clip whitespace-nowrap font-unito tracking-wide text-inherit">
           {name}
         </p>
       )}

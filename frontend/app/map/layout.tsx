@@ -7,7 +7,7 @@ import { MapStoreProvider } from "@/components/providers/map-store-provider"
 
 export const metadata: Metadata = {
   title: {
-    default: "Trailwatch Map",
+    default: "TrawlWatch Map",
     template: `%s - ${siteConfig.name}`,
   },
   description: siteConfig.description,
