@@ -4,7 +4,7 @@ from typing import Any, Generator, Union
 from bloom.domain.vessel import Vessel
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, and_
 from sqlalchemy.orm import Session
 
 
@@ -17,6 +17,19 @@ class VesselRepository:
 
     def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel, None]:
         return session.get(sql_model.Vessel, vessel_id)
+
+    def get_activated_vessel_by_mmsi(self, session: Session, mmsi: int) -> Union[Vessel, None]:
+        stmt = select(sql_model.Vessel).where(
+            and_(
+                sql_model.Vessel.tracking_activated == True,
+                sql_model.Vessel.mmsi == mmsi
+            )
+        )
+        vessel = session.execute(stmt).scalar()
+        if not vessel:
+            return None
+        else:
+            return VesselRepository.map_to_domain(vessel)
 
     def get_vessels_list(self, session: Session) -> list[Vessel]:
         """

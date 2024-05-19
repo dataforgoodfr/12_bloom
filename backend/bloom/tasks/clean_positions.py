@@ -1,38 +1,16 @@
-import pandas as pd
-import json
-import numpy as np
-from geopy import distance
-from shapely.geometry import Point
+import argparse
+from datetime import datetime, timedelta, timezone
 from time import perf_counter
 
+import numpy as np
+import pandas as pd
+from geopy import distance
+from shapely.geometry import Point
+
 from bloom.container import UseCases
-from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepository
-from bloom.logger import logger
-from bloom.domain.spire_ais_data import SpireAisData
-from bloom.domain.vessel import Vessel
 from bloom.domain.vessel_position import VesselPosition
 from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
-from datetime import datetime, timezone
-
-
-def map_ais_data_to_vessel_position(
-    ais_data: SpireAisData, vessel: Vessel
-) -> VesselPosition:
-    return VesselPosition(
-        timestamp=ais_data.position_timestamp,
-        accuracy=ais_data.position_accuracy,
-        collection_type=ais_data.position_collection_type,
-        course=ais_data.position_course,
-        heading=ais_data.position_heading,
-        position=Point(ais_data.position_longitude, ais_data.position_latitude),
-        latitude=ais_data.position_latitude,
-        longitude=ais_data.position_longitude,
-        maneuver=ais_data.position_maneuver,
-        navigational_status=ais_data.position_navigational_status,
-        rot=ais_data.position_rot,
-        speed=ais_data.position_speed,
-        vessel_id=vessel.id,
-    )
+from bloom.logger import logger
 
 
 def get_distance(current_position: tuple, last_position: tuple):
@@ -46,9 +24,17 @@ def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
     return VesselPosition(
         vessel_id=row["vessel_id"],
         timestamp=row["position_timestamp"],
+        accuracy=row["position_accuracy"],
+        collection_type=row["position_collection_type"],
+        course=row["position_course"],
+        heading=row["position_heading"],
         position=Point(row["position_longitude"], row["position_latitude"]),
         latitude=row["position_latitude"],
         longitude=row["position_longitude"],
+        maneuver=row["position_maneuver"],
+        navigational_status=row["position_navigational_status"],
+        rot=row["position_rot"],
+        # speed=row["position_speed"],
         speed=row["speed"],
     )
 
@@ -61,7 +47,7 @@ def to_coords(row: pd.Series) -> pd.Series:
     return row
 
 
-def run():
+def run(batch_time):
     use_cases = UseCases()
     db = use_cases.db()
     spire_repository = use_cases.spire_ais_data_repository()
@@ -72,10 +58,17 @@ def run():
         point_in_time = TaskExecutionRepository.get_point_in_time(
             session, "clean_positions"
         )
-        now = datetime.now(timezone.utc)
+        batch_limit = point_in_time + timedelta(days=batch_time)
         # Step 1: load SPIRE batch: read from SpireAisData
-        batch = spire_repository.get_all_data_after_date(session, point_in_time)
-        logger.info(f"Réception de {len(batch)} nouvelles positions de Spire")
+        logger.info(f"Lecture des nouvelles positions de Spire en base")
+        batch = spire_repository.get_all_data_between_date(session, point_in_time, batch_limit)
+
+        # Recherche de la date de l'enregistrement traité le plus récent.
+        # Cette date est stockée comme date d'exécution du traitement ce qui permettra de repartir de cette date
+        # à la prochaine execution pour traiter les enregistrements + récents
+        max_created = max(batch["created_at"]) if len(batch) > 0 else batch_limit
+        logger.info(f"Traitement des positions entre le {point_in_time} et le {max_created}")
+        logger.info(f"{len(batch)} nouvelles positions de Spire")
         batch.dropna(
             subset=[
                 "position_latitude",
@@ -85,7 +78,7 @@ def run():
             ],
             inplace=True,
         )
-        
+
         # Step 2: load excursion from fct_excursion where date_arrival IS NULL
         excursions = excursion_repository.get_current_excursions(session)
 
@@ -136,16 +129,17 @@ def run():
         batch["timestamp_end"].isna(), "position_timestamp"
     ].copy()
     batch["timestamp_end"] = pd.to_datetime(batch["timestamp_end"])
+    batch["position_timestamp"] = pd.to_datetime(batch["position_timestamp"])
     batch["time_since_last_position"] = (
-        batch["position_timestamp"] - batch["timestamp_end"]
+            batch["position_timestamp"] - batch["timestamp_end"]
     )
     batch["hours_since_last_position"] = (
-        batch["time_since_last_position"].dt.seconds / 3600
+            batch["time_since_last_position"].dt.seconds / 3600
     )
 
     # Step 6.3. Compute speed: speed = distance / time
     batch["speed"] = (
-        batch["distance_since_last_position"] / batch["hours_since_last_position"]
+            batch["distance_since_last_position"] / batch["hours_since_last_position"]
     )
     batch["speed"] *= 0.5399568  # Conversion km/h to noeuds
 
@@ -153,38 +147,40 @@ def run():
     # - row["new_vessel"] is True, i.e. there is a new vessel_id
     # - OR speed is not close to 0, i.e. vessel moved significantly since last position
     batch["to_keep"] = (batch["new_vessel"] == True) | ~(  # detect new vessels
-        (batch["excursion_closed"] == True)  # if last excursion closed
-        & (batch["speed"] <= 0.01)  # and speed < 0.01: don't keep
+            (batch["excursion_closed"] == True)  # if last excursion closed
+            & (batch["speed"] <= 0.01)  # and speed < 0.01: don't keep
     )
 
     # Step 8: filter unflagged rows to insert to DB
-    vessel_position_columns = [
-        "position_timestamp",
-        "position_latitude",
-        "position_longitude",
-        "speed",
-        "vessel_id",
-    ]
-    batch = batch.loc[batch["to_keep"] == True, vessel_position_columns].copy()
+    batch = batch.loc[batch["to_keep"] == True].copy()
 
     # Step 9: insert to DataBase
-    clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).tolist()
+    clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
     with db.session() as session:
         vessel_position_repository.batch_create_vessel_position(
             session, clean_positions
         )
-        TaskExecutionRepository.set_point_in_time(session, "clean_position", now)
+        TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
+        logger.info(f"Ecriture de {len(clean_positions)} positions à la table vessel_positions")
         session.commit()
-
-    logger.info(f"Envoi de {len(batch)} positions à la table vessel_positions")
 
     return batch
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Clean position")
+    parser.add_argument(
+        "-b",
+        "--batch-time",
+        type=int,
+        help="batch size in days",
+        required=False,
+        default=7,
+    )
+    args = parser.parse_args()
     time_start = perf_counter()
     logger.info("DEBUT - Nettoyage des positions")
-    run()
+    run(args.batch_time)
     time_end = perf_counter()
     duration = time_end - time_start
     logger.info(f"FIN - Nettoyage des positions en {duration:.2f}s")

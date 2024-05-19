@@ -9,7 +9,7 @@ from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from shapely import Point
 from shapely.geometry import Polygon
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import func, or_, and_, select, update, asc
 from sqlalchemy.orm import Session
 
 
@@ -70,6 +70,24 @@ class PortRepository:
             return None
         else:
             return PortRepository.map_to_domain(port)
+
+    def find_port_by_distance(self,
+                              session: Session,
+                              longitude: float,
+                              latitude: float,
+                              threshold_distance_to_port: float) -> Union[Port, None]:
+        position = Point(longitude, latitude)
+        stmt = select(sql_model.Port).where(
+            and_(
+                func.ST_within(from_shape(position, srid=settings.srid),
+                               sql_model.Port.geometry_buffer) == True,
+                func.ST_distance(from_shape(position, srid=settings.srid),
+                                 sql_model.Port.geometry_point) < threshold_distance_to_port
+            )
+        ).order_by(asc(func.ST_distance(from_shape(position, srid=settings.srid),
+                                        sql_model.Port.geometry_point)))
+        result = session.execute(stmt).scalars()
+        return [PortRepository.map_to_domain(e) for e in result]
 
     @staticmethod
     def map_to_domain(orm_port: sql_model.Port) -> Port:
