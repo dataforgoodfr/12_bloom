@@ -87,7 +87,7 @@ services:
     command: env node ./node_modules/next/dist/bin/next start --hostname 0.0.0.0
     working_dir: /project/frontend
     volumes:
-      - ./:/project/
+#      - ./:/project/
       - ./data:/project/frontend/public/data
     environment:
       LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
