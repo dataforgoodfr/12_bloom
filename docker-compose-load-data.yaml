@@ -16,10 +16,9 @@ services:
     command:
       - -c
       - "/venv/bin/python3 backend/bloom/tasks/load_dim_vessel_from_csv.py &&
-        /venv/bin/python3 backend/alembic/init_script/load_positions_data.py &&
-        /venv/bin/python3 backend/alembic/init_script/load_amp_data.py &&
+        /venv/bin/python3 backend/bloom/tasks/load_dim_zone_amp_from_csv.py &&
         /venv/bin/python3 backend/bloom/tasks/load_dim_port_from_csv.py &&
-        /venv/bin/python3 backend/bloom/tasks/compute_port_geometry_buffer.py"
+        /venv/bin/python3 backend/bloom/tasks/load_spire_data_from_csv.py"
     volumes:
       - ./:/project/
       - ./data:/project/data
@@ -29,7 +28,7 @@ services:
     networks:
       - bloom_net
     depends_on:
-      init:
+      bloom-init:
         condition: service_completed_successfully
 
 networks:
