@@ -202,7 +202,6 @@ class Segment(Base):
     segment_duration = Column("segment_duration", Interval)
     start_position = Column("start_position", Geometry(geometry_type="POINT", srid=settings.srid))
     end_position = Column("end_position", Geometry(geometry_type="POINT", srid=settings.srid))
-    course = Column("course", Double)
     distance = Column("distance", Double)
     average_speed = Column("average_speed", Double)
     speed_at_start = Column("speed_at_start", Double)

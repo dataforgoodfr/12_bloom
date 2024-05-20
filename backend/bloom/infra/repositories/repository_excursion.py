@@ -2,6 +2,7 @@ import pandas as pd
 from contextlib import AbstractContextManager
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from sqlalchemy import desc
 from dependency_injector.providers import Callable
 from bloom.domain.excursion import Excursion
 from typing import Union
@@ -18,7 +19,31 @@ class ExcursionRepository:
             session_factory: Callable,
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
-
+        
+    def get_param_from_last_excursion(self, session: Session, vessel_id: int) -> Union[dict, None]:
+        """Recherche l'excursion la plus récente d'un bateau et retourne l'arrival_port_id et la position d'arrivée."""
+        sql = select(
+            sql_model.Excursion.arrival_port_id,
+            sql_model.Excursion.arrival_position
+        ).where(
+            sql_model.Excursion.vessel_id == vessel_id
+        ).order_by(
+            desc(sql_model.Excursion.departure_at)
+        ).limit(1)
+        result = session.execute(sql).one_or_none()
+        if not result:
+            return None
+        return {"arrival_port_id": result.arrival_port_id, "arrival_position": result.arrival_position}
+    
+    def get_excursion_by_id(self, session: Session, id: int) -> Union[Excursion, None]:
+        """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
+        sql = select(sql_model.Excursion).where(sql_model.Excursion.id == id)
+        e = session.execute(sql).scalar()
+        if not e:
+            return None
+        return ExcursionRepository.map_to_domain(e)
+        
+        
     def get_vessel_current_excursion(self, session: Session, vessel_id: int) -> Union[Excursion, None]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
         sql = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id).where(
@@ -52,15 +77,15 @@ class ExcursionRepository:
             vessel_id=excursion.vessel_id,
             departure_port_id=excursion.departure_port_id,
             departure_at=excursion.departure_at,
-            departure_position=from_shape(excursion.departure_position),
+            departure_position=from_shape(excursion.departure_position) if excursion.departure_position is not None else None,
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=from_shape(excursion.arrival_position),
+            arrival_position=from_shape(excursion.arrival_position) if excursion.arrival_position is not None else None,
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
-            total_time_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
-            total_time_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
+            total_time_in_territorial_waters=excursion.total_time_in_territorial_waters,
+            total_time_in_costal_waters=excursion.total_time_in_costal_waters,
             total_time_fishing=excursion.total_time_fishing,
             total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
             total_time_fishing_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
@@ -77,11 +102,11 @@ class ExcursionRepository:
             vessel_id=excursion.vessel_id,
             departure_port_id=excursion.departure_port_id,
             departure_at=excursion.departure_at,
-            departure_position=to_shape(excursion.departure_position),
+            departure_position=to_shape(excursion.departure_position) if excursion.departure_position is not None else None,
             # if isinstance(excursion.departure_position, Point) is False else excursion.departure_position,
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=to_shape(excursion.arrival_position),
+            arrival_position=to_shape(excursion.arrival_position) if excursion.arrival_position is not None else None,
             # if isinstance(excursion.departure_position, Point) is False else excursion.arrival_position,
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
@@ -104,10 +129,10 @@ class ExcursionRepository:
             vessel_id=excursion.vessel_id,
             departure_port_id=excursion.departure_port_id,
             departure_at=excursion.departure_at,
-            departure_position=from_shape(excursion.departure_position),
+            departure_position=from_shape(excursion.departure_position) if excursion.departure_position is not None else None,
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=from_shape(excursion.arrival_position),
+            arrival_position=from_shape(excursion.arrival_position) if excursion.arrival_position is not None else None,
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
