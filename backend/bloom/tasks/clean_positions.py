@@ -167,14 +167,14 @@ def run(batch_time):
     batch = batch.loc[batch["to_keep"] == True].copy()
 
     # Step 9: insert to DataBase
-    #clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
-    #with db.session() as session:
-        #vessel_position_repository.batch_create_vessel_position(
+    clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
+    with db.session() as session:
+        vessel_position_repository.batch_create_vessel_position(
             #session, clean_positions
-        #)
-        #TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
-        #logger.info(f"Ecriture de {len(clean_positions)} positions à la table vessel_positions")
-        #session.commit()
+        )
+        TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
+        logger.info(f"Ecriture de {len(clean_positions)} positions à la table vessel_positions")
+        session.commit()
     
     # Step 10: segment and excursion creation
     # minimal distance to consider a vessel being in a port (in meters)
@@ -188,10 +188,10 @@ def run(batch_time):
     ongoing_excursion_id = np.NaN
     open_ongoing_excursion = True
     result = pd.DataFrame()
-    #for mmsi in batch['vessel_mmsi'].unique():
-    if (1==1): # temp, used to test on only 1 mmsi ; to remove when finished
-        mmsi = 227143600 # temp, used to test on only 1 mmsi ; to remove when finished
-        print('MMSI : '+str(mmsi))
+    for mmsi in batch['vessel_mmsi'].unique():
+    #if (1==1): # temp, used to test on only 1 mmsi ; to remove when finished
+        #mmsi = 227143600 # temp, used to test on only 1 mmsi ; to remove when finished
+        #print('MMSI : '+str(mmsi))
         # getting data for a given mmsi and assign them to the end point of a segment
         df_end = batch.loc[batch['vessel_mmsi'] == mmsi,['vessel_mmsi','position_timestamp','position_heading','position_speed','position_longitude','position_latitude']].copy()
         # getting vessel_id
@@ -346,7 +346,6 @@ def run(batch_time):
             result = pd.concat([result,df[df['excursion_id'] >= 0]],axis=0)    
         
     # Step 11 : Insertion du résultat dans la database fct_segment
-    # wip
     result.reset_index(drop=True,inplace=True)
     new_segments = []
     for i in result.index:
