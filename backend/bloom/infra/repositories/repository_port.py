@@ -9,7 +9,7 @@ from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from shapely import Point
 from shapely.geometry import Polygon
-from sqlalchemy import func, or_, and_, select, update, asc
+from sqlalchemy import func, or_, and_, select, update, asc, text
 from sqlalchemy.orm import Session
 
 
@@ -88,6 +88,15 @@ class PortRepository:
                                         sql_model.Port.geometry_point)))
         result = session.execute(stmt).scalars()
         return [PortRepository.map_to_domain(e) for e in result]
+
+    def get_closest_port_in_range(self, session: Session, longitude: float, latitude: float, range: float) -> Union[
+        tuple[int, float], None]:
+        res = session.execute(text("""SELECT id,ST_Distance(ST_POINT(:longitude,:latitude, 4326)::geography, geometry_point::geography) 
+                                FROM dim_port WHERE ST_Within(ST_POINT(:longitude,:latitude, 4326),geometry_buffer) = true
+                                AND ST_Distance(ST_POINT(:longitude,:latitude, 4326)::geography, geometry_point::geography) < :range
+                                ORDER by ST_Distance(ST_POINT(:longitude,:latitude, 4326)::geography, geometry_point::geography) ASC LIMIT 1"""),
+                              {"longitude": longitude, "latitude": latitude, "range": range}).first()
+        return res
 
     @staticmethod
     def map_to_domain(orm_port: sql_model.Port) -> Port:
