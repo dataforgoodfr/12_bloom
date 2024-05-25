@@ -16,6 +16,7 @@ from bloom.logger import logger
 warnings.filterwarnings("ignore")
 
 
+# distance.distance takes pair of (lat, lon) tuples:
 def get_distance(current_position: tuple, last_position: tuple):
     if np.isnan(last_position[0]) or np.isnan(last_position[1]):
         return np.nan
@@ -58,7 +59,7 @@ def run(batch_time):
     vessel_position_repository = use_cases.vessel_position_repository()
     with db.session() as session:
         point_in_time = TaskExecutionRepository.get_point_in_time(
-            session, "clean_positions"
+            session, "clean_positions",
         )
         batch_limit = point_in_time + timedelta(days=batch_time)
         # Step 1: load SPIRE batch: read from SpireAisData
@@ -118,8 +119,8 @@ def run(batch_time):
         # Step 6.1. Compute distance in km between last and current position
         batch["distance_since_last_position"] = batch.apply(
             lambda row: get_distance(
-                (row["position_longitude"], row["position_latitude"]),
-                (row["longitude"], row["latitude"]),
+                (row["position_latitude"], row["position_longitude"]),
+                (row["latitude"], row["longitude"]),
             ),
             axis=1,
         )
@@ -143,7 +144,8 @@ def run(batch_time):
         batch["speed"] = (
                 batch["distance_since_last_position"] / batch["hours_since_last_position"]
         )
-        batch["speed"] *= 0.5399568  # Conversion km/h to noeuds
+        batch["speed"] *= 0.5399568  # Conversion km/h to
+        batch["speed"] = batch["speed"].fillna(batch["position_speed"])
 
         # Step 7: apply to_keep flag: keep only positions WHERE:
         # - row["new_vessel"] is True, i.e. there is a new vessel_id
