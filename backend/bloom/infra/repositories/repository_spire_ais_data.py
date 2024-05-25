@@ -112,7 +112,7 @@ class SpireAisDataRepository:
                 sql_model.SpireAisData.created_at > created_updated_after,
                 sql_model.SpireAisData.created_at <= created_updated_before
             )
-        )
+        ).order_by(sql_model.SpireAisData.created_at.asc())
         result = session.execute(stmt)
         return pd.DataFrame(result, columns=[
             "id",
