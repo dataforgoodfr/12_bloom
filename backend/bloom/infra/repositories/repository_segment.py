@@ -1,16 +1,14 @@
-import pandas as pd
 from contextlib import AbstractContextManager
-from sqlalchemy.orm import Session
-from sqlalchemy import select
+
+import pandas as pd
 from dependency_injector.providers import Callable
-from bloom.domain.excursion import Excursion
-from typing import Union
-from bloom.infra.database import sql_model
-from bloom.domain.segment import Segment
 from geoalchemy2.shape import from_shape, to_shape
 from shapely import wkb
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from bloom.logger import logger
+from bloom.domain.segment import Segment
+from bloom.infra.database import sql_model
 
 
 class SegmentRepository:
@@ -20,13 +18,13 @@ class SegmentRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
-    def get_segments_by_excursions(self, session: Session, id: int) -> pd.DataFrame :
-        stmt= select(
-                    sql_model.Segment.segment_duration,
-                    sql_model.Segment.in_amp_zone,
-                      sql_model.Segment.in_territorial_waters,
-                       sql_model.Segment.in_costal_waters
-        ).where(sql_model.Segment.excursion_id== id)
+    def get_segments_by_excursions(self, session: Session, id: int) -> pd.DataFrame:
+        stmt = select(
+            sql_model.Segment.segment_duration,
+            sql_model.Segment.in_amp_zone,
+            sql_model.Segment.in_territorial_waters,
+            sql_model.Segment.in_costal_waters
+        ).where(sql_model.Segment.excursion_id == id)
         q = session.execute(stmt)
         if not q:
             return None
@@ -57,7 +55,8 @@ class SegmentRepository:
         q = session.execute(stmt)
         if not q:
             return None
-        df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end",'heading_at_end','speed_at_end','arrival_port_id','mmsi'])
+        df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end", 'heading_at_end',
+                                      'speed_at_end', 'arrival_port_id', 'mmsi'])
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
 
@@ -82,8 +81,8 @@ class SegmentRepository:
             average_speed=segment.average_speed,
             speed_at_start=segment.speed_at_start,
             speed_at_end=segment.speed_at_end,
-            heading_at_start=segment.speed_at_start,
-            heading_at_end=segment.speed_at_end,
+            heading_at_start=segment.heading_at_start,
+            heading_at_end=segment.heading_at_end,
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
@@ -107,8 +106,8 @@ class SegmentRepository:
             average_speed=segment.average_speed,
             speed_at_start=segment.speed_at_start,
             speed_at_end=segment.speed_at_end,
-            heading_at_start=segment.speed_at_start,
-            heading_at_end=segment.speed_at_end,
+            heading_at_start=segment.heading_at_start,
+            heading_at_end=segment.heading_at_end,
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
