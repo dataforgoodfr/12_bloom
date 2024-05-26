@@ -22,3 +22,11 @@ Liste et description des traitements disponibles dans le répertoire `src/bloom/
   est `"index","WDPAID","name","DESIG_ENG","DESIG_TYPE","IUCN_CAT","PARENT_ISO","ISO3","geometry","Benificiaries"`.
 * `update_vessel_data_voyage.py`: alimente les tables des données statiques (`vessel_data`) et de
   voyage (`vessel_voyage`) à partir des données AIS.
+* `clean_positions.py` : filtre les données ajoutées dans `spire_ais_data `depuis la dernière exécution et alimente
+  la table des positions (`vessel_positions`). Par défaut le traitement traite les données ajoutées sur une période  
+  de 7 jours depuis la dernière exécution. Il est possible de modifier cet interval avec l'argument -b suivi d'un
+  nombre de jours.
+* `create_update_rel_segments_zones.py`: traite les segments ajoutés depuis la dernière exécution. Pour chaque segment:
+    * le traitement créé une association avec chaque zone avec laquelle le segment a une intersection
+    * met à jour les indicateurs du segment indiquant s'il est dans une AMP, zone cotière ou eaux territoriales
+    * met à jour l'ensemble des durées de chaque excursions.

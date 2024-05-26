@@ -1,15 +1,14 @@
-import pandas as pd
 from contextlib import AbstractContextManager
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-from dependency_injector.providers import Callable
-from bloom.domain.excursion import Excursion
 from typing import Union
-from shapely.geometry import Point
-from bloom.infra.database import sql_model
-from geoalchemy2.shape import from_shape, to_shape
 
-from bloom.logger import logger
+import pandas as pd
+from dependency_injector.providers import Callable
+from geoalchemy2.shape import from_shape, to_shape
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from bloom.domain.excursion import Excursion
+from bloom.infra.database import sql_model
 
 
 class ExcursionRepository:
@@ -45,6 +44,22 @@ class ExcursionRepository:
         session.add_all(orm_list)
         return [ExcursionRepository.map_to_domain(orm) for orm in orm_list]
 
+    def batch_update_excursion(self, session: Session, excursions: list[Excursion]) -> list[Excursion]:
+        updated_excursion = []
+        for excursion in excursions:
+            orm = ExcursionRepository.map_to_sql(excursion)
+            session.merge(orm)
+            session.flush()
+            updated_excursion.append(ExcursionRepository.map_to_domain(orm))
+        return updated_excursion
+
+    def get_excursion_by_id(self, session: Session, excursion_id: int) -> Excursion:
+        entity = session.get(sql_model.Excursion, excursion_id)  # .scalar()
+        if entity is not None:
+            return ExcursionRepository.map_to_domain(entity)
+        else:
+            return None
+
     @staticmethod
     def map_to_sql(excursion: Excursion) -> sql_model.Excursion:
         return sql_model.Excursion(
@@ -55,7 +70,7 @@ class ExcursionRepository:
             departure_position=from_shape(excursion.departure_position),
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=from_shape(excursion.arrival_position),
+            arrival_position=from_shape(excursion.arrival_position) if excursion.arrival_position else None,
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
@@ -81,33 +96,8 @@ class ExcursionRepository:
             # if isinstance(excursion.departure_position, Point) is False else excursion.departure_position,
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=to_shape(excursion.arrival_position),
+            arrival_position=to_shape(excursion.arrival_position) if excursion.arrival_position else None,
             # if isinstance(excursion.departure_position, Point) is False else excursion.arrival_position,
-            excursion_duration=excursion.excursion_duration,
-            total_time_at_sea=excursion.total_time_at_sea,
-            total_time_in_amp=excursion.total_time_in_amp,
-            total_time_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
-            total_time_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_fishing=excursion.total_time_fishing,
-            total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
-            total_time_fishing_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
-            total_time_fishing_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_extincting_amp=excursion.total_time_extincting_amp,
-            created_at=excursion.created_at,
-            updated_at=excursion.updated_at
-        )
-
-    @staticmethod
-    def map_to_orm(excursion: Excursion) -> sql_model.Excursion:
-        return sql_model.Excursion(
-            id=excursion.id,
-            vessel_id=excursion.vessel_id,
-            departure_port_id=excursion.departure_port_id,
-            departure_at=excursion.departure_at,
-            departure_position=from_shape(excursion.departure_position),
-            arrival_port_id=excursion.arrival_port_id,
-            arrival_at=excursion.arrival_at,
-            arrival_position=from_shape(excursion.arrival_position),
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
