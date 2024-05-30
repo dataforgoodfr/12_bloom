@@ -1,14 +1,18 @@
 from contextlib import AbstractContextManager
+from datetime import datetime
 
 import pandas as pd
 from dependency_injector.providers import Callable
+from geoalchemy2.functions import ST_Within
 from geoalchemy2.shape import from_shape, to_shape
 from shapely import wkb
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from bloom.domain.segment import Segment
+from bloom.domain.zone import Zone
 from bloom.infra.database import sql_model
+from bloom.infra.repositories.repository_zone import ZoneRepository
 
 
 class SegmentRepository:
@@ -66,6 +70,41 @@ class SegmentRepository:
         orm_list = [SegmentRepository.map_to_orm(segment) for segment in segments]
         session.add_all(orm_list)
         return [SegmentRepository.map_to_domain(orm) for orm in orm_list]
+
+    def get_segments_created_updated_after(self, session: Session, created_updated_after: datetime) -> list[Segment]:
+        stmt = select(sql_model.Segment).where(
+            or_(and_(sql_model.Segment.updated_at == None, sql_model.Segment.created_at > created_updated_after),
+                sql_model.Segment.updated_at > created_updated_after)
+        )
+        result = session.execute(stmt).scalars()
+        return [SegmentRepository.map_to_domain(orm) for orm in result]
+
+    def find_segments_in_zones_created_updated_after(self, session: Session, created_updated_after: datetime) -> dict[
+        Segment, list[Zone]]:
+        stmt = select(sql_model.Segment, sql_model.Zone).where(
+            or_(and_(sql_model.Segment.updated_at == None, sql_model.Segment.created_at > created_updated_after),
+                sql_model.Segment.updated_at > created_updated_after)
+        ).outerjoin(sql_model.Zone, and_(ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
+                                         ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
+                    ).order_by(sql_model.Segment.created_at.asc(), sql_model.Segment.updated_at.asc())
+        result = session.execute(stmt)
+        dict = {}
+        for (segment_orm, zone_orm) in result:
+            segment = SegmentRepository.map_to_domain(segment_orm)
+            dict.setdefault(segment, [])
+            zone = ZoneRepository.map_to_domain(zone_orm) if zone_orm else None
+            if zone:
+                dict[segment].append(zone)
+        return dict
+
+    def batch_update_segment(self, session: Session, segments: list[Segment]) -> list[Segment]:
+        updated_segments = []
+        for segment in segments:
+            orm = SegmentRepository.map_to_orm(segment)
+            session.merge(orm)
+            session.flush()
+            updated_segments.append(SegmentRepository.map_to_domain(orm))
+        return updated_segments
 
     @staticmethod
     def map_to_domain(segment: sql_model.Segment) -> Segment:

@@ -28,3 +28,6 @@ class Segment(BaseModel):
     last_vessel_segment: Union[bool, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+
+    def __hash__(self):
+        return self.id

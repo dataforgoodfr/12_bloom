@@ -10,6 +10,7 @@ from sqlalchemy import (
     Integer,
     Interval,
     String,
+    PrimaryKeyConstraint
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
@@ -224,3 +225,13 @@ class TaskExecution(Base):
     point_in_time = Column("point_in_time", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+
+
+class RelSegmentZone(Base):
+    __tablename__ = "rel_segment_zone"
+    __table_args__ = (
+        PrimaryKeyConstraint('segment_id', 'zone_id'),
+    )
+    segment_id = Column("segment_id", Integer, ForeignKey("fct_segment.id"), nullable=False)
+    zone_id = Column("zone_id", Integer, ForeignKey("dim_zone.id"), nullable=False)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
