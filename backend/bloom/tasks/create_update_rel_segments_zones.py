@@ -42,7 +42,7 @@ def run():
             if segment.in_amp_zone:
                 excursion.total_time_in_amp += segment.segment_duration
             if segment.in_costal_waters:
-                excursion.total_time_fishing_in_costal_waters += segment.segment_duration
+                excursion.total_time_in_costal_waters += segment.segment_duration
             if segment.in_territorial_waters:
                 excursion.total_time_in_territorial_waters += segment.segment_duration
             excursions[excursion.id] = excursion
