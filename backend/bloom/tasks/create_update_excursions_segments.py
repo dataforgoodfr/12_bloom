@@ -287,10 +287,6 @@ def run():
             TaskExecutionRepository.set_point_in_time(session, "create_update_excursions_segments",
                                                       max_created)
         session.commit()
-    # Step 12 : Update des excursions modifiées
-    # wip
-    # for id in result['excursion_id'].unique():
-    # update_excursion(id)
 
 
 if __name__ == "__main__":
