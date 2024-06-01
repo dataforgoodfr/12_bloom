@@ -38,13 +38,29 @@ def run():
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
                                        excursion_repository.get_excursion_by_id(session, segment.excursion_id))
-            excursion.excursion_duration += segment.segment_duration
             if segment.in_amp_zone:
-                excursion.total_time_in_amp += segment.segment_duration
+                if segment.type == "AT_SEA":
+                    excursion.total_time_in_amp += segment.segment_duration
+                elif segment.type == "FISHING":
+                    excursion.total_time_fishing_in_amp += segment.segment_duration
             if segment.in_costal_waters:
-                excursion.total_time_fishing_in_costal_waters += segment.segment_duration
+                if segment.type == "AT_SEA":
+                    excursion.total_time_in_costal_waters += segment.segment_duration
+                elif segment.type == "FISHING":
+                    excursion.total_time_fishing_in_costal_waters += segment.segment_duration
             if segment.in_territorial_waters:
-                excursion.total_time_in_territorial_waters += segment.segment_duration
+                if segment.type == "AT_SEA":
+                    excursion.total_time_in_territorial_waters += segment.segment_duration
+                elif segment.type == "FISHING":
+                    excursion.total_time_fishing_in_territorial_waters += segment.segment_duration
+
+            excursion.excursion_duration += segment.segment_duration
+            if segment.type == "FISHING":
+                excursion.total_time_fishing += segment.segment_duration
+
+            excursion.total_time_at_sea = excursion.excursion_duration - (
+                    excursion.total_time_in_costal_waters + excursion.total_time_in_territorial_waters)
+
             excursions[excursion.id] = excursion
 
             # Détection de la borne supérieure du traitement

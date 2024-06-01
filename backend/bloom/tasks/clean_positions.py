@@ -1,5 +1,6 @@
 import argparse
-from datetime import datetime, timedelta, timezone
+import warnings
+from datetime import timedelta
 from time import perf_counter
 
 import numpy as np
@@ -12,7 +13,10 @@ from bloom.domain.vessel_position import VesselPosition
 from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
 from bloom.logger import logger
 
+warnings.filterwarnings("ignore")
 
+
+# distance.distance takes pair of (lat, lon) tuples:
 def get_distance(current_position: tuple, last_position: tuple):
     if np.isnan(last_position[0]) or np.isnan(last_position[1]):
         return np.nan
@@ -34,7 +38,6 @@ def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
         maneuver=row["position_maneuver"],
         navigational_status=row["position_navigational_status"],
         rot=row["position_rot"],
-        # speed=row["position_speed"],
         speed=row["speed"],
     )
 
@@ -56,7 +59,7 @@ def run(batch_time):
     vessel_position_repository = use_cases.vessel_position_repository()
     with db.session() as session:
         point_in_time = TaskExecutionRepository.get_point_in_time(
-            session, "clean_positions"
+            session, "clean_positions",
         )
         batch_limit = point_in_time + timedelta(days=batch_time)
         # Step 1: load SPIRE batch: read from SpireAisData
@@ -88,83 +91,79 @@ def run(batch_time):
         last_segment["latitude"] = None
         last_segment = last_segment.apply(to_coords, axis=1)
 
-    # Step 4: merge batch with last_segment on vessel_id.
-    # If column _merge == "left_only" --> this is a new vessel (keep it)
-    batch = batch.merge(
-        last_segment,
-        how="left",
-        on="vessel_id",
-        suffixes=["", "_segment"],
-        indicator=True,
-    )
-    batch.rename(columns={"_merge": "new_vessel"}, inplace=True)
-    batch["new_vessel"] = batch["new_vessel"] == "left_only"
-
-    # Step 5: merge batch with excursions
-    # If column _merge == "left_only" --> the excursion is closed
-    batch = batch.merge(
-        excursions,
-        how="left",
-        on="vessel_id",
-        suffixes=["", "_excursion"],
-        indicator=True,
-    )
-    batch.rename(columns={"_merge": "excursion_closed"}, inplace=True)
-    batch["excursion_closed"] = batch["excursion_closed"] == "left_only"
-
-    # Step 6: compute speed between last and current position
-    # Step 6.1. Compute distance in km between last and current position
-    batch["distance_since_last_position"] = batch.apply(
-        lambda row: get_distance(
-            (row["position_longitude"], row["position_latitude"]),
-            (row["longitude"], row["latitude"]),
-        ),
-        axis=1,
-    )
-
-    # Step 6.2. Compute time in hours between last and current position
-    ## If timestamp_end is NULL --> new_vessel is TRUE (record will be kept)
-    ## --> fillna with anything to avoid exception
-    batch.loc[batch["timestamp_end"].isna(), "timestamp_end"] = batch.loc[
-        batch["timestamp_end"].isna(), "position_timestamp"
-    ].copy()
-    batch["timestamp_end"] = pd.to_datetime(batch["timestamp_end"])
-    batch["position_timestamp"] = pd.to_datetime(batch["position_timestamp"])
-    batch["time_since_last_position"] = (
-            batch["position_timestamp"] - batch["timestamp_end"]
-    )
-    batch["hours_since_last_position"] = (
-            batch["time_since_last_position"].dt.seconds / 3600
-    )
-
-    # Step 6.3. Compute speed: speed = distance / time
-    batch["speed"] = (
-            batch["distance_since_last_position"] / batch["hours_since_last_position"]
-    )
-    batch["speed"] *= 0.5399568  # Conversion km/h to noeuds
-
-    # Step 7: apply to_keep flag: keep only positions WHERE:
-    # - row["new_vessel"] is True, i.e. there is a new vessel_id
-    # - OR speed is not close to 0, i.e. vessel moved significantly since last position
-    batch["to_keep"] = (batch["new_vessel"] == True) | ~(  # detect new vessels
-            (batch["excursion_closed"] == True)  # if last excursion closed
-            & (batch["speed"] <= 0.01)  # and speed < 0.01: don't keep
-    )
-
-    # Step 8: filter unflagged rows to insert to DB
-    batch = batch.loc[batch["to_keep"] == True].copy()
-
-    # Step 9: insert to DataBase
-    clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
-    with db.session() as session:
-        vessel_position_repository.batch_create_vessel_position(
-            session, clean_positions
+        # Step 4: merge batch with last_segment on vessel_id.
+        # If column _merge == "left_only" --> this is a new vessel (keep it)
+        batch = batch.merge(
+            last_segment,
+            how="left",
+            on="vessel_id",
+            suffixes=["", "_segment"],
+            indicator=True,
         )
-        TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
-        logger.info(f"Ecriture de {len(clean_positions)} positions à la table vessel_positions")
-        session.commit()
+        batch.rename(columns={"_merge": "new_vessel"}, inplace=True)
+        batch["new_vessel"] = batch["new_vessel"] == "left_only"
 
-    return batch
+        # Step 5: merge batch with excursions
+        # If column _merge == "left_only" --> the excursion is closed
+        batch = batch.merge(
+            excursions,
+            how="left",
+            on="vessel_id",
+            suffixes=["", "_excursion"],
+            indicator=True,
+        )
+        batch.rename(columns={"_merge": "excursion_closed"}, inplace=True)
+        batch["excursion_closed"] = batch["excursion_closed"] == "left_only"
+
+        # Step 6: compute speed between last and current position
+        # Step 6.1. Compute distance in km between last and current position
+        batch["distance_since_last_position"] = batch.apply(
+            lambda row: get_distance(
+                (row["position_latitude"], row["position_longitude"]),
+                (row["latitude"], row["longitude"]),
+            ),
+            axis=1,
+        )
+
+        # Step 6.2. Compute time in hours between last and current position
+        ## If timestamp_end is NULL --> new_vessel is TRUE (record will be kept)
+        ## --> fillna with anything to avoid exception
+        batch.loc[batch["timestamp_end"].isna(), "timestamp_end"] = batch.loc[
+            batch["timestamp_end"].isna(), "position_timestamp"
+        ].copy()
+        batch["timestamp_end"] = pd.to_datetime(batch["timestamp_end"], utc=True)
+        batch["position_timestamp"] = pd.to_datetime(batch["position_timestamp"], utc=True)
+        batch["time_since_last_position"] = (
+                batch["position_timestamp"] - batch["timestamp_end"]
+        )
+        batch["hours_since_last_position"] = (
+                batch["time_since_last_position"].dt.seconds / 3600
+        )
+
+        # Step 6.3. Compute speed: speed = distance / time
+        batch["speed"] = (
+                batch["distance_since_last_position"] / batch["hours_since_last_position"]
+        )
+        batch["speed"] *= 0.5399568  # Conversion km/h to
+        batch["speed"] = batch["speed"].fillna(batch["position_speed"])
+
+        # Step 7: apply to_keep flag: keep only positions WHERE:
+        # - row["new_vessel"] is True, i.e. there is a new vessel_id
+        # - OR speed is not close to 0, i.e. vessel moved significantly since last position
+        batch["to_keep"] = (batch["new_vessel"] == True) | ~(  # detect new vessels
+                (batch["excursion_closed"] == True)  # if last excursion closed
+                & (batch["speed"] <= 0.01)  # and speed < 0.01: don't keep
+        )
+
+        # Step 8: filter unflagged rows to insert to DB
+        batch = batch.loc[batch["to_keep"] == True].copy()
+
+        # Step 9: insert to DataBase
+        clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
+        vessel_position_repository.batch_create_vessel_position(session, clean_positions)
+        TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
+        logger.info(f"Ecriture de {len(clean_positions)} positions dans la table vessel_positions")
+        session.commit()
 
 
 if __name__ == "__main__":

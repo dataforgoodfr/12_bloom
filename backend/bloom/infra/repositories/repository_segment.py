@@ -22,12 +22,29 @@ class SegmentRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
+    def get_segments_by_excursions(self, session: Session, id: int) -> pd.DataFrame:
+        stmt = select(
+            sql_model.Segment.segment_duration,
+            sql_model.Segment.in_amp_zone,
+            sql_model.Segment.in_territorial_waters,
+            sql_model.Segment.in_costal_waters
+        ).where(sql_model.Segment.excursion_id == id)
+        q = session.execute(stmt)
+        if not q:
+            return None
+        df = pd.DataFrame(q, columns=["segment_duration", "in_amp_zone", "in_territorial_waters", "in_costal_waters"])
+        return df
+
     def get_last_vessel_id_segments(self, session: Session) -> pd.DataFrame:
         stmt = select(
             sql_model.Vessel.id,
             sql_model.Segment.excursion_id,
             sql_model.Segment.end_position,
-            sql_model.Segment.timestamp_end
+            sql_model.Segment.timestamp_end,
+            sql_model.Segment.heading_at_end,
+            sql_model.Segment.speed_at_end,
+            sql_model.Excursion.arrival_port_id,
+            sql_model.Vessel.mmsi
         ).join(
             sql_model.Excursion,
             sql_model.Segment.excursion_id == sql_model.Excursion.id
@@ -42,7 +59,8 @@ class SegmentRepository:
         q = session.execute(stmt)
         if not q:
             return None
-        df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end"])
+        df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end", 'heading_at_end',
+                                      'speed_at_end', 'arrival_port_id', 'mmsi'])
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
 
@@ -98,13 +116,12 @@ class SegmentRepository:
             segment_duration=segment.segment_duration,
             start_position=to_shape(segment.start_position),
             end_position=to_shape(segment.end_position),
-            course=segment.course,
             distance=segment.distance,
             average_speed=segment.average_speed,
             speed_at_start=segment.speed_at_start,
             speed_at_end=segment.speed_at_end,
-            heading_at_start=segment.speed_at_start,
-            heading_at_end=segment.speed_at_end,
+            heading_at_start=segment.heading_at_start,
+            heading_at_end=segment.heading_at_end,
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
@@ -124,13 +141,12 @@ class SegmentRepository:
             segment_duration=segment.segment_duration,
             start_position=from_shape(segment.start_position),
             end_position=from_shape(segment.end_position),
-            course=segment.course,
             distance=segment.distance,
             average_speed=segment.average_speed,
             speed_at_start=segment.speed_at_start,
             speed_at_end=segment.speed_at_end,
-            heading_at_start=segment.speed_at_start,
-            heading_at_end=segment.speed_at_end,
+            heading_at_start=segment.heading_at_start,
+            heading_at_end=segment.heading_at_end,
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
