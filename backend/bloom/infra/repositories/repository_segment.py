@@ -79,14 +79,14 @@ class SegmentRepository:
         result = session.execute(stmt).scalars()
         return [SegmentRepository.map_to_domain(orm) for orm in result]
 
-    def find_segments_in_zones_created_updated_after(self, session: Session, created_updated_after: datetime) -> dict[
+    def find_segments_in_zones_created_updated_after(self, session: Session, created_after: datetime) -> dict[
         Segment, list[Zone]]:
-        stmt = select(sql_model.Segment, sql_model.Zone).where(
-            or_(and_(sql_model.Segment.updated_at == None, sql_model.Segment.created_at > created_updated_after),
-                sql_model.Segment.updated_at > created_updated_after)
-        ).outerjoin(sql_model.Zone, and_(ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
-                                         ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
-                    ).order_by(sql_model.Segment.created_at.asc(), sql_model.Segment.updated_at.asc())
+        stmt = select(sql_model.Segment, sql_model.Zone).where(sql_model.Segment.created_at > created_after
+                                                               ).outerjoin(sql_model.Zone, and_(
+            ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
+            ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
+                                                                           ).order_by(
+            sql_model.Segment.created_at.asc())
         result = session.execute(stmt)
         dict = {}
         for (segment_orm, zone_orm) in result:

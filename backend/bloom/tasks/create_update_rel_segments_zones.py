@@ -16,7 +16,7 @@ def run():
         point_in_time = TaskExecutionRepository.get_point_in_time(
             session, "rel_segments_zones"
         )
-        logger.info(f"Lecture des segments créés/modifiés depuis le {point_in_time}")
+        logger.info(f"Lecture des segments créés depuis le {point_in_time}")
         result = segment_repository.find_segments_in_zones_created_updated_after(session, point_in_time)
         logger.info(f"Traitement de {len(result)} segment(s)")
         new_rels = []
