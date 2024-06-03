@@ -18,7 +18,7 @@ services:
         - -c
         - |
             echo "Starting Scheduler" &&
-            cron -f -L 2
+            service cron start && uvicorn bloom.services.api:app --host 0.0.0.0 --reload
     volumes:
       - ./:/project/
       - ./data:/project/data
@@ -26,8 +26,9 @@ services:
       <<: *common-env
       POSTGRES_PORT: 5432
       STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
+      WATCHFILES_FORCE_POLLING: true
     ports:
-      - 8501:8501
+      - ${API_PORT:-8000}:8000
     networks:
       - bloom_net
     depends_on:
