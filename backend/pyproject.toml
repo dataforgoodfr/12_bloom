@@ -34,6 +34,7 @@ scipy = "1.12.0"
 slack-sdk = "~3.27"
 SQLAlchemy = "~2.0"
 pycountry = "23.12.11"
+fastapi = "^0.111.0"
 
 
 [tool.poetry.group.dev.dependencies]
