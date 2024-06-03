@@ -16,7 +16,7 @@ class ZoneRepository:
         self.session_factory = session_factory
 
     def get_zone_by_id(self, session: Session, zone_id: int) -> Union[Zone, None]:
-        return session.get(sql_model.Zone, zone_id)
+        return ZoneRepository.map_to_domain(session.get(sql_model.Zone, zone_id))
 
     def get_all_zones(self, session: Session) -> List[Zone]:
         q = session.query(sql_model.Zone)
