@@ -36,6 +36,7 @@ SQLAlchemy = "~2.0"
 pycountry = "23.12.11"
 fastapi = "^0.111.0"
 uvicorn = "^0.30.1"
+redis = "^5.0.4"
 
 
 [tool.poetry.group.dev.dependencies]

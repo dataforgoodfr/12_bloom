@@ -26,6 +26,8 @@ services:
       <<: *common-env
       POSTGRES_PORT: 5432
       STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
+      REDIS_HOST: bloom-redis
+      REDIS_PORT: 6379
       WATCHFILES_FORCE_POLLING: true
     ports:
       - ${API_PORT:-8000}:8000
@@ -34,6 +36,20 @@ services:
     depends_on:
       bloom-init:
         condition: service_completed_successfully
+  bloom-redis:
+    image: redis:7-alpine
+    container_name: bloom_redis
+    hostname: bloom-redis
+    restart: always
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    volumes: 
+      - bloom-redis:/data
+    networks:
+      - bloom_net
 
   bloom-postgres:
     container_name: postgres_bloom
@@ -118,6 +134,7 @@ services:
 
 volumes:
   bloom-data:
+  bloom-redis:
 
 networks:
   bloom_net:

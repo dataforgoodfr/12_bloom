@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     spire_token:str = Field(default='')
     data_folder:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')))
     db_url:str=Field(default='')
+
+    redis_host: str = Field(default='localhost')
+    redis_port: int = Field(default=6379)
+    redis_cache_expiration: int = Field(default=3600)
     
     logging_level:str=Field(
                                 default="INFO",

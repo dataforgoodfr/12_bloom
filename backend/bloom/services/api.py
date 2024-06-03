@@ -1,21 +1,34 @@
 from fastapi import FastAPI, APIRouter
 from fastapi import Request
 
+import redis
+import json
 from datetime import datetime
 
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 
+rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
+
 app = FastAPI()
 
 @app.get("/vessels")
 async def list_vessels():
-    use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return vessel_repository.get_vessels_list(session)
+    cache= rd.get(app.url_path_for('list_vessels'))
+    if cache:
+        return json.loads(cache)
+    else:
+        use_cases = UseCases()
+        vessel_repository = use_cases.vessel_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            
+            json_data = [v.model_dump_json()
+                            for v in vessel_repository.get_vessels_list(session)]
+            rd.set(app.url_path_for('list_vessels'), json.dumps(json_data))
+            rd.expire(app.url_path_for('list_vessels'),settings.redis_cache_expiration)
+            return json_data
 
 @app.get("/vessels/{vessel_id}")
 async def get_vessel(vessel_id: int):
@@ -52,12 +65,21 @@ async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segmen
     return {"segment": "TODO"}
 
 @app.get("/ports")
-async def list_ports():
-    use_cases = UseCases()
-    port_repository = use_cases.port_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return [p.model_dump_json() for p in port_repository.get_all_ports(session)]
+async def list_ports(request:Request):
+    cache= rd.get(app.url_path_for('list_ports'))
+    if cache:
+        return json.loads(cache)
+    else:
+        use_cases = UseCases()
+        port_repository = use_cases.port_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            json_data = [p.model_dump_json()
+                         for p in port_repository.get_all_ports(session)]
+            rd.set(app.url_path_for('list_ports'), json.dumps(json_data))
+            rd.expire(app.url_path_for('list_ports'),settings.redis_cache_expiration)
+            return json_data
+    
 
 @app.get("/ports/{port_id}")
 async def get_port(port_id:int):
@@ -68,12 +90,20 @@ async def get_port(port_id:int):
         return port_repository.get_port_by_id(session,port_id)
 
 @app.get("/zones")
-async def list_zones():
-    use_cases = UseCases()
-    zone_repository = use_cases.zone_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return zone_repository.get_all_zones(session)
+async def list_zones():   
+    cache= rd.get(app.url_path_for('list_zones'))
+    if cache:
+        return json.loads(cache)
+    else:
+        use_cases = UseCases()
+        zone_repository = use_cases.zone_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            json_data = [z.model_dump_json()
+                         for z in zone_repository.get_all_zones(session)]
+            rd.set(app.url_path_for('list_zones'), json.dumps(json_data))
+            rd.expire(app.url_path_for('list_zones'),settings.redis_cache_expiration)
+            return json_data
 
 @app.get("/zones/{zones_id}")
 async def get_zone(zones_id:int):
