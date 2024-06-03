@@ -45,6 +45,8 @@ services:
       - ${POSTGRES_PORT:-5432}:5432
     networks:
       - bloom_net
+    volumes:
+      - bloom-data:/var/lib/postgresql/data
     healthcheck:
       # PostGis database initialization is done with two steps (postgres+postgis)
       # This causes healthcheck to be valid before real full initialization
@@ -113,6 +115,9 @@ services:
     depends_on:
       bloom-postgres:
         condition: service_healthy # The service is working and still running
+
+volumes:
+  bloom-data:
 
 networks:
   bloom_net:
