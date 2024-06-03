@@ -1,4 +1,5 @@
 from contextlib import AbstractContextManager
+from typing import Any, List, Union
 
 from bloom.domain.zone import Zone
 from bloom.infra.database import sql_model
@@ -14,6 +15,15 @@ class ZoneRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
+    def get_zone_by_id(self, session: Session, zone_id: int) -> Union[Zone, None]:
+        return session.get(sql_model.Zone, zone_id)
+
+    def get_all_zones(self, session: Session) -> List[Zone]:
+        q = session.query(sql_model.Zone)
+        if not q:
+            return []
+        return [ZoneRepository.map_to_domain(entity) for entity in q]
+    
     def batch_create_zone(self, session: Session, zones: list[Zone]) -> list[Zone]:
         orm_list = [ZoneRepository.map_to_orm(zone) for zone in zones]
         session.add_all(orm_list)

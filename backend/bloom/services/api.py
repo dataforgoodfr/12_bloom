@@ -69,11 +69,19 @@ async def get_port(port_id:int):
 
 @app.get("/zones")
 async def list_zones():
-    return {"zones": ["TODO"]}
+    use_cases = UseCases()
+    zone_repository = use_cases.zone_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return zone_repository.get_all_zones(session)
 
 @app.get("/zones/{zones_id}")
 async def get_zone(zones_id:int):
-    return {"zone": "TODO"}
+    use_cases = UseCases()
+    zone_repository = use_cases.zone_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return zone_repository.get_zone_by_id(session,zones_id)
 
 @app.get("/statics/{zones}")
 async def get_statics_zones():
