@@ -6,6 +6,7 @@ from datetime import datetime
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
+
 app = FastAPI()
 
 @app.get("/vessels")
@@ -52,11 +53,19 @@ async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segmen
 
 @app.get("/ports")
 async def list_ports():
-    return {"ports": ["TODO"]}
+    use_cases = UseCases()
+    port_repository = use_cases.port_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return [p.model_dump_json() for p in port_repository.get_all_ports(session)]
 
 @app.get("/ports/{port_id}")
 async def get_port(port_id:int):
-    return {"port": "TODO"}
+    use_cases = UseCases()
+    port_repository = use_cases.port_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return port_repository.get_port_by_id(session,port_id)
 
 @app.get("/zones")
 async def list_zones():

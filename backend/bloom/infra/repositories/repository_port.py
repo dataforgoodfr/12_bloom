@@ -18,7 +18,7 @@ class PortRepository:
         self.session_factory = session_factory
 
     def get_port_by_id(self, session: Session, port_id: int) -> Union[Port, None]:
-        entity = session.get(sql_model.Port, port_id).scalar()
+        entity = session.get(sql_model.Port, port_id)
         if entity is not None:
             return PortRepository.map_to_domain(entity)
         else:
