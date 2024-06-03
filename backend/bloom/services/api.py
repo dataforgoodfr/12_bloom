@@ -3,15 +3,26 @@ from fastapi import Request
 
 from datetime import datetime
 
+from bloom.config import settings
+from bloom.container import UseCases
+from bloom.domain.vessel import Vessel
 app = FastAPI()
 
 @app.get("/vessels")
 async def list_vessels():
-    return {"vessels": ["TODO"]}
+    use_cases = UseCases()
+    vessel_repository = use_cases.vessel_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return vessel_repository.get_vessels_list(session)
 
 @app.get("/vessels/{vessel_id}")
 async def get_vessel(vessel_id: int):
-    return {"vessel": "TODO"}
+    use_cases = UseCases()
+    vessel_repository = use_cases.vessel_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return vessel_repository.get_vessel_by_id(session,vessel_id)
 
 @app.get("/vessels/{vessel_id}/positions")
 async def list_vessel_positions(vessel_id: int, start: datetime = datetime.now(), end:datetime=None):
