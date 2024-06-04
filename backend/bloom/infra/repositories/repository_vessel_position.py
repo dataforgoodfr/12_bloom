@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, List, Union
 
 import pandas as pd
 from dependency_injector.providers import Callable
@@ -9,6 +10,8 @@ from sqlalchemy.orm import Session
 from bloom.config import settings
 from bloom.domain.vessel_position import VesselPosition
 from bloom.infra.database import sql_model
+
+from bloom.logger import logger
 
 
 class VesselPositionRepository:
@@ -25,6 +28,30 @@ class VesselPositionRepository:
         orm_list = [VesselPositionRepository.map_to_sql(vessel_position) for vessel_position in vessel_positions]
         session.add_all(orm_list)
         return [VesselPositionRepository.map_to_domain(orm) for orm in orm_list]
+
+    def get_all_vessel_last_positions(self, session: Session) -> List[VesselPosition]:
+        
+        stmt=select(sql_model.VesselPosition)\
+                        .order_by(sql_model.VesselPosition.timestamp.desc())\
+                        .group_by(sql_model.VesselPosition.vessel_id)
+        result = session.execute(stmt).scalars()
+        #logger.info(type(result))
+        if result is not None :
+            return [VesselPositionRepository.map_to_domain(record) for record in result]
+        else:
+            return []
+
+    def get_vessel_positions(self, session: Session, vessel_id:int,
+                             start:datetime=datetime.now(),
+                             end:datetime=None) -> List[VesselPosition]:
+        
+        stmt=select(sql_model.VesselPosition).filter_by(vessel_id=vessel_id).order_by(sql_model.VesselPosition.timestamp.desc())
+        result = session.execute(stmt).scalars()
+        #logger.info(type(result))
+        if result is not None :
+            return [VesselPositionRepository.map_to_domain(record) for record in result]
+        else:
+            return []
 
     def get_positions_with_vessel_created_updated_after(self, session: Session,
                                                         created_updated_after: datetime) -> pd.DataFrame:

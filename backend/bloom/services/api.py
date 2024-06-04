@@ -3,13 +3,14 @@ from fastapi import Request
 
 import redis
 import json
-from datetime import datetime
-
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
+
+from datetime import datetime
+
 
 app = FastAPI()
 
@@ -38,31 +39,55 @@ async def get_vessel(vessel_id: int):
     with db.session() as session:
         return vessel_repository.get_vessel_by_id(session,vessel_id)
 
-@app.get("/vessels/{vessel_id}/positions")
-async def list_vessel_positions(vessel_id: int, start: datetime = datetime.now(), end:datetime=None):
-    return {"positions": ["TODO"]}
+@app.get("/vessels/all/positions/last")
+async def list_all_vessel_last_position():
+    use_cases = UseCases()
+    segment_repository = use_cases.segment_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return segment_repository.get_all_vessels_last_position(session)
 
 @app.get("/vessels/{vessel_id}/positions/last")
-async def list_vessel_position_last(vessel_id: int, date:datetime = datetime.now()):
-    return {"position": ["TODO"]}
+async def get_vessel_last_position(vessel_id: int):
+    use_cases = UseCases()
+    segment_repository = use_cases.segment_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return segment_repository.get_vessel_last_position(session,vessel_id)
 
 @app.get("/vessels/{vessel_id}/excursions")
 async def list_vessel_excursions(vessel_id: int):
-    return {"excursions": ["TODO"]}
+    use_cases = UseCases()
+    excursion_repository = use_cases.excursion_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return excursion_repository.get_excursions_by_vessel_id(session,vessel_id)
 
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}")
 async def get_vessel_excursion(vessel_id: int,excursions_id: int):
-    return {"excursion": "TODO"}
+    use_cases = UseCases()
+    excursion_repository = use_cases.excursion_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return excursion_repository.get_vessel_excursion_by_id(session,vessel_id,excursions_id)
 
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments")
 async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int):
-    return {"segments": ["TODO"]}
+    use_cases = UseCases()
+    segment_repository = use_cases.segment_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return segment_repository.list_vessel_excursion_segments(session,vessel_id,excursions_id)
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}")
 async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segment_id:int):
-    return {"segment": "TODO"}
+    use_cases = UseCases()
+    segment_repository = use_cases.segment_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return segment_repository.get_vessel_excursion_segment_by_id(session,vessel_id,excursions_id,segment_id)
 
 @app.get("/ports")
 async def list_ports(request:Request):
@@ -89,6 +114,14 @@ async def get_port(port_id:int):
     with db.session() as session:
         return port_repository.get_port_by_id(session,port_id)
 
+@app.get("/vessels/all/positions/last")
+async def list_vessel_positions(vessel_id: int, date:datetime=datetime.now()):
+    use_cases = UseCases()
+    vessel_position_repository = use_cases.vessel_position_repository()
+    db = use_cases.db()
+    with db.session() as session:
+        return vessel_position_repository.get_vessel_positions(session,vessel_id)
+        
 @app.get("/zones")
 async def list_zones():   
     cache= rd.get(app.url_path_for('list_zones'))

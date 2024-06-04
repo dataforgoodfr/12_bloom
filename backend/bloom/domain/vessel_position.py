@@ -1,13 +1,17 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
-from shapely import Point
+from shapely import Geometry, Point
+from shapely.geometry import mapping, shape
 
 from typing import Union
 
 
 class VesselPosition(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True,
+        json_encoders = {
+                Geometry: lambda p: mapping(p),
+            },)
 
     id: Union[int, None] = None
     timestamp: datetime
