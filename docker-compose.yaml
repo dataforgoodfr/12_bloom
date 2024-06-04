@@ -100,10 +100,12 @@ services:
            APP_DIR: /app
         
     volumes:
-      - ./frontend:/app
-      - ./frontend/node_modules:/app/node_modules
-      - ./frontend/.next:/app/.next
+      #- ./frontend:/app
+      #- ./frontend/node_modules:/app/node_modules
+      #- ./frontend/.next:/app/.next
       - ./data:/app/public/data
+#      - ./:/project/
+      - ./data:/project/frontend/public/data
     environment:
       LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
     networks:
