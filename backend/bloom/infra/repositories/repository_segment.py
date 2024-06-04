@@ -128,6 +128,7 @@ class SegmentRepository:
 
     def get_last_vessel_id_segments(self, session: Session) -> pd.DataFrame:
         stmt = select(
+            sql_model.Vessel.id,
             sql_model.Segment.excursion_id,
             sql_model.Segment.end_position,
             sql_model.Segment.timestamp_end,
