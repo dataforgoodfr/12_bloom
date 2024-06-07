@@ -21,6 +21,7 @@ class ZoneRepository:
 
     def get_all_zones(self, session: Session) -> List[Zone]:
         q = session.query(sql_model.Zone)
+        print(q)
         q=session.execute(q).scalars()
         if not q:
             return []
@@ -32,7 +33,7 @@ class ZoneRepository:
         q=session.execute(q)
         if not q:
             return []
-        return [ZoneRepository.map_to_domain(ZoneCategory(category=cat,sub_category=sub)) for cat,sub in q]
+        return [ZoneRepository.map_zonecategory_to_domain(ZoneCategory(category=cat,sub_category=sub)) for cat,sub in q]
     
     def get_all_zones_by_category(self, session: Session,category:str) -> List[Zone]:
         q = session.query(sql_model.Zone).where(sql_model.Zone.category == category)
@@ -71,7 +72,7 @@ class ZoneRepository:
             created_at=zone.created_at,
         )
     @staticmethod
-    def map_to_domain(category: ZoneCategory) -> Zone:
+    def map_zonecategory_to_domain(category: ZoneCategory) -> Zone:
         return ZoneCategory(
             category=category.category,
             sub_category=category.sub_category
