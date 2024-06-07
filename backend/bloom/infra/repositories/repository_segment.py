@@ -10,6 +10,7 @@ from shapely import wkb
 from sqlalchemy import and_, or_, select, update, text
 from sqlalchemy.orm import Session
 
+from bloom.logger import logger
 from bloom.domain.segment import Segment
 from bloom.domain.vessel_last_position import VesselLastPosition
 from bloom.domain.zone import Zone
@@ -82,23 +83,26 @@ class SegmentRepository:
         ).join(
             sql_model.Vessel,
             sql_model.Excursion.vessel_id == sql_model.Vessel.id
+        ).join(
+            sql_model.Segment,
+            sql_model.Excursion.id == sql_model.Segment.excursion_id
         ).filter(
             sql_model.Segment.last_vessel_segment == True,
             sql_model.Vessel.id == vessel_id,
         )
-        result = session.execute(stmt)
-        if result is not None:
-            return [VesselLastPosition(
-                    vessel=VesselRepository.map_to_domain(record[0]),
-                    excursion_id=record[1],
-                    position=to_shape(record[2]),
-                    timestamp=record[3],
-                    heading=record[4],
-                    speed=record[5],
-                    arrival_port_id=record[6],
-                ) for record in result][0]
+        result = session.execute(stmt).fetchone()
+        if result is not None :
+            return VesselLastPosition(
+                    vessel=VesselRepository.map_to_domain(result[0]),
+                    excursion_id=result[1],
+                    position=to_shape(result[2]),
+                    timestamp=result[3],
+                    heading=result[4],
+                    speed=result[5],
+                    arrival=result[6],
+                ) 
         else:
-            return None
+            return []
 
     def list_vessel_excursion_segments(self,session,vessel_id:int,excursions_id: int) -> List[Segment]:
         stmt = select(

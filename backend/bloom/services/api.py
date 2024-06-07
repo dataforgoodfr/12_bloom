@@ -66,7 +66,7 @@ async def list_all_vessel_last_position(nocache:bool=False):
         segment_repository = use_cases.segment_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [p.model_dump_json()
+            json_data = [json.loads(p.model_dump_json() if p else "{}")
                          for p in segment_repository.get_all_vessels_last_position(session)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
@@ -88,8 +88,8 @@ async def get_vessel_last_position(vessel_id: int, nocache:bool=False):
         segment_repository = use_cases.segment_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [p.model_dump_json()
-                         for p in segment_repository.get_vessel_last_position(session)]
+            result=segment_repository.get_vessel_last_position(session,vessel_id)
+            json_data = json.loads(result.model_dump_json() if result else "{}")
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
             logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
