@@ -6,13 +6,20 @@ import json
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
+from bloom.logger import logger
 
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
 from datetime import datetime
+import time
 
 
 app = FastAPI()
+
+@app.get("/cache/all/flush")
+async def cache_all_flush(request:Request):
+    rd.flushall()
+    return {"code":0}
 
 @app.get("/vessels")
 async def list_vessels():
@@ -90,10 +97,14 @@ async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segmen
         return segment_repository.get_vessel_excursion_segment_by_id(session,vessel_id,excursions_id,segment_id)
 
 @app.get("/ports")
-async def list_ports(request:Request):
+async def list_ports(request:Request,nocache:bool=0):
     cache= rd.get(app.url_path_for('list_ports'))
-    if cache:
-        return json.loads(cache)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{app.url_path_for('list_ports')} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{app.url_path_for('list_ports')} elapsed Time: {time.time()-start}")
+        return payload
     else:
         use_cases = UseCases()
         port_repository = use_cases.port_repository()
@@ -103,6 +114,7 @@ async def list_ports(request:Request):
                          for p in port_repository.get_all_ports(session)]
             rd.set(app.url_path_for('list_ports'), json.dumps(json_data))
             rd.expire(app.url_path_for('list_ports'),settings.redis_cache_expiration)
+            logger.debug(f"{app.url_path_for('list_ports')} elapsed Time: {time.time()-start}")
             return json_data
     
 
@@ -123,10 +135,14 @@ async def list_vessel_positions(vessel_id: int, date:datetime=datetime.now()):
         return vessel_position_repository.get_vessel_positions(session,vessel_id)
         
 @app.get("/zones")
-async def list_zones():   
+async def list_zones(request:Request,nocache:bool=0):   
     cache= rd.get(app.url_path_for('list_zones'))
-    if cache:
-        return json.loads(cache)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{app.url_path_for('list_zones')} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{app.url_path_for('list_zones')} elapsed Time: {time.time()-start}")
+        return payload
     else:
         use_cases = UseCases()
         zone_repository = use_cases.zone_repository()
@@ -136,6 +152,7 @@ async def list_zones():
                          for z in zone_repository.get_all_zones(session)]
             rd.set(app.url_path_for('list_zones'), json.dumps(json_data))
             rd.expire(app.url_path_for('list_zones'),settings.redis_cache_expiration)
+            logger.debug(f"{app.url_path_for('list_zones')} elapsed Time: {time.time()-start}")
             return json_data
 
 @app.get("/zones/{zones_id}")

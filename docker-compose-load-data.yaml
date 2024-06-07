@@ -18,7 +18,8 @@ services:
       - "/venv/bin/python3 backend/bloom/tasks/load_dim_vessel_from_csv.py &&
         /venv/bin/python3 backend/bloom/tasks/load_dim_zone_amp_from_csv.py &&
         /venv/bin/python3 backend/bloom/tasks/load_dim_port_from_csv.py &&
-        /venv/bin/python3 backend/bloom/tasks/load_spire_data_from_csv.py"
+        /venv/bin/python3 backend/bloom/tasks/load_spire_data_from_csv.py &&
+        /venv/bin/python3 backend/bloom/tasks/clean_positions.py"
     volumes:
       - ./:/project/
       - ./data:/project/data
