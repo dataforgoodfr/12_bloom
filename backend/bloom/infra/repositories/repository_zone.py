@@ -2,6 +2,7 @@ from contextlib import AbstractContextManager
 from typing import Any, List, Union
 
 from bloom.domain.zone import Zone
+from bloom.domain.zone_category import ZoneCategory
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
@@ -20,9 +21,18 @@ class ZoneRepository:
 
     def get_all_zones(self, session: Session) -> List[Zone]:
         q = session.query(sql_model.Zone)
+        q=session.execute(q).scalars()
         if not q:
             return []
         return [ZoneRepository.map_to_domain(entity) for entity in q]
+    
+    def get_all_zone_categories(self, session: Session) -> List[Zone]:
+        q = session.query(sql_model.Zone.category,
+                          sql_model.Zone.sub_category).distinct()
+        q=session.execute(q)
+        if not q:
+            return []
+        return [ZoneRepository.map_to_domain(ZoneCategory(category=cat,sub_category=sub)) for cat,sub in q]
     
     def get_all_zones_by_category(self, session: Session,category:str) -> List[Zone]:
         q = session.query(sql_model.Zone).where(sql_model.Zone.category == category)
@@ -59,4 +69,10 @@ class ZoneRepository:
             centroid=to_shape(zone.centroid),
             json_data=zone.json_data,
             created_at=zone.created_at,
+        )
+    @staticmethod
+    def map_to_domain(category: ZoneCategory) -> Zone:
+        return ZoneCategory(
+            category=category.category,
+            sub_category=category.sub_category
         )

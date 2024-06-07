@@ -136,12 +136,13 @@ async def list_vessel_positions(vessel_id: int, date:datetime=datetime.now()):
         
 @app.get("/zones")
 async def list_zones(request:Request,nocache:bool=0):   
-    cache= rd.get(app.url_path_for('list_zones'))
+    endpoint=f"/zones"
+    cache= rd.get(endpoint)
     start = time.time()
     if cache and not nocache:
-        logger.debug(f"{app.url_path_for('list_zones')} cached ({settings.redis_cache_expiration})s")
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
         payload=json.loads(cache)
-        logger.debug(f"{app.url_path_for('list_zones')} elapsed Time: {time.time()-start}")
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
         return payload
     else:
         use_cases = UseCases()
@@ -150,11 +151,33 @@ async def list_zones(request:Request,nocache:bool=0):
         with db.session() as session:
             json_data = [z.model_dump_json()
                          for z in zone_repository.get_all_zones(session)]
-            rd.set(app.url_path_for('list_zones'), json.dumps(json_data))
-            rd.expire(app.url_path_for('list_zones'),settings.redis_cache_expiration)
-            logger.debug(f"{app.url_path_for('list_zones')} elapsed Time: {time.time()-start}")
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
+            logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
             return json_data
-        
+
+@app.get("/zones/all/categories")
+async def list_zone_categories(request:Request,nocache:bool=0): 
+    endpoint=f"/zones/all/categories" 
+    cache= rd.get(endpoint)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+        return payload
+    else:
+        use_cases = UseCases()
+        zone_repository = use_cases.zone_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            json_data = [z.model_dump_json()
+                         for z in zone_repository.get_all_zone_categories(session)]
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
+            logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+            return json_data
+
 @app.get("/zones/by-category/{category}")
 async def get_zone_all_by_category(category:str="amp",nocache:bool=0):
     endpoint=f"/zones/by-category/{category}"
