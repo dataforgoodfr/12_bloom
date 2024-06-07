@@ -219,7 +219,7 @@ async def list_zone_categories(request:Request,nocache:bool=False):
             return json_data
 
 @app.get("/zones/by-category/{category}/by-sub-category/{sub}")
-async def get_zone_all_by_category(category:str,sub:str=None,nocache:bool=False):
+async def get_zone_all_by_category(category:str="all",sub:str=None,nocache:bool=False):
     endpoint=f"/zones/by-category/{category}/by-sub-category/{sub}"
     cache= rd.get(endpoint)
     start = time.time()
@@ -241,7 +241,7 @@ async def get_zone_all_by_category(category:str,sub:str=None,nocache:bool=False)
             return json_data
 
 @app.get("/zones/by-category/{category}")
-async def get_zone_all_by_category(category:str="amp",nocache:bool=False):
+async def get_zone_all_by_category(category:str="all",nocache:bool=False):
     endpoint=f"/zones/by-category/{category}"
     cache= rd.get(endpoint)
     start = time.time()
@@ -256,7 +256,7 @@ async def get_zone_all_by_category(category:str="amp",nocache:bool=False):
         db = use_cases.db()
         with db.session() as session:
             json_data = [json.loads(z.model_dump_json() if z else "{}")
-                         for z in zone_repository.get_all_zones_by_category(session,category)]
+                         for z in zone_repository.get_all_zones_by_category(session,category if category != 'all' else None)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
             logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
