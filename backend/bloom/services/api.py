@@ -37,7 +37,7 @@ async def list_vessels(nocache:bool=False):
         db = use_cases.db()
         with db.session() as session:
             
-            json_data = [v.model_dump_json()
+            json_data = [json.loads(v.model_dump_json() if v else "{}")
                             for v in vessel_repository.get_vessels_list(session)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
@@ -110,11 +110,12 @@ async def list_vessel_excursions(vessel_id: int, nocache:bool=False):
         excursion_repository = use_cases.excursion_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [p.model_dump_json()
-                         for p in excursion_repository.get_excursions_by_vessel_id(session)]
+            json_data = [json.loads(p.model_dump_json() if p else "{}")
+                         for p in excursion_repository.get_excursions_by_vessel_id(session,vessel_id)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
             logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+        return json_data
 
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}")
@@ -157,7 +158,7 @@ async def list_ports(request:Request,nocache:bool=False):
         port_repository = use_cases.port_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [p.model_dump_json()
+            json_data = [json.loads(p.model_dump_json() if p else "{}")
                          for p in port_repository.get_all_ports(session)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
@@ -188,7 +189,7 @@ async def list_zones(request:Request,nocache:bool=False):
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [z.model_dump_json()
+            json_data = [json.loads(z.model_dump_json() if z else "{}")
                          for z in zone_repository.get_all_zones(session)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
@@ -210,7 +211,7 @@ async def list_zone_categories(request:Request,nocache:bool=False):
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [z.model_dump_json()
+            json_data = [json.loads(z.model_dump_json()  if z else "{}")
                          for z in zone_repository.get_all_zone_categories(session)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
@@ -232,7 +233,7 @@ async def get_zone_all_by_category(category:str="amp",nocache:bool=False):
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
-            json_data = [z.model_dump_json()
+            json_data = [json.loads(z.model_dump_json() if z else "{}")
                          for z in zone_repository.get_all_zones_by_category(session,category)]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
