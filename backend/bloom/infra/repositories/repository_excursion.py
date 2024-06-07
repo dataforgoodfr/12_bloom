@@ -46,10 +46,10 @@ class ExcursionRepository:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
         stmt = select(sql_model.Excursion).where( (sql_model.Excursion.vessel_id == vessel_id )
                                                  & (sql_model.Excursion.id == excursion_id ))
-        result = session.execute(stmt)
-        if result is None:
+        result = session.execute(stmt).fetchone()
+        if not result :
             return None
-        return [ ExcursionRepository.map_to_domain(r) for r in result.scalars()][0]
+        return ExcursionRepository.map_to_domain(result[0])
 
 
 
