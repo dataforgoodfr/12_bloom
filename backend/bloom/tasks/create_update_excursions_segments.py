@@ -15,6 +15,8 @@ from bloom.domain.excursion import Excursion
 from bloom.domain.segment import Segment
 from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
 from bloom.logger import logger
+from bloom.domain.rel_segment_zone import RelSegmentZone
+from bloom.infra.repositories.repository_rel_segment_zone import RelSegmentZoneRepository
 
 warnings.filterwarnings("ignore")
 
@@ -90,6 +92,7 @@ def run():
     segment_repository = use_cases.segment_repository()
     vessel_position_repository = use_cases.vessel_position_repository()
     port_repository = use_cases.port_repository()
+    excursion_repository = use_cases.excursion_repository()
 
     nb_created_excursion = 0
     nb_closed_excursion = 0
@@ -106,7 +109,7 @@ def run():
         last_segment["latitude"] = None
         last_segment = last_segment.apply(to_coords, axis=1)
 
-        logger.info("Création / mise à jour des excursions")
+        logger.info("Création des excursions")
         result = pd.DataFrame()
         for vessel_id in batch["vessel_id"].unique():
             df_end = batch.loc[batch["vessel_id"] == vessel_id].copy()
@@ -282,6 +285,76 @@ def run():
             new_segments.append(new_segment)
         segment_repository.batch_create_segment(session, new_segments)
         logger.info(f"{len(new_segments)} segment(s) créés")
+
+        # On vide un peu la mémoire
+        session.flush()
+        new_segments = None
+        df = None
+
+        # Recherche des zones et calcul / mise ) jour des stats
+        logger.info("Mise en relation des segments avec les zones et calcul des statistiques d'excursion")
+        result = segment_repository.find_segments_in_zones_created_updated_after(session, point_in_time)
+        new_rels = []
+        excursions = {}
+        segments = []
+        max_created_updated = point_in_time
+        for segment, zones in result.items():
+            segment.in_costal_waters = False
+            segment.in_amp_zone = False
+            segment.in_territorial_waters = False
+            for zone in zones:
+                new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
+                if zone.category == "amp":
+                    segment.in_amp_zone = True
+                elif zone.category == "coastal":
+                    segment.in_costal_waters = True
+                elif zone.category == "territorial":
+                    segment.in_territorial_waters = True
+            # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
+            excursion = excursions.get(segment.excursion_id,
+                                       excursion_repository.get_excursion_by_id(session, segment.excursion_id))
+            if segment.in_amp_zone:
+                if segment.type == "AT_SEA":
+                    excursion.total_time_in_amp += segment.segment_duration
+                elif segment.type == "FISHING":
+                    excursion.total_time_fishing_in_amp += segment.segment_duration
+            if segment.in_costal_waters:
+                if segment.type == "AT_SEA":
+                    excursion.total_time_in_costal_waters += segment.segment_duration
+                elif segment.type == "FISHING":
+                    excursion.total_time_fishing_in_costal_waters += segment.segment_duration
+            if segment.in_territorial_waters:
+                if segment.type == "AT_SEA":
+                    excursion.total_time_in_territorial_waters += segment.segment_duration
+                elif segment.type == "FISHING":
+                    excursion.total_time_fishing_in_territorial_waters += segment.segment_duration
+
+            excursion.excursion_duration += segment.segment_duration
+            if segment.type == "FISHING":
+                excursion.total_time_fishing += segment.segment_duration
+
+            excursion.total_time_at_sea = excursion.excursion_duration - (
+                    excursion.total_time_in_costal_waters + excursion.total_time_in_territorial_waters)
+
+            excursions[excursion.id] = excursion
+
+            # Détection de la borne supérieure du traitement
+            if segment.updated_at and segment.updated_at > max_created_updated:
+                max_created_updated = segment.updated_at
+            elif segment.created_at > max_created_updated:
+                max_created_updated = segment.created_at
+            segments.append(segment)
+
+        excursion_repository.batch_update_excursion(session, excursions.values())
+        logger.info(f"{len(excursions.values())} excursions mises à jour")
+        segment_repository.batch_update_segment(session, segments)
+        logger.info(f"{len(segments)} segments mis à jour")
+        RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
+        logger.info(f"{len(new_rels)} associations(s) créées")
+        nb_last = segment_repository.update_last_segments(session, list(exc.id for exc in excursions.values()))
+        logger.info(f"{nb_last} derniers segments mis à jour")
+        TaskExecutionRepository.set_point_in_time(session, "rel_segments_zones", max_created_updated)
+
         max_created = batch["created_at"].max()
         if pd.notna(max_created):
             TaskExecutionRepository.set_point_in_time(session, "create_update_excursions_segments",
