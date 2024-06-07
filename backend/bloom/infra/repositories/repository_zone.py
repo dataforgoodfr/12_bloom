@@ -24,6 +24,12 @@ class ZoneRepository:
             return []
         return [ZoneRepository.map_to_domain(entity) for entity in q]
     
+    def get_all_zones_by_category(self, session: Session,category:str) -> List[Zone]:
+        q = session.query(sql_model.Zone).where(sql_model.Zone.category == category)
+        if not q:
+            return []
+        return [ZoneRepository.map_to_domain(entity) for entity in q]
+    
     def batch_create_zone(self, session: Session, zones: list[Zone]) -> list[Zone]:
         orm_list = [ZoneRepository.map_to_orm(zone) for zone in zones]
         session.add_all(orm_list)
