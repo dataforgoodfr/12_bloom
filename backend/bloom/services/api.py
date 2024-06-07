@@ -97,7 +97,7 @@ async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segmen
         return segment_repository.get_vessel_excursion_segment_by_id(session,vessel_id,excursions_id,segment_id)
 
 @app.get("/ports")
-async def list_ports(request:Request,nocache:bool=0):
+async def list_ports(request:Request,nocache:bool=False):
     cache= rd.get(app.url_path_for('list_ports'))
     start = time.time()
     if cache and not nocache:
@@ -135,7 +135,7 @@ async def list_vessel_positions(vessel_id: int, date:datetime=datetime.now()):
         return vessel_position_repository.get_vessel_positions(session,vessel_id)
         
 @app.get("/zones")
-async def list_zones(request:Request,nocache:bool=0):   
+async def list_zones(request:Request,nocache:bool=False):   
     endpoint=f"/zones"
     cache= rd.get(endpoint)
     start = time.time()
@@ -157,7 +157,7 @@ async def list_zones(request:Request,nocache:bool=0):
             return json_data
 
 @app.get("/zones/all/categories")
-async def list_zone_categories(request:Request,nocache:bool=0): 
+async def list_zone_categories(request:Request,nocache:bool=False): 
     endpoint=f"/zones/all/categories" 
     cache= rd.get(endpoint)
     start = time.time()
@@ -179,7 +179,7 @@ async def list_zone_categories(request:Request,nocache:bool=0):
             return json_data
 
 @app.get("/zones/by-category/{category}")
-async def get_zone_all_by_category(category:str="amp",nocache:bool=0):
+async def get_zone_all_by_category(category:str="amp",nocache:bool=False):
     endpoint=f"/zones/by-category/{category}"
     cache= rd.get(endpoint)
     start = time.time()
