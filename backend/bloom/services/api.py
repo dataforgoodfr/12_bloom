@@ -47,20 +47,48 @@ async def get_vessel(vessel_id: int):
         return vessel_repository.get_vessel_by_id(session,vessel_id)
 
 @app.get("/vessels/all/positions/last")
-async def list_all_vessel_last_position():
-    use_cases = UseCases()
-    segment_repository = use_cases.segment_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return segment_repository.get_all_vessels_last_position(session)
+async def list_all_vessel_last_position(nocache:bool=False):
+    endpoint=f"/vessels/all/positions/last"
+    cache= rd.get(endpoint)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+        return payload
+    else:
+        use_cases = UseCases()
+        segment_repository = use_cases.segment_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            json_data = [p.model_dump_json()
+                         for p in segment_repository.get_all_vessels_last_position(session)]
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
+            logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+            return json_data
 
 @app.get("/vessels/{vessel_id}/positions/last")
-async def get_vessel_last_position(vessel_id: int):
-    use_cases = UseCases()
-    segment_repository = use_cases.segment_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return segment_repository.get_vessel_last_position(session,vessel_id)
+async def get_vessel_last_position(vessel_id: int, nocache:bool=False):
+    endpoint=f"/vessels/{vessel_id}/positions/last"
+    cache= rd.get(endpoint)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+        return payload
+    else:
+        use_cases = UseCases()
+        segment_repository = use_cases.segment_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            json_data = [p.model_dump_json()
+                         for p in segment_repository.get_vessel_last_position(session)]
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
+            logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+            return json_data
 
 @app.get("/vessels/{vessel_id}/excursions")
 async def list_vessel_excursions(vessel_id: int):
@@ -126,14 +154,6 @@ async def get_port(port_id:int):
     with db.session() as session:
         return port_repository.get_port_by_id(session,port_id)
 
-@app.get("/vessels/all/positions/last")
-async def list_vessel_positions(vessel_id: int, date:datetime=datetime.now()):
-    use_cases = UseCases()
-    vessel_position_repository = use_cases.vessel_position_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return vessel_position_repository.get_vessel_positions(session,vessel_id)
-        
 @app.get("/zones")
 async def list_zones(request:Request,nocache:bool=False):   
     endpoint=f"/zones"

@@ -50,6 +50,9 @@ class SegmentRepository:
         ).join(
             sql_model.Vessel,
             sql_model.Excursion.vessel_id == sql_model.Vessel.id
+        ).join(
+            sql_model.Segment,
+            sql_model.Segment.excursion_id == sql_model.Excursion.id
         ).filter(
             sql_model.Segment.last_vessel_segment == True
         )
