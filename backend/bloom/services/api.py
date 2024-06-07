@@ -270,36 +270,6 @@ async def get_zone(zones_id:int):
     with db.session() as session:
         return zone_repository.get_zone_by_id(session,zones_id)
 
-
-
-@app.get("/statics/{zones}")
-async def get_statics_zones():
-    return {}
-
-@app.get("/maptiles/mpa")
-async def get_maptile_mpa():
-    return {"data":{}}
-
-@app.get("/maptiles/territorial")
-async def get_maptile_territorial():
-    return {"data":{}}
-
-@app.get("/maptiles/coastal")
-async def get_maptile_coastal():
-    return {"data":{}}
-
-@app.get("/maptiles")
-async def list_maptiles(request:Request):
-    return {
-                "mpa":          f"{request.url_for('get_maptile_mpa')}",
-                "territorial":  f"{request.url_for('get_maptile_territorial')}",
-                "coastal":      f"{request.url_for('get_maptile_coastal')}",
-            }
-
-@app.get("/maptiles")
-async def list_maptiles():
-    return {"data":{}}
-
 @app.get("/")
 async def root(request:Request):
     return {
