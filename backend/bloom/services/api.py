@@ -22,10 +22,15 @@ async def cache_all_flush(request:Request):
     return {"code":0}
 
 @app.get("/vessels")
-async def list_vessels():
-    cache= rd.get(app.url_path_for('list_vessels'))
-    if cache:
-        return json.loads(cache)
+async def list_vessels(nocache:bool=False):
+    endpoint=f"/vessels"
+    cache= rd.get(endpoint)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+        return payload
     else:
         use_cases = UseCases()
         vessel_repository = use_cases.vessel_repository()
@@ -34,8 +39,8 @@ async def list_vessels():
             
             json_data = [v.model_dump_json()
                             for v in vessel_repository.get_vessels_list(session)]
-            rd.set(app.url_path_for('list_vessels'), json.dumps(json_data))
-            rd.expire(app.url_path_for('list_vessels'),settings.redis_cache_expiration)
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
             return json_data
 
 @app.get("/vessels/{vessel_id}")
@@ -91,12 +96,25 @@ async def get_vessel_last_position(vessel_id: int, nocache:bool=False):
             return json_data
 
 @app.get("/vessels/{vessel_id}/excursions")
-async def list_vessel_excursions(vessel_id: int):
-    use_cases = UseCases()
-    excursion_repository = use_cases.excursion_repository()
-    db = use_cases.db()
-    with db.session() as session:
-        return excursion_repository.get_excursions_by_vessel_id(session,vessel_id)
+async def list_vessel_excursions(vessel_id: int, nocache:bool=False):
+    endpoint=f"/vessels/{vessel_id}/excursions"
+    cache= rd.get(endpoint)
+    start = time.time()
+    if cache and not nocache:
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
+        payload=json.loads(cache)
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+        return payload
+    else:
+        use_cases = UseCases()
+        excursion_repository = use_cases.excursion_repository()
+        db = use_cases.db()
+        with db.session() as session:
+            json_data = [p.model_dump_json()
+                         for p in excursion_repository.get_excursions_by_vessel_id(session)]
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
+            logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
 
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}")
@@ -126,12 +144,13 @@ async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segmen
 
 @app.get("/ports")
 async def list_ports(request:Request,nocache:bool=False):
-    cache= rd.get(app.url_path_for('list_ports'))
+    endpoint=f"/ports"
+    cache= rd.get(endpoint)
     start = time.time()
     if cache and not nocache:
-        logger.debug(f"{app.url_path_for('list_ports')} cached ({settings.redis_cache_expiration})s")
+        logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
         payload=json.loads(cache)
-        logger.debug(f"{app.url_path_for('list_ports')} elapsed Time: {time.time()-start}")
+        logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
         return payload
     else:
         use_cases = UseCases()
@@ -140,9 +159,9 @@ async def list_ports(request:Request,nocache:bool=False):
         with db.session() as session:
             json_data = [p.model_dump_json()
                          for p in port_repository.get_all_ports(session)]
-            rd.set(app.url_path_for('list_ports'), json.dumps(json_data))
-            rd.expire(app.url_path_for('list_ports'),settings.redis_cache_expiration)
-            logger.debug(f"{app.url_path_for('list_ports')} elapsed Time: {time.time()-start}")
+            rd.set(endpoint, json.dumps(json_data))
+            rd.expire(endpoint,settings.redis_cache_expiration)
+            logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
             return json_data
     
 
