@@ -21,29 +21,30 @@ class ZoneRepository:
 
     def get_all_zones(self, session: Session) -> List[Zone]:
         q = session.query(sql_model.Zone)
-        q=session.execute(q).scalars()
+        q = session.execute(q).scalars()
         if not q:
             return []
         return [ZoneRepository.map_to_domain(entity) for entity in q]
-    
+
     def get_all_zone_categories(self, session: Session) -> List[Zone]:
         q = session.query(sql_model.Zone.category,
                           sql_model.Zone.sub_category).distinct()
-        q=session.execute(q)
+        q = session.execute(q)
         if not q:
             return []
-        return [ZoneRepository.map_zonecategory_to_domain(ZoneCategory(category=cat,sub_category=sub)) for cat,sub in q]
-    
-    def get_all_zones_by_category(self, session: Session,category:str=None, sub:str=None) -> List[Zone]:
+        return [ZoneRepository.map_zonecategory_to_domain(ZoneCategory(category=cat, sub_category=sub)) for cat, sub in
+                q]
+
+    def get_all_zones_by_category(self, session: Session, category: str = None, sub: str = None) -> List[Zone]:
         q = session.query(sql_model.Zone)
         if category:
-            q=q.filter(sql_model.Zone.category == category)
+            q = q.filter(sql_model.Zone.category == category)
         if sub:
-            q=q.filter(sql_model.Zone.sub_category == sub)
+            q = q.filter(sql_model.Zone.sub_category == sub)
         if not q:
             return []
-        return [ZoneRepository.map_to_domain(entity) for entity in q]
-    
+        return [ZoneRepository.map_to_domain(entity) for entity in session.execute(q).scalars()]
+
     def batch_create_zone(self, session: Session, zones: list[Zone]) -> list[Zone]:
         orm_list = [ZoneRepository.map_to_orm(zone) for zone in zones]
         session.add_all(orm_list)
@@ -74,6 +75,7 @@ class ZoneRepository:
             json_data=zone.json_data,
             created_at=zone.created_at,
         )
+
     @staticmethod
     def map_zonecategory_to_domain(category: ZoneCategory) -> Zone:
         return ZoneCategory(
