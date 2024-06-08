@@ -25,8 +25,8 @@ class ZoneRepository:
         if not q:
             return []
         return [ZoneRepository.map_to_domain(entity) for entity in q]
-    
-    def get_all_zone_categories(self, session: Session) -> List[Zone]:
+
+    def get_all_zone_categories(self, session: Session) -> list[ZoneCategory]:
         q = session.query(sql_model.Zone.category,
                           sql_model.Zone.sub_category).distinct()
         q=session.execute(q)
@@ -84,7 +84,7 @@ class ZoneRepository:
             created_at=zone.created_at,
         )
     @staticmethod
-    def map_to_domain(category: ZoneCategory) -> Zone:
+    def map_to_domain(category: ZoneCategory) -> ZoneCategory:
         return ZoneCategory(
             category=category.category,
             sub_category=category.sub_category
