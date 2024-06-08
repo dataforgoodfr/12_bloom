@@ -6,7 +6,7 @@ from dependency_injector.providers import Callable
 from geoalchemy2.functions import ST_Within
 from geoalchemy2.shape import from_shape, to_shape
 from shapely import wkb
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, update, text
 from sqlalchemy.orm import Session
 
 from bloom.domain.segment import Segment
@@ -79,14 +79,14 @@ class SegmentRepository:
         result = session.execute(stmt).scalars()
         return [SegmentRepository.map_to_domain(orm) for orm in result]
 
-    def find_segments_in_zones_created_updated_after(self, session: Session, created_updated_after: datetime) -> dict[
+    def find_segments_in_zones_created_updated_after(self, session: Session, created_after: datetime) -> dict[
         Segment, list[Zone]]:
-        stmt = select(sql_model.Segment, sql_model.Zone).where(
-            or_(and_(sql_model.Segment.updated_at == None, sql_model.Segment.created_at > created_updated_after),
-                sql_model.Segment.updated_at > created_updated_after)
-        ).outerjoin(sql_model.Zone, and_(ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
-                                         ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
-                    ).order_by(sql_model.Segment.created_at.asc(), sql_model.Segment.updated_at.asc())
+        stmt = select(sql_model.Segment, sql_model.Zone).where(sql_model.Segment.created_at > created_after
+                                                               ).outerjoin(sql_model.Zone, and_(
+            ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
+            ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
+                                                                           ).order_by(
+            sql_model.Segment.created_at.asc())
         result = session.execute(stmt)
         dict = {}
         for (segment_orm, zone_orm) in result:
@@ -105,6 +105,24 @@ class SegmentRepository:
             session.flush()
             updated_segments.append(SegmentRepository.map_to_domain(orm))
         return updated_segments
+
+    # Mise à jour des derniers segments des excursions. En 2 étapes
+    # passe à False de la colonne last_vessel_segment pour tous les segments des excursions transmises
+    # passe à True la colonne last_vessel_segment pour tous les Id de segments les plus récent de chaque excursion
+    def update_last_segments(self, session: Session, excursion_ids: list[int]) -> int:
+        upd1 = update(sql_model.Segment).where(sql_model.Segment.excursion_id.in_(excursion_ids)).values(
+            last_vessel_segment=False)
+        session.execute(upd1)
+        session.flush()
+        last_segments = session.execute(text("""SELECT DISTINCT ON (excursion_id) id FROM fct_segment
+                                                WHERE excursion_id in :excursion_ids 
+                                                ORDER BY excursion_id, timestamp_start DESC"""),
+                                        {"excursion_ids": tuple(excursion_ids)}).all()
+        ids = [r[0] for r in last_segments]
+        upd2 = update(sql_model.Segment).where(sql_model.Segment.id.in_(ids)).values(
+            last_vessel_segment=True)
+        session.execute(upd2)
+        return len(ids)
 
     @staticmethod
     def map_to_domain(segment: sql_model.Segment) -> Segment:
