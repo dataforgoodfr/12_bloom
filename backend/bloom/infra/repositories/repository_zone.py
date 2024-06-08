@@ -19,14 +19,14 @@ class ZoneRepository:
     def get_zone_by_id(self, session: Session, zone_id: int) -> Union[Zone, None]:
         return ZoneRepository.map_to_domain(session.get(sql_model.Zone, zone_id))
 
-    def get_all_zones(self, session: Session) -> List[Zone]:
+    def get_all_zones(self, session: Session) -> list[Zone]:
         q = session.query(sql_model.Zone)
         q = session.execute(q).scalars()
         if not q:
             return []
         return [ZoneRepository.map_to_domain(entity) for entity in q]
 
-    def get_all_zone_categories(self, session: Session) -> List[Zone]:
+    def get_all_zone_categories(self, session: Session) -> list[ZoneCategory]:
         q = session.query(sql_model.Zone.category,
                           sql_model.Zone.sub_category).distinct()
         q = session.execute(q)
@@ -35,7 +35,7 @@ class ZoneRepository:
         return [ZoneRepository.map_zonecategory_to_domain(ZoneCategory(category=cat, sub_category=sub)) for cat, sub in
                 q]
 
-    def get_all_zones_by_category(self, session: Session, category: str = None, sub: str = None) -> List[Zone]:
+    def get_all_zones_by_category(self, session: Session, category: str = None, sub: str = None) -> list[Zone]:
         q = session.query(sql_model.Zone)
         if category:
             q = q.filter(sql_model.Zone.category == category)
@@ -77,7 +77,7 @@ class ZoneRepository:
         )
 
     @staticmethod
-    def map_zonecategory_to_domain(category: ZoneCategory) -> Zone:
+    def map_zonecategory_to_domain(category: ZoneCategory) -> ZoneCategory:
         return ZoneCategory(
             category=category.category,
             sub_category=category.sub_category
