@@ -14,7 +14,7 @@ from bloom.usecase.GenerateAlerts import GenerateAlerts
 from dependency_injector import containers, providers
 
 
-class UseCases(containers.DeclarativeContainer):
+class UseCasesContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     db_url = settings.db_url
     db = providers.Singleton(

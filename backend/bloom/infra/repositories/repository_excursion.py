@@ -34,18 +34,21 @@ class ExcursionRepository:
             return None
         return {"arrival_port_id": result.arrival_port_id, "arrival_position": result.arrival_position}
 
-    def get_excursions_by_vessel_id(self, session: Session, vessel_id: int) -> List[Excursion]:
-        """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
-        stmt = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)
-        result = session.execute(stmt).scalars()
-        if not result:
-            return []
+    def get_excursions_by_vessel_id(self, vessel_id: int) -> List[Excursion]:
+        with self.session_factory as session:
+            """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
+            stmt = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)
+            result = session.execute(stmt).scalars()
+            if not result:
+                return []
         return [ExcursionRepository.map_to_domain(r) for r in result]
 
     def get_vessel_excursion_by_id(self, session: Session, vessel_id: int, excursion_id: int) -> Union[Excursion, None]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
-        stmt = select(sql_model.Excursion).where((sql_model.Excursion.vessel_id == vessel_id)
-                                                 & (sql_model.Excursion.id == excursion_id))
+        stmt = select(sql_model.Excursion).where(
+            (sql_model.Excursion.vessel_id == vessel_id)
+            & (sql_model.Excursion.id == excursion_id)
+        )
         result = session.execute(stmt).scalar()
         if not result:
             return None
@@ -151,32 +154,6 @@ class ExcursionRepository:
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
             arrival_position=to_shape(excursion.arrival_position) if excursion.arrival_position else None,
-            excursion_duration=excursion.excursion_duration,
-            total_time_at_sea=excursion.total_time_at_sea,
-            total_time_in_amp=excursion.total_time_in_amp,
-            total_time_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
-            total_time_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_fishing=excursion.total_time_fishing,
-            total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
-            total_time_fishing_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
-            total_time_fishing_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_extincting_amp=excursion.total_time_extincting_amp,
-            created_at=excursion.created_at,
-            updated_at=excursion.updated_at
-        )
-
-    @staticmethod
-    def map_to_orm(excursion: Excursion) -> sql_model.Excursion:
-        return sql_model.Excursion(
-            id=excursion.id,
-            vessel_id=excursion.vessel_id,
-            departure_port_id=excursion.departure_port_id,
-            departure_at=excursion.departure_at,
-            departure_position=from_shape(
-                excursion.departure_position) if excursion.departure_position is not None else None,
-            arrival_port_id=excursion.arrival_port_id,
-            arrival_at=excursion.arrival_at,
-            arrival_position=from_shape(excursion.arrival_position) if excursion.arrival_position is not None else None,
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
