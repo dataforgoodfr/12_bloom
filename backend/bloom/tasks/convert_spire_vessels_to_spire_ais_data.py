@@ -1,7 +1,7 @@
 from time import perf_counter
 from typing import Generator
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database.sql_model import VesselPositionSpire
 from bloom.logger import logger
@@ -9,7 +9,7 @@ from geoalchemy2.shape import to_shape
 from shapely import Point
 from sqlalchemy.orm.session import Session
 
-use_cases = UseCases()
+use_cases = UseCasesContainer()
 vessel_repo = use_cases.vessel_repository()
 spire_ais_data_repo = use_cases.spire_ais_data_repository()
 db = use_cases.db()

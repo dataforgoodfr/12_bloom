@@ -10,7 +10,7 @@ from geopy import distance
 from shapely.geometry import Point
 from sqlalchemy.orm import Session
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.excursion import Excursion
 from bloom.domain.segment import Segment
 from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
@@ -38,7 +38,7 @@ def to_coords(row: pd.Series) -> pd.Series:
 
 def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
                   departure_position: Optional[Point] = None) -> int:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     excursion_repository = use_cases.excursion_repository()
     result = excursion_repository.get_param_from_last_excursion(session, vessel_id)
 
@@ -74,7 +74,7 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
 
 def close_excursion(session: Session, excursion_id: int, port_id: int, latitude: float, longitude: float,
                     arrived_at: datetime) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     excursion_repository = use_cases.excursion_repository()
 
     excursion = excursion_repository.get_excursion_by_id(session, excursion_id)
@@ -87,7 +87,7 @@ def close_excursion(session: Session, excursion_id: int, port_id: int, latitude:
 
 
 def run():
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     db = use_cases.db()
     segment_repository = use_cases.segment_repository()
     vessel_position_repository = use_cases.vessel_position_repository()
