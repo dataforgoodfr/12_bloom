@@ -5,7 +5,7 @@ import geopandas as gpd
 import pandas as pd
 import pycountry
 from bloom.config import settings
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.port import Port
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
@@ -29,7 +29,7 @@ def map_to_domain(row) -> Port:
 
 
 def run(csv_file_name: str) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
 

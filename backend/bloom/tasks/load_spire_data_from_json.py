@@ -3,14 +3,14 @@ import json
 from pathlib import Path
 from time import perf_counter
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.infra.http.spire_api_utils import map_raw_vessels_to_domain
 from bloom.logger import logger
 from pydantic import ValidationError
 
 
 def run(file_name: str) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
     db = use_cases.db()
 

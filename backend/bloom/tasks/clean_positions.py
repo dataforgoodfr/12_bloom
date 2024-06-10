@@ -8,7 +8,7 @@ import pandas as pd
 from geopy import distance
 from shapely.geometry import Point
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.vessel_position import VesselPosition
 from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
 from bloom.logger import logger
@@ -51,7 +51,7 @@ def to_coords(row: pd.Series) -> pd.Series:
 
 
 def run(batch_time):
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     db = use_cases.db()
     spire_repository = use_cases.spire_ais_data_repository()
     excursion_repository = use_cases.excursion_repository()
