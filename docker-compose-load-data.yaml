@@ -10,7 +10,7 @@ x-common-infos:
 services:
   load-data:
     container_name: bloom-load-data
-    image: d4g/bloom:${VERSION:-latest}
+    image: d4g/bloom-backend:${VERSION:-latest}
     entrypoint: /bin/bash
     # Nominal start:
     command:

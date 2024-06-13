@@ -59,6 +59,8 @@ services:
       <<: *common-env
     ports:
       - ${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - bloom_data:/var/lib/postgresql/data
     networks:
       - bloom_net
     volumes:
