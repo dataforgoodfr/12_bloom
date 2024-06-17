@@ -2,66 +2,62 @@ from pathlib import Path
 from time import perf_counter
 
 import pandas as pd
+from shapely import wkb
+
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.zone import Zone
-from bloom.infra.database.errors import DBException
 from bloom.logger import logger
-from pydantic import ValidationError
-from shapely import wkb
+
+FIC_ZONE = ["french_metropolitan_mpas.csv", "fishing_coastal_waters.csv", "territorial_seas.csv"]
 
 
 def map_to_domain(row: pd.Series) -> Zone:
     isna = row.isna()
 
+    json_data = {}
+    for k in ["index", "wdpaid", "desig_eng", "desig_type", "iucn_cat", "parent_iso", "iso3", "benificiaries",
+              "source", "reference"]:
+        try:
+            value = row[k] if not isna[k] else None
+            json_data[k] = value
+        except:
+            pass
+
     return Zone(
-        category="amp",
-        sub_category=None,
+        category=row["category"],
+        sub_category=row["sub_category"] if not isna["sub_category"] else None,
         name=row["name"],
         geometry=row["geometry"],
         centroid=row["geometry"].centroid,
-        json_data={k: row[k] if not isna[k] else None for k in
-                   ["index", "desig_eng", "desig_type", "iucn_cat", "parent_iso", "iso3", "benificiaries"]},
+        json_data=json_data,
     )
 
 
-def run(csv_file_name: str):
+def run():
     use_cases = UseCases()
     db = use_cases.db()
     zone_repository = use_cases.zone_repository()
 
-    total = 0
-    try:
-        df = pd.read_csv(csv_file_name, sep=",")
-        df = df.rename(columns={"Geometry": "geometry",
-                                "Index": "index", "WDPAID": "wdpaid",
-                                "Name": "name",
-                                "DESIG_ENG": "desig_eng",
-                                "DESIG_TYPE": "desig_type",
-                                "IUCN_CAT": "iucn_cat",
-                                "PARENT_ISO": "parent_iso",
-                                "ISO3": "iso3",
-                                "Benificiaries": "benificiaries"})
-        df["geometry"] = df["geometry"].apply(wkb.loads)
-        zones = df.apply(map_to_domain, axis=1)
-        with db.session() as session:
+    with db.session() as session:
+        for fic_csv in FIC_ZONE:
+            file_name = Path(settings.data_folder).joinpath(fic_csv)
+            logger.info(f"Chargement des données du fichier {file_name}")
+
+            total = 0
+            df = pd.read_csv(file_name, sep=",")
+            df["geometry"] = df["geometry"].apply(wkb.loads)
+            zones = df.apply(map_to_domain, axis=1)
             zones = zone_repository.batch_create_zone(session, list(zones))
-            session.commit()
             total = len(zones)
-            print(zones)
-    except ValidationError as e:
-        logger.error("Erreur de validation des données de bateau")
-        logger.error(e.errors())
-    except DBException:
-        logger.error("Erreur d'insertion en base")
-    logger.info(f"{total} zone(s) créés")
+            logger.info(f"{total} zone(s) créés")
+        session.commit()
 
 
 if __name__ == "__main__":
     time_start = perf_counter()
-    file_name = Path(settings.data_folder).joinpath("./zones_subset.csv")
-    logger.info(f"DEBUT - Chargement des données des zones AMP depuis le fichier {file_name}")
-    run(file_name)
+    logger.info("DEBUT - Chargement des données des zones")
+    run()
     time_end = perf_counter()
     duration = time_end - time_start
-    logger.info(f"FIN - Chargement des données des zones AMP en {duration:.2f}s")
+    logger.info(f"FIN - Chargement des données des zones en {duration:.2f}s")

@@ -44,7 +44,7 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
 
     if result:
         arrival_port_id = result["arrival_port_id"]
-        arrival_position = to_shape(result["arrival_position"])
+        arrival_position = to_shape(result["arrival_position"]) if result["arrival_position"] else None
     else:
         arrival_port_id = None
         arrival_position = None
@@ -226,7 +226,7 @@ def run():
                 for a in df.index:
                     if (df["port"].iloc[a] >= 0):
                         if (open_ongoing_excursion):
-                            close_excursion(session, ongoing_excursion_id, df["port"].iloc[a],
+                            close_excursion(session, ongoing_excursion_id, int(df["port"].iloc[a]),
                                             df["end_latitude"].iloc[a],
                                             df["end_longitude"].iloc[a],
                                             df["timestamp_end"].iloc[a])  # put the close excursion function here
@@ -306,9 +306,9 @@ def run():
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
                     segment.in_amp_zone = True
-                elif zone.category == "coastal":
+                elif zone.category.startswith("Fishing coastal waters"):
                     segment.in_costal_waters = True
-                elif zone.category == "territorial":
+                elif zone.category == "Territorial seas":
                     segment.in_territorial_waters = True
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
