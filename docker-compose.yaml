@@ -60,11 +60,9 @@ services:
     ports:
       - ${POSTGRES_PORT:-5432}:5432
     volumes:
-      - bloom_data:/var/lib/postgresql/data
+      - bloom-data:/var/lib/postgresql/data
     networks:
       - bloom_net
-    volumes:
-      - bloom-data:/var/lib/postgresql/data
     healthcheck:
       # PostGis database initialization is done with two steps (postgres+postgis)
       # This causes healthcheck to be valid before real full initialization
