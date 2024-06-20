@@ -2,11 +2,16 @@ from datetime import datetime, timedelta
 from typing import Union
 
 from pydantic import BaseModel, ConfigDict
-from shapely import Point
+from shapely import Point,Geometry
+from shapely.geometry import mapping, shape
 
 
 class Segment(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True,
+        json_encoders = {
+                Geometry: lambda geometry: mapping(geometry),
+            },
+    )
     id: Union[int, None] = None
     excursion_id: int
     timestamp_start: Union[datetime, None] = None

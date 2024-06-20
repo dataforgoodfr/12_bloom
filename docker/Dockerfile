@@ -40,21 +40,21 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y
     && rm -rf /etc/cron.*/*
 
 # FRONTEND
-ARG NPM_VERSION=v0.39.7
-ENV NPM_VERSION=${NPM_VERSION}
-ARG NODE_VERSION=18
-ENV NODE_VERSION=${NODE_VERSION}
-COPY frontend ${PROJECT_DIR}/frontend
+#ARG NPM_VERSION=v0.39.7
+#ENV NPM_VERSION=${NPM_VERSION}
+#ARG NODE_VERSION=18
+#ENV NODE_VERSION=${NODE_VERSION}
+#COPY frontend ${PROJECT_DIR}/frontend
 # installs NVM (Node Version Manager)
 # download and install Node.js
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NPM_VERSION}/install.sh | bash &&\
-	. /root/.bashrc &&\
-	nvm install $NODE_VERSION &&\
-	ln -sf `nvm which node` /usr/local/bin/node &&\
-	ln -sf ${PROJECT_DIR}/frontend/node_modules/next/dist/bin/next /usr/local/bin/next &&\
-	cd frontend &&\
-	npm install && (echo "NPM: Install OK") || (echo "NPM: Install error"; exit 1) &&\
-    npm run build && (echo "NPM: Build OK") || (echo "NPM: Build error"; exit 1)
+#RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NPM_VERSION}/install.sh | bash &&\
+#	. /root/.bashrc &&\
+#	nvm install $NODE_VERSION &&\
+#	ln -sf `nvm which node` /usr/local/bin/node &&\
+#	ln -sf ${PROJECT_DIR}/frontend/node_modules/next/dist/bin/next /usr/local/bin/next &&\
+#	cd frontend &&\
+#	npm install && (echo "NPM: Install OK") || (echo "NPM: Install error"; exit 1) &&\
+#   npm run build && (echo "NPM: Build OK") || (echo "NPM: Build error"; exit 1)
 
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN ["chmod", "+x", "/entrypoint.sh"]

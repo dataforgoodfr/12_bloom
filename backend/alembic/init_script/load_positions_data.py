@@ -13,7 +13,7 @@ engine = create_engine(settings.db_url)
 
 df = pd.read_csv(
     Path(settings.data_folder).joinpath("./spire_positions_subset.csv"),
-    sep=","
+    sep=";"
 )
 
 df.to_sql("spire_vessel_positions", engine, if_exists="append", index=False)

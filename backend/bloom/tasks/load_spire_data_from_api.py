@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.vessel import Vessel
 from bloom.infra.http.spire_api_utils import map_raw_vessels_to_domain
 from bloom.logger import logger
@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 
 def run(dump_path: str) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
     spire_traffic_usecase = use_cases.get_spire_data_usecase()
     vessel_repository = use_cases.vessel_repository()

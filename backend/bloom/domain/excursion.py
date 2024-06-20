@@ -2,11 +2,16 @@ from datetime import datetime, timedelta
 from typing import Union
 
 from pydantic import BaseModel, ConfigDict
-from shapely import Point
+from shapely import Geometry, Point, MultiPolygon,Polygon
+from shapely.geometry import mapping, shape
 
 
 class Excursion(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True,
+        json_encoders = {
+                #Point: lambda point: mapping(point) if point != None else None,
+                Geometry: lambda p: mapping(p),
+            },)
     id: Union[int, None] = None
     vessel_id: int
     departure_port_id: Union[int, None] = None
