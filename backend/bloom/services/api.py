@@ -273,7 +273,7 @@ async def get_zone(zones_id:int):
 @app.get("/")
 async def root(request:Request):
     return {
-            "maptiles": f"{request.url_for('list_maptiles')}",
+            "cache_all_flush": f"{request.url_for('cache_all_flush')}",
             "ports":    f"{request.url_for('list_ports')}",
             "vessels":  f"{request.url_for('list_vessels')}",
             "zones":    f"{request.url_for('list_zones')}",
