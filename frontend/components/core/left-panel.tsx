@@ -3,19 +3,13 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import TrawlWatchLogo from "@/public/trawlwatch.svg"
-import {
-  ChartBarIcon,
-  ChartPieIcon,
-  DocumentCheckIcon,
-  MagnifyingGlassIcon,
-  Square2StackIcon,
-  UsersIcon,
-} from "@heroicons/react/24/outline"
-import { AnimatePresence, motion, useAnimationControls } from "framer-motion"
-import { Ship as ShipIcon } from "lucide-react"
+import { ChartBarIcon } from "@heroicons/react/24/outline"
+import { motion, useAnimationControls } from "framer-motion"
 
 import NavigationLink from "@/components/ui/navigation-link"
-import { useMapStore } from "@/components/providers/map-store-provider"
+import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
+
+import TrackedVesselsPanel from "./tracked-vessels-panel"
 
 const containerVariants = {
   close: {
@@ -31,7 +25,7 @@ const containerVariants = {
     transition: {
       type: "spring",
       damping: 15,
-      duration: 0.5,
+      duration: 0.3,
     },
   },
 }
@@ -47,8 +41,6 @@ const svgVariants = {
 
 const LeftPanel = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<string | null>(null)
-
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
 
@@ -64,7 +56,6 @@ const LeftPanel = () => {
 
   const handleOpenClose = () => {
     setIsOpen(!isOpen)
-    setSelectedProject(null)
   }
 
   return (
@@ -73,7 +64,7 @@ const LeftPanel = () => {
         variants={containerVariants}
         animate={containerControls}
         initial="close"
-        className="absolute left-0 top-0 z-10 flex flex-col gap-3 overflow-auto rounded-br-lg bg-slate-800 shadow shadow-slate-600"
+        className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow shadow-color-2"
       >
         <div className="flex w-full flex-row place-items-center justify-between p-5">
           {!!isOpen && (
@@ -115,15 +106,15 @@ const LeftPanel = () => {
             <ChartBarIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
           </NavigationLink>
         </div>
-        <div className="flex flex-col gap-3 bg-slate-800 p-5">
-          <NavigationLink href="#" name="Find vesssels" wide={isOpen}>
-            <MagnifyingGlassIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
-          </NavigationLink>
+        <div className="flex flex-col gap-3 bg-color-3 p-5">
+          <VesselFinderDemo wideMode={isOpen} />
         </div>
-        <div className="flex flex-col gap-3 bg-slate-600 p-5">
-          <NavigationLink href="#" name="Selected vessel (0)" wide={isOpen}>
-            <ShipIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
-          </NavigationLink>
+        <div className="flex flex-col gap-3 overflow-auto bg-color-3 p-5">
+          <TrackedVesselsPanel
+            wideMode={isOpen}
+            parentIsOpen={isOpen}
+            openParent={() => setIsOpen(true)}
+          />
         </div>
       </motion.nav>
     </>

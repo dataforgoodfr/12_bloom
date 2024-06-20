@@ -37,8 +37,8 @@ export default function DashboardOverview() {
             />
             <KPICard
               title="Total AMPs visited"
-              kpiValue={totalAmps}
-              totalValue={totalAmpsVisited}
+              kpiValue={totalAmpsVisited}
+              totalValue={totalAmps}
             />
             <KPICard
               title="Fishing effort"

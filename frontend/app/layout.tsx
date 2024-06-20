@@ -47,7 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             rel="stylesheet"
           />
         </head>
-        <body className="font-unito relative flex h-screen min-h-screen w-full flex-row antialiased">
+        <body className="relative flex h-screen min-h-screen w-full flex-row font-unito antialiased">
           <ThemeProvider attribute="class" defaultTheme="light">
             <main className="flex-1 flex-col">{children}</main>
           </ThemeProvider>

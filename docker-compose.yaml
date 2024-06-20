@@ -11,7 +11,7 @@ services:
   bloom-backend:
     container_name: bloom_backend
     hostname: bloom-backend
-    image: d4g/bloom:${VERSION:-latest}
+    image: d4g/bloom-backend:${VERSION:-latest}
     working_dir: /project/backend
     command:
         - bash
@@ -59,10 +59,10 @@ services:
       <<: *common-env
     ports:
       - ${POSTGRES_PORT:-5432}:5432
-    networks:
-      - bloom_net
     volumes:
       - bloom-data:/var/lib/postgresql/data
+    networks:
+      - bloom_net
     healthcheck:
       # PostGis database initialization is done with two steps (postgres+postgis)
       # This causes healthcheck to be valid before real full initialization
@@ -83,11 +83,26 @@ services:
   bloom-frontend:
     container_name: bloom_frontend
     hostname: bloom-frontend
-    image: d4g/bloom:${VERSION:-latest}
-    command: env node ./node_modules/next/dist/bin/next start --hostname 0.0.0.0
-    working_dir: /project/frontend
+    image: d4g/bloom-frontend:${VERSION:-latest}
+    #command: env node ./node_modules/next/dist/bin/next start --hostname 0.0.0.0
+    #command: npm run dev
+    #command: yarn dev
+    command: sh -c "if [ ! -f node_modules/next/dist/bin/next ]; then npm install && npm run build; fi; npm run dev"
+    tty: true
+    stdin_open: true
+    working_dir: /app
+    build:
+        context: .
+        dockerfile: ./docker/frontend/dev.Dockerfile
+        args:
+           APP_DIR: /app
+        
     volumes:
-      - ./:/project/
+      #- ./frontend:/app
+      #- ./frontend/node_modules:/app/node_modules
+      #- ./frontend/.next:/app/.next
+      - ./data:/app/public/data
+#      - ./:/project/
       - ./data:/project/frontend/public/data
     environment:
       LOGGING_LEVEL: ${LOGGING_LEVEL:-INFO}
@@ -102,13 +117,9 @@ services:
   bloom-init:
     container_name: bloom_init
     hostname: bloom-init
-    image: d4g/bloom:${VERSION:-latest}
+    image: d4g/bloom-backend:${VERSION:-latest}
 
     # Nominal start:
-    # As postgres+postgis gt available, then unavialable, then avialable at database init
-    # it happens that init is launch before second and definitve postgres healthy state
-    # and fails
-    # so giving init 3 chances and 15 seconds to init before failing
     command: /bin/bash -c "cd backend;alembic upgrade head"
     # Debug start:
     #command: bash
