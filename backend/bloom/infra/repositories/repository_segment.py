@@ -1,5 +1,6 @@
 from contextlib import AbstractContextManager
 from datetime import datetime
+from typing import Any, List, Union
 
 import pandas as pd
 from dependency_injector.providers import Callable
@@ -9,10 +10,13 @@ from shapely import wkb
 from sqlalchemy import and_, or_, select, update, text
 from sqlalchemy.orm import Session
 
+from bloom.logger import logger
 from bloom.domain.segment import Segment
+from bloom.domain.vessel_last_position import VesselLastPosition
 from bloom.domain.zone import Zone
 from bloom.infra.database import sql_model
 from bloom.infra.repositories.repository_zone import ZoneRepository
+from bloom.infra.repositories.repository_vessel import VesselRepository
 
 
 class SegmentRepository:
@@ -34,6 +38,100 @@ class SegmentRepository:
             return None
         df = pd.DataFrame(q, columns=["segment_duration", "in_amp_zone", "in_territorial_waters", "in_costal_waters"])
         return df
+
+    def get_all_vessels_last_position(self, session: Session) -> List[Segment]:
+        stmt = select(
+            sql_model.Vessel,
+            sql_model.Segment.excursion_id,
+            sql_model.Segment.end_position,
+            sql_model.Segment.timestamp_end,
+            sql_model.Segment.heading_at_end,
+            sql_model.Segment.speed_at_end,
+            sql_model.Excursion.arrival_port_id
+        ).join(
+            sql_model.Vessel,
+            sql_model.Excursion.vessel_id == sql_model.Vessel.id
+        ).join(
+            sql_model.Segment,
+            sql_model.Segment.excursion_id == sql_model.Excursion.id
+        ).filter(
+            sql_model.Segment.last_vessel_segment == True
+        )
+        result = session.execute(stmt)
+        if result is not None :
+            return [VesselLastPosition(
+                    vessel=VesselRepository.map_to_domain(record[0]),
+                    excursion_id=record[1],
+                    position=to_shape(record[2]),
+                    timestamp=record[3],
+                    heading=record[4],
+                    speed=record[5],
+                    arrival=record[6],
+                ) for record in result]
+        else:
+            return []
+
+    def get_vessel_last_position(self, session: Session,vessel_id:int) -> List[Segment]:
+        stmt = select(
+            sql_model.Vessel,
+            sql_model.Segment.excursion_id,
+            sql_model.Segment.end_position,
+            sql_model.Segment.timestamp_end,
+            sql_model.Segment.heading_at_end,
+            sql_model.Segment.speed_at_end,
+            sql_model.Excursion.arrival_port_id
+        ).join(
+            sql_model.Vessel,
+            sql_model.Excursion.vessel_id == sql_model.Vessel.id
+        ).join(
+            sql_model.Segment,
+            sql_model.Excursion.id == sql_model.Segment.excursion_id
+        ).filter(
+            sql_model.Segment.last_vessel_segment == True,
+            sql_model.Vessel.id == vessel_id,
+        )
+        result = session.execute(stmt).fetchone()
+        if result is not None :
+            return VesselLastPosition(
+                    vessel=VesselRepository.map_to_domain(result[0]),
+                    excursion_id=result[1],
+                    position=to_shape(result[2]),
+                    timestamp=result[3],
+                    heading=result[4],
+                    speed=result[5],
+                    arrival=result[6],
+                ) 
+        else:
+            return []
+
+    def list_vessel_excursion_segments(self,session,vessel_id:int,excursions_id: int) -> List[Segment]:
+        stmt = select(
+            sql_model.Segment
+        ).join(
+            sql_model.Excursion,
+            sql_model.Segment.excursion_id == sql_model.Excursion.id
+        ).where( sql_model.Segment.excursion_id == excursions_id,
+                sql_model.Excursion.vessel_id == vessel_id)
+        result = session.execute(stmt)
+        if result is not None :
+            return [ SegmentRepository.map_to_domain(record) for record in result.scalars()]
+        else:
+            return []
+
+    def get_vessel_excursion_segment_by_id(self,session,vessel_id:int,excursions_id: int, segment_id:int) -> Union[Segment,None]:
+        stmt = select(
+            sql_model.Segment
+        ).join(
+            sql_model.Excursion,
+            sql_model.Segment.excursion_id == sql_model.Excursion.id
+        ).where( sql_model.Segment.excursion_id == excursions_id,
+                sql_model.Excursion.vessel_id == vessel_id,
+                sql_model.Segment.id == segment_id)
+        result = session.execute(stmt)
+        if result is not None :
+            return [ SegmentRepository.map_to_domain(record) for record in result.scalars()][0]
+        else:
+            return []
 
     def get_last_vessel_id_segments(self, session: Session) -> pd.DataFrame:
         stmt = select(

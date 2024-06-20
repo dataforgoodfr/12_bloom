@@ -18,7 +18,7 @@ services:
         - -c
         - |
             echo "Starting Scheduler" &&
-            cron -f -L 2
+            service cron start && uvicorn bloom.services.api:app --host 0.0.0.0 --reload
     volumes:
       - ./:/project/
       - ./data:/project/data
@@ -26,13 +26,30 @@ services:
       <<: *common-env
       POSTGRES_PORT: 5432
       STREAMLIT_SERVER_ADDRESS: ${STREAMLIT_SERVER_ADDRESS:-0.0.0.0}
+      REDIS_HOST: bloom-redis
+      REDIS_PORT: 6379
+      WATCHFILES_FORCE_POLLING: true
     ports:
-      - 8501:8501
+      - ${API_PORT:-8000}:8000
     networks:
       - bloom_net
     depends_on:
       bloom-init:
         condition: service_completed_successfully
+  bloom-redis:
+    image: redis:7-alpine
+    container_name: bloom_redis
+    hostname: bloom-redis
+    restart: always
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    volumes: 
+      - bloom-redis:/data
+    networks:
+      - bloom_net
 
   bloom-postgres:
     container_name: postgres_bloom
@@ -44,6 +61,8 @@ services:
       - ${POSTGRES_PORT:-5432}:5432
     networks:
       - bloom_net
+    volumes:
+      - bloom-data:/var/lib/postgresql/data
     healthcheck:
       # PostGis database initialization is done with two steps (postgres+postgis)
       # This causes healthcheck to be valid before real full initialization
@@ -112,6 +131,10 @@ services:
     depends_on:
       bloom-postgres:
         condition: service_healthy # The service is working and still running
+
+volumes:
+  bloom-data:
+  bloom-redis:
 
 networks:
   bloom_net:

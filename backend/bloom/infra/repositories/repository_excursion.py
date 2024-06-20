@@ -1,5 +1,5 @@
 from contextlib import AbstractContextManager
-from typing import Union
+from typing import Any, List, Union
 
 import pandas as pd
 from dependency_injector.providers import Callable
@@ -33,6 +33,23 @@ class ExcursionRepository:
         if not result:
             return None
         return {"arrival_port_id": result.arrival_port_id, "arrival_position": result.arrival_position}
+
+    def get_excursions_by_vessel_id(self, session: Session, vessel_id: int) -> List[Excursion]:
+        """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
+        stmt = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)
+        result = session.execute(stmt).scalars()
+        if not result:
+            return []
+        return [ExcursionRepository.map_to_domain(r) for r in result]
+
+    def get_vessel_excursion_by_id(self, session: Session, vessel_id: int, excursion_id: int) -> Union[Excursion, None]:
+        """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
+        stmt = select(sql_model.Excursion).where((sql_model.Excursion.vessel_id == vessel_id)
+                                                 & (sql_model.Excursion.id == excursion_id))
+        result = session.execute(stmt).scalar()
+        if not result:
+            return None
+        return ExcursionRepository.map_to_domain(result)
 
     def get_excursion_by_id(self, session: Session, id: int) -> Union[Excursion, None]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""

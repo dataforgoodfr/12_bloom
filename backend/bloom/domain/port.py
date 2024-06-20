@@ -3,12 +3,17 @@ from datetime import datetime
 # For compliance with python 3.9 syntax
 from pydantic import BaseModel, ConfigDict
 from shapely import Point, Polygon
-
+from shapely.geometry import mapping, shape
 from typing import Union
 
-
 class Port(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        json_encoders = {
+                Point: lambda point: mapping(point),
+                Polygon: lambda polygon: mapping(polygon),
+            },
+        )
     id: Union[int, None] = None
     name: str
     locode: str
