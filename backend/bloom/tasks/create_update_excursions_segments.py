@@ -351,7 +351,8 @@ def run():
         logger.info(f"{len(segments)} segments mis à jour")
         RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
         logger.info(f"{len(new_rels)} associations(s) créées")
-        nb_last = segment_repository.update_last_segments(session, list(exc.id for exc in excursions.values()))
+        vessels_ids = set(exc.vessel_id for exc in excursions.values())
+        nb_last = segment_repository.update_last_segments(session, vessels_ids)
         logger.info(f"{nb_last} derniers segments mis à jour")
         TaskExecutionRepository.set_point_in_time(session, "rel_segments_zones", max_created_updated)
 
