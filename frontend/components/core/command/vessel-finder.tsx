@@ -1,12 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import allVessels from "@/public/data/geometries/all_vessels_with_mmsi.json"
-import latestPositions from "@/public/data/geometries/vessels_latest_positions.json"
 import { FlyToInterpolator } from "deck.gl"
-import { ShipIcon } from "lucide-react"
 
-import { Vessel } from "@/types/vessel"
+import { Vessel, VesselPosition } from "@/types/vessel"
 import {
   CommandDialog,
   CommandEmpty,
@@ -17,8 +14,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command"
 import { useMapStore } from "@/components/providers/map-store-provider"
-
-import { VesselPosition } from "../map/main-map"
+import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 
 type Props = {
   wideMode: boolean
@@ -36,6 +32,8 @@ export function VesselFinderDemo({ wideMode }: Props) {
     viewState,
     setViewState,
   } = useMapStore((state) => state)
+  const { vessels: allVessels } = useVesselsStore((state) => state);
+  const { latestPositions } = useMapStore((state) => state);
 
   const onSelectVessel = (vesselIdentifier: string) => {
     const mmsi = parseInt(vesselIdentifier.split(SEPARATOR)[1])
@@ -44,14 +42,14 @@ export function VesselFinderDemo({ wideMode }: Props) {
     }
     if (mmsi) {
       const selectedVesselLatestPosition = latestPositions.find(
-        (position) => position.vessel_mmsi === mmsi
+        (position) => position.vessel.mmsi === mmsi
       )
       if (selectedVesselLatestPosition) {
         setActivePosition(selectedVesselLatestPosition as VesselPosition)
         setViewState({
           ...viewState,
-          longitude: selectedVesselLatestPosition.position_longitude,
-          latitude: selectedVesselLatestPosition.position_latitude,
+          longitude: selectedVesselLatestPosition.position.coordinates[0],
+          latitude: selectedVesselLatestPosition.position.coordinates[1],
           zoom: 7,
           pitch: 40,
           transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
@@ -108,12 +106,11 @@ export function VesselFinderDemo({ wideMode }: Props) {
             {allVessels.map((vessel: Vessel) => {
               return (
                 <CommandItem
-                  key={`${vessel.imo}-${vessel.name}`}
+                  key={`${vessel.id}`}
                   onSelect={(value) => onSelectVessel(value)}
-                  value={`${vessel.name}${SEPARATOR}${vessel.mmsi}${SEPARATOR}${vessel.imo}`} // so we can search by name, mmsi, imo
+                  value={`${vessel.ship_name}${SEPARATOR}${vessel.mmsi}${SEPARATOR}${vessel.imo}`} // so we can search by name, mmsi, imo
                 >
-                  <ShipIcon className="mr-2 size-4" />
-                  <span>{vessel.name}</span>
+                  <span>{vessel.ship_name}</span>
                   <span className="ml-2 text-xxxs">
                     {" "}
                     MMSI {vessel.mmsi} | IMO {vessel.imo}

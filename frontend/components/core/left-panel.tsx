@@ -10,6 +10,8 @@ import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
 import TrackedVesselsPanel from "./tracked-vessels-panel"
+import { useVesselsStore } from "@/components/providers/vessels-store-provider"
+import { Vessel } from "@/types/vessel"
 
 const containerVariants = {
   close: {
@@ -39,19 +41,24 @@ const svgVariants = {
   },
 }
 
-const LeftPanel = () => {
+type LeftPanelProps = {
+  vessels: Vessel[];
+}
+
+export default function({ vessels }: LeftPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
+  const { setVessels } = useVesselsStore((state) => state);
+  
+  useEffect(() => {
+    setVessels(vessels);
+  }, [vessels]);
 
   useEffect(() => {
-    if (isOpen) {
-      containerControls.start("open")
-      svgControls.start("open")
-    } else {
-      containerControls.start("close")
-      svgControls.start("close")
-    }
+    const control = isOpen ? "open" : "close";
+    containerControls.start(control);
+    svgControls.start(control);
   }, [isOpen])
 
   const handleOpenClose = () => {
@@ -120,5 +127,3 @@ const LeftPanel = () => {
     </>
   )
 }
-
-export default LeftPanel

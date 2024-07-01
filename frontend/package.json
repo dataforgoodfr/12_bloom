@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "find . -path './node_modules' -prune -o -name '*.gz' -exec gzip --decompress {} + && next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -20,6 +20,7 @@
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
     "@types/chroma-js": "^2.4.4",
+    "axios": "^1.7.2",
     "chroma-js": "^2.4.2",
     "class-variance-authority": "^0.4.0",
     "clsx": "^1.2.1",

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react"
-import allVessels from "@/public/data/geometries/all_vessels_with_mmsi.json"
 import { Ship as ShipIcon, X } from "lucide-react"
 
 import { Vessel } from "@/types/vessel"
 
 import { useMapStore } from "../providers/map-store-provider"
-import IconButton from "../ui/icon-button"
+import { useVesselsStore } from "../providers/vessels-store-provider"
 
 type Props = {
   wideMode: boolean
@@ -18,9 +17,8 @@ export default function TrackedVesselsPanel({
   parentIsOpen,
   openParent,
 }: Props) {
-  const { trackedVesselMMSIs, removeTrackedVesselMMSI } = useMapStore(
-    (state) => state
-  )
+  const { trackedVesselMMSIs, removeTrackedVesselMMSI } = useMapStore((state) => state);
+  const { vessels: allVessels } = useVesselsStore((state) => state);
   const [displayTrackedVessels, setDisplayTrackedVessels] = useState(false)
   const [trackedVesselsDetails, setTrackedVesselsDetails] = useState<Vessel[]>()
 
@@ -55,9 +53,9 @@ export default function TrackedVesselsPanel({
         parentIsOpen &&
         trackedVesselsDetails?.map((vessel: Vessel) => {
           return (
-            <div key={vessel.mmsi} className="mb-1 flex border-b-1 border-color-5 pb-1 text-xs text-slate-400">
+            <div key={vessel.id} className="mb-1 flex border-b-1 border-color-5 pb-1 text-xs text-slate-400">
               <div className="w-full pr-1">
-                <div className="text-xxs text-white">{vessel.name}</div>
+                <div className="text-xxs text-white">{vessel.ship_name}</div>
                 <div className="text-xxxs">
                   IMO {vessel.imo} / MMSI {vessel.mmsi} / Length {vessel.length}m
                 </div>

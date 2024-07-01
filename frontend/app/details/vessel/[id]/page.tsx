@@ -1,4 +1,4 @@
-import mockData from "@/mock-data-details.json"
+import mockData from "@/public/data/mock-data-details.json"
 
 import DetailsContainer from "@/components/details/details-container"
 
