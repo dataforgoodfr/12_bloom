@@ -7,7 +7,7 @@ from dependency_injector.providers import Callable
 from geoalchemy2.functions import ST_Within
 from geoalchemy2.shape import from_shape, to_shape
 from shapely import wkb
-from sqlalchemy import and_, or_, select, update, text
+from sqlalchemy import and_, or_, select, update, text, join
 from sqlalchemy.orm import Session
 
 from bloom.logger import logger
@@ -207,15 +207,19 @@ class SegmentRepository:
     # Mise à jour des derniers segments des excursions. En 2 étapes
     # passe à False de la colonne last_vessel_segment pour tous les segments des excursions transmises
     # passe à True la colonne last_vessel_segment pour tous les Id de segments les plus récent de chaque excursion
-    def update_last_segments(self, session: Session, excursion_ids: list[int]) -> int:
-        upd1 = update(sql_model.Segment).where(sql_model.Segment.excursion_id.in_(excursion_ids)).values(
-            last_vessel_segment=False)
-        session.execute(upd1)
+    def update_last_segments(self, session: Session, vessel_ids: list[int]) -> int:
+        for v_id in vessel_ids:
+            upd1 = (update(sql_model.Segment).
+                where(
+                    sql_model.Segment.id.in_(select(sql_model.Segment.id).join(sql_model.Excursion).where(sql_model.Excursion.vessel_id == v_id))).
+            values(last_vessel_segment=False))
+            session.execute(upd1)
         session.flush()
-        last_segments = session.execute(text("""SELECT DISTINCT ON (excursion_id) id FROM fct_segment
-                                                WHERE excursion_id in :excursion_ids 
-                                                ORDER BY excursion_id, timestamp_start DESC"""),
-                                        {"excursion_ids": tuple(excursion_ids)}).all()
+        last_segments = session.execute(text("""SELECT DISTINCT ON (vessel_id) s.id FROM fct_segment s
+                                                JOIN fct_excursion e ON e.id = s.excursion_id
+                                                WHERE vessel_id in :vessel_ids 
+                                                ORDER BY vessel_id, timestamp_start DESC"""),
+                                        {"vessel_ids": tuple(vessel_ids)}).all()
         ids = [r[0] for r in last_segments]
         upd2 = update(sql_model.Segment).where(sql_model.Segment.id.in_(ids)).values(
             last_vessel_segment=True)
