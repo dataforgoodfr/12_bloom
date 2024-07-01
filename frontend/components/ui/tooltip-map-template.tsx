@@ -1,6 +1,5 @@
+import { VesselPosition } from "@/types/vessel"
 import Image from "next/image"
-
-import { type VesselPosition } from "@/components/core/map/main-map"
 
 export interface MapTooltipTypes {
   vesselInfo: VesselPosition
@@ -11,13 +10,8 @@ const MapTooltip = ({
   vesselInfo,
   orientation = "portrait",
 }: MapTooltipTypes) => {
-  const {
-    vessel_name: name,
-    vessel_imo: imo,
-    vessel_mmsi: mmsi,
-    vessel_length: size,
-    position_timestamp,
-  } = vesselInfo
+  const { vessel: { mmsi, ship_name, imo, length }, timestamp } = vesselInfo
+
   return (
     <>
       {orientation === "portrait" && (
@@ -38,7 +32,7 @@ const MapTooltip = ({
           />
           <div className="bg-slate-700 p-5">
             <h5 className="mb-1 text-xl font-bold tracking-tight text-gray-100 dark:text-white">
-              {name}
+              {ship_name}
             </h5>
             <p className="mb-3 font-normal text-gray-200 dark:text-gray-400">
               IMO {imo} / MMSI {mmsi}
@@ -47,13 +41,13 @@ const MapTooltip = ({
               <span className="font-bold">Vessel type</span> Fishing Vessel
             </p>
             <p className="mb-1 font-normal text-gray-200 dark:text-gray-400">
-              <span className="font-bold">Vessel size:</span> {size} meters
+              <span className="font-bold">Vessel size:</span> {length} meters
             </p>
             <p className="font-normal text-gray-200 dark:text-gray-400">
               <span className="font-bold">Last position timestamp:</span>
             </p>
             <p className="mb-1 font-normal text-gray-200 dark:text-gray-400">
-              {position_timestamp}
+              {timestamp}
             </p>
           </div>
         </div>

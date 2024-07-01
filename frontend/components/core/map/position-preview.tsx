@@ -3,7 +3,6 @@
 import {
   AnimatePresence,
   motion,
-  useDeprecatedInvertedScale,
 } from "framer-motion"
 
 import PreviewCard from "@/components/core/map/preview-card"

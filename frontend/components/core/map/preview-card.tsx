@@ -4,8 +4,8 @@ import { XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import IconButton from "@/components/ui/icon-button"
-import { VesselPosition } from "@/components/core/map/main-map"
 import { useMapStore } from "@/components/providers/map-store-provider"
+import { VesselPosition } from "@/types/vessel"
 
 export interface PreviewCardTypes {
   vesselInfo: VesselPosition
@@ -18,17 +18,11 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
     trackedVesselMMSIs,
     removeTrackedVesselMMSI,
   } = useMapStore((state) => state)
-  const {
-    vessel_name: name,
-    vessel_imo: imo,
-    vessel_mmsi: mmsi,
-    vessel_length: size,
-    position_timestamp,
-  } = vesselInfo
-
+  const { vessel: { id, mmsi, ship_name, imo, length }, timestamp } = vesselInfo
   const isVesselTracked = (mmsi: number) => {
     return trackedVesselMMSIs.includes(mmsi)
   }
+  console.log(id)
 
   // useEffect(() => {
   //   console.log("trackedVesselMMSIs", trackedVesselMMSIs)
@@ -50,7 +44,7 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
       <div className="flex grow flex-col px-4 py-2 leading-normal pt-4">
         <div className="flex w-full flex-row items-center justify-start gap-3">
           <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {name}
+            {ship_name}
           </h5>
           <Image
             src="/flags/fr.svg"
@@ -67,13 +61,13 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
             <span className="font-bold">Vessel type:</span> Fishing Vessel
           </p>
           <p className="mb-1 text-gray-700 dark:text-gray-400">
-            <span className="font-bold">Vessel size:</span> {size} meters
+            <span className="font-bold">Vessel length:</span> {length} meters
           </p>
           <p className="text-gray-700 dark:text-gray-400">
             <span className="font-bold">Last position:</span>
           </p>
           <p className="mb-1 text-gray-700 dark:text-gray-400">
-            {position_timestamp}
+            {timestamp}
           </p>
         </section>
         <section id="vessel-actions">

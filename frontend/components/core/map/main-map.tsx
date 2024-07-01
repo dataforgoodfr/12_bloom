@@ -16,55 +16,9 @@ import Map from "react-map-gl/maplibre"
 
 import MapTooltip from "@/components/ui/tooltip-map-template"
 import { useMapStore } from "@/components/providers/map-store-provider"
+import { VesselPosition, VesselPositions, VesselTrailPropertiesType } from "@/types/vessel"
 
 const MESH_URL_LOCAL = `../../../data/mesh/boat.obj`
-
-export type VesselVoyageTracksPropertiesType = {
-  vessel_ais_class: string
-  vessel_flag: string
-  vessel_name: string
-  vessel_callsign: string
-  vessel_ship_type?: string
-  vessel_sub_ship_type?: string
-  vessel_mmsi: number
-  vessel_imo: number
-  vessel_width: number
-  vessel_length: number
-  voyage_destination?: string
-  voyage_draught?: number
-  voyage_eta: string
-}
-
-export type VesselTrailPropertiesType = {
-  vessel_mmsi: number
-  speed: number
-  heading?: number
-  navigational_status: string
-}
-
-export type VesselPositions = VesselPosition[]
-
-export interface VesselPosition {
-  vessel_flag: string
-  vessel_name: string
-  vessel_callsign: string
-  vessel_ship_type?: string
-  vessel_mmsi: number
-  vessel_imo: number
-  vessel_width: number
-  vessel_length: number
-  position_accuracy: string
-  position_collection_type: string
-  position_course: number
-  position_heading?: number
-  position_latitude: number
-  position_longitude: number
-  position_navigational_status: string
-  position_speed: number
-  position_timestamp: string
-  voyage_destination?: string
-  voyage_draught?: number
-}
 
 type BartStation = {
   name: string
@@ -73,7 +27,11 @@ type BartStation = {
   coordinates: [longitude: number, latitude: number]
 }
 
-export default function CoreMap() {
+type CoreMapProps = {
+  vesselsPositions: VesselPositions;
+}
+
+export default function CoreMap({ vesselsPositions }: CoreMapProps) {
   const { setTheme, theme } = useTheme()
 
   const {
@@ -82,6 +40,7 @@ export default function CoreMap() {
     activePosition,
     setActivePosition,
     trackedVesselMMSIs,
+    setLatestPositions,
   } = useMapStore((state) => state)
 
   // Use a piece of state that changes when `activePosition` changes to force re-render
@@ -98,22 +57,26 @@ export default function CoreMap() {
     setLayerKey((prevKey) => prevKey + 1)
   }, [activePosition, trackedVesselMMSIs])
 
+  useEffect(() => {
+    setLatestPositions(vesselsPositions);
+  }, [vesselsPositions])
+
   const latestPositions = new ScatterplotLayer<VesselPosition>({
     id: `vessels-latest-positions-${layerKey}`,
-    data: `../../../data/geometries/vessels_latest_positions.json`,
-    getPosition: (d: VesselPosition) => [
-      d.position_longitude,
-      d.position_latitude,
+    data: vesselsPositions,
+    getPosition: (vp: VesselPosition) => [
+      vp?.position?.coordinates[0],
+      vp?.position?.coordinates[1],
     ],
     stroked: true,
     radiusUnits: "meters",
-    getRadius: (d: VesselPosition) => d.vessel_length,
+    getRadius: (vp: VesselPosition) => vp.vessel.length,
     radiusMinPixels: 3,
     radiusMaxPixels: 25,
     radiusScale: 200,
-    getFillColor: (d: VesselPosition) => {
-      return d.vessel_mmsi === activePosition?.vessel_mmsi ||
-        trackedVesselMMSIs.includes(d.vessel_mmsi)
+    getFillColor: (vp: VesselPosition) => {
+      return vp.vessel.mmsi === activePosition?.vessel.mmsi ||
+        trackedVesselMMSIs.includes(vp.vessel.mmsi)
         ? [128, 16, 189, 210]
         : [16, 181, 16, 210]
     },
@@ -124,8 +87,8 @@ export default function CoreMap() {
       setActivePosition(object as VesselPosition)
       setViewState({
         ...viewState,
-        longitude: object.position_longitude,
-        latitude: object.position_latitude,
+        longitude: object?.position?.coordinates[0],
+        latitude: object?.position?.coordinates[1],
         zoom: 7,
         pitch: 40,
         transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
@@ -134,6 +97,7 @@ export default function CoreMap() {
     },
   })
 
+  // TODO(CT): call backend
   const tracksByVesselAndVoyage = trackedVesselMMSIs.map(
     (trackedVesselMMSI) => {
       return new GeoJsonLayer<VesselTrailPropertiesType>({
@@ -159,27 +123,27 @@ export default function CoreMap() {
 
   const positions_mesh_layer = new SimpleMeshLayer({
     id: `vessels-positions-mesh-layer-${layerKey}`,
-    data: `../../../data/geometries/vessels_latest_positions.json`,
+    data: vesselsPositions,
     mesh: MESH_URL_LOCAL,
-    getPosition: (d: VesselPosition) => [
-      d.position_longitude,
-      d.position_latitude,
+    getPosition: (vp: VesselPosition) => [
+      vp?.position?.coordinates[0],
+      vp?.position?.coordinates[1],
     ],
-    getColor: (d: VesselPosition) => {
-      return d.vessel_mmsi === activePosition?.vessel_mmsi ||
-        trackedVesselMMSIs.includes(d.vessel_mmsi)
+    getColor: (vp: VesselPosition) => {
+      return vp.vessel.mmsi === activePosition?.vessel.mmsi ||
+        trackedVesselMMSIs.includes(vp.vessel.mmsi)
         ? [128, 16, 189, 210]
         : [16, 181, 16, 210]
     },
-    getOrientation: (d: VesselPosition) => [
+    getOrientation: (vp: VesselPosition) => [
       0,
-      Math.round(d.position_heading ? d.position_heading : 0),
+      Math.round(vp.heading ? vp.heading : 0),
       90,
     ],
-    getScale: (d: VesselPosition) => [
-      d.vessel_length,
-      d.vessel_length * 1.5,
-      d.vessel_length / 1.5,
+    getScale: (vp: VesselPosition) => [
+      vp.vessel.length,
+      vp.vessel.length * 1.5,
+      vp.vessel.length / 1.5,
     ],
     scaleUnits: "pixels",
     sizeScale: 100,
@@ -188,8 +152,8 @@ export default function CoreMap() {
       setActivePosition(object as VesselPosition)
       setViewState({
         ...viewState,
-        longitude: object.position_longitude,
-        latitude: object.position_latitude,
+        longitude: object?.position?.coordinates[0],
+        latitude: object?.position?.coordinates[1],
         zoom: 10,
         transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
         transitionDuration: "auto",
