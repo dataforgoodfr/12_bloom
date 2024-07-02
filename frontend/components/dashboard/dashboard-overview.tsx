@@ -1,6 +1,6 @@
 "use client"
 
-import mockData from "@/mock-data-dashboard.json"
+import mockData from "@/public/data/mock-data-dashboard.json"
 
 import Dropdown from "@/components/ui/dropdown"
 import ListCard from "@/components/ui/list-card"
