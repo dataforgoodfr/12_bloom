@@ -192,7 +192,7 @@ def run():
                 df.loc[df["segment_duration"] >= 2100, "type"] = "DEFAULT_AIS"
 
                 # calculate average speed in knot
-                df.loc[df["type"] != "DEFAULT_AIS", "average_speed"] = df["distance"] / (df["segment_duration"] / 3600)
+                df["average_speed"] = df["distance"] / (df["segment_duration"] / 3600)
 
                 # set last_vessel_segment
                 df["last_vessel_segment"] = 0
@@ -200,17 +200,16 @@ def run():
 
                 # check if segment ends in a port (only for segment with average_speed < maximal_speed_to_check_if_in_port or with type 'DEFAULT_AIS')
                 def get_port(x, session):
-                    if ((x.average_speed < maximal_speed_to_check_if_in_port) | (x.type == 'DEFAULT_AIS')):
+                    if x.type == 'DEFAULT_AIS' or x.average_speed < maximal_speed_to_check_if_in_port:
                         res = port_repository.get_closest_port_in_range(session, x.end_longitude, x.end_latitude,
                                                                         threshold_distance_to_port)
                         if res:
                             (port_id, distance) = res
                             return port_id
                         else:
-                            return np.NaN
+                            return None
                     else:
-                        return np.NaN
-                    session.close()
+                        return None
 
                 df["port"] = df.apply(get_port, axis=1, args=(session,))
 
@@ -224,7 +223,7 @@ def run():
                 # on its ending position, distance traveled and a given average exit speed
                 df["excursion_id"] = np.NaN
                 for a in df.index:
-                    if (df["port"].iloc[a] >= 0):
+                    if df["port"].iloc[a] is not None and df["port"].iloc[a] >= 0:
                         if (open_ongoing_excursion):
                             close_excursion(session, ongoing_excursion_id, int(df["port"].iloc[a]),
                                             df["end_latitude"].iloc[a],
