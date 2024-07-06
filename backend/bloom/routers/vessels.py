@@ -31,8 +31,8 @@ async def list_vessels(nocache: bool = False):
 
             json_data = [json.loads(v.model_dump_json() if v else "{}")
                          for v in vessel_repository.get_vessels_list(session)]
-            rd.set(endpoint, json.dumps(json_data))
-            rd.expire(endpoint, settings.redis_cache_expiration)
+            await rd.set(endpoint, json.dumps(json_data))
+            await rd.expire(endpoint, settings.redis_cache_expiration)
             return json_data
 
 
