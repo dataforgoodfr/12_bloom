@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends
 from bloom.config import settings
 from bloom.container import UseCasesContainer
 from bloom.logger import logger
-from bloom.services.api import rd
 from bloom.usecase.Ports import PortUseCase
 
 router = APIRouter()
@@ -19,11 +18,11 @@ redis_client = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 async def list_ports(
         nocache: bool = False,
         ports_usecase: PortUseCase = Depends(
-            Provide[UseCasesContainer.emission_service]
+            Provide[UseCasesContainer.excursion_usecase]
         )
 ):
     endpoint = f"/ports"
-    cache = rd.get(endpoint)
+    cache = redis_client.get(endpoint)
     start = time.time()
     if cache and not nocache:
         logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
@@ -39,7 +38,7 @@ async def list_ports(
 async def get_port(
         port_id: int,
         ports_usecase: PortUseCase = Depends(
-            Provide[UseCasesContainer.emission_service]
+            Provide[UseCasesContainer.excursion_usecase]
         )
 ):
     return ports_usecase.get_port_by_id(port_id)
