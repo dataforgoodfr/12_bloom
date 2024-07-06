@@ -1,3 +1,3 @@
 [
-  "*/15 * * * * python backend/bloom/tasks/load_spire_data_from_api.py"
+  "*/15 * * * * python /home/bas/app_7244f095-70bc-43c3-9950-d075c01af05f/backend/bloom/tasks/load_spire_data_from_api.py"
 ]
