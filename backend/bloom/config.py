@@ -2,17 +2,9 @@ import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Any
 
 from pydantic import (
-    AliasChoices,
-    AmqpDsn,
-    BaseModel,
     Field,
-    ImportString,
-    PostgresDsn,
-    RedisDsn,
-    field_validator,
     model_validator
 )
 
