@@ -8,7 +8,6 @@ from starlette.requests import Request
 from bloom.config import settings
 from bloom.container import UseCasesContainer
 from bloom.logger import logger
-from bloom.main import app
 
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 

@@ -23,7 +23,7 @@ async def list_vessel_excursions(
         vessel_id: int,
         nocache: bool = False,
         excursion_usecase: ExcursionUseCase = Depends(
-            Provide[UseCasesContainer.emission_service]
+            Provide[UseCasesContainer.excursion_usecase]
         )
 ) -> List[Excursion]:
     endpoint = f"/vessels/{vessel_id}/excursions"
@@ -43,7 +43,7 @@ async def get_vessel_excursion(
         vessel_id: int,
         excursions_id: int,
         excursion_usecase: ExcursionUseCase = Depends(
-            Provide[UseCasesContainer.emission_service]
+            Provide[UseCasesContainer.excursion_usecase]
         )):
     return excursion_usecase.get_excursion_by_id(vessel_id, excursions_id)
 
@@ -54,7 +54,7 @@ async def list_vessel_excursion_segments(
         vessel_id: int,
         excursions_id: int,
         excursion_usecase: ExcursionUseCase = Depends(
-            Provide[UseCasesContainer.emission_service]
+            Provide[UseCasesContainer.excursion_usecase]
         )
 ):
     return excursion_usecase.get_excursions_segments(vessel_id, excursions_id)
@@ -67,7 +67,7 @@ async def get_vessel_excursion_segment(
         excursions_id: int,
         segment_id: int,
         excursion_usecase: ExcursionUseCase = Depends(
-            Provide[UseCasesContainer.emission_service]
+            Provide[UseCasesContainer.excursion_usecase]
         )
 ):
     return await excursion_usecase.get_segment_by_id(vessel_id, excursions_id, segment_id)
