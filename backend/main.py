@@ -55,12 +55,7 @@ app = create_app()
 
 @app.get("/")
 async def root(request: Request):
-    return {
-        "maptiles": f"{request.url_for('list_maptiles')}",
-        "ports": f"{request.url_for('list_ports')}",
-        "vessels": f"{request.url_for('list_vessels')}",
-        "zones": f"{request.url_for('list_zones')}",
-    }
+    return {"status": "ok"}
 
 
 @app.get("/cache/all/flush")
