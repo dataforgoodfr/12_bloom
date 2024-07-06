@@ -23,6 +23,9 @@ def create_app() -> FastAPI:
     return server
 
 
+def schedule_crawling():
+    pass
+
 def init_container():
     container = UseCasesContainer()
     container.wire(
@@ -59,7 +62,7 @@ async def root(request: Request):
     }
 
 
-@router.get("/cache/all/flush")
+@app.get("/cache/all/flush")
 async def cache_all_flush(request: Request):
     await rd.flushall()
     return {"code": 0}

@@ -1,5 +1,6 @@
 import json
 import time
+from typing import List
 
 import redis
 from dependency_injector.wiring import inject, Provide
@@ -7,6 +8,7 @@ from fastapi import APIRouter, Depends
 
 from bloom.config import settings
 from bloom.container import UseCasesContainer
+from bloom.domain.excursion import Excursion
 from bloom.logger import logger
 from bloom.usecase.Excursions import ExcursionUseCase
 
@@ -23,7 +25,7 @@ async def list_vessel_excursions(
         excursion_usecase: ExcursionUseCase = Depends(
             Provide[UseCasesContainer.emission_service]
         )
-):
+) -> List[Excursion]:
     endpoint = f"/vessels/{vessel_id}/excursions"
     cache = rd.get(endpoint)
     start = time.time()
