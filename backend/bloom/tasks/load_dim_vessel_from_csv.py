@@ -3,7 +3,7 @@ from time import perf_counter
 
 import pandas as pd
 from bloom.config import settings
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.vessel import Vessel
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
@@ -33,7 +33,7 @@ def map_to_domain(row: pd.Series) -> Vessel:
 
 
 def run(csv_file_name: str) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
 

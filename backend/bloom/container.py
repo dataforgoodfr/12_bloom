@@ -10,11 +10,12 @@ from bloom.infra.repositories.repository_vessel_position import VesselPositionRe
 from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
+from bloom.usecase.Excursions import ExcursionUseCase
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from dependency_injector import containers, providers
 
 
-class UseCases(containers.DeclarativeContainer):
+class UseCasesContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     db_url = settings.db_url
     db = providers.Singleton(
@@ -57,14 +58,6 @@ class UseCases(containers.DeclarativeContainer):
         session_factory=db.provided.session,
     )
 
-    get_spire_data_usecase = providers.Factory(GetVesselsFromSpire)
-
-    generate_alert_usecase = providers.Factory(
-        GenerateAlerts,
-        alert_repository=alert_repository,
-        raster_repository=raster_repository,
-    )
-
     spire_ais_data_repository = providers.Factory(
         SpireAisDataRepository,
         session_factory=db.provided.session,
@@ -73,4 +66,18 @@ class UseCases(containers.DeclarativeContainer):
     segment_repository = providers.Factory(
         SegmentRepository,
         session_factory=db.provided.session,
+    )
+    get_spire_data_usecase = providers.Factory(
+        GetVesselsFromSpire
+    )
+
+    generate_alert_usecase = providers.Factory(
+        GenerateAlerts,
+        alert_repository=alert_repository,
+        raster_repository=raster_repository,
+    )
+
+    excursion_usecase = providers.Factory(
+        ExcursionUseCase,
+        excursion_repository=excursion_repository,
     )

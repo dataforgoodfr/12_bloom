@@ -46,7 +46,7 @@ services:
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
-    volumes: 
+    volumes:
       - bloom-redis:/data
     networks:
       - bloom_net
@@ -63,6 +63,8 @@ services:
       - bloom-data:/var/lib/postgresql/data
     networks:
       - bloom_net
+    volumes:
+      - bloom-data:/var/lib/postgresql/data
     healthcheck:
       # PostGis database initialization is done with two steps (postgres+postgis)
       # This causes healthcheck to be valid before real full initialization
@@ -96,7 +98,7 @@ services:
         dockerfile: ./docker/frontend/dev.Dockerfile
         args:
            APP_DIR: /app
-        
+
     volumes:
       #- ./frontend:/app
       #- ./frontend/node_modules:/app/node_modules

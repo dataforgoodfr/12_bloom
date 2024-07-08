@@ -3,7 +3,7 @@ from time import perf_counter
 
 import pandas as pd
 from bloom.config import settings
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
@@ -51,7 +51,7 @@ def map_to_domain(row: pd.Series) -> SpireAisData:
 
 
 def run(csv_file_name: str):
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     db = use_cases.db()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
 
