@@ -53,6 +53,7 @@ class Settings(BaseSettings):
                                 default="INFO",
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
                             )
+    api_key:str = Field(min_length=4,default='bloom')
 
     @model_validator(mode='after')
     def update_db_url(self)->dict:

@@ -1,5 +1,8 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from fastapi import Request
+from fastapi.security import APIKeyHeader
+
+header_scheme = APIKeyHeader(name="x-key")
 
 import redis
 import json
@@ -16,13 +19,20 @@ import time
 
 app = FastAPI()
 
+def check_apikey(key:str):
+    if key != settings.api_key :
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return True
+
 @app.get("/cache/all/flush")
-async def cache_all_flush(request:Request):
+async def cache_all_flush(request:Request,key: str = Depends(header_scheme)):
+    check_apikey(key)
     rd.flushall()
     return {"code":0}
 
 @app.get("/vessels")
-async def list_vessels(nocache:bool=False):
+async def list_vessels(nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/vessels"
     cache= rd.get(endpoint)
     start = time.time()
@@ -44,7 +54,8 @@ async def list_vessels(nocache:bool=False):
             return json_data
 
 @app.get("/vessels/{vessel_id}")
-async def get_vessel(vessel_id: int):
+async def get_vessel(vessel_id: int,key: str = Depends(header_scheme)):
+    check_apikey(key)
     use_cases = UseCases()
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
@@ -52,7 +63,8 @@ async def get_vessel(vessel_id: int):
         return vessel_repository.get_vessel_by_id(session,vessel_id)
 
 @app.get("/vessels/all/positions/last")
-async def list_all_vessel_last_position(nocache:bool=False):
+async def list_all_vessel_last_position(nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/vessels/all/positions/last"
     cache= rd.get(endpoint)
     start = time.time()
@@ -74,7 +86,8 @@ async def list_all_vessel_last_position(nocache:bool=False):
             return json_data
 
 @app.get("/vessels/{vessel_id}/positions/last")
-async def get_vessel_last_position(vessel_id: int, nocache:bool=False):
+async def get_vessel_last_position(vessel_id: int, nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/vessels/{vessel_id}/positions/last"
     cache= rd.get(endpoint)
     start = time.time()
@@ -96,7 +109,8 @@ async def get_vessel_last_position(vessel_id: int, nocache:bool=False):
             return json_data
 
 @app.get("/vessels/{vessel_id}/excursions")
-async def list_vessel_excursions(vessel_id: int, nocache:bool=False):
+async def list_vessel_excursions(vessel_id: int, nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/vessels/{vessel_id}/excursions"
     cache= rd.get(endpoint)
     start = time.time()
@@ -119,7 +133,8 @@ async def list_vessel_excursions(vessel_id: int, nocache:bool=False):
 
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}")
-async def get_vessel_excursion(vessel_id: int,excursions_id: int):
+async def get_vessel_excursion(vessel_id: int,excursions_id: int,key: str = Depends(header_scheme)):
+    check_apikey(key)
     use_cases = UseCases()
     excursion_repository = use_cases.excursion_repository()
     db = use_cases.db()
@@ -128,7 +143,8 @@ async def get_vessel_excursion(vessel_id: int,excursions_id: int):
 
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments")
-async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int):
+async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int,key: str = Depends(header_scheme)):
+    check_apikey(key)
     use_cases = UseCases()
     segment_repository = use_cases.segment_repository()
     db = use_cases.db()
@@ -136,7 +152,8 @@ async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int):
         return segment_repository.list_vessel_excursion_segments(session,vessel_id,excursions_id)
 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}")
-async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segment_id:int):
+async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segment_id:int,key: str = Depends(header_scheme)):
+    check_apikey(key)
     use_cases = UseCases()
     segment_repository = use_cases.segment_repository()
     db = use_cases.db()
@@ -144,7 +161,8 @@ async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segmen
         return segment_repository.get_vessel_excursion_segment_by_id(session,vessel_id,excursions_id,segment_id)
 
 @app.get("/ports")
-async def list_ports(request:Request,nocache:bool=False):
+async def list_ports(request:Request,nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/ports"
     cache= rd.get(endpoint)
     start = time.time()
@@ -167,7 +185,8 @@ async def list_ports(request:Request,nocache:bool=False):
     
 
 @app.get("/ports/{port_id}")
-async def get_port(port_id:int):
+async def get_port(port_id:int,key: str = Depends(header_scheme)):
+    check_apikey(key)
     use_cases = UseCases()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
@@ -175,7 +194,8 @@ async def get_port(port_id:int):
         return port_repository.get_port_by_id(session,port_id)
 
 @app.get("/zones")
-async def list_zones(request:Request,nocache:bool=False):   
+async def list_zones(request:Request,nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)  
     endpoint=f"/zones"
     cache= rd.get(endpoint)
     start = time.time()
@@ -197,7 +217,8 @@ async def list_zones(request:Request,nocache:bool=False):
             return json_data
 
 @app.get("/zones/all/categories")
-async def list_zone_categories(request:Request,nocache:bool=False): 
+async def list_zone_categories(request:Request,nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/zones/all/categories" 
     cache= rd.get(endpoint)
     start = time.time()
@@ -219,7 +240,8 @@ async def list_zone_categories(request:Request,nocache:bool=False):
             return json_data
 
 @app.get("/zones/by-category/{category}/by-sub-category/{sub}")
-async def get_zone_all_by_category(category:str="all",sub:str=None,nocache:bool=False):
+async def get_zone_all_by_category(category:str="all",sub:str=None,nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/zones/by-category/{category}/by-sub-category/{sub}"
     cache= rd.get(endpoint)
     start = time.time()
@@ -241,7 +263,8 @@ async def get_zone_all_by_category(category:str="all",sub:str=None,nocache:bool=
             return json_data
 
 @app.get("/zones/by-category/{category}")
-async def get_zone_all_by_category(category:str="all",nocache:bool=False):
+async def get_zone_all_by_category(category:str="all",nocache:bool=False,key: str = Depends(header_scheme)):
+    check_apikey(key)
     endpoint=f"/zones/by-category/{category}"
     cache= rd.get(endpoint)
     start = time.time()
@@ -263,7 +286,8 @@ async def get_zone_all_by_category(category:str="all",nocache:bool=False):
             return json_data
         
 @app.get("/zones/{zones_id}")
-async def get_zone(zones_id:int):
+async def get_zone(zones_id:int,key: str = Depends(header_scheme)):
+    check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
