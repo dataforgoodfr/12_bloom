@@ -42,8 +42,10 @@ def run(dump_path: str) -> None:
     except ValidationError as e:
         logger.error("Erreur de validation des données JSON")
         logger.error(e.errors())
+        raise e
     except Exception as e:
         logger.error("Echec de l'appel API", exc_info=e)
+        raise e
     logger.info(f"{len(orm_data)} données chargées")
 
 
