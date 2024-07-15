@@ -22,23 +22,23 @@ def run(dump_path: str) -> None:
     try:
         with db.session() as session:
             vessels: list[Vessel] = vessel_repository.get_vessels_list(session)
-
-            raw_vessels = spire_traffic_usecase.get_raw_vessels_from_spire(vessels)
-            if dump_path is not None:
-                try:
-                    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
-                    dump_file = Path(args.dump_path, f"spire_{now}").with_suffix(".json")
-                    with dump_file.open("wt") as handle:
-                        json.dump(raw_vessels, handle)
-                except Exception as e:
-                    logger.warning("Echec de l'écriture de la réponse Spire", exc_info=e)
-            else:
-                spire_ais_data = map_raw_vessels_to_domain(raw_vessels)
-                orm_data = spire_ais_data_repository.batch_create_ais_data(
-                    spire_ais_data,
-                    session,
-                )
-            session.commit()
+            if len(vessels) > 0:
+                raw_vessels = spire_traffic_usecase.get_raw_vessels_from_spire(vessels)
+                if dump_path is not None:
+                    try:
+                        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+                        dump_file = Path(args.dump_path, f"spire_{now}").with_suffix(".json")
+                        with dump_file.open("wt") as handle:
+                            json.dump(raw_vessels, handle)
+                    except Exception as e:
+                        logger.warning("Echec de l'écriture de la réponse Spire", exc_info=e)
+                else:
+                    spire_ais_data = map_raw_vessels_to_domain(raw_vessels)
+                    orm_data = spire_ais_data_repository.batch_create_ais_data(
+                        spire_ais_data,
+                        session,
+                    )
+                session.commit()
     except ValidationError as e:
         logger.error("Erreur de validation des données JSON")
         logger.error(e.errors())
