@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import IconButton from "@/components/ui/icon-button"
 import { useMapStore } from "@/components/providers/map-store-provider"
 import { VesselPosition } from "@/types/vessel"
+import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 
 export interface PreviewCardTypes {
   vesselInfo: VesselPosition
@@ -14,24 +15,22 @@ export interface PreviewCardTypes {
 const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
   const {
     setActivePosition,
-    addTrackedVesselMMSI,
-    trackedVesselMMSIs,
-    removeTrackedVesselMMSI,
+    addTrackedVessel,
+    trackedVesselIDs,
+    removeTrackedVessel,
   } = useMapStore((state) => state)
-  const { vessel: { id, mmsi, ship_name, imo, length }, timestamp } = vesselInfo
-  const isVesselTracked = (mmsi: number) => {
-    return trackedVesselMMSIs.includes(mmsi)
+  const { vessel: { id: vesselId, mmsi, ship_name, imo, length }, timestamp } = vesselInfo
+  const isVesselTracked = (vesselId: number) => {
+    return trackedVesselIDs.includes(vesselId)
   }
-  console.log(id)
 
-  // useEffect(() => {
-  //   console.log("trackedVesselMMSIs", trackedVesselMMSIs)
-  // }, [trackedVesselMMSIs])
-
-  const handleDisplayTrail = (vessel_mmsi: number) => {
-    isVesselTracked(vessel_mmsi)
-      ? removeTrackedVesselMMSI(vessel_mmsi)
-      : addTrackedVesselMMSI(vessel_mmsi)
+  const handleDisplayTrail = async (vesselId: number) => {
+    if (isVesselTracked(vesselId)) {
+      removeTrackedVessel(vesselId);
+      return;
+    }
+    const response = await getVesselFirstExcursionSegments(vesselId);
+    addTrackedVessel(vesselId, response.data);
   }
   return (
     <div className="flex w-wrap flex-col rounded-t-lg bg-white shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 md:max-w-xl md:flex-row">
@@ -71,10 +70,10 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
           </p>
         </section>
         <section id="vessel-actions">
-          <Button onClick={() => handleDisplayTrail(mmsi)}>
-            {isVesselTracked(mmsi) ? "Hide" : "Display"} track
+          <Button onClick={() => handleDisplayTrail(vesselId)}>
+            {isVesselTracked(vesselId) ? "Hide" : "Display"} track
           </Button>
-          {isVesselTracked(mmsi) && <Link href="#" className="ml-2">Show track details</Link>}
+          {isVesselTracked(vesselId) && <Link href="#" className="ml-2">Show track details</Link>}
         </section>
 
         <div className="absolute right-0 top-0 pt-4 pr-3">
