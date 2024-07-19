@@ -12,20 +12,13 @@ import chroma from "chroma-js"
 import { FlyToInterpolator, MapViewState, ScatterplotLayer } from "deck.gl"
 import { useTheme } from "next-themes"
 import { renderToString } from "react-dom/server"
-import Map from "react-map-gl/maplibre"
+import { Map as MapGL } from "react-map-gl/maplibre"
 
 import MapTooltip from "@/components/ui/tooltip-map-template"
 import { useMapStore } from "@/components/providers/map-store-provider"
-import { VesselPosition, VesselPositions, VesselTrailPropertiesType } from "@/types/vessel"
+import { VesselPosition, VesselPositions, VesselExcursionSegmentGeo, VesselExcursionSegmentsGeo, VesselExcursionSegment, VesselExcursionSegments } from "@/types/vessel"
 
 const MESH_URL_LOCAL = `../../../data/mesh/boat.obj`
-
-type BartStation = {
-  name: string
-  entries: number
-  exits: number
-  coordinates: [longitude: number, latitude: number]
-}
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions;
@@ -39,7 +32,8 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
     setViewState,
     activePosition,
     setActivePosition,
-    trackedVesselMMSIs,
+    trackedVesselIDs,
+    trackedVesselSegments,
     setLatestPositions,
   } = useMapStore((state) => state)
 
@@ -55,7 +49,7 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
   useEffect(() => {
     // This will change the key of the layer, forcing it to re-render when `activePosition` changes
     setLayerKey((prevKey) => prevKey + 1)
-  }, [activePosition, trackedVesselMMSIs])
+  }, [activePosition, trackedVesselIDs])
 
   useEffect(() => {
     setLatestPositions(vesselsPositions);
@@ -75,8 +69,8 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
     radiusMaxPixels: 25,
     radiusScale: 200,
     getFillColor: (vp: VesselPosition) => {
-      return vp.vessel.mmsi === activePosition?.vessel.mmsi ||
-        trackedVesselMMSIs.includes(vp.vessel.mmsi)
+      return vp.vessel.id === activePosition?.vessel.id ||
+        trackedVesselIDs.includes(vp.vessel.id)
         ? [128, 16, 189, 210]
         : [16, 181, 16, 210]
     },
@@ -97,16 +91,14 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
     },
   })
 
-  // TODO(CT): call backend
-  const tracksByVesselAndVoyage = trackedVesselMMSIs.map(
-    (trackedVesselMMSI) => {
-      return new GeoJsonLayer<VesselTrailPropertiesType>({
-        id: `${trackedVesselMMSI}_vessel_trail_${layerKey}`,
-        data: `../../../data/geometries/segments_by_vessel_mmsi/${trackedVesselMMSI}_segments.geo.json`,
-        getFillColor: ({ properties }) => getColorFromValue(properties.speed),
-        getLineColor: ({ properties }) => {
-          return getColorFromValue(properties.speed)
-        },
+  const tracksByVesselAndVoyage = trackedVesselSegments
+  .map(segments => toSegmentsGeo(segments))
+  .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
+    return new GeoJsonLayer<VesselExcursionSegmentGeo>({
+        id: `${segmentsGeo.vesselId}_vessel_trail_${layerKey}`,
+        data: segmentsGeo,
+        getFillColor: (properties) => getColorFromValue(properties?.speed),
+        getLineColor: (properties) => getColorFromValue(properties?.speed),
         pickable: false,
         stroked: false,
         filled: true,
@@ -117,9 +109,8 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
         lineWidthScale: 2,
         getPointRadius: 4,
         getTextSize: 12,
-      })
-    }
-  )
+    })
+  });
 
   const positions_mesh_layer = new SimpleMeshLayer({
     id: `vessels-positions-mesh-layer-${layerKey}`,
@@ -130,8 +121,8 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
       vp?.position?.coordinates[1],
     ],
     getColor: (vp: VesselPosition) => {
-      return vp.vessel.mmsi === activePosition?.vessel.mmsi ||
-        trackedVesselMMSIs.includes(vp.vessel.mmsi)
+      return vp.vessel.id === activePosition?.vessel.id ||
+        trackedVesselIDs.includes(vp.vessel.id)
         ? [128, 16, 189, 210]
         : [16, 181, 16, 210]
     },
@@ -154,7 +145,7 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
         ...viewState,
         longitude: object?.position?.coordinates[0],
         latitude: object?.position?.coordinates[1],
-        zoom: 10,
+        zoom: 7,
         transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
         transitionDuration: "auto",
       })
@@ -193,10 +184,27 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
           : null
       }
     >
-      <Map
+      <MapGL
         mapStyle={`https://api.maptiler.com/maps/bb513c96-848e-4775-b150-437395193f26/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
         attributionControl={false}
-      ></Map>
+      ></MapGL>
     </DeckGL>
   )
 }
+function toSegmentsGeo({ segments, vesselId }: VesselExcursionSegments): any {
+  const segmentsGeo = segments.map((segment: VesselExcursionSegment) => {
+    return {
+      speed: segment.average_speed,
+      navigational_status: "unknown",
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          segment.start_position.coordinates,
+          segment.end_position.coordinates
+        ]
+      } 
+    }
+  })
+  return { vesselId, type: "FeatureCollection", features: segmentsGeo };
+}
+
