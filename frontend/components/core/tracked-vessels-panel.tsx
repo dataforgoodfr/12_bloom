@@ -17,7 +17,7 @@ export default function TrackedVesselsPanel({
   parentIsOpen,
   openParent,
 }: Props) {
-  const { trackedVesselMMSIs, removeTrackedVesselMMSI } = useMapStore((state) => state);
+  const { trackedVesselIDs, removeTrackedVessel } = useMapStore((state) => state);
   const { vessels: allVessels } = useVesselsStore((state) => state);
   const [displayTrackedVessels, setDisplayTrackedVessels] = useState(false)
   const [trackedVesselsDetails, setTrackedVesselsDetails] = useState<Vessel[]>()
@@ -31,10 +31,10 @@ export default function TrackedVesselsPanel({
 
   useEffect(() => {
     const vesselsDetails = allVessels.filter((vessel) =>
-      trackedVesselMMSIs.includes(vessel.mmsi)
+      trackedVesselIDs.includes(vessel.id)
     )
     setTrackedVesselsDetails(vesselsDetails)
-  }, [trackedVesselMMSIs])
+  }, [trackedVesselIDs])
 
   return (
     <>
@@ -45,7 +45,7 @@ export default function TrackedVesselsPanel({
       >
         <ShipIcon className="w-8 min-w-8" />
         {wideMode && (
-          <span className="ml-2">{`Selected vessel (${trackedVesselMMSIs.length})`}</span>
+          <span className="ml-2">{`Selected vessel (${trackedVesselIDs.length})`}</span>
         )}
       </button>
 
@@ -62,7 +62,7 @@ export default function TrackedVesselsPanel({
               </div>
               <button
                 className="block"
-                onClick={() => removeTrackedVesselMMSI(vessel.mmsi)}
+                onClick={() => removeTrackedVessel(vessel.id)}
               >
                 <X size={15} color="#2CE2B0" strokeWidth={2} />
               </button>
