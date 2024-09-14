@@ -17,17 +17,19 @@ class PortRepository:
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 
-    def get_port_by_id(self, session: Session, port_id: int) -> Union[Port, None]:
-        entity = session.get(sql_model.Port, port_id)
+    def get_port_by_id(self, port_id: int) -> Union[Port, None]:
+        with self.session_factory() as session:
+            entity = session.get(sql_model.Port, port_id)
         if entity is not None:
             return PortRepository.map_to_domain(entity)
         else:
             return None
 
-    def get_all_ports(self, session: Session) -> List[Port]:
-        q = session.query(sql_model.Port)
-        if not q:
-            return []
+    def get_all_ports(self) -> List[Port]:
+        with self.session_factory() as session:
+            q = session.query(sql_model.Port)
+            if not q:
+                return []
         return [PortRepository.map_to_domain(entity) for entity in q]
 
     def get_empty_geometry_buffer_ports(self, session: Session) -> list[Port]:

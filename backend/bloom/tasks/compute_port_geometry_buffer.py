@@ -5,7 +5,7 @@ import pandas as pd
 import pyproj
 import shapely
 from bloom.config import settings
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.logger import logger
 from scipy.spatial import Voronoi
 from shapely.geometry import LineString, Polygon
@@ -93,7 +93,7 @@ def assign_voronoi_buffer(ports: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def run() -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
     items = []

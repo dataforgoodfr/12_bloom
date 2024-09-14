@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 from shapely.geometry import Point
 from bloom.config import settings
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from bloom.domain.spire_ais_data import SpireAisData
@@ -119,7 +119,7 @@ def get_point(end_position: str) -> Point:
     return Point(end_position[1], end_position[0])
 
 def run(excursion_csv_filename: str, segment_csv_filename: str, spire_csv_filename: str) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     excursion_repository = use_cases.excursion_repository()
     # vessel_position_repository = use_cases.vessel_position_repository()
     segment_repository = use_cases.segment_repository()
