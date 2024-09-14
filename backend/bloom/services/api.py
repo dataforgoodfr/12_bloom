@@ -7,7 +7,7 @@ header_scheme = APIKeyHeader(name="x-key")
 import redis
 import json
 from bloom.config import settings
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.logger import logger
 
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
@@ -40,7 +40,7 @@ async def list_vessels(nocache:bool=False,key: str = Depends(header_scheme)):
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCases()
+        use_cases = UseCasesContainer()
         vessel_repository = use_cases.vessel_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -55,7 +55,7 @@ async def list_vessels(nocache:bool=False,key: str = Depends(header_scheme)):
 @app.get("/vessels/{vessel_id}")
 async def get_vessel(vessel_id: int,key: str = Depends(header_scheme)):
     check_apikey(key)
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
@@ -74,7 +74,7 @@ async def list_all_vessel_last_position(nocache:bool=False,key: str = Depends(he
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCases()
+        use_cases = UseCasesContainer()
         segment_repository = use_cases.segment_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -98,7 +98,7 @@ async def get_vessel_last_position(vessel_id: int, nocache:bool=False,key: str =
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCases()
+        use_cases = UseCasesContainer()
         segment_repository = use_cases.segment_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -122,7 +122,7 @@ async def list_vessel_excursions(vessel_id: int, nocache:bool=False,key: str = D
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCases()
+        use_cases = UseCasesContainer()
         excursion_repository = use_cases.excursion_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -137,7 +137,7 @@ async def list_vessel_excursions(vessel_id: int, nocache:bool=False,key: str = D
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}")
 async def get_vessel_excursion(vessel_id: int,excursions_id: int,key: str = Depends(header_scheme)):
     check_apikey(key)
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     excursion_repository = use_cases.excursion_repository()
     db = use_cases.db()
     with db.session() as session:
@@ -147,7 +147,7 @@ async def get_vessel_excursion(vessel_id: int,excursions_id: int,key: str = Depe
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments")
 async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int,key: str = Depends(header_scheme)):
     check_apikey(key)
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     segment_repository = use_cases.segment_repository()
     db = use_cases.db()
     with db.session() as session:
@@ -157,7 +157,7 @@ async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int,key: 
 @app.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}")
 async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segment_id:int,key: str = Depends(header_scheme)):
     check_apikey(key)
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     segment_repository = use_cases.segment_repository()
     db = use_cases.db()
     with db.session() as session:
@@ -176,7 +176,7 @@ async def list_ports(request:Request,nocache:bool=False,key: str = Depends(heade
         logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
         return payload
     else:
-        use_cases = UseCases()
+        use_cases = UseCasesContainer()
         port_repository = use_cases.port_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -192,7 +192,7 @@ async def list_ports(request:Request,nocache:bool=False,key: str = Depends(heade
 @app.get("/ports/{port_id}")
 async def get_port(port_id:int,key: str = Depends(header_scheme)):
     check_apikey(key)
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
     with db.session() as session:
