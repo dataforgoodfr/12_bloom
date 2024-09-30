@@ -5,14 +5,26 @@ import PositionPreview from "@/components/core/map/position-preview"
 import { getVessels, getVesselsLatestPositions } from "@/services/backend-rest-client"
 
 async function fetchVessels() {
-  const response = await getVessels();
-  return response.data ?? [];
+  try {
+      const response = await getVessels();
+      return response?.data;
+
+    } catch(error) {
+      console.log("An error occured while fetching vessels: " + error)
+      return [];
+    }
 }
 
+// TODO(CT): move this logic within a cron job
 async function fetchLatestPositions() {
-  // TODO(CT): move this logic within a cron job
-  const response = await getVesselsLatestPositions();
-  return response.data ?? [];
+  try {
+    const response = await getVesselsLatestPositions();
+    return response?.data;
+    
+  } catch(error) {
+    console.log("An error occured while fetching vessels latest positions: " + error)
+    return [];
+  }
 }
   
 export default async function MapPage() {
