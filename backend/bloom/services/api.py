@@ -2,6 +2,8 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from fastapi import Request
 from fastapi.security import APIKeyHeader
 
+from bloom.routers.metrics import router as router_metrics
+
 header_scheme = APIKeyHeader(name="x-key")
 
 import redis
@@ -18,6 +20,7 @@ import time
 
 
 app = FastAPI()
+app.include_router(router_metrics)
 
 def check_apikey(key:str):
     if key != settings.api_key :
