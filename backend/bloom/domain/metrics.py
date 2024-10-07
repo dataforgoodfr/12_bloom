@@ -1,8 +1,11 @@
 from pydantic import BaseModel, ConfigDict
+from typing import Generic,TypeVar, List
 from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
+from enum import Enum
 
 class ResponseMetricsVesselInActiviySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     mmsi: int
     ship_name: str
@@ -39,8 +42,3 @@ class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):
     vessel_type: Optional[str] = None
     vessel_length_class: Optional[str] = None
     zone_visiting_time_by_vessel: timedelta
-
-    
-class TemporalRequest(BaseModel):
-    start_at: datetime
-    end_at: datetime = datetime.now()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Body,Request
 from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
@@ -9,11 +9,13 @@ from sqlalchemy import select, func, and_, or_
 from bloom.infra.database import sql_model
 from bloom.infra.repositories.repository_segment import SegmentRepository
 import json
-from pydantic import BaseModel, ConfigDict
-from bloom.domain.metrics import ResponseMetricsVesselInActiviySchema,\
-                                 ResponseMetricsZoneVisitedSchema,\
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema,\
-                                 DatetimeRangeRequest
+from bloom.domain.metrics import (ResponseMetricsVesselInActiviySchema,
+                                 ResponseMetricsZoneVisitedSchema,
+                                 ResponseMetricsZoneVisitingTimeByVesselSchema)
+from bloom.domain.api import (  DatetimeRangeRequest,
+                                PaginatedRequest,OrderByRequest,OrderByEnum,
+                                paginate,PagedResponseSchema,PageParams,
+                                X_API_KEY_HEADER)
 
 router = APIRouter()
 redis_client = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
@@ -24,10 +26,11 @@ redis_client = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 @router.get("/metrics/vessels-in-activity",
             response_model=list[ResponseMetricsVesselInActiviySchema],
             tags=['metrics'])
-def read_metrics_vessels_in_activity_total(start_at: datetime,
-                                           end_at: datetime = datetime.now(),
-                                           limit: int = None,
-                                           order_by: str = 'DESC'
+def read_metrics_vessels_in_activity_total(request: Request,
+                                           datetime_range: DatetimeRangeRequest = Depends(),
+                                           #pagination: PageParams = Depends(),
+                                           order: OrderByRequest = Depends(),
+                                           auth: str = Depends(X_API_KEY_HEADER),
                                            ):
     use_cases = UseCases()
     db = use_cases.db()
@@ -56,25 +59,24 @@ def read_metrics_vessels_in_activity_total(start_at: datetime,
             .join(sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id)\
             .where(
                 or_(
-                    sql_model.Excursion.arrival_at.between(start_at,end_at),
-                    and_(sql_model.Excursion.departure_at <= end_at,
+                    sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),
+                    and_(sql_model.Excursion.departure_at <= datetime_range.end_at,
                          sql_model.Excursion.arrival_at == None))
             )\
             .group_by(sql_model.Vessel.id,sql_model.Excursion.total_time_at_sea)
-        stmt = stmt.limit(limit) if limit != None else stmt
+        #stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
             
         stmt =  stmt.order_by(sql_model.Excursion.total_time_at_sea.asc())\
-                if  order_by.upper() == 'ASC' \
+                if  order.order == OrderByEnum.ascending \
                 else stmt.order_by(sql_model.Excursion.total_time_at_sea.desc())        
         return  session.execute(stmt).all()
 
 @router.get("/metrics/zone-visited",
             response_model=list[ResponseMetricsZoneVisitedSchema],
             tags=['metrics'] )
-def read_metrics_vessels_in_activity_total(start_at: datetime,
-                                           end_at: datetime = datetime.now(),
-                                           limit: int = None,
-                                           order_by: str = 'DESC'):
+def read_metrics_vessels_in_activity_total(datetime_range: DatetimeRangeRequest = Depends(),
+                                           pagination: PaginatedRequest = Depends(),
+                                           auth: str = Depends(X_API_KEY_HEADER),):
     use_cases = UseCases()
     db = use_cases.db()
     with db.session() as session:
@@ -87,13 +89,13 @@ def read_metrics_vessels_in_activity_total(start_at: datetime,
             )\
             .where(
                 or_(
-                    sql_model.Segment.timestamp_start.between(start_at,end_at),
-                    sql_model.Segment.timestamp_end.between(start_at,end_at),)
+                    sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
+                    sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)
             )\
             .group_by(sql_model.Zone.id)
         stmt = stmt.limit(limit) if limit != None else stmt
         stmt =  stmt.order_by("visiting_duration")\
-                if  order_by.upper() == 'ASC' \
+                if  pagination.order_by == OrderByRequest.ascending \
                 else stmt.order_by("visiting_duration") 
         return  session.execute(stmt).all()
 
@@ -101,11 +103,11 @@ def read_metrics_vessels_in_activity_total(start_at: datetime,
             response_model=list[ResponseMetricsZoneVisitingTimeByVesselSchema],
             tags=['metrics'])
 def read_metrics_zone_visiting_time_by_vessel(
+                    datetime_range: Annotated[DatetimeRangeRequest,Body()],
                     zone_id: int,
-                    start_at: datetime,
-                    end_at: datetime = datetime.now(),
                     limit: int = None,
-                    order_by: str = 'DESC'):
+                    order_by: str = 'DESC',
+                    auth: str = Depends(X_API_KEY_HEADER),):
     use_cases = UseCases()
     db = use_cases.db()
     with db.session() as session:
@@ -135,8 +137,7 @@ def read_metrics_zone_visiting_time_by_vessel(
 def read_metrics_vessels_visits_by_visit_type(
         vessel_id: int,
         visit_type: str,
-        start_at: datetime,
-        end_at: datetime = None,
-        limit: int = 10,
-        orderBy: str = 'DESC'):
+        datetime_range: DatetimeRangeRequest = Depends(),
+        pagination: PaginatedRequest = Depends(),
+        auth: str = Depends(X_API_KEY_HEADER),):
     pass
