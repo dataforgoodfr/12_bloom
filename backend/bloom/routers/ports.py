@@ -15,13 +15,10 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 from bloom.logger import logger
-from bloom.domain.metrics import (ResponseMetricsVesselInActiviySchema,
-                                 ResponseMetricsZoneVisitedSchema,
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema)
 from bloom.domain.api import (  DatetimeRangeRequest,
                                 PaginatedRequest,OrderByRequest,OrderByEnum,
                                 paginate,PagedResponseSchema,PageParams,
-                                X_API_KEY_HEADER,check_apikey)
+                                X_API_KEY_HEADER,check_apikey,CachedRequest)
 from bloom.config import settings
 
 router = APIRouter()
@@ -29,12 +26,14 @@ rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
 @router.get("/ports",
          tags=['Ports'])
-async def list_ports(request:Request,nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
+async def list_ports(   request:Request,
+                        caching: CachedRequest = Depends(),
+                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     endpoint=f"/ports"
     cache= rd.get(endpoint)
     start = time.time()
-    if cache and not nocache:
+    if cache and not caching.nocache:
         logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
         payload=json.loads(cache)
         logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
@@ -54,7 +53,8 @@ async def list_ports(request:Request,nocache:bool=False,key: str = Depends(X_API
 
 @router.get("/ports/{port_id}",
          tags=['Ports'])
-async def get_port(port_id:int,key: str = Depends(X_API_KEY_HEADER)):
+async def get_port(port_id:int,
+                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     port_repository = use_cases.port_repository()

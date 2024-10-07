@@ -12,6 +12,9 @@ from bloom.config import settings
 ## https://jayhawk24.hashnode.dev/how-to-implement-pagination-in-fastapi-feat-sqlalchemy
 X_API_KEY_HEADER=APIKeyHeader(name="x-key")
 
+class CachedRequest(BaseModel):
+    nocache:bool=False
+
 def check_apikey(key:str):
     if key != settings.api_key :
         raise HTTPException(status_code=401, detail="Unauthorized")

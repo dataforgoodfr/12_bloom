@@ -2,74 +2,90 @@ from fastapi import APIRouter, Depends, Query, Body,Request
 from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
+from bloom.logger import logger
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from sqlalchemy import select, func, and_, or_
 from bloom.infra.database import sql_model
 from bloom.infra.repositories.repository_segment import SegmentRepository
+from sqlalchemy.ext.serializer import loads,dumps
 import json
-from bloom.domain.metrics import (ResponseMetricsVesselInActiviySchema,
+import time
+from bloom.infra.database.database_manager import Base
+from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
                                  ResponseMetricsZoneVisitedSchema,
                                  ResponseMetricsZoneVisitingTimeByVesselSchema)
 from bloom.domain.api import (  DatetimeRangeRequest,
                                 PaginatedRequest,OrderByRequest,OrderByEnum,
                                 paginate,PagedResponseSchema,PageParams,
-                                X_API_KEY_HEADER)
+                                X_API_KEY_HEADER, check_apikey,CachedRequest)
 
 router = APIRouter()
-redis_client = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
-
-
-
+rd = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
 @router.get("/metrics/vessels-in-activity",
-            response_model=list[ResponseMetricsVesselInActiviySchema],
+            response_model=list[ResponseMetricsVesselInActivitySchema],
             tags=['Metrics'])
 def read_metrics_vessels_in_activity_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
-                                           #pagination: PageParams = Depends(),
+                                           pagination: PageParams = Depends(),
                                            order: OrderByRequest = Depends(),
-                                           auth: str = Depends(X_API_KEY_HEADER),
+                                           caching: CachedRequest = Depends(),
+                                           key: str = Depends(X_API_KEY_HEADER),
                                            ):
+    check_apikey(key)
     use_cases = UseCases()
     db = use_cases.db()
-    with db.session() as session:
-        stmt=select(sql_model.Vessel.id,
-                    sql_model.Vessel.mmsi,
-                    sql_model.Vessel.ship_name,
-                    sql_model.Vessel.width,
-                    sql_model.Vessel.length,
-                    sql_model.Vessel.country_iso3,
-                    sql_model.Vessel.type,
-                    sql_model.Vessel.imo,
-                    sql_model.Vessel.cfr,
-                    sql_model.Vessel.external_marking,
-                    sql_model.Vessel.ircs,
-                    sql_model.Vessel.home_port_id,
-                    sql_model.Vessel.details,
-                    sql_model.Vessel.tracking_activated,
-                    sql_model.Vessel.tracking_status,
-                    sql_model.Vessel.length_class,
-                    sql_model.Vessel.check,
-                    func.sum(sql_model.Excursion.total_time_at_sea).label("total_time_at_sea")
-                    )\
-            .select_from(sql_model.Segment)\
-            .join(sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id)\
-            .join(sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id)\
-            .where(
-                or_(
-                    sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),
-                    and_(sql_model.Excursion.departure_at <= datetime_range.end_at,
-                         sql_model.Excursion.arrival_at == None))
-            )\
-            .group_by(sql_model.Vessel.id,sql_model.Excursion.total_time_at_sea)
-        #stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
-            
-        stmt =  stmt.order_by(sql_model.Excursion.total_time_at_sea.asc())\
-                if  order.order == OrderByEnum.ascending \
-                else stmt.order_by(sql_model.Excursion.total_time_at_sea.desc())        
-        return  session.execute(stmt).all()
+    endpoint=f"/vessels"
+    cache= rd.get(endpoint)
+    start = time.time()
+    payload = []
+    if cache and not caching.nocache:
+            logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
+            payload=loads(cache)
+    else:
+        with db.session() as session:
+            stmt=select(sql_model.Vessel.id,
+                        sql_model.Vessel.mmsi,
+                        sql_model.Vessel.ship_name,
+                        sql_model.Vessel.width,
+                        sql_model.Vessel.length,
+                        sql_model.Vessel.country_iso3,
+                        sql_model.Vessel.type,
+                        sql_model.Vessel.imo,
+                        sql_model.Vessel.cfr,
+                        sql_model.Vessel.external_marking,
+                        sql_model.Vessel.ircs,
+                        sql_model.Vessel.home_port_id,
+                        sql_model.Vessel.details,
+                        sql_model.Vessel.tracking_activated,
+                        sql_model.Vessel.tracking_status,
+                        sql_model.Vessel.length_class,
+                        sql_model.Vessel.check,
+                        func.sum(sql_model.Excursion.total_time_at_sea).label("total_time_at_sea")
+                        )\
+                .select_from(sql_model.Segment)\
+                .join(sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id)\
+                .join(sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id)\
+                .where(
+                    or_(
+                        sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),
+                        and_(sql_model.Excursion.departure_at <= datetime_range.end_at,
+                            sql_model.Excursion.arrival_at == None))
+                )\
+                .group_by(sql_model.Vessel.id,sql_model.Excursion.total_time_at_sea)
+            stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+            stmt =  stmt.order_by(sql_model.Excursion.total_time_at_sea.asc())\
+                    if  order.order == OrderByEnum.ascending \
+                    else stmt.order_by(sql_model.Excursion.total_time_at_sea.desc())
+            payload=session.execute(stmt).all()
+            serialized=dumps(payload)
+            rd.set(endpoint, serialized)
+            rd.expire(endpoint,settings.redis_cache_expiration)
+    logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
+    return payload
 
 @router.get("/metrics/zone-visited",
             response_model=list[ResponseMetricsZoneVisitedSchema],

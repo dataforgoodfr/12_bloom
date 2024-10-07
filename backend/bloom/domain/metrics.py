@@ -4,7 +4,7 @@ from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from enum import Enum
 
-class ResponseMetricsVesselInActiviySchema(BaseModel):
+class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     mmsi: int

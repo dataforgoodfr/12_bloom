@@ -15,9 +15,6 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 from bloom.logger import logger
-from bloom.domain.metrics import (ResponseMetricsVesselInActiviySchema,
-                                 ResponseMetricsZoneVisitedSchema,
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema)
 from bloom.domain.api import (  DatetimeRangeRequest,
                                 PaginatedRequest,OrderByRequest,OrderByEnum,
                                 paginate,PagedResponseSchema,PageParams,
@@ -29,7 +26,6 @@ rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 @router.get("/vessels",
             tags=['Vessels'])
 async def list_vessels(nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
-    print(f"KEY:{key}")
     check_apikey(key)
     endpoint=f"/vessels"
     cache= rd.get(endpoint)
@@ -111,7 +107,11 @@ async def get_vessel_last_position(vessel_id: int, nocache:bool=False,key: str =
 
 @router.get("/vessels/{vessel_id}/excursions",
             tags=['Vessels'])
-async def list_vessel_excursions(vessel_id: int, nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
+async def list_vessel_excursions(vessel_id: int, nocache:bool=False,
+                                datetime_range: DatetimeRangeRequest = Depends(),
+                                pagination: PageParams = Depends(),
+                                order: OrderByRequest = Depends(),
+                                key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     endpoint=f"/vessels/{vessel_id}/excursions"
     cache= rd.get(endpoint)
@@ -147,7 +147,9 @@ async def get_vessel_excursion(vessel_id: int,excursions_id: int,key: str = Depe
 
 @router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments",
             tags=['Vessels'])
-async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int,key: str = Depends(X_API_KEY_HEADER)):
+async def list_vessel_excursion_segments(vessel_id: int,
+                                         excursions_id: int,
+                                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     segment_repository = use_cases.segment_repository()
@@ -157,7 +159,10 @@ async def list_vessel_excursion_segments(vessel_id: int,excursions_id: int,key: 
 
 @router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}",
             tags=['Vessels'])
-async def get_vessel_excursion_segment(vessel_id: int,excursions_id: int, segment_id:int,key: str = Depends(X_API_KEY_HEADER)):
+async def get_vessel_excursion_segment(vessel_id: int,
+                                       excursions_id: int,
+                                       segment_id:int,
+                                       key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     segment_repository = use_cases.segment_repository()

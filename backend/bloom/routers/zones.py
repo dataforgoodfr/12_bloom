@@ -15,9 +15,6 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 from bloom.logger import logger
-from bloom.domain.metrics import (ResponseMetricsVesselInActiviySchema,
-                                 ResponseMetricsZoneVisitedSchema,
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema)
 from bloom.domain.api import (  DatetimeRangeRequest,
                                 PaginatedRequest,OrderByRequest,OrderByEnum,
                                 paginate,PagedResponseSchema,PageParams,
