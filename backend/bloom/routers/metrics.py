@@ -25,7 +25,7 @@ redis_client = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
 @router.get("/metrics/vessels-in-activity",
             response_model=list[ResponseMetricsVesselInActiviySchema],
-            tags=['metrics'])
+            tags=['Metrics'])
 def read_metrics_vessels_in_activity_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            #pagination: PageParams = Depends(),
@@ -73,7 +73,7 @@ def read_metrics_vessels_in_activity_total(request: Request,
 
 @router.get("/metrics/zone-visited",
             response_model=list[ResponseMetricsZoneVisitedSchema],
-            tags=['metrics'] )
+            tags=['Metrics'] )
 def read_metrics_vessels_in_activity_total(datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PaginatedRequest = Depends(),
                                            auth: str = Depends(X_API_KEY_HEADER),):
@@ -101,7 +101,7 @@ def read_metrics_vessels_in_activity_total(datetime_range: DatetimeRangeRequest 
 
 @router.get("/metrics/zones/{zone_id}/visiting-time-by-vessel",
             response_model=list[ResponseMetricsZoneVisitingTimeByVesselSchema],
-            tags=['metrics'])
+            tags=['Metrics'])
 def read_metrics_zone_visiting_time_by_vessel(
                     datetime_range: Annotated[DatetimeRangeRequest,Body()],
                     zone_id: int,
@@ -133,7 +133,7 @@ def read_metrics_zone_visiting_time_by_vessel(
 
 
 
-@router.get("/metrics/vessels/{vessel_id}/visits/{visit_type}", tags=['metrics'])
+@router.get("/metrics/vessels/{vessel_id}/visits/{visit_type}", tags=['Metrics'])
 def read_metrics_vessels_visits_by_visit_type(
         vessel_id: int,
         visit_type: str,

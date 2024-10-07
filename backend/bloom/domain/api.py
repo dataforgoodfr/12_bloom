@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from pydantic import BaseModel, ConfigDict, Field,conint
 from typing import Generic,TypeVar, List
 from typing_extensions import Annotated, Literal, Optional
@@ -6,10 +6,16 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pydantic.generics import GenericModel
 from fastapi.security import APIKeyHeader
+from bloom.config import settings
 
 ## Reference for pagination design
 ## https://jayhawk24.hashnode.dev/how-to-implement-pagination-in-fastapi-feat-sqlalchemy
 X_API_KEY_HEADER=APIKeyHeader(name="x-key")
+
+def check_apikey(key:str):
+    if key != settings.api_key :
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return True
 
 class DatetimeRangeRequest(BaseModel):
     start_at: datetime = datetime.now()-timedelta(days=7)
