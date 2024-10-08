@@ -27,12 +27,27 @@ def check_cache(request:Request):
     cache= rd.get(request.url.path)
 
 class DatetimeRangeRequest(BaseModel):
-    start_at: datetime = datetime.now()-timedelta(days=7)
+    start_at: datetime = Field(default=datetime.now()-timedelta(days=7))
     end_at: datetime = datetime.now()
 
 class OrderByEnum(str, Enum):
     ascending = "ASC"
     descending = "DESC"
+
+
+class TotalTimeActivityTypeEnum(str, Enum):
+    total_time_at_sea: str = "Total Time at Sea"
+    total_time_in_amp: str = "Total Time in AMP"
+    total_time_in_territorial_waters: str = "Total Time in Territorial Waters"
+    total_time_in_costal_waters: str = "Total Time in Costal Waters"
+    total_time_fishing: str = "Total Time Fishing"
+    total_time_fishing_in_amp: str = "Total Time Fishing in AMP"
+    total_time_fishing_in_territorial_waters: str = "Total Time Fishing in Territorial Waters"
+    total_time_fishing_in_costal_waters: str = "Total Time Fishing in Costal Waters"
+    total_time_fishing_in_extincting_amp: str = "Total Time in Extincting AMP"
+
+class TotalTimeActivityTypeRequest(BaseModel):
+    type: TotalTimeActivityTypeEnum
 
 class OrderByRequest(BaseModel):
     order: OrderByEnum = OrderByEnum.ascending
@@ -46,7 +61,7 @@ class PaginatedRequest(BaseModel):
 class PageParams(BaseModel):
     """ Request query params for paginated API. """
     offset: conint(ge=0) = 0
-    limit: conint(ge=1, le=1000) = 100
+    limit: conint(ge=1, le=100000) = 100
 
 T = TypeVar("T")
 

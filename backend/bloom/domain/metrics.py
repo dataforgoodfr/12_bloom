@@ -8,7 +8,7 @@ from bloom.domain.vessel import Vessel
 class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     vessel_id: Optional[int]
-    """        vessel_mmsi: int
+    vessel_mmsi: int
     vessel_ship_name: str
     vessel_width: Optional[float] = None
     vessel_length: Optional[float] = None
@@ -23,7 +23,7 @@ class ResponseMetricsVesselInActivitySchema(BaseModel):
     vessel_tracking_activated: Optional[bool]
     vessel_tracking_status: Optional[str]
     vessel_length_class: Optional[str]
-    vessel_check: Optional[str]"""
+    vessel_check: Optional[str]
     total_time_at_sea: Optional[timedelta]
 
 class ResponseMetricsZoneVisitedSchema(BaseModel):
@@ -43,3 +43,7 @@ class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):
     vessel_type: Optional[str] = None
     vessel_length_class: Optional[str] = None
     zone_visiting_time_by_vessel: timedelta
+
+class ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(BaseModel):
+    vessel_id : int
+    total_activity_time: timedelta
