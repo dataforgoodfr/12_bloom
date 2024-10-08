@@ -3,33 +3,34 @@ from typing import Generic,TypeVar, List
 from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from enum import Enum
+from bloom.domain.vessel import Vessel
 
 class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: int
-    mmsi: int
-    ship_name: str
-    width: Optional[float] = None
-    length: Optional[float] = None
-    country_iso3: Optional[str] = None
-    type: Optional[str] = None
-    imo: Optional[int] = None
-    cfr: Optional[str] = None
-    external_marking: Optional[str] = None
-    ircs: Optional[str] = None
-    home_port_id: Optional[int] = None
-    details: Optional[str] = None
-    tracking_activated: Optional[bool]
-    tracking_status: Optional[str]
-    length_class: Optional[str]
-    check: Optional[str]
-    total_time_at_sea: timedelta
+    vessel_id: Optional[int]
+    """        vessel_mmsi: int
+    vessel_ship_name: str
+    vessel_width: Optional[float] = None
+    vessel_length: Optional[float] = None
+    vessel_country_iso3: Optional[str] = None
+    vessel_type: Optional[str] = None
+    vessel_imo: Optional[int] = None
+    vessel_cfr: Optional[str] = None
+    vessel_external_marking: Optional[str] = None
+    vessel_ircs: Optional[str] = None
+    vessel_home_port_id: Optional[int] = None
+    vessel_details: Optional[str] = None
+    vessel_tracking_activated: Optional[bool]
+    vessel_tracking_status: Optional[str]
+    vessel_length_class: Optional[str]
+    vessel_check: Optional[str]"""
+    total_time_at_sea: Optional[timedelta]
 
 class ResponseMetricsZoneVisitedSchema(BaseModel):
-    id : int
-    category: str
-    sub_category: Optional[str] = None
-    name: str
+    zone_id : int
+    zone_category: Optional[str]
+    zone_sub_category: Optional[str] = None
+    zone_name: str
     visiting_duration: timedelta
 
 class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):

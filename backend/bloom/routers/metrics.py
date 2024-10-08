@@ -37,13 +37,13 @@ def read_metrics_vessels_in_activity_total(request: Request,
     check_apikey(key)
     use_cases = UseCases()
     db = use_cases.db()
-    endpoint=f"/vessels"
-    cache= rd.get(endpoint)
+    cache_key=f"{request.url.path}?{request.query_params}"
+    cache_payload= rd.get(cache_key)
     start = time.time()
     payload = []
-    if cache and not caching.nocache:
-            logger.debug(f"{endpoint} cached ({settings.redis_cache_expiration})s")
-            payload=loads(cache)
+    if cache_payload and not caching.nocache:
+            logger.debug(f"{cache_key} cached ({settings.redis_cache_expiration})s")
+            payload=loads(cache_payload)
     else:
         with db.session() as session:
             stmt=select(sql_model.Vessel.id,
@@ -79,41 +79,61 @@ def read_metrics_vessels_in_activity_total(request: Request,
             stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
             stmt =  stmt.order_by(sql_model.Excursion.total_time_at_sea.asc())\
                     if  order.order == OrderByEnum.ascending \
-                    else stmt.order_by(sql_model.Excursion.total_time_at_sea.desc())
+                    else stmt.order_by(sql_model.Excursion.total_time_at_sea.desc())"""
             payload=session.execute(stmt).all()
+            for item in session.execute(stmt).scalars():
+                print(f"{item.vessel_id},{item.total_time_at_sea}")
             serialized=dumps(payload)
-            rd.set(endpoint, serialized)
-            rd.expire(endpoint,settings.redis_cache_expiration)
-    logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
-    return payload
+            rd.set(cache_key, serialized)
+            rd.expire(cache_key,settings.redis_cache_expiration)
+    logger.debug(f"{cache_key} elapsed Time: {time.time()-start}")
+    return []
 
 @router.get("/metrics/zone-visited",
             response_model=list[ResponseMetricsZoneVisitedSchema],
             tags=['Metrics'] )
-def read_metrics_vessels_in_activity_total(datetime_range: DatetimeRangeRequest = Depends(),
-                                           pagination: PaginatedRequest = Depends(),
-                                           auth: str = Depends(X_API_KEY_HEADER),):
-    use_cases = UseCases()
-    db = use_cases.db()
-    with db.session() as session:
-        stmt=select(
-            sql_model.Zone.id.label("zone_id"),
-            sql_model.Zone.category.label("zone_category"),
-            sql_model.Zone.sub_category.label("zone_sub_category"),
-            sql_model.Zone.name.label("zone_name"),
-            func.sum(sql_model.Segment.segment_duration).label("visiting_duration")
-            )\
-            .where(
-                or_(
-                    sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
-                    sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)
-            )\
-            .group_by(sql_model.Zone.id)
-        stmt = stmt.limit(limit) if limit != None else stmt
-        stmt =  stmt.order_by("visiting_duration")\
-                if  pagination.order_by == OrderByRequest.ascending \
-                else stmt.order_by("visiting_duration") 
-        return  session.execute(stmt).all()
+def read_metrics_vessels_in_activity_total(request: Request,
+                                           datetime_range: DatetimeRangeRequest = Depends(),
+                                           pagination: PageParams = Depends(),
+                                           order: OrderByRequest = Depends(),
+                                           caching: CachedRequest = Depends(),
+                                           key: str = Depends(X_API_KEY_HEADER),):
+    check_apikey(key)
+    cache_key=f"{request.url.path}?{request.query_params}"
+    cache_payload= rd.get(cache_key)
+    start = time.time()
+    payload=[]
+    if cache_payload and not caching.nocache:
+            logger.debug(f"{cache_key} cached ({settings.redis_cache_expiration})s")
+            payload=loads(cache_payload)
+    else:
+        use_cases = UseCases()
+        payload = []
+        db = use_cases.db()
+        with db.session() as session:
+            stmt=select(
+                sql_model.Zone.id.label("zone_id"),
+                sql_model.Zone.category.label("zone_category"),
+                sql_model.Zone.sub_category.label("zone_sub_category"),
+                sql_model.Zone.name.label("zone_name"),
+                func.sum(sql_model.Segment.segment_duration).label("visiting_duration")
+                )\
+                .where(
+                    or_(
+                        sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
+                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)
+                )\
+                .group_by(sql_model.Zone.id)
+            stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            stmt =  stmt.order_by("visiting_duration")\
+                    if  order.order == OrderByEnum.ascending \
+                    else stmt.order_by("visiting_duration") 
+            payload=session.execute(stmt).all()
+            serialized=dumps(payload)
+            rd.set(cache_key, serialized)
+            rd.expire(cache_key,settings.redis_cache_expiration)
+    logger.debug(f"{cache_key} elapsed Time: {time.time()-start}")
+    return payload
 
 @router.get("/metrics/zones/{zone_id}/visiting-time-by-vessel",
             response_model=list[ResponseMetricsZoneVisitingTimeByVesselSchema],
