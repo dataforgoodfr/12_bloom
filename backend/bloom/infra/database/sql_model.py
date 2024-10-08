@@ -13,7 +13,10 @@ from sqlalchemy import (
     PrimaryKeyConstraint
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, select
+from sqlalchemy.orm import mapped_column, Mapped, relationship
+from typing_extensions import Annotated, Literal, Optional
+from datetime import timedelta
 
 
 class Vessel(Base):
@@ -235,3 +238,21 @@ class RelSegmentZone(Base):
     segment_id = Column("segment_id", Integer, ForeignKey("fct_segment.id"), nullable=False)
     zone_id = Column("zone_id", Integer, ForeignKey("dim_zone.id"), nullable=False)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
+vessel_in_activity_request=(
+                       select(
+                           Vessel.id,
+                           Excursion.vessel_id,
+                           func.sum(Excursion.total_time_at_sea).label("total_time_at_sea")
+                        )\
+                .select_from(Segment)\
+                .join(Excursion, Segment.excursion_id == Excursion.id)\
+                .join(Vessel, Excursion.vessel_id == Vessel.id)\
+                .group_by(Vessel.id,Excursion.vessel_id,Excursion.total_time_at_sea)\
+                .subquery())
+
+class MetricsVesselInActivity(Base):
+    __table__ = vessel_in_activity_request
+    #vessel_id: Mapped[Optional[int]]
+    #total_time_at_sea: Mapped[Optional[timedelta]]
+    
