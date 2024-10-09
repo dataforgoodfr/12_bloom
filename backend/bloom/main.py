@@ -6,7 +6,7 @@ from bloom.routers.metrics import router as router_metrics
 from bloom.routers.vessels import router as router_vessels
 from bloom.routers.ports import router as router_ports
 from bloom.routers.zones import router as router_zones
-from bloom.domain.api import (  DatetimeRangeRequest,
+from bloom.dependencies import (  DatetimeRangeRequest,
                                  PaginatedRequest,OrderByRequest,
                                  paginate,PagedResponseSchema,PageParams,
                                  X_API_KEY_HEADER,check_apikey)
