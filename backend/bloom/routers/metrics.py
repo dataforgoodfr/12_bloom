@@ -17,11 +17,12 @@ from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
                                  ResponseMetricsZoneVisitedSchema,
                                  ResponseMetricsZoneVisitingTimeByVesselSchema,
                                  ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
-from bloom.domain.api import (  DatetimeRangeRequest,
+from bloom.dependencies import (  DatetimeRangeRequest,
                                 PaginatedRequest,OrderByRequest,OrderByEnum,
                                 paginate,PagedResponseSchema,PageParams,
-                                X_API_KEY_HEADER, check_apikey,CachedRequest,
-                                TotalTimeActivityTypeRequest)
+                                X_API_KEY_HEADER, check_apikey,CachedRequest)
+
+from bloom.domain.metrics import TotalTimeActivityTypeRequest
 
 router = APIRouter()
 rd = Redis(host=settings.redis_host, port=settings.redis_port, db=0)

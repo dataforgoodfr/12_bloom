@@ -15,7 +15,7 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
 from bloom.logger import logger
-from bloom.domain.api import (  DatetimeRangeRequest,
+from bloom.dependencies import (  DatetimeRangeRequest,
                                 PaginatedRequest,OrderByRequest,OrderByEnum,
                                 paginate,PagedResponseSchema,PageParams,
                                 X_API_KEY_HEADER,check_apikey)

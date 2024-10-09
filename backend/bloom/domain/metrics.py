@@ -4,6 +4,7 @@ from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from enum import Enum
 from bloom.domain.vessel import Vessel
+from bloom.dependencies import TotalTimeActivityTypeEnum
 
 class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -47,3 +48,8 @@ class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):
 class ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(BaseModel):
     vessel_id : int
     total_activity_time: timedelta
+
+
+
+class TotalTimeActivityTypeRequest(BaseModel):
+    type: TotalTimeActivityTypeEnum
