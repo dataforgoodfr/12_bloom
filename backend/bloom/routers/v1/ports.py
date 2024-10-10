@@ -24,8 +24,7 @@ from bloom.config import settings
 router = APIRouter()
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
-@router.get("/ports",
-         tags=['Ports'])
+@router.get("/ports")
 async def list_ports(   request:Request,
                         caching: CachedRequest = Depends(),
                         key: str = Depends(X_API_KEY_HEADER)):
@@ -51,8 +50,7 @@ async def list_ports(   request:Request,
             return json_data
     
 
-@router.get("/ports/{port_id}",
-         tags=['Ports'])
+@router.get("/ports/{port_id}")
 async def get_port(port_id:int,
                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
