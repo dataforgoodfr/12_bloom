@@ -23,8 +23,7 @@ from bloom.dependencies import (  DatetimeRangeRequest,
 router = APIRouter()
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
-@router.get("/vessels",
-            tags=['Vessels'])
+@router.get("/vessels")
 async def list_vessels(nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     endpoint=f"/vessels"
@@ -47,8 +46,7 @@ async def list_vessels(nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
             rd.expire(endpoint,settings.redis_cache_expiration)
             return json_data
 
-@router.get("/vessels/{vessel_id}",
-            tags=['Vessels'])
+@router.get("/vessels/{vessel_id}")
 async def get_vessel(vessel_id: int,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
@@ -57,8 +55,7 @@ async def get_vessel(vessel_id: int,key: str = Depends(X_API_KEY_HEADER)):
     with db.session() as session:
         return vessel_repository.get_vessel_by_id(session,vessel_id)
 
-@router.get("/vessels/all/positions/last",
-            tags=['Vessels'])
+@router.get("/vessels/all/positions/last")
 async def list_all_vessel_last_position(nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     endpoint=f"/vessels/all/positions/last"
@@ -81,8 +78,7 @@ async def list_all_vessel_last_position(nocache:bool=False,key: str = Depends(X_
             logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
             return json_data
 
-@router.get("/vessels/{vessel_id}/positions/last",
-            tags=['Vessels'])
+@router.get("/vessels/{vessel_id}/positions/last")
 async def get_vessel_last_position(vessel_id: int, nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     endpoint=f"/vessels/{vessel_id}/positions/last"
@@ -105,8 +101,7 @@ async def get_vessel_last_position(vessel_id: int, nocache:bool=False,key: str =
             logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
             return json_data
 
-@router.get("/vessels/{vessel_id}/excursions",
-            tags=['Vessels'])
+@router.get("/vessels/{vessel_id}/excursions")
 async def list_vessel_excursions(vessel_id: int, nocache:bool=False,
                                 datetime_range: DatetimeRangeRequest = Depends(),
                                 pagination: PageParams = Depends(),
@@ -134,8 +129,7 @@ async def list_vessel_excursions(vessel_id: int, nocache:bool=False,
         return json_data
 
 
-@router.get("/vessels/{vessel_id}/excursions/{excursions_id}",
-            tags=['Vessels'])
+@router.get("/vessels/{vessel_id}/excursions/{excursions_id}")
 async def get_vessel_excursion(vessel_id: int,excursions_id: int,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
@@ -145,8 +139,7 @@ async def get_vessel_excursion(vessel_id: int,excursions_id: int,key: str = Depe
         return excursion_repository.get_vessel_excursion_by_id(session,vessel_id,excursions_id)
 
 
-@router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments",
-            tags=['Vessels'])
+@router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments")
 async def list_vessel_excursion_segments(vessel_id: int,
                                          excursions_id: int,
                                          key: str = Depends(X_API_KEY_HEADER)):
@@ -157,8 +150,7 @@ async def list_vessel_excursion_segments(vessel_id: int,
     with db.session() as session:
         return segment_repository.list_vessel_excursion_segments(session,vessel_id,excursions_id)
 
-@router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}",
-            tags=['Vessels'])
+@router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}")
 async def get_vessel_excursion_segment(vessel_id: int,
                                        excursions_id: int,
                                        segment_id:int,

@@ -28,8 +28,7 @@ router = APIRouter()
 rd = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
 @router.get("/metrics/vessels-in-activity",
-            response_model=list[ResponseMetricsVesselInActivitySchema],
-            tags=['Metrics'])
+            response_model=list[ResponseMetricsVesselInActivitySchema])
 def read_metrics_vessels_in_activity_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PageParams = Depends(),
@@ -58,8 +57,7 @@ def read_metrics_vessels_in_activity_total(request: Request,
     return payload
 
 @router.get("/metrics/zone-visited",
-            response_model=list[ResponseMetricsZoneVisitedSchema],
-            tags=['Metrics'] )
+            response_model=list[ResponseMetricsZoneVisitedSchema])
 def read_zone_visited_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PageParams = Depends(),
@@ -87,8 +85,7 @@ def read_zone_visited_total(request: Request,
     return payload
 
 @router.get("/metrics/zones/{zone_id}/visiting-time-by-vessel",
-            response_model=list[ResponseMetricsZoneVisitingTimeByVesselSchema],
-            tags=['Metrics'])
+            response_model=list[ResponseMetricsZoneVisitingTimeByVesselSchema])
 def read_metrics_zone_visiting_time_by_vessel(request: Request,
                                             zone_id: int,
                                             datetime_range: DatetimeRangeRequest = Depends(),
@@ -120,8 +117,7 @@ def read_metrics_zone_visiting_time_by_vessel(request: Request,
 
 
 @router.get("/metrics/vessels/{vessel_id}/activity/{activity_type}",
-            response_model=ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
-            tags=['Metrics'])
+            response_model=ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
 def read_metrics_vessels_visits_by_activity_type(request: Request,
                                             vessel_id: int,
                                             activity_type: TotalTimeActivityTypeRequest = Depends(),
