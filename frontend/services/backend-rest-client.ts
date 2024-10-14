@@ -1,8 +1,15 @@
 
 import { Vessel, VesselExcursion, VesselExcursionSegment, VesselPositions } from "@/types/vessel";
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
+const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? 'no-key-found';
+
+// Authenticate all requests to Bloom backend
+axios.interceptors.request.use((request: InternalAxiosRequestConfig) => {
+  request.headers.set('x-key', API_KEY);
+    return request;
+});
 
 export function getVessels() {
   return axios.get<Vessel[]>(`${BASE_URL}/vessels`);
