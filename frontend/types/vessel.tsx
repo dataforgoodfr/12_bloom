@@ -13,6 +13,27 @@ export type Vessel = {
   length_class: string
 }
 
+export type VesselTrackingTimeDto = {
+  vessel_id: number;
+  vessel_mmsi: number;
+  vessel_ship_name: string;
+  vessel_width: number;
+  vessel_length: number;
+  vessel_country_iso3: string;
+  vessel_type: string;
+  vessel_imo: number;
+  vessel_cfr: string;
+  vessel_external_marking: string;
+  vessel_ircs: string;
+  vessel_home_port_id: number;
+  vessel_details: string;
+  vessel_tracking_activated: boolean
+  vessel_tracking_status: string;
+  vessel_length_class: string;
+  vessel_check: string;
+  total_time_at_sea: string;
+}
+
 export type VesselPositions = VesselPosition[]
 
 export interface VesselPosition {

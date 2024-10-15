@@ -1,28 +1,33 @@
 "use client"
 
-import mockData from "@/public/data/mock-data-dashboard.json"
-
 import Dropdown from "@/components/ui/dropdown"
 import ListCard from "@/components/ui/list-card"
 import KPICard from "@/components/dashboard/kpi-card"
+import { ZoneVisitTimeDto } from "@/types/zone"
+import { VesselTrackingTimeDto } from "@/types/vessel"
+import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper";
 
-// TODO: use real data + load in server components
-let amps = mockData["top-amps"]
-let vessels = mockData["top-vessels"]
-let totalVesselsActive = mockData["total-vessels-active"]
-let totalVessels = mockData["total-vessels"]
-let totalAmpsVisited = mockData["total-amps-visited"]
-let totalAmps = mockData["total-amps"]
-let fishingEffort = mockData["fishing-effort-hours"]
-let fishingArea = mockData["fishing-area-km2"]
+const TOTAL_VESSELS = 1700;
+const TOTAL_AMPS = 720;
 
-export default function DashboardOverview() {
+type Props = {
+  topVesselsInActivity: VesselTrackingTimeDto[];
+  topAmpsVisited: ZoneVisitTimeDto[];
+  totalVesselsActive: number;
+  totalAmpsVisited: number;
+}
+
+export default function DashboardOverview(props : Props) {
+  const { topVesselsInActivity, topAmpsVisited, totalVesselsActive, totalAmpsVisited } = props;
+  const topVesselsInActivityToItems = convertVesselDtoToItem(topVesselsInActivity);
+  const topAmpsVisitedToItems = convertZoneDtoToItem(topAmpsVisited);
+
   return (
     <section className="grid">
       <div className="mb-2 w-full">
         <Dropdown
           className="float-right w-40"
-          options={["7 derniers jours", "30 derniers jours"]} // TODO: move in dedicated enum?
+          options={["360 derniers jours"]} // TODO: move in dedicated enum?
           onSelect={(value) => console.log("selected: " + value)}
         />
       </div>
@@ -33,19 +38,12 @@ export default function DashboardOverview() {
             <KPICard
               title="Total vessels in Activity"
               kpiValue={totalVesselsActive}
-              totalValue={totalVessels}
+              totalValue={TOTAL_VESSELS}
             />
             <KPICard
               title="Total AMPs visited"
               kpiValue={totalAmpsVisited}
-              totalValue={totalAmps}
-            />
-            <KPICard
-              title="Fishing effort"
-              kpiValue={fishingEffort}
-              kpiUnit="Hours"
-              totalValue={fishingArea}
-              totalUnit="Km2"
+              totalValue={TOTAL_AMPS}
             />
           </div>
         </div>
@@ -54,12 +52,12 @@ export default function DashboardOverview() {
           <div className="grid grid-cols-1 gap-y-4">
             <ListCard
               title="Top AMPs visited during the period"
-              items={amps}
+              items={topAmpsVisitedToItems ?? []}
               enableViewDetails
             />
             <ListCard
               title="Top Vessels visiting AMPS"
-              items={vessels}
+              items={topVesselsInActivityToItems ?? []}
               enableViewDetails
             />
           </div>
