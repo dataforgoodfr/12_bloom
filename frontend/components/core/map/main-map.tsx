@@ -192,7 +192,7 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
   )
 }
 function toSegmentsGeo({ segments, vesselId }: VesselExcursionSegments): any {
-  const segmentsGeo = segments.map((segment: VesselExcursionSegment) => {
+  const segmentsGeo = segments?.map((segment: VesselExcursionSegment) => {
     return {
       speed: segment.average_speed,
       navigational_status: "unknown",
@@ -205,6 +205,6 @@ function toSegmentsGeo({ segments, vesselId }: VesselExcursionSegments): any {
       } 
     }
   })
-  return { vesselId, type: "FeatureCollection", features: segmentsGeo };
+  return { vesselId, type: "FeatureCollection", features: segmentsGeo ?? [] };
 }
 
