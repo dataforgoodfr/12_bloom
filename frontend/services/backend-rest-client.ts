@@ -2,6 +2,7 @@
 import { Vessel, VesselExcursion, VesselExcursionSegment, VesselPositions, VesselTrackingTimeDto } from "@/types/vessel";
 import { ZoneVisitTimeDto } from "@/types/zone";
 import axios, { InternalAxiosRequestConfig } from "axios";
+import { log } from "console";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
 const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? 'no-key-found';
@@ -37,9 +38,15 @@ export function getVesselSegments(vesselId: number, excursionId: number) {
 }
 
 export async function getVesselFirstExcursionSegments(vesselId: number) {
-  const response = await getVesselExcursion(vesselId);
-  const excursionId = response?.data[0]?.id;
-  return !!excursionId ? getVesselSegments(vesselId, excursionId) : [];
+  try {
+    const response = await getVesselExcursion(vesselId);
+    const excursionId = response?.data[0]?.id;
+    return !!excursionId ? getVesselSegments(vesselId, excursionId) : [];
+
+  } catch(error) {
+    console.error(error);
+    return [];
+  }
 }
 
 export function getTopVesselsInActivity(startAt: string, endAt: string, topVesselsLimit: number) {
