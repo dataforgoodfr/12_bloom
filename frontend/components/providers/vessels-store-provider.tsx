@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useRef, type ReactNode } from "react"
 import { useStore, type StoreApi } from "zustand"
-import { VesselsState, createVesselsStore, type VesselsStore } from "@/lib/stores/vessels-store"
+import { VesselsState, createVesselsStore, type VesselsStore } from "@/libs/stores/vessels-store"
 
 export const VesselsStoreContext = createContext<StoreApi<VesselsStore> | null>(null)
 

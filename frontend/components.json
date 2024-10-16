@@ -9,7 +9,7 @@
   },
   "rsc": false,
   "aliases": {
-    "utils": "@/lib/utils",
+    "utils": "@/libs/utils",
     "components": "@/components"
   }
 }

@@ -3,7 +3,7 @@
 import { createContext, useContext, useRef, type ReactNode } from "react"
 import { useStore, type StoreApi } from "zustand"
 
-import { createMapStore, type MapStore } from "@/lib/stores/map-store"
+import { createMapStore, type MapStore } from "@/libs/stores/map-store"
 
 export const MapStoreContext = createContext<StoreApi<MapStore> | null>(null)
 
