@@ -24,7 +24,9 @@ def upgrade() -> None:
         'fct_metrics',
         sa.Column('timestamp', sa.DateTime, primary_key=True), #granule
         sa.Column('vessel_id', sa.Integer, nullable=False), #vessel id
-        sa.Column('type', sa.String, nullable=False), #in_mpa or at_sea
+        sa.Column('vessel_mmsi', sa.Integer, nullable=False), #vessel mmsi
+        sa.Column('ship_name', sa.String, nullable=False), #vessel name
+        sa.Column('type', sa.String, nullable=False), #IN_MPA or AT_SEA
         sa.Column('duration_total', sa.DateTime, nullable=False), #time spent at sea at timestamp
         sa.Column('duration_fishing', sa.DateTime, nullable=True), #time spent fishing 
         sa.Column("mpa_name", sa.String, nullable=True), # if type is in_mpa, write here the mpa name
