@@ -146,7 +146,7 @@ def run(batch_time):
         )
         batch["speed"] *= 0.5399568  # Conversion km/h to
         batch["speed"] = batch["speed"].fillna(batch["position_speed"])
-
+        batch.replace([np.nan], [None], inplace=True)
         # Step 7: apply to_keep flag: keep only positions WHERE:
         # - row["new_vessel"] is True, i.e. there is a new vessel_id
         # - OR speed is not close to 0, i.e. vessel moved significantly since last position
