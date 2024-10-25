@@ -305,26 +305,32 @@ def run():
         for segment, zones in result.items():
             segment_in_zone = False
             df= metrics_repository.get_vessel_excursion_segment_by_id(session,segment.id) #1
+            types=[]
+            zones_names=[]
             for zone in zones:
                 segment_in_zone = True
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
-                type='AT_SEA' #1
                 if zone.category == "amp":
                     segment.in_amp_zone = True
-                    type='IN_AMP' #1
+                    types="in_amp" #1
                 elif zone.category.startswith("Fishing coastal waters"):
                     segment.in_costal_waters = True
+                    types="in_costal_water" #1
                 elif zone.category == "Territorial seas":
                     segment.in_territorial_waters = True
+                    types="in_territorial_water" #1
+                #elif zone.category == "white zone":    #prospectif
+                #    segment.in_white_zone = True
+                #    types="white_zone"  
 
                 new_metrics= Metrics(#1
                     timestamp = point_in_time, #1
                     vessel_id = df['vessel_id'], #1
                     vessel_mmsi = df['vessel_mmsi'], #1
                     ship_name = df['ship_name'], #1
-                    type = type, #1
-                    duration_total = None, #1
-                    duration_fishing = segment.segment_duration if segment.type== 'FISHING' else None, #1
+                    type = types, #1
+                    duration_total = segment.segment_duration, #fonctionne si 1 segment = zone max #1
+                    duration_fishing = segment.segment_duration if segment.type == 'FISHING' else None, #1
                     mpa_name = zone.name #1
                 ) #1
             if segment_in_zone:
