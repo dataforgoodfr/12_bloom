@@ -22,7 +22,7 @@ from bloom.dependencies import (  DatetimeRangeRequest,
 from bloom.config import settings
 
 router = APIRouter()
-rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
+rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
 
 @router.get("/ports")
 async def list_ports(   request:Request,
