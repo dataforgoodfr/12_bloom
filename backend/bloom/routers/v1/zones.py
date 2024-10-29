@@ -21,7 +21,7 @@ from bloom.dependencies import (  DatetimeRangeRequest,
                                 X_API_KEY_HEADER,check_apikey)
 
 router = APIRouter()
-rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
+rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
 
 @router.get("/zones")
 async def list_zones(request:Request,nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):

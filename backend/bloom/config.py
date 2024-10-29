@@ -47,6 +47,7 @@ class Settings(BaseSettings):
 
     redis_host: str = Field(default='localhost')
     redis_port: int = Field(default=6379)
+    redis_password: str = Field(default='bloom',min_length=1)
     redis_cache_expiration: int = Field(default=900)
     
     logging_level:str=Field(

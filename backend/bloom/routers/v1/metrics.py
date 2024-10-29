@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Body,Request
-from redis import Redis
+import redis
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.logger import logger
@@ -25,7 +25,7 @@ from bloom.dependencies import (  DatetimeRangeRequest,
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
 
 router = APIRouter()
-rd = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
+rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
 
 @router.get("/metrics/vessels-in-activity",
             response_model=list[ResponseMetricsVesselInActivitySchema])
