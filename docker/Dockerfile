@@ -5,7 +5,8 @@ RUN apt-get update &&\
     apt-get -y install curl &&\
     apt-get install -y rsyslog &&\
     apt-get install -y libgdal-dev &&\
-    apt-get install -y g++
+    apt-get install -y g++ &&\
+    apt-get install -y clang
 
 
 # Define working directory
@@ -33,7 +34,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 RUN . ~/.cargo/env &&\
     cd backend &&\
-    uv venv &&\
+    uv venv /venv &&\
     echo ". /venv/bin/activate" >> /root/.bashrc &&\
     uv sync
 

@@ -17,35 +17,35 @@ dev = [
 authors = [
     {name = "Your Name", email = "you@example.com"},
 ]
-requires-python = "~=3.11"
+requires-python = "~=3.10"
 dependencies = [
     "alembic~=1.13",
-    "autopep8~=2.0",
-    "dependency-injector~=4.41",
+    "autopep8~=2.3",
+    "dependency-injector~=4.42",
     "dependency-injection~=1.2",
-    "GeoAlchemy2~=0.14",
+    "GeoAlchemy2~=0.15",
     "geopandas~=0.14",
     "geopy~=2.4",
     "gql~=3.5",
-    "matplotlib~=3.8",
+    "matplotlib~=3.9",
     "openpyxl~=3.1",
     "pandas~=2.2",
     "poetry~=1.8",
     "psycopg2-binary~=2.9",
-    "pydantic~=2.6",
-    "pydantic-settings~=2.2",
+    "pydantic~=2.9",
+    "pydantic-settings~=2.6",
     "python-dotenv~=1.0",
     "PyYAML~=6.0",
-    "requests~=2.31",
+    "requests~=2.32",
     "requests-toolbelt~=1.0",
     "shapely~=2.0",
     "scipy==1.12.0",
-    "slack-sdk~=3.27",
+    "slack-sdk~=3.33",
     "SQLAlchemy~=2.0",
     "pycountry==23.12.11",
-    "fastapi[standard]>=0.111.0,<1.0.0",
-    "uvicorn<1.0.0,>=0.30.1",
-    "redis<6.0.0,>=5.0.4",
+    "fastapi[standard]>=0.115.0,<1.0.0",
+    "uvicorn~=0.32",
+    "redis~=5.0",
 ]
 name = "bloom"
 version = "0.1.0"
