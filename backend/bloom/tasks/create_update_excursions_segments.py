@@ -321,6 +321,8 @@ def run():
                     excursion.total_time_in_amp += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_amp += segment.segment_duration
+                elif segment.type == "DEFAULT_AIS":
+                    excursion.total_time_extincting_amp += segment.segment_duration
             if segment.in_costal_waters:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_costal_waters += segment.segment_duration

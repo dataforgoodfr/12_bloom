@@ -16,7 +16,7 @@ def map_to_domain(row: pd.Series) -> Zone:
     isna = row.isna()
 
     json_data = {}
-    for k in ["index", "wdpaid", "desig_eng", "desig_type", "iucn_cat", "parent_iso", "iso3", "benificiaries",
+    for k in ["index", "wdpaid", "desig_eng", "desig_type", "iucn_cat", "parent_iso", "iso3", "beneficiaries",
               "source", "reference"]:
         try:
             value = row[k] if not isna[k] else None
