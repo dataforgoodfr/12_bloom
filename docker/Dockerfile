@@ -23,14 +23,18 @@ ARG POETRY_VERSION=1.8.2
 ENV POETRY_VERSION=${POETRY_VERSION}
 RUN pip install --upgrade pip && pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
-COPY ./backend/pyproject.toml ./backend/poetry.lock ./backend/alembic.ini ./backend/
+COPY ./backend/pyproject.toml ./backend/alembic.ini ./backend/
 
 ENV PATH=/venv/bin:$PATH \
     VIRTUAL_ENV=/venv
-RUN python -m venv /venv &&\
+
+# Install UV
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+RUN cd backend &&\
+    uv venv &&\
     echo ". /venv/bin/activate" >> /root/.bashrc &&\
-    cd backend &&\
-    poetry install
+    uv sync
 
 # Launch cron services
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y cron \
