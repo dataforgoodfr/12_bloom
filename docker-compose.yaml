@@ -18,7 +18,7 @@ services:
         - -c
         - |
             echo "Starting Scheduler" &&
-            service cron start && uvicorn bloom.main:app --host 0.0.0.0 --reload
+            service cron start && uvicorn bloom.app:app --host 0.0.0.0 --reload
     volumes:
       - ./:/project/
       - ./data:/project/data
