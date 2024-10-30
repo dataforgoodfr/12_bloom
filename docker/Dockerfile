@@ -31,7 +31,8 @@ ENV PATH=/venv/bin:$PATH \
 # Install UV
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-RUN cd backend &&\
+RUN . ~/.cargo/env &&\
+    cd backend &&\
     uv venv &&\
     echo ". /venv/bin/activate" >> /root/.bashrc &&\
     uv sync
