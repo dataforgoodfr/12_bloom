@@ -1,48 +1,56 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[tool.hatch.build.targets.wheel]
+packages = ["bloom"]
+
+
+[dependency-groups]
+dev = [
+    "pre-commit~=3.6",
+    "ruff~=0.7",
+    "tox~=4.14",
+]
+
+[project]
+authors = [
+    {name = "Your Name", email = "you@example.com"},
+]
+requires-python = "~=3.11"
+dependencies = [
+    "alembic~=1.13",
+    "autopep8~=2.0",
+    "dependency-injector~=4.41",
+    "dependency-injection~=1.2",
+    "GeoAlchemy2~=0.14",
+    "geopandas~=0.14",
+    "geopy~=2.4",
+    "gql~=3.5",
+    "matplotlib~=3.8",
+    "openpyxl~=3.1",
+    "pandas~=2.2",
+    "poetry~=1.8",
+    "psycopg2-binary~=2.9",
+    "pydantic~=2.6",
+    "pydantic-settings~=2.2",
+    "python-dotenv~=1.0",
+    "PyYAML~=6.0",
+    "requests~=2.31",
+    "requests-toolbelt~=1.0",
+    "shapely~=2.0",
+    "scipy==1.12.0",
+    "slack-sdk~=3.27",
+    "SQLAlchemy~=2.0",
+    "pycountry==23.12.11",
+    "fastapi[standard]>=0.111.0,<1.0.0",
+    "uvicorn<1.0.0,>=0.30.1",
+    "redis<6.0.0,>=5.0.4",
+]
 name = "bloom"
 version = "0.1.0"
 description = "Bloom scrapping application"
-authors = ["Your Name <you@example.com>"]
 
-[tool.poetry.dependencies]
-alembic = "~1.13"
-autopep8 = "~2.0"
-dependency-injector = "~4.41"
-dependency_injection = "~1.2"
-GeoAlchemy2 = "~0.14"
-geopandas = "~0.14"
-geopy = "~2.4"
-gql = "~3.5"
-matplotlib = "~3.8"
-openpyxl = "~3.1"
-pandas = "~2.2"
-poetry = "~1.8"
-psycopg2-binary = "~2.9"
-pydantic = "~2.6"
-pydantic-settings = "~2.2"
-python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-python-dotenv = "~1.0"
-PyYAML = "~6.0"
-requests = "~2.31"
-requests-toolbelt = "~1.0"
-shapely = "~2.0"
-scipy = "1.12.0"
-slack-sdk = "~3.27"
-SQLAlchemy = "~2.0"
-pycountry = "23.12.11"
-fastapi = "^0.111.0"
-uvicorn = "^0.30.1"
-redis = "^5.0.4"
-
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "~3.6"
-ruff = "~0.3"
-tox = "~4.14"
 
 [tool.ruff]
 select = [
@@ -148,3 +156,4 @@ target-version = "py310"
 
 [tool.ruff.mccabe]
 max-complexity = 10
+

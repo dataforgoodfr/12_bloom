@@ -54,12 +54,12 @@ well as policy-makers and economic stakeholders.
 
 Bloom is tested with:
 
-|            | Main version (dev)   | Stable version (1.0.0) |
-|------------|----------------------|------------------------|
-| Python     | 3.8, 3.9, 3.10, 3.11 | 3.8, 3.9, 3.10, 3.11   |
-| Platform   | AMD64/ARM64(\*)      | AMD64/ARM64(\*)        |
-| Docker     | 24                   | 24                     |
-| PostgreSQL | 14                   | 14                     |
+|            | Main version (dev) | Stable version (1.0.0) |
+|------------|--------------------|------------------------|
+| Python     | 3.11               | 3.11                   |
+| Platform   | AMD64/ARM64(\*)    | AMD64/ARM64(\*)        |
+| Docker     | 24                 | 24                     |
+| PostgreSQL | 14                 | 14                     |
 
 ## Getting started
 
@@ -118,7 +118,7 @@ You can now jump to [Use the Bloom Application](#use-the-bloom-application)
 
 #### Prerequistes
 
-* **Python**: 3.9, 3.10, 3.11
+* **Python**: 3.11
 * **Python-pip**: >=20
 * **Postgresql**: 14, 15, 16
 
@@ -130,18 +130,10 @@ password, database name, port to use)
 ```bash
     # From project diretory
     cd ./backend
-    # Install poetry
-    pip install --user "poetry==1.8.1"
-    # Mise à disposition de l'exécutable de manière temporaire
-    export PATH=$PATH:~/.local/bin/
-    # Ensure that poetry will create a `.venv` directory into the project with the command
-    poetry config virtualenvs.in-project true
-    # Install dependencies from pyproject.toml
-    poetry install
-    # Make sure everything is all right using
-    poetry env info
-    # Enable virtual poetry project environment
-    poetry shell
+    # Install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Install project and dependencies
+    uv sync
 ```
 
 #### Initial configuration
