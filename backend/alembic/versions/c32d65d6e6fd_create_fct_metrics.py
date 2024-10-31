@@ -27,8 +27,8 @@ def upgrade() -> None:
         sa.Column('vessel_mmsi', sa.Integer, nullable=False), #vessel mmsi
         sa.Column('ship_name', sa.String, nullable=False), #vessel name
         sa.Column('type', sa.String, nullable=False), #IN_MPA or AT_SEA
-        sa.Column('duration_total', sa.DateTime, nullable=False), #time spent at sea at timestamp
-        sa.Column('duration_fishing', sa.DateTime, nullable=True), #time spent fishing 
+        sa.Column('duration_total', sa.FLOAT, nullable=False), #time spent at sea at timestamp
+        sa.Column('duration_fishing', sa.FLOAT, nullable=True), #time spent fishing 
         sa.Column("mpa_name", sa.String, nullable=True), # if type is in_mpa, write here the mpa name
     )
 
@@ -44,3 +44,4 @@ def downgrade() -> None:
     for t in tables:
         if t in sql_tables:
             op.drop_table(t)
+            
