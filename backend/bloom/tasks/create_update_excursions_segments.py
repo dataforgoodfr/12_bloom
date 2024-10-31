@@ -322,21 +322,22 @@ def run():
                 #elif zone.category == "white zone":    #prospectif
                 #    segment.in_white_zone = True
                 #    types="white_zone"  
+                duration_total_seconds = segment.segment_duration.total_seconds()
 
                 new_metrics= Metrics(#1
                     timestamp = point_in_time, #1
-                    vessel_id = df['vessel_id'], #1
-                    vessel_mmsi = df['vessel_mmsi'], #1
-                    ship_name = df['ship_name'], #1
+                    vessel_id = df['vessel_id'].iloc[0] if not df.empty else None, #1
+                    vessel_mmsi = df['vessel_mmsi'].iloc[0] if not df.empty else None, #1
+                    ship_name = df['ship_name'].iloc[0] if not df.empty else None, #1
                     type = types, #1
-                    duration_total = segment.segment_duration, #fonctionne si 1 segment = zone max #1
-                    duration_fishing = segment.segment_duration if segment.type == 'FISHING' else None, #1
+                    duration_total = duration_total_seconds, #fonctionne si 1 segment = zone max #1
+                    duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None, #1
                     mpa_name = zone.name #1
                 ) #1
             if segment_in_zone:
                 segments.append(segment)
 
-            new_metricss.append(new_metrics) #1
+                new_metricss.append(new_metrics) #1
 
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
