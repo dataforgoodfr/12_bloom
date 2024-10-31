@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 import { FlyToInterpolator } from "deck.gl"
 
 import { Vessel, VesselPosition } from "@/types/vessel"
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/command"
 import { useMapStore } from "@/components/providers/map-store-provider"
 import { useVesselsStore } from "@/components/providers/vessels-store-provider"
-import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 
 type Props = {
   wideMode: boolean
@@ -33,14 +33,14 @@ export function VesselFinderDemo({ wideMode }: Props) {
     viewState,
     setViewState,
   } = useMapStore((state) => state)
-  const { vessels: allVessels } = useVesselsStore((state) => state);
-  const { latestPositions } = useMapStore((state) => state);
+  const { vessels: allVessels } = useVesselsStore((state) => state)
+  const { latestPositions } = useMapStore((state) => state)
 
   const onSelectVessel = async (vesselIdentifier: string) => {
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
-    const response = await getVesselFirstExcursionSegments(vesselId);
+    const response = await getVesselFirstExcursionSegments(vesselId)
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
-      addTrackedVessel(vesselId, response.data);
+      addTrackedVessel(vesselId, response)
     }
     if (vesselId) {
       const selectedVesselLatestPosition = latestPositions.find(

@@ -2,10 +2,14 @@ import { ItemDetails } from "@/types/item"
 import ListCard from "@/components/ui/list-card"
 
 type Props = {
-  details: ItemDetails
+  details: ItemDetails | null
 }
 
 export default function DetailsContainer({ details }: Props) {
+  if (!details) {
+    return null
+  }
+
   const { label, description, relatedItemsType, relatedItems } = details
 
   return (

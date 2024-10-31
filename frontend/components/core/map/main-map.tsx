@@ -14,14 +14,21 @@ import { useTheme } from "next-themes"
 import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
 
+import {
+  VesselExcursionSegment,
+  VesselExcursionSegmentGeo,
+  VesselExcursionSegments,
+  VesselExcursionSegmentsGeo,
+  VesselPosition,
+  VesselPositions,
+} from "@/types/vessel"
 import MapTooltip from "@/components/ui/tooltip-map-template"
 import { useMapStore } from "@/components/providers/map-store-provider"
-import { VesselPosition, VesselPositions, VesselExcursionSegmentGeo, VesselExcursionSegmentsGeo, VesselExcursionSegment, VesselExcursionSegments } from "@/types/vessel"
 
 const MESH_URL_LOCAL = `../../../data/mesh/boat.obj`
 
 type CoreMapProps = {
-  vesselsPositions: VesselPositions;
+  vesselsPositions: VesselPositions
 }
 
 export default function CoreMap({ vesselsPositions }: CoreMapProps) {
@@ -52,8 +59,8 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
   }, [activePosition, trackedVesselIDs])
 
   useEffect(() => {
-    setLatestPositions(vesselsPositions);
-  }, [vesselsPositions])
+    setLatestPositions(vesselsPositions)
+  }, [setLatestPositions, vesselsPositions])
 
   const latestPositions = new ScatterplotLayer<VesselPosition>({
     id: `vessels-latest-positions-${layerKey}`,
@@ -92,13 +99,13 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
   })
 
   const tracksByVesselAndVoyage = trackedVesselSegments
-  .map(segments => toSegmentsGeo(segments))
-  .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
-    return new GeoJsonLayer<VesselExcursionSegmentGeo>({
+    .map((segments) => toSegmentsGeo(segments))
+    .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
+      return new GeoJsonLayer<VesselExcursionSegmentGeo>({
         id: `${segmentsGeo.vesselId}_vessel_trail_${layerKey}`,
         data: segmentsGeo,
-        getFillColor: (properties) => getColorFromValue(properties?.speed),
-        getLineColor: (properties) => getColorFromValue(properties?.speed),
+        getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
+        getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
         pickable: false,
         stroked: false,
         filled: true,
@@ -109,8 +116,8 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
         lineWidthScale: 2,
         getPointRadius: 4,
         getTextSize: 12,
+      })
     })
-  });
 
   const positions_mesh_layer = new SimpleMeshLayer({
     id: `vessels-positions-mesh-layer-${layerKey}`,
@@ -200,11 +207,10 @@ function toSegmentsGeo({ segments, vesselId }: VesselExcursionSegments): any {
         type: "LineString",
         coordinates: [
           segment.start_position.coordinates,
-          segment.end_position.coordinates
-        ]
-      } 
+          segment.end_position.coordinates,
+        ],
+      },
     }
   })
-  return { vesselId, type: "FeatureCollection", features: segmentsGeo ?? [] };
+  return { vesselId, type: "FeatureCollection", features: segmentsGeo ?? [] }
 }
-
