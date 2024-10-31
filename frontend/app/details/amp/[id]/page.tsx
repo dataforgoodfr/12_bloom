@@ -1,9 +1,11 @@
-import mockData from "@/public/data/mock-data-details.json"
-
 import DetailsContainer from "@/components/details/details-container"
 
-export default function AmpDetailsPage() {
-  const ampDetails = mockData["ampDetails"]
+export default async function AmpDetailsPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  // const ampDetails = await getAmpDetails(params.id)
 
-  return <DetailsContainer details={ampDetails} />
+  return <DetailsContainer details={null} />
 }

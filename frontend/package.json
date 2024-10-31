@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "find . -path './node_modules' -prune -o -name '*.gz' -exec gzip --decompress {} + && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",

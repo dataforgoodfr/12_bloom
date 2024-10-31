@@ -28,6 +28,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.local
 
 # turbo
 .turbo
@@ -36,3 +37,4 @@ yarn-error.log*
 .env
 
 package-lock.json
+.clever.json
