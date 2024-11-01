@@ -192,7 +192,7 @@ class Excursion(Base):
     total_time_fishing_in_amp = Column("total_time_fishing_in_amp", Interval)
     total_time_fishing_in_territorial_waters = Column("total_time_fishing_in_territorial_waters", Interval)
     total_time_fishing_in_costal_waters = Column("total_time_fishing_in_costal_waters", Interval)
-    total_time_extincting_amp = Column("total_time_extincting_amp", Interval)
+    total_time_default_ais = Column("total_time_default_ais", Interval)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 

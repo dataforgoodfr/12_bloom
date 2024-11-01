@@ -71,7 +71,7 @@ def map_excursion_to_domain(row) -> Excursion:
         total_time_fishing_in_amp=None,
         total_time_fishing_in_territorial_waters=None,
         total_time_fishing_in_costal_waters=None,
-        total_time_extincting_amp=None,
+        total_time_default_ais=None,
         created_at=None,
         updated_at=None,
     )
