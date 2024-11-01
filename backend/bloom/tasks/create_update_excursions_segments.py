@@ -339,7 +339,9 @@ def run():
             if segment.type == "FISHING":
                 excursion.total_time_fishing += segment.segment_duration
             elif segment.type == "DEFAULT_AIS":
-                    excursion.total_time_default_ais += segment.segment_duration
+                if excursion.total_time_default_ais is None:
+                    excursion.total_time_default_ais = timedelta(0)
+                excursion.total_time_default_ais += segment.segment_duration
 
             excursion.total_time_at_sea = excursion.excursion_duration - (
                     excursion.total_time_in_costal_waters + excursion.total_time_in_territorial_waters)
