@@ -135,7 +135,7 @@ class ExcursionRepository:
             total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
             total_time_fishing_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
             total_time_fishing_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_extincting_amp=excursion.total_time_extincting_amp,
+            total_time_default_ais=excursion.total_time_default_ais,
             created_at=excursion.created_at,
             updated_at=excursion.updated_at
         )
@@ -160,7 +160,7 @@ class ExcursionRepository:
             total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
             total_time_fishing_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
             total_time_fishing_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_extincting_amp=excursion.total_time_extincting_amp,
+            total_time_default_ais=excursion.total_time_default_ais,
             created_at=excursion.created_at,
             updated_at=excursion.updated_at
         )
@@ -186,7 +186,7 @@ class ExcursionRepository:
             total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
             total_time_fishing_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
             total_time_fishing_in_costal_waters=excursion.total_time_fishing_in_costal_waters,
-            total_time_extincting_amp=excursion.total_time_extincting_amp,
+            total_time_default_ais=excursion.total_time_default_ais,
             created_at=excursion.created_at,
             updated_at=excursion.updated_at
         )

@@ -66,7 +66,7 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
         total_time_fishing_in_amp=timedelta(0),
         total_time_fishing_in_territorial_waters=timedelta(0),
         total_time_fishing_in_costal_waters=timedelta(0),
-        total_time_extincting_amp=timedelta(0)
+        total_time_default_ais=timedelta(0)
     )
     new_excursion = excursion_repository.create_excursion(session, new_excursion)
     return new_excursion.id
@@ -303,6 +303,9 @@ def run():
         for segment, zones in result.items():
             segment_in_zone = False
             for zone in zones:
+                if segment.type == "DEFAULT_AIS":
+                    # Issue 234: ne pas créer les relations pour les segments en default AIS
+                    continue
                 segment_in_zone = True
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
@@ -321,8 +324,6 @@ def run():
                     excursion.total_time_in_amp += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_amp += segment.segment_duration
-                elif segment.type == "DEFAULT_AIS":
-                    excursion.total_time_extincting_amp += segment.segment_duration
             if segment.in_costal_waters:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_costal_waters += segment.segment_duration
@@ -337,6 +338,10 @@ def run():
             excursion.excursion_duration += segment.segment_duration
             if segment.type == "FISHING":
                 excursion.total_time_fishing += segment.segment_duration
+            elif segment.type == "DEFAULT_AIS":
+                if excursion.total_time_default_ais is None:
+                    excursion.total_time_default_ais = timedelta(0)
+                excursion.total_time_default_ais += segment.segment_duration
 
             excursion.total_time_at_sea = excursion.excursion_duration - (
                     excursion.total_time_in_costal_waters + excursion.total_time_in_territorial_waters)
