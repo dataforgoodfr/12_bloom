@@ -10,6 +10,9 @@ RUN apt-get update &&\
 
 
 # Define working directory
+ARG VIRTUAL_ENV=/.venv
+ENV PATH=${VIRTUAL_ENV}/bin:$PATH \
+    VIRTUAL_ENV=${VIRTUAL_ENV}
 ARG PROJECT_DIR=/project
 ENV PROJECT_DIR=${PROJECT_DIR}
 WORKDIR ${PROJECT_DIR}
@@ -26,16 +29,16 @@ RUN pip install --upgrade pip && pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
 COPY ./backend/pyproject.toml ./backend/alembic.ini ./backend/
 
-ENV PATH=/venv/bin:$PATH \
-    VIRTUAL_ENV=/venv
 
 # Install UV
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-RUN . ~/.cargo/env &&\
+ARG UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
+ENV UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
+RUN \
+    . ~/.cargo/env &&\
     cd backend &&\
-    uv venv /venv &&\
-    echo ". /venv/bin/activate" >> /root/.bashrc &&\
+    uv venv ${VIRTUAL_ENV} &&\
+    echo ". ${VIRTUAL_ENV}/bin/activate" >> /root/.bashrc &&\
     uv sync
 
 # Launch cron services
