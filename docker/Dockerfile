@@ -5,10 +5,14 @@ RUN apt-get update &&\
     apt-get -y install curl &&\
     apt-get install -y rsyslog &&\
     apt-get install -y libgdal-dev &&\
-    apt-get install -y g++
+    apt-get install -y g++ &&\
+    apt-get install -y clang
 
 
 # Define working directory
+ARG VIRTUAL_ENV=/.venv
+ENV PATH=${VIRTUAL_ENV}/bin:$PATH \
+    VIRTUAL_ENV=${VIRTUAL_ENV}
 ARG PROJECT_DIR=/project
 ENV PROJECT_DIR=${PROJECT_DIR}
 WORKDIR ${PROJECT_DIR}
@@ -23,14 +27,19 @@ ARG POETRY_VERSION=1.8.2
 ENV POETRY_VERSION=${POETRY_VERSION}
 RUN pip install --upgrade pip && pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
-COPY ./backend/pyproject.toml ./backend/poetry.lock ./backend/alembic.ini ./backend/
+COPY ./backend/pyproject.toml ./backend/alembic.ini ./backend/
 
-ENV PATH=/venv/bin:$PATH \
-    VIRTUAL_ENV=/venv
-RUN python -m venv /venv &&\
-    echo ". /venv/bin/activate" >> /root/.bashrc &&\
+
+# Install UV
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ARG UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
+ENV UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
+RUN \
+    . ~/.cargo/env &&\
     cd backend &&\
-    poetry install
+    uv venv ${VIRTUAL_ENV} &&\
+    echo ". ${VIRTUAL_ENV}/bin/activate" >> /root/.bashrc &&\
+    uv sync
 
 # Launch cron services
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install -y cron \
