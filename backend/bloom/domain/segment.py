@@ -29,7 +29,7 @@ class Segment(BaseModel):
     type: Union[str, None] = None
     in_amp_zone: Union[bool, None] = None
     in_territorial_waters: Union[bool, None] = None
-    in_costal_waters: Union[bool, None] = None
+    in_zone_with_no_fishing_rights: Union[bool, None] = None
     last_vessel_segment: Union[bool, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None

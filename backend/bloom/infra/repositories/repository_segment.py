@@ -31,12 +31,12 @@ class SegmentRepository:
             sql_model.Segment.segment_duration,
             sql_model.Segment.in_amp_zone,
             sql_model.Segment.in_territorial_waters,
-            sql_model.Segment.in_costal_waters
+            sql_model.Segment.in_zone_with_no_fishing_rights
         ).where(sql_model.Segment.excursion_id == id)
         q = session.execute(stmt)
         if not q:
             return None
-        df = pd.DataFrame(q, columns=["segment_duration", "in_amp_zone", "in_territorial_waters", "in_costal_waters"])
+        df = pd.DataFrame(q, columns=["segment_duration", "in_amp_zone", "in_territorial_waters", "in_zone_with_no_fishing_rights"])
         return df
 
     def get_all_vessels_last_position(self, session: Session) -> List[Segment]:
@@ -245,7 +245,7 @@ class SegmentRepository:
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
-            in_costal_waters=segment.in_costal_waters,
+            in_zone_with_no_fishing_rights=segment.in_zone_with_no_fishing_rights,
             last_vessel_segment=segment.last_vessel_segment,
             created_at=segment.created_at,
             updated_at=segment.updated_at
@@ -270,7 +270,7 @@ class SegmentRepository:
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
-            in_costal_waters=segment.in_costal_waters,
+            in_zone_with_no_fishing_rights=segment.in_zone_with_no_fishing_rights,
             last_vessel_segment=segment.last_vessel_segment,
             created_at=segment.created_at,
             updated_at=segment.updated_at
