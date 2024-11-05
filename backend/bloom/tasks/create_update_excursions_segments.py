@@ -61,11 +61,11 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
         total_time_at_sea=timedelta(0),
         total_time_in_amp=timedelta(0),
         total_time_in_territorial_waters=timedelta(0),
-        total_time_in_costal_waters=timedelta(0),
+        total_time_in_zones_with_no_fishing_rights=timedelta(0),
         total_time_fishing=timedelta(0),
         total_time_fishing_in_amp=timedelta(0),
         total_time_fishing_in_territorial_waters=timedelta(0),
-        total_time_fishing_in_costal_waters=timedelta(0),
+        total_time_fishing_in_zones_with_no_fishing_rights=timedelta(0),
         total_time_default_ais=timedelta(0)
     )
     new_excursion = excursion_repository.create_excursion(session, new_excursion)
@@ -280,7 +280,7 @@ def run():
                 heading_at_end=result["heading_at_end"].iloc[i],
                 type=result["type"].iloc[i],
                 last_vessel_segment=result["last_vessel_segment"].iloc[i],
-                in_costal_waters=False,
+                in_zone_with_no_fishing_rights=False,
                 in_amp_zone=False,
                 in_territorial_waters=False
             )
@@ -311,7 +311,7 @@ def run():
                 if zone.category == "amp":
                     segment.in_amp_zone = True
                 elif zone.category.startswith("Fishing coastal waters"):
-                    segment.in_costal_waters = True
+                    segment.in_zone_with_no_fishing_rights = True
                 elif zone.category == "Territorial seas":
                     segment.in_territorial_waters = True
             if segment_in_zone:
@@ -324,11 +324,11 @@ def run():
                     excursion.total_time_in_amp += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_amp += segment.segment_duration
-            if segment.in_costal_waters:
+            if segment.in_zone_with_no_fishing_rights:
                 if segment.type == "AT_SEA":
-                    excursion.total_time_in_costal_waters += segment.segment_duration
+                    excursion.total_time_in_zones_with_no_fishing_rights += segment.segment_duration
                 elif segment.type == "FISHING":
-                    excursion.total_time_fishing_in_costal_waters += segment.segment_duration
+                    excursion.total_time_fishing_in_zones_with_no_fishing_rights += segment.segment_duration
             if segment.in_territorial_waters:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_territorial_waters += segment.segment_duration
@@ -344,7 +344,7 @@ def run():
                 excursion.total_time_default_ais += segment.segment_duration
 
             excursion.total_time_at_sea = excursion.excursion_duration - (
-                    excursion.total_time_in_costal_waters + excursion.total_time_in_territorial_waters)
+                    excursion.total_time_in_zones_with_no_fishing_rights + excursion.total_time_in_territorial_waters)
 
             excursions[excursion.id] = excursion
 
