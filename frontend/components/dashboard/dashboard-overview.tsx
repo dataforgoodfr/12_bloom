@@ -1,33 +1,54 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
+import { Item } from "@/types/item"
+import { VesselTrackingTimeDto } from "@/types/vessel"
+import { ZoneVisitTimeDto } from "@/types/zone"
+import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper"
 import Dropdown from "@/components/ui/dropdown"
 import ListCard from "@/components/ui/list-card"
 import KPICard from "@/components/dashboard/kpi-card"
-import { ZoneVisitTimeDto } from "@/types/zone"
-import { VesselTrackingTimeDto } from "@/types/vessel"
-import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper";
 
-const TOTAL_VESSELS = 1700;
-const TOTAL_AMPS = 720;
+const TOTAL_VESSELS = 1700
+const TOTAL_AMPS = 720
 
 type Props = {
-  topVesselsInActivity: VesselTrackingTimeDto[];
-  topAmpsVisited: ZoneVisitTimeDto[];
-  totalVesselsActive: number;
-  totalAmpsVisited: number;
+  topVesselsInActivity: VesselTrackingTimeDto[]
+  topAmpsVisited: ZoneVisitTimeDto[]
+  totalVesselsActive: number
+  totalAmpsVisited: number
 }
 
-export default function DashboardOverview(props : Props) {
-  const { topVesselsInActivity, topAmpsVisited, totalVesselsActive, totalAmpsVisited } = props;
-  const topVesselsInActivityToItems = convertVesselDtoToItem(topVesselsInActivity);
-  const topAmpsVisitedToItems = convertZoneDtoToItem(topAmpsVisited);
+export default function DashboardOverview(props: Props) {
+  const {
+    topVesselsInActivity,
+    topAmpsVisited,
+    totalVesselsActive,
+    totalAmpsVisited,
+  } = props
+  const [vesselsItems, setVesselsItems] = useState<Item[]>([])
+  const [ampsItems, setAmpsItems] = useState<Item[]>([])
+
+  useEffect(() => {
+    // Move data transformations into useEffect
+    if (topVesselsInActivity) {
+      const transformedVessels = convertVesselDtoToItem(topVesselsInActivity)
+      setVesselsItems(transformedVessels)
+    }
+
+    if (topAmpsVisited) {
+      const transformedAmps = convertZoneDtoToItem(topAmpsVisited)
+      setAmpsItems(transformedAmps)
+    }
+  }, [topVesselsInActivity, topAmpsVisited])
 
   return (
     <section className="grid">
       <div className="mb-2 w-full">
         <Dropdown
           className="float-right w-40"
-          options={["360 derniers jours"]} // TODO: move in dedicated enum?
+          options={["360 derniers jours"]}
           onSelect={(value) => console.log("selected: " + value)}
         />
       </div>
@@ -52,12 +73,12 @@ export default function DashboardOverview(props : Props) {
           <div className="grid grid-cols-1 gap-y-4">
             <ListCard
               title="Top AMPs visited during the period"
-              items={topAmpsVisitedToItems ?? []}
+              items={ampsItems ?? []}
               enableViewDetails
             />
             <ListCard
               title="Top Vessels visiting AMPS"
-              items={topVesselsInActivityToItems ?? []}
+              items={vesselsItems ?? []}
               enableViewDetails
             />
           </div>
