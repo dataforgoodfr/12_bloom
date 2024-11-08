@@ -1,12 +1,18 @@
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 from bloom.config import settings
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, ConfigDict, Field,conint
 from pydantic.generics import GenericModel
 from datetime import datetime, timedelta
-from typing import Generic,TypeVar, List
+from typing import Generic,TypeVar, List, Annotated
 from enum import Enum
+from bloom.container import UseCases
+import redis
 
+
+
+UserCasesDep= Annotated[UseCases, Depends(UseCases)]
+CacheServiceDep= Annotated[redis.Redis, Depends(UseCases.service_cache)]
 
 ## Reference for pagination design
 ## https://jayhawk24.hashnode.dev/how-to-implement-pagination-in-fastapi-feat-sqlalchemy
@@ -14,6 +20,9 @@ X_API_KEY_HEADER=APIKeyHeader(name="x-key")
 
 class CachedRequest(BaseModel):
     nocache:bool=False
+
+
+
 
 def check_apikey(key:str):
     if key != settings.api_key :
@@ -42,6 +51,7 @@ class PaginatedRequest(BaseModel):
     order_by: OrderByRequest = OrderByEnum.ascending
 
 
+
 class PageParams(BaseModel):
     """ Request query params for paginated API. """
     offset: conint(ge=0) = 0
@@ -56,6 +66,7 @@ class PagedResponseSchema(GenericModel,Generic[T]):
     next: str|None
     previous: str|None
     results: List[T]
+
 
 def paginate(request: Request, page_params: PageParams, query, ResponseSchema: BaseModel) -> PagedResponseSchema[T]:
     """Paginate the query."""
