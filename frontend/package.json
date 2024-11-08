@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.3",
-    "@js-temporal/polyfill": "^0.4.4",
     "@loaders.gl/core": "^4.2.0",
     "@loaders.gl/obj": "^4.2.0",
     "@radix-ui/react-dialog": "^1.0.5",
