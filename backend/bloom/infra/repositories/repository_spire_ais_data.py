@@ -3,7 +3,7 @@ from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, delete, Result
 from datetime import datetime
 from bloom.logger import logger
 
@@ -158,6 +158,81 @@ class SpireAisDataRepository:
             stmt = stmt.order_by(sql_model.SpireAisData.voyage_timestamp.asc())
         result = session.execute(stmt).scalars()
         return [SpireAisDataRepository.map_to_domain(e) for e in result]
+
+    def get_all_data_before_as_df(self, session: Session, date_before: datetime) -> pd.DataFrame:
+        stmt = select(sql_model.SpireAisData.id,
+                      sql_model.SpireAisData.spire_update_statement,
+                      sql_model.SpireAisData.vessel_ais_class,
+                      sql_model.SpireAisData.vessel_flag,
+                      sql_model.SpireAisData.vessel_name,
+                      sql_model.SpireAisData.vessel_callsign,
+                      sql_model.SpireAisData.vessel_timestamp,
+                      sql_model.SpireAisData.vessel_update_timestamp,
+                      sql_model.SpireAisData.vessel_ship_type,
+                      sql_model.SpireAisData.vessel_sub_ship_type,
+                      sql_model.SpireAisData.vessel_mmsi,
+                      sql_model.SpireAisData.vessel_imo,
+                      sql_model.SpireAisData.vessel_width,
+                      sql_model.SpireAisData.vessel_length,
+                      sql_model.SpireAisData.position_accuracy,
+                      sql_model.SpireAisData.position_collection_type,
+                      sql_model.SpireAisData.position_course,
+                      sql_model.SpireAisData.position_heading,
+                      sql_model.SpireAisData.position_latitude,
+                      sql_model.SpireAisData.position_longitude,
+                      sql_model.SpireAisData.position_maneuver,
+                      sql_model.SpireAisData.position_navigational_status,
+                      sql_model.SpireAisData.position_rot,
+                      sql_model.SpireAisData.position_speed,
+                      sql_model.SpireAisData.position_timestamp,
+                      sql_model.SpireAisData.position_update_timestamp,
+                      sql_model.SpireAisData.voyage_destination,
+                      sql_model.SpireAisData.voyage_draught,
+                      sql_model.SpireAisData.voyage_eta,
+                      sql_model.SpireAisData.voyage_timestamp,
+                      sql_model.SpireAisData.voyage_update_timestamp,
+                      sql_model.SpireAisData.created_at
+                      ).where(sql_model.SpireAisData.created_at < date_before)
+        result = session.execute(stmt)
+        return pd.DataFrame(result, columns=[
+            "id",
+            "spire_update_statement",
+            "vessel_ais_class",
+            "vessel_flag",
+            "vessel_name",
+            "vessel_callsign",
+            "vessel_timestamp",
+            "vessel_update_timestamp",
+            "vessel_ship_type",
+            "vessel_sub_ship_type",
+            "vessel_mmsi",
+            "vessel_imo",
+            "vessel_width",
+            "vessel_length",
+            "position_accuracy",
+            "position_collection_type",
+            "position_course",
+            "position_heading",
+            "position_latitude",
+            "position_longitude",
+            "position_maneuver",
+            "position_navigational_status",
+            "position_rot",
+            "position_speed",
+            "position_timestamp",
+            "position_update_timestamp",
+            "voyage_destination",
+            "voyage_draught",
+            "voyage_eta",
+            "voyage_timestamp",
+            "voyage_update_timestamp",
+            "created_at"
+        ])
+
+    def delete_rows(self, session: Session, row_ids: list[int]) -> int:
+        stmt = delete(sql_model.SpireAisData).where(sql_model.SpireAisData.id.in_(row_ids))
+        result = session.execute(stmt)
+        return result.rowcount
 
     @staticmethod
     def map_to_orm(data: SpireAisData) -> sql_model.SpireAisData:
