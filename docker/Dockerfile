@@ -35,7 +35,6 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ARG UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
 ENV UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
 RUN \
-    . ~/.cargo/env &&\
     cd backend &&\
     uv venv ${VIRTUAL_ENV} &&\
     echo ". ${VIRTUAL_ENV}/bin/activate" >> /root/.bashrc &&\
