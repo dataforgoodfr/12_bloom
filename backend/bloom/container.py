@@ -24,10 +24,11 @@ class UseCases(containers.DeclarativeContainer):
         db_url=db_url,
     )
 
-    service_cache = providers.Factory(
+    cache_service = providers.Factory(
         redis.Redis,
         host=settings.redis_host,
         port=settings.redis_port,
+        password=settings.redis_password,
         db=0
     )
 

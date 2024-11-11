@@ -4,7 +4,17 @@ from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from enum import Enum
 from bloom.domain.vessel import Vessel
-from bloom.dependencies import TotalTimeActivityTypeEnum
+
+class TotalTimeActivityTypeEnum(str, Enum):
+    total_time_at_sea: str = "Total Time at Sea"
+    total_time_in_amp: str = "Total Time in AMP"
+    total_time_in_territorial_waters: str = "Total Time in Territorial Waters"
+    total_time_in_zones_with_no_fishing_rights: str = "Total Time in zones with no fishing rights"
+    total_time_fishing: str = "Total Time Fishing"
+    total_time_fishing_in_amp: str = "Total Time Fishing in AMP"
+    total_time_fishing_in_territorial_waters: str = "Total Time Fishing in Territorial Waters"
+    total_time_fishing_in_zones_with_no_fishing_rights: str = "Total Time Fishing in zones with no fishing rights"
+    total_time_fishing_in_extincting_amp: str = "Total Time in Extincting AMP"
 
 class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)

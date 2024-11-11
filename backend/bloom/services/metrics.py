@@ -1,27 +1,10 @@
-from fastapi import APIRouter, Depends, Query, Body,Request
-from redis import Redis
-from bloom.config import settings
-from bloom.logger import logger
 from pydantic import BaseModel, Field
 from contextlib import AbstractContextManager
 from dependency_injector.providers import Callable
-from typing_extensions import Annotated, Literal, Optional
-from datetime import datetime, timedelta
-from sqlalchemy import select, func, and_, or_, text, literal_column, Row
+from sqlalchemy import select, func, and_, or_, text, literal_column
 from bloom.infra.database import sql_model
-from bloom.infra.repositories.repository_segment import SegmentRepository
-from sqlalchemy.ext.serializer import loads,dumps
-import json
-import time
 from bloom.infra.database.database_manager import Base
-from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
-                                 ResponseMetricsZoneVisitedSchema,
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema,
-                                 ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
-from bloom.dependencies import (  DatetimeRangeRequest,
-                                PaginatedRequest,OrderByRequest,OrderByEnum,
-                                paginate,PagedResponseSchema,PageParams,
-                                X_API_KEY_HEADER, check_apikey,CachedRequest)
+from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,OrderByEnum, PageParams
 
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
 

@@ -112,9 +112,9 @@ class SegmentRepository:
             sql_model.Segment.excursion_id == sql_model.Excursion.id
         ).where( sql_model.Segment.excursion_id == excursions_id,
                 sql_model.Excursion.vessel_id == vessel_id)
-        result = session.execute(stmt)
-        if result is not None :
-            return [ SegmentRepository.map_to_domain(record) for record in result.scalars()]
+        result = session.execute(stmt).scalars().all()
+        if result:
+            return [ SegmentRepository.map_to_domain(record) for record in result]
         else:
             return []
 
@@ -127,7 +127,7 @@ class SegmentRepository:
         ).where( sql_model.Segment.excursion_id == excursions_id,
                 sql_model.Excursion.vessel_id == vessel_id,
                 sql_model.Segment.id == segment_id)
-        result = session.execute(stmt)
+        result = session.execute(stmt).scalar_one_or_none()
         if result is not None :
             return [ SegmentRepository.map_to_domain(record) for record in result.scalars()][0]
         else:
@@ -154,7 +154,7 @@ class SegmentRepository:
         ).filter(
             sql_model.Segment.last_vessel_segment == True
         )
-        q = session.execute(stmt)
+        q = session.execute(stmt).scalars().all()
         if not q:
             return None
         df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end", 'heading_at_end',
