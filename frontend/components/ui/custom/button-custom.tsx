@@ -15,7 +15,7 @@ export default function Button({ title, withArrowIcon, onClick }: Props) {
     <button
       type="button"
       onClick={onClick}
-      className="flex h-3/4 items-center rounded bg-color-1 pl-2 pr-4 text-xxs"
+      className="primary flex items-center rounded pl-2 pr-4"
     >
       {title}
 
