@@ -1,4 +1,3 @@
-import { log } from "console"
 import axios, { InternalAxiosRequestConfig } from "axios"
 
 import {
@@ -8,7 +7,7 @@ import {
   VesselPositions,
   VesselTrackingTimeDto,
 } from "@/types/vessel"
-import { ZoneVisitTimeDto } from "@/types/zone"
+import { ZoneVisits, ZoneVisitTimeDto } from "@/types/zone"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL
 const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "no-key-found"
@@ -76,4 +75,10 @@ export function getTopZonesVisited(
   const url = `${BASE_URL}/metrics/zone-visited?start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
   console.log(`GET ${url}`)
   return axios.get<ZoneVisitTimeDto[]>(url)
+}
+
+export function getZoneDetails(zoneId: string, startAt: string, endAt: string) {
+  const url = `${BASE_URL}/metrics/zones/${zoneId}/visiting-time-by-vessel?start_at=${startAt}&end_at=${endAt}&order=DESC&limit=10`
+  console.log(`GET ${url}`)
+  return axios.get<ZoneVisits[]>(url)
 }

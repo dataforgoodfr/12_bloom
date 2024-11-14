@@ -1,27 +1,36 @@
+"use client"
+
+import { useMemo, useState } from "react"
 import {
   getTopVesselsInActivity,
   getTopZonesVisited,
 } from "@/services/backend-rest-client"
+import useSWR from "swr"
 
 import { format } from "@/libs/dateUtils"
+import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper"
 import DashboardHeader from "@/components/dashboard/dashboard-header"
 import DashboardOverview from "@/components/dashboard/dashboard-overview"
 
-const DAYS_SINCE_TODAY = 360
 const TOP_ITEMS_SIZE = 5
+const ONE_HOUR = 1000 * 60 * 60
 
-async function fetchTopVesselsInActivity() {
+const swrOptions = {
+  refreshInterval: ONE_HOUR,
+  revalidateOnFocus: false,
+  dedupingInterval: ONE_HOUR,
+  keepPreviousData: true,
+  revalidateOnMount: true,
+}
+
+async function fetchTopVesselsInActivity(startAt: string, endAt: string) {
   try {
-    let today = new Date()
-    let startAt = new Date(
-      new Date().setDate(today.getDate() - DAYS_SINCE_TODAY)
-    )
     const response = await getTopVesselsInActivity(
-      format(startAt),
-      format(today),
+      startAt,
+      endAt,
       TOP_ITEMS_SIZE
     )
-    return response?.data
+    return convertVesselDtoToItem(response?.data || [])
   } catch (error) {
     console.log(
       "An error occured while fetching top vessels in activity : " + error
@@ -30,36 +39,20 @@ async function fetchTopVesselsInActivity() {
   }
 }
 
-async function fetchTopAmpsVisited() {
+async function fetchTopAmpsVisited(startAt: string, endAt: string) {
   try {
-    let today = new Date()
-    let startAt = new Date(
-      new Date().setDate(today.getDate() - DAYS_SINCE_TODAY)
-    )
-    const response = await getTopZonesVisited(
-      format(startAt),
-      format(today),
-      TOP_ITEMS_SIZE
-    )
-    return response?.data
+    const response = await getTopZonesVisited(startAt, endAt, TOP_ITEMS_SIZE)
+    return convertZoneDtoToItem(response?.data || [])
   } catch (error) {
     console.log("An error occured while fetching top amps visited: " + error)
     return []
   }
 }
 
-async function fetchTotalVesselsInActivity() {
+async function fetchTotalVesselsInActivity(startAt: string, endAt: string) {
   try {
-    let today = new Date()
-    let startAt = new Date(
-      new Date().setDate(today.getDate() - DAYS_SINCE_TODAY)
-    )
     // TODO(CT): replace with new endpoint (waiting for Hervé)
-    const response = await getTopVesselsInActivity(
-      format(startAt),
-      format(today),
-      10000
-    ) // high value to capture all data
+    const response = await getTopVesselsInActivity(startAt, endAt, 1700) // high value to capture all data
     return response?.data?.length
   } catch (error) {
     console.log("An error occured while fetching top amps visited: " + error)
@@ -67,18 +60,10 @@ async function fetchTotalVesselsInActivity() {
   }
 }
 
-async function fetchTotalAmpsVisited() {
+async function fetchTotalAmpsVisited(startAt: string, endAt: string) {
   try {
-    let today = new Date()
-    let startAt = new Date(
-      new Date().setDate(today.getDate() - DAYS_SINCE_TODAY)
-    )
     // TODO(CT): replace with new endpoint (waiting for Hervé)
-    const response = await getTopZonesVisited(
-      format(startAt),
-      format(today),
-      10000
-    ) // high value to capture all data
+    const response = await getTopZonesVisited(startAt, endAt, 100000) // high value to capture all data
     return response?.data?.length
   } catch (error) {
     console.log("An error occured while fetching top amps visited: " + error)
@@ -86,25 +71,73 @@ async function fetchTotalAmpsVisited() {
   }
 }
 
-export default async function DashboardPage() {
-  const topVesselsInActivity = await fetchTopVesselsInActivity()
-  const topAmpsVisited = await fetchTopAmpsVisited()
-  const totalVesselsInActivity = await fetchTotalVesselsInActivity()
-  const totalAmpsVisited = await fetchTotalAmpsVisited()
+export default function DashboardPage() {
+  const [selectedDays, setSelectedDays] = useState(7)
+  const { startAt, endAt } = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const start = new Date(today)
+    start.setDate(today.getDate() - selectedDays)
+    return {
+      startAt: format(start),
+      endAt: format(today),
+    }
+  }, [selectedDays])
+
+  const {
+    data: topVesselsInActivity = [],
+    isLoading: topVesselsInActivityLoading,
+  } = useSWR(
+    `topVesselsInActivity-${startAt}-${endAt}`,
+    () => fetchTopVesselsInActivity(startAt, endAt),
+    swrOptions
+  )
+
+  const { data: topAmpsVisited = [], isLoading: topAmpsVisitedLoading } =
+    useSWR(
+      `topAmpsVisited-${startAt}-${endAt}`,
+      () => fetchTopAmpsVisited(startAt, endAt),
+      swrOptions
+    )
+
+  const {
+    data: totalVesselsInActivity = 0,
+    isLoading: totalVesselsInActivityLoading,
+  } = useSWR(
+    `totalVesselsInActivity-${startAt}-${endAt}`,
+    () => fetchTotalVesselsInActivity(startAt, endAt),
+    swrOptions
+  )
+
+  const { data: totalAmpsVisited = 0, isLoading: totalAmpsVisitedLoading } =
+    useSWR(
+      `totalAmpsVisited-${startAt}-${endAt}`,
+      () => fetchTotalAmpsVisited(startAt, endAt),
+      swrOptions
+    )
 
   return (
-    <section className="h-svh bg-color-3 px-6">
-      <div className="block h-1/6 w-full">
-        <DashboardHeader />
-      </div>
+    <section className="flex h-full items-center justify-center overflow-auto bg-color-3 p-2 xl:p-8">
+      <div className="flex size-full max-w-screen-xl flex-col gap-2 xl:gap-8">
+        <div className="block h-[45px] w-full">
+          <DashboardHeader />
+        </div>
 
-      <div className="h-5/6 w-full">
-        <DashboardOverview
-          topVesselsInActivity={topVesselsInActivity}
-          topAmpsVisited={topAmpsVisited}
-          totalVesselsActive={totalVesselsInActivity}
-          totalAmpsVisited={totalAmpsVisited}
-        />
+        <div className="size-full">
+          <DashboardOverview
+            topVesselsInActivity={topVesselsInActivity}
+            topAmpsVisited={topAmpsVisited}
+            totalVesselsActive={totalVesselsInActivity}
+            totalAmpsVisited={totalAmpsVisited}
+            onDateRangeChange={(value) => {
+              setSelectedDays(Number(value))
+            }}
+            topVesselsInActivityLoading={topVesselsInActivityLoading}
+            topAmpsVisitedLoading={topAmpsVisitedLoading}
+            totalVesselsActiveLoading={totalVesselsInActivityLoading}
+            totalAmpsVisitedLoading={totalAmpsVisitedLoading}
+          />
+        </div>
       </div>
     </section>
   )

@@ -1,85 +1,88 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
 import { Item } from "@/types/item"
-import { VesselTrackingTimeDto } from "@/types/vessel"
-import { ZoneVisitTimeDto } from "@/types/zone"
-import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper"
-import Dropdown from "@/components/ui/dropdown"
 import ListCard from "@/components/ui/list-card"
 import KPICard from "@/components/dashboard/kpi-card"
+
+import { Button } from "../ui/button"
+import { DateRangeSelector } from "../ui/date-range-selector"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select"
 
 const TOTAL_VESSELS = 1700
 const TOTAL_AMPS = 720
 
 type Props = {
-  topVesselsInActivity: VesselTrackingTimeDto[]
-  topAmpsVisited: ZoneVisitTimeDto[]
+  topVesselsInActivity: Item[]
+  topVesselsInActivityLoading: boolean
+  topAmpsVisited: Item[]
+  topAmpsVisitedLoading: boolean
   totalVesselsActive: number
+  totalVesselsActiveLoading: boolean
   totalAmpsVisited: number
+  totalAmpsVisitedLoading: boolean
+  onDateRangeChange: (value: string) => void
 }
 
-export default function DashboardOverview(props: Props) {
-  const {
-    topVesselsInActivity,
-    topAmpsVisited,
-    totalVesselsActive,
-    totalAmpsVisited,
-  } = props
-  const [vesselsItems, setVesselsItems] = useState<Item[]>([])
-  const [ampsItems, setAmpsItems] = useState<Item[]>([])
-
-  useEffect(() => {
-    // Move data transformations into useEffect
-    if (topVesselsInActivity) {
-      const transformedVessels = convertVesselDtoToItem(topVesselsInActivity)
-      setVesselsItems(transformedVessels)
-    }
-
-    if (topAmpsVisited) {
-      const transformedAmps = convertZoneDtoToItem(topAmpsVisited)
-      setAmpsItems(transformedAmps)
-    }
-  }, [topVesselsInActivity, topAmpsVisited])
-
+export default function DashboardOverview({
+  topVesselsInActivity,
+  topVesselsInActivityLoading,
+  topAmpsVisited,
+  topAmpsVisitedLoading,
+  totalVesselsActive,
+  totalVesselsActiveLoading,
+  totalAmpsVisited,
+  totalAmpsVisitedLoading,
+  onDateRangeChange,
+}: Props) {
   return (
     <section className="grid">
-      <div className="mb-2 w-full">
-        <Dropdown
-          className="float-right w-40"
-          options={["360 derniers jours"]}
-          onSelect={(value) => console.log("selected: " + value)}
-        />
+      <div className="py-2 xl:py-4">
+        <DateRangeSelector onValueChange={onDateRangeChange} defaultValue="7" />
       </div>
 
-      <div className="grid grid-cols-3 gap-x-3">
+      <div className="grid grid-cols-3 gap-x-2 xl:gap-x-8">
         <div className="col-span-1 h-full">
-          <div className="grid grid-cols-1 gap-y-2">
+          <div className="grid grid-cols-1 gap-y-2 xl:gap-y-8">
             <KPICard
+              key="total-vessels-in-activity"
               title="Total vessels in Activity"
               kpiValue={totalVesselsActive}
               totalValue={TOTAL_VESSELS}
+              loading={totalVesselsActiveLoading}
             />
             <KPICard
+              key="total-amps-visited"
               title="Total AMPs visited"
               kpiValue={totalAmpsVisited}
               totalValue={TOTAL_AMPS}
+              loading={totalAmpsVisitedLoading}
             />
           </div>
         </div>
 
         <div className="col-span-2 h-full">
-          <div className="grid grid-cols-1 gap-y-4">
+          <div className="grid grid-cols-1 gap-y-16 xl:gap-y-20">
             <ListCard
+              key="top-amps-visited"
               title="Top AMPs visited during the period"
-              items={ampsItems ?? []}
+              items={topAmpsVisited ?? []}
               enableViewDetails
+              loading={topAmpsVisitedLoading}
+              titleClassName="absolute -top-10 "
             />
             <ListCard
+              key="top-vessels-in-activity"
               title="Top Vessels visiting AMPS"
-              items={vesselsItems ?? []}
+              items={topVesselsInActivity ?? []}
               enableViewDetails
+              loading={topVesselsInActivityLoading}
+              titleClassName="absolute -top-10 "
             />
           </div>
         </div>
