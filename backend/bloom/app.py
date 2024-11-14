@@ -6,6 +6,7 @@ from bloom.routers.v1.metrics import router as router_metrics_v1
 from bloom.routers.v1.vessels import router as router_vessels_v1
 from bloom.routers.v1.ports import router as router_ports_v1
 from bloom.routers.v1.zones import router as router_zones_v1
+from starlette.middleware.cors import CORSMiddleware
 
 from bloom.config import settings
 
@@ -36,4 +37,16 @@ app.include_router(router_ports_v1,prefix=API_PREFIX_V1,tags=["Ports"])
 app.include_router(router_vessels_v1,prefix=API_PREFIX_V1,tags=["Vessels"])
 app.include_router(router_zones_v1,prefix=API_PREFIX_V1,tags=["Zones"])
 
+origins = [
+        "http://localhost",
+        "http://localhost:3000",
+    ]
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
