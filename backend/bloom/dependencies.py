@@ -2,7 +2,6 @@ from fastapi import Request, HTTPException
 from bloom.config import settings
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, ConfigDict, Field,conint
-from pydantic.generics import GenericModel
 from datetime import datetime, timedelta
 from typing import Generic,TypeVar, List
 from enum import Enum
@@ -49,7 +48,7 @@ class PageParams(BaseModel):
 
 T = TypeVar("T")
 
-class PagedResponseSchema(GenericModel,Generic[T]):
+class PagedResponseSchema(BaseModel,Generic[T]):
     total: int
     limit: int
     offset: int
