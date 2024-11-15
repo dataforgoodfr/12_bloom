@@ -11,7 +11,7 @@ export default function BackNavigator() {
   }
 
   return (
-    <div className="pl-5 pt-5 hover:cursor-pointer">
+    <div className="absolute left-5 top-5 hover:cursor-pointer">
       <Image
         src={LeftArrowIcon}
         alt="left arrow"

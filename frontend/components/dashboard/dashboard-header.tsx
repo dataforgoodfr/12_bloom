@@ -48,8 +48,8 @@ export default function DashboardHeader() {
         className="mr-5 flex items-center p-3 hover:cursor-pointer"
         onClick={onClickMapView}
       >
-        <Map className="size-[56px] text-primary" />
-        <div className="ml-2 mr-5 inline text-base font-bold text-primary">
+        <Map className="text-primary" />
+        <div className="inline text-base font-bold text-primary">
           Map&nbsp;view
         </div>
       </Button>
@@ -58,10 +58,8 @@ export default function DashboardHeader() {
         className="flex items-center p-3 hover:cursor-pointer"
         onClick={handleLogout}
       >
-        <LogOut className="size-[56px] text-primary" />
-        <div className="ml-2 mr-5 inline text-base font-bold text-primary">
-          Logout
-        </div>
+        <LogOut className="text-primary" />
+        <div className="inline text-base font-bold text-primary">Logout</div>
       </Button>
     </div>
   )

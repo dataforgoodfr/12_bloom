@@ -67,14 +67,14 @@ export default function DashboardOverview({
         </div>
 
         <div className="col-span-2 h-full">
-          <div className="grid grid-cols-1 gap-y-16 xl:gap-y-20">
+          <div className="grid grid-cols-1 gap-y-12 xl:gap-y-16">
             <ListCard
               key="top-amps-visited"
               title="Top AMPs visited during the period"
               items={topAmpsVisited ?? []}
               enableViewDetails
               loading={topAmpsVisitedLoading}
-              titleClassName="absolute -top-10 "
+              titleClassName="absolute -top-8 xl:-top-10"
             />
             <ListCard
               key="top-vessels-in-activity"
@@ -82,7 +82,7 @@ export default function DashboardOverview({
               items={topVesselsInActivity ?? []}
               enableViewDetails
               loading={topVesselsInActivityLoading}
-              titleClassName="absolute -top-10 "
+              titleClassName="absolute -top-8 xl:-top-10"
             />
           </div>
         </div>

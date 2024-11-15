@@ -7,5 +7,5 @@ export default async function VesselDetailsPage({
 }) {
   // const vesselDetails = await getVesselDetails(params.id)
 
-  return <DetailsContainer details={null} />
+  return
 }
