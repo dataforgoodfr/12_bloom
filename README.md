@@ -261,13 +261,3 @@ in [images](https://github.com/dataforgoodfr/12_bloom/tree/main/docker/).
 ## FAQ
 
 #todo
-
-
-## Clever Cloud
-
-Deploy with Clever Cloud:
-
-```bash
-cd frontend
-clever deploy -f
-```
