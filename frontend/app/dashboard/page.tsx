@@ -109,8 +109,8 @@ export default function DashboardPage() {
     )
 
   return (
-    <section className="flex h-full items-center justify-center overflow-auto bg-color-3 p-2 xl:p-8">
-      <div className="flex size-full max-w-screen-xl flex-col gap-2 xl:gap-8">
+    <section className="flex h-full items-center justify-center overflow-auto bg-color-3 p-2 2xl:p-4">
+      <div className="flex size-full max-w-screen-xl flex-col gap-2 2xl:gap-4">
         <div className="block h-[45px] w-full">
           <DashboardHeader />
         </div>
