@@ -6,9 +6,11 @@ interface RootLayoutProps {
 
 export default function Layout({ children }: RootLayoutProps) {
   return (
-    <div className="h-full">
+    <div className="relative h-full">
       <BackNavigator />
-      <div className="pl-20 pr-2 pt-24">{children}</div>
+      <div className="mx-auto flex max-w-[90%] flex-col justify-center">
+        {children}
+      </div>
     </div>
   )
 }

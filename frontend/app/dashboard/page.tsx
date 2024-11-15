@@ -5,6 +5,7 @@ import {
   getTopVesselsInActivity,
   getTopZonesVisited,
 } from "@/services/backend-rest-client"
+import { swrOptions } from "@/services/swr"
 import useSWR from "swr"
 
 import { format } from "@/libs/dateUtils"
@@ -13,15 +14,6 @@ import DashboardHeader from "@/components/dashboard/dashboard-header"
 import DashboardOverview from "@/components/dashboard/dashboard-overview"
 
 const TOP_ITEMS_SIZE = 5
-const ONE_HOUR = 1000 * 60 * 60
-
-const swrOptions = {
-  refreshInterval: ONE_HOUR,
-  revalidateOnFocus: false,
-  dedupingInterval: ONE_HOUR,
-  keepPreviousData: true,
-  revalidateOnMount: true,
-}
 
 async function fetchTopVesselsInActivity(startAt: string, endAt: string) {
   try {
