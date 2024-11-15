@@ -40,6 +40,7 @@ app.include_router(router_zones_v1,prefix=API_PREFIX_V1,tags=["Zones"])
 origins = [
         "http://localhost",
         "http://localhost:3000",
+        "https://app-545ad2f8-ac5c-4926-80e2-3f487066df0e.cleverapps.io"
     ]
 
 
