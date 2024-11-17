@@ -40,7 +40,7 @@ def cache(func):
             logger.debug(f"{cache_key} cached ({settings.redis_cache_expiration})s")
             payload=json.loads(incache)
         else:
-            payload=await func(*args, **kwargs)
+            payload=func(*args, **kwargs)
             #cache_service.set(cache_key, json.dumps(payload))
             #cache_service.expire(cache_key,settings.redis_cache_expiration)
         logger.debug(f"{cache_key} elapsed Time: {time.time()-start}")
