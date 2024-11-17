@@ -40,6 +40,7 @@ class Settings(BaseSettings):
                                   default=5432)
 
     postgres_db:str = Field(min_length=1,max_length=32,pattern=r'^(?:[a-zA-Z]|_)[\w\d_]*$')
+    postgres_schema:str = Field(default='public')
     srid: int = Field(default=4326)
     spire_token:str = Field(default='')
     data_folder:str=Field(default=str(Path(__file__).parent.parent.parent.joinpath('./data')))

@@ -39,11 +39,11 @@ async def list_ports(   request:Request,
         return payload
     else:
         use_cases = UseCases()
-        port_repository = use_cases.port_repository()
         db = use_cases.db()
         with db.session() as session:
+            port_repository = use_cases.port_repository(session)
             json_data = [json.loads(p.model_dump_json() if p else "{}")
-                         for p in port_repository.get_all_ports(session)]
+                         for p in port_repository.list()]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
             logger.debug(f"{endpoint} elapsed Time: {time.time()-start}")
@@ -55,7 +55,7 @@ async def get_port(port_id:int,
                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    port_repository = use_cases.port_repository()
     db = use_cases.db()
     with db.session() as session:
-        return port_repository.get_port_by_id(session,port_id)
+        port_repository = use_cases.port_repository(session)
+        return port_repository.get_by_id(port_id)

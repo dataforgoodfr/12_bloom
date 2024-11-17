@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
@@ -36,24 +36,23 @@ async def list_vessels(nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
         return payload
     else:
         use_cases = UseCases()
-        vessel_repository = use_cases.vessel_repository()
         db = use_cases.db()
         with db.session() as session:
-            
+            vessel_repository = use_cases.vessel_repository(session)
             json_data = [json.loads(v.model_dump_json() if v else "{}")
-                            for v in vessel_repository.get_vessels_list(session)]
+                            for v in vessel_repository.list()]
             rd.set(endpoint, json.dumps(json_data))
             rd.expire(endpoint,settings.redis_cache_expiration)
             return json_data
 
 @router.get("/vessels/{vessel_id}")
-async def get_vessel(vessel_id: int,key: str = Depends(X_API_KEY_HEADER)):
+async def get_vessel(request: Request, vessel_id: int,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
-        return vessel_repository.get_vessel_by_id(session,vessel_id)
+        vessel_repository = use_cases.vessel_repository(session)
+        return vessel_repository.get_by_id(id=vessel_id)
 
 @router.get("/vessels/all/positions/last")
 async def list_all_vessel_last_position(nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):

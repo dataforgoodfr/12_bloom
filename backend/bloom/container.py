@@ -13,6 +13,7 @@ from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.services.metrics import MetricsService
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from dependency_injector import containers, providers
+import redis
 
 
 class UseCases(containers.DeclarativeContainer):
@@ -25,7 +26,6 @@ class UseCases(containers.DeclarativeContainer):
 
     vessel_repository = providers.Factory(
         VesselRepository,
-        session_factory=db.provided.session,
     )
 
     alert_repository = providers.Factory(

@@ -21,6 +21,7 @@ from datetime import timedelta
 
 class Vessel(Base):
     __tablename__ = "dim_vessel"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     mmsi = Column("mmsi", Integer)
     ship_name = Column("ship_name", String, nullable=False)
@@ -46,6 +47,7 @@ class Vessel(Base):
 
 class Alert(Base):
     __tablename__ = "alert"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True, index=True)
     timestamp = Column("timestamp", DateTime)
     mpa_id = Column("mpa_id", Integer)
@@ -54,6 +56,7 @@ class Alert(Base):
 
 class Port(Base):
     __tablename__ = "dim_port"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True, index=True)
     name = Column("name", String, nullable=False)
     locode = Column("locode", String, nullable=False)
@@ -70,6 +73,7 @@ class Port(Base):
 
 class SpireAisData(Base):
     __tablename__ = "spire_ais_data"
+    __table_args__ = {'schema': settings.postgres_schema}
 
     id = Column("id", Integer, primary_key=True)
     spire_update_statement = Column("spire_update_statement", DateTime(timezone=True))
@@ -107,6 +111,7 @@ class SpireAisData(Base):
 
 class Zone(Base):
     __tablename__ = "dim_zone"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     category = Column("category", String, nullable=False)
     sub_category = Column("sub_category", String)
@@ -119,6 +124,7 @@ class Zone(Base):
 
 class WhiteZone(Base):
     __tablename__ = "dim_white_zone"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     geometry = Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
@@ -127,6 +133,7 @@ class WhiteZone(Base):
 
 class VesselPosition(Base):
     __tablename__ = "vessel_positions"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
     accuracy = Column("accuracy", String)
@@ -146,6 +153,7 @@ class VesselPosition(Base):
 
 class VesselData(Base):
     __tablename__ = "vessel_data"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
     ais_class = Column("ais_class", String)
@@ -164,6 +172,7 @@ class VesselData(Base):
 
 class VesselVoyage(Base):
     __tablename__ = "vessel_voyage"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     timestamp = Column("timestamp", DateTime(timezone=True), nullable=False)
     destination = Column("destination", String)
@@ -175,6 +184,7 @@ class VesselVoyage(Base):
 
 class Excursion(Base):
     __tablename__ = "fct_excursion"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
     departure_port_id = Column("departure_port_id", Integer, ForeignKey("dim_port.id"))
@@ -199,6 +209,7 @@ class Excursion(Base):
 
 class Segment(Base):
     __tablename__ = "fct_segment"
+    __table_args__ = {'schema': settings.postgres_schema}
     id = Column("id", Integer, primary_key=True)
     excursion_id = Column("excursion_id", Integer, ForeignKey("fct_excursion.id"), nullable=False)
     timestamp_start = Column("timestamp_start", DateTime(timezone=True))
@@ -224,6 +235,7 @@ class Segment(Base):
 
 class TaskExecution(Base):
     __tablename__ = "tasks_executions"
+    __table_args__ = {'schema': settings.postgres_schema}
     task_name = Column("task_name", String, primary_key=True)
     point_in_time = Column("point_in_time", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
@@ -234,6 +246,7 @@ class RelSegmentZone(Base):
     __tablename__ = "rel_segment_zone"
     __table_args__ = (
         PrimaryKeyConstraint('segment_id', 'zone_id'),
+        {'schema': settings.postgres_schema}
     )
     segment_id = Column("segment_id", Integer, ForeignKey("fct_segment.id"), nullable=False)
     zone_id = Column("zone_id", Integer, ForeignKey("dim_zone.id"), nullable=False)
@@ -253,6 +266,7 @@ vessel_in_activity_request=(
 
 class MetricsVesselInActivity(Base):
     __table__ = vessel_in_activity_request
+    __table_args__ = {'schema': settings.postgres_schema}
     #vessel_id: Mapped[Optional[int]]
     #total_time_at_sea: Mapped[Optional[timedelta]]
     
