@@ -30,7 +30,9 @@ def cache(func):
         start = time.time()
         request=kwargs['request']
         cache_service=UseCases().cache_service()
-        nocache=True if request.query_params.get('nocache').lower() == 'true' else False
+        nocache=True if request.query_params.get('nocache') \
+                            and request.query_params.get('nocache').lower() == 'true' \
+                     else False
         cache_key=f"{request.url.path}/{request.query_params}"
         incache=False
         #incache= cache_service.get(cache_key)
