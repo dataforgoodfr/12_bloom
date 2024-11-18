@@ -34,15 +34,19 @@ def cache(func):
                             and request.query_params.get('nocache').lower() == 'true' \
                      else False
         cache_key=f"{request.url.path}/{request.query_params}"
-        incache=False
-        #incache= cache_service.get(cache_key)
+        incache= cache_service.get(cache_key)
+        #logger.debug(f"nocache: {nocache}")
+        #logger.debug(f"incache: {True if incache is not None else False}")
+        
+
         if incache and not nocache:
-            logger.debug(f"{cache_key} cached ({settings.redis_cache_expiration})s")
+            #logger.debug(f"{cache_key} cached ({settings.redis_cache_expiration})s")
+            logger.debug(f"Getting response from cache")
             payload=json.loads(incache)
         else:
             payload=func(*args, **kwargs)
-            #cache_service.set(cache_key, json.dumps(payload))
-            #cache_service.expire(cache_key,settings.redis_cache_expiration)
+            cache_service.set(cache_key, json.dumps(payload))
+            cache_service.expire(cache_key,settings.redis_cache_expiration)
         logger.debug(f"{cache_key} elapsed Time: {time.time()-start}")
         return payload
     return wrapper
