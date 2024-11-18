@@ -9,6 +9,7 @@ from bloom.container import UseCases
 from bloom.logger import logger
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParams
 from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
+from fastapi.encoders import jsonable_encoder
 router = APIRouter()
 
 
@@ -22,8 +23,7 @@ async def list_vessels(request: Request, # used by @cache
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
-        return [json.loads(v.model_dump_json() if v else "{}")
-                            for v in vessel_repository.get_vessels_list(session)]
+        return jsonable_encoder(vessel_repository.get_vessels_list(session))
 
 @router.get("/vessels/{vessel_id}")
 @cache

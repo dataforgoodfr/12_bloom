@@ -4,6 +4,7 @@ from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from enum import Enum
 from bloom.domain.vessel import Vessel
+from bloom.domain.zone import ZoneIdent
 
 class TotalTimeActivityTypeEnum(str, Enum):
     total_time_at_sea: str = "Total Time at Sea"
@@ -18,45 +19,21 @@ class TotalTimeActivityTypeEnum(str, Enum):
 
 class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    vessel_id: Optional[int]
-    vessel_mmsi: int
-    vessel_ship_name: str
-    vessel_width: Optional[float] = None
-    vessel_length: Optional[float] = None
-    vessel_country_iso3: Optional[str] = None
-    vessel_type: Optional[str] = None
-    vessel_imo: Optional[int] = None
-    vessel_cfr: Optional[str] = None
-    vessel_external_marking: Optional[str] = None
-    vessel_ircs: Optional[str] = None
-    vessel_home_port_id: Optional[int] = None
-    vessel_details: Optional[str] = None
-    vessel_tracking_activated: Optional[bool]
-    vessel_tracking_status: Optional[str]
-    vessel_length_class: Optional[str]
-    vessel_check: Optional[str]
+    vessel: Vessel
     total_time_at_sea: Optional[timedelta]
 
 class ResponseMetricsZoneVisitedSchema(BaseModel):
-    zone_id : int
-    zone_category: Optional[str]
-    zone_sub_category: Optional[str] = None
-    zone_name: str
+    zone: ZoneIdent
     visiting_duration: timedelta
 
 class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):
-    zone_id : int
-    zone_category: str
-    zone_sub_category: Optional[str] = None
-    zone_name: str
-    vessel_id : int
-    vessel_name: str
-    vessel_type: Optional[str] = None
-    vessel_length_class: Optional[str] = None
+    zone: ZoneIdent
+    vessel: Vessel
     zone_visiting_time_by_vessel: timedelta
 
 class ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(BaseModel):
     vessel_id : int
+    activity: str
     total_activity_time: timedelta
 
 

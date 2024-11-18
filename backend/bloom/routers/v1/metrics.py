@@ -12,6 +12,7 @@ from bloom.infra.repositories.repository_segment import SegmentRepository
 from sqlalchemy.ext.serializer import loads,dumps
 import json
 import time
+from bloom.domain.vessel import Vessel
 from bloom.infra.database.database_manager import Base
 from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
                                  ResponseMetricsZoneVisitedSchema,
@@ -25,10 +26,9 @@ from bloom.domain.metrics import TotalTimeActivityTypeRequest
 router = APIRouter()
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
 
-@router.get("/metrics/vessels-in-activity",
-            response_model=list[ResponseMetricsVesselInActivitySchema])
+@router.get("/metrics/vessels-in-activity")
 @cache
-def read_metrics_vessels_in_activity_total(request: Request,
+async def read_metrics_vessels_in_activity_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PageParams = Depends(),
                                            order: OrderByRequest = Depends(),
@@ -41,10 +41,10 @@ def read_metrics_vessels_in_activity_total(request: Request,
     payload=MetricsService.getVesselsInActivity(datetime_range=datetime_range,
                                                 pagination=pagination,
                                                 order=order)
+    
     return payload
 
-@router.get("/metrics/zone-visited",
-            response_model=list[ResponseMetricsZoneVisitedSchema])
+@router.get("/metrics/zone-visited")
 @cache
 def read_zone_visited_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
@@ -81,8 +81,7 @@ def read_metrics_zone_visiting_time_by_vessel(request: Request,
     return payload
 
 
-@router.get("/metrics/vessels/{vessel_id}/activity/{activity_type}",
-            response_model=ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
+@router.get("/metrics/vessels/{vessel_id}/activity/{activity_type}")
 @cache
 def read_metrics_vessels_visits_by_activity_type(request: Request,
                                             vessel_id: int,
