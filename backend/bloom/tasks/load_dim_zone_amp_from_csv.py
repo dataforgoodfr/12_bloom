@@ -30,6 +30,7 @@ def map_to_domain(row: pd.Series) -> Zone:
         name=row["name"],
         geometry=row["geometry"],
         centroid=row["geometry"].centroid,
+        beneficiaries=row["beneficiaries"] if not isna["beneficiaries"] else None,
         json_data=json_data,
     )
 

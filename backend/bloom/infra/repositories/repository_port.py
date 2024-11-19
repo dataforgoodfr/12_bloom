@@ -11,6 +11,7 @@ from shapely import Point
 from shapely.geometry import Polygon
 from sqlalchemy import func, or_, and_, select, update, asc, text
 from sqlalchemy.orm import Session
+from bloom.domain.excursion import Excursion
 
 
 class PortRepository:
@@ -25,7 +26,8 @@ class PortRepository:
             return None
 
     def get_all_ports(self, session: Session) -> List[Port]:
-        q = session.query(sql_model.Port)
+        q = session.query(sql_model.Port).all()
+        print(f'VOICI LES PORTS : {q}')
         if not q:
             return []
         return [PortRepository.map_to_domain(entity) for entity in q]
@@ -98,6 +100,33 @@ class PortRepository:
                               {"longitude": longitude, "latitude": latitude, "range": range}).first()
         return res
 
+
+    def has_excursion_for_port(self, session: Session, port_id: int) -> bool:
+        stmt = select(sql_model.Excursion).where(
+            (sql_model.Excursion.departure_port_id == port_id) |
+            (sql_model.Excursion.arrival_port_id == port_id)
+        )
+        result = session.execute(stmt).first()
+        if result is not None:
+            # is not None
+            return True#PortRepository.map_to_domain(result)
+        else :
+            return False
+        
+    def batch_update_ports_has_excursion(self, session: Session, ports: list[Port]) -> list[Port]:
+        updated_ports = []
+        c=0
+        for port in ports:
+            if c<2:
+                print(port)
+            port.has_excursion = self.has_excursion_for_port(session, port.id) #True if else False
+            orm = PortRepository.map_to_sql(port)
+            session.merge(orm)  # Met à jour l'objet dans la session
+            session.flush()  # Synchronise avec la base de données
+            updated_ports.append(port)  # Ajoute le port mis à jour à la liste
+            c+=1        
+        return updated_ports
+
     @staticmethod
     def map_to_domain(orm_port: sql_model.Port) -> Port:
         return Port(
@@ -120,6 +149,7 @@ class PortRepository:
     @staticmethod
     def map_to_sql(port: Port) -> sql_model.Port:
         return sql_model.Port(
+            id=port.id,
             name=port.name,
             locode=port.locode,
             url=port.url,

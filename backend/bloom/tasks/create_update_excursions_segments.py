@@ -17,7 +17,7 @@ from bloom.infra.repositories.repository_task_execution import TaskExecutionRepo
 from bloom.logger import logger
 from bloom.domain.rel_segment_zone import RelSegmentZone
 from bloom.infra.repositories.repository_rel_segment_zone import RelSegmentZoneRepository
-
+#from bloom.infra.repositories.repository_port import PortRepository
 warnings.filterwarnings("ignore")
 
 # minimal distance to consider a vessel being in a port (in meters)
@@ -40,6 +40,8 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
                   departure_position: Optional[Point] = None) -> int:
     use_cases = UseCases()
     excursion_repository = use_cases.excursion_repository()
+    
+
     result = excursion_repository.get_param_from_last_excursion(session, vessel_id)
 
     if result:
@@ -280,9 +282,9 @@ def run():
                 heading_at_end=result["heading_at_end"].iloc[i],
                 type=result["type"].iloc[i],
                 last_vessel_segment=result["last_vessel_segment"].iloc[i],
-                in_zone_with_no_fishing_rights=False,
-                in_amp_zone=False,
-                in_territorial_waters=False
+                in_zone_with_no_fishing_rights=0,
+                in_amp_zone=0,
+                in_territorial_waters=0
             )
             new_segments.append(new_segment)
         segment_repository.batch_create_segment(session, new_segments)
@@ -309,27 +311,30 @@ def run():
                 segment_in_zone = True
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
-                    segment.in_amp_zone = True
-                elif zone.category.startswith("Fishing coastal waters"):
-                    segment.in_zone_with_no_fishing_rights = True
+                    segment.in_amp_zone = 1
+                elif zone.category == "Fishing coastal waters (6-12 NM)" :
+                    country_iso3 = segment_repository.get_vessel_attribute_by_segment(session, segment.id)
+                    res = country_iso3 in zone.beneficiaries
+                    if res is False :
+                        segment.in_zone_with_no_fishing_rights = 1
                 elif zone.category == "Territorial seas":
-                    segment.in_territorial_waters = True
+                    segment.in_territorial_waters = 1
             if segment_in_zone:
                 segments.append(segment)
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
                                        excursion_repository.get_excursion_by_id(session, segment.excursion_id))
-            if segment.in_amp_zone:
+            if segment.in_amp_zone == 1:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_amp += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_amp += segment.segment_duration
-            if segment.in_zone_with_no_fishing_rights:
+            if segment.in_zone_with_no_fishing_rights == 1:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_zones_with_no_fishing_rights += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_zones_with_no_fishing_rights += segment.segment_duration
-            if segment.in_territorial_waters:
+            if segment.in_territorial_waters == 1:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_territorial_waters += segment.segment_duration
                 elif segment.type == "FISHING":
@@ -348,12 +353,19 @@ def run():
 
             excursions[excursion.id] = excursion
 
+            
             # Détection de la borne supérieure du traitement
             if segment.updated_at and segment.updated_at > max_created_updated:
                 max_created_updated = segment.updated_at
             elif segment.created_at > max_created_updated:
                 max_created_updated = segment.created_at
 
+        all_ports = port_repository.get_all_ports(session)
+     
+
+
+        port_repository.batch_update_ports_has_excursion(session, all_ports)
+        logger.info(f"{len(all_ports)} ports mises à jour")
         excursion_repository.batch_update_excursion(session, excursions.values())
         logger.info(f"{len(excursions.values())} excursions mises à jour")
         segment_repository.batch_update_segment(session, segments)
@@ -361,6 +373,7 @@ def run():
         RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
         logger.info(f"{len(new_rels)} associations(s) créées")
         vessels_ids = set(exc.vessel_id for exc in excursions.values())
+        
         nb_last = segment_repository.update_last_segments(session, vessels_ids)
         logger.info(f"{nb_last} derniers segments mis à jour")
         now = datetime.now(timezone.utc)

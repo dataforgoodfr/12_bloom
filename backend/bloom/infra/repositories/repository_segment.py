@@ -150,7 +150,6 @@ class SegmentRepository:
         ).join(
             sql_model.Vessel,
             sql_model.Excursion.vessel_id == sql_model.Vessel.id
-
         ).filter(
             sql_model.Segment.last_vessel_segment == True
         )
@@ -161,6 +160,25 @@ class SegmentRepository:
                                       'speed_at_end', 'arrival_port_id', 'mmsi'])
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
+
+    def get_vessel_attribute_by_segment(self, session: Session, segment_id: int) -> str:
+        stmt = select(
+        sql_model.Vessel.country_iso3
+    ).select_from(
+        sql_model.Segment
+    ).join(
+        sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
+    ).join(
+        sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+    ).filter(
+        sql_model.Segment.id == segment_id  # Utilisez .id pour accéder à l'attribut
+    )
+
+        
+        result = session.execute(stmt).scalar()  # Utilise .scalar() pour obtenir la première colonne du premier résultat
+
+        return result  # Si result est None, cela indiquera qu'aucun résultat n'a été trouvé
+
 
     def batch_create_segment(
             self, session: Session, segments: list[Segment]
