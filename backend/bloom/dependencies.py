@@ -1,84 +1,58 @@
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 from bloom.config import settings
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel, ConfigDict, Field,conint
-from pydantic.generics import GenericModel
-from datetime import datetime, timedelta
-from typing import Generic,TypeVar, List
-from enum import Enum
-
-
+from pydantic import BaseModel
+from functools import wraps
+import time
+import json
+from bloom.logger import logger
+from bloom.container import UseCases
+from bloom.routers.requests import RangeHeader
 ## Reference for pagination design
 ## https://jayhawk24.hashnode.dev/how-to-implement-pagination-in-fastapi-feat-sqlalchemy
 X_API_KEY_HEADER=APIKeyHeader(name="x-key")
 
-class CachedRequest(BaseModel):
-    nocache:bool=False
+
+## FastAPI endpoint decorator to manage Redis caching
+# Needs to add request:Request and nocache:bool parameters to all endpoints
+# using @cache decorator
+# Example:
+# @router.get('/my/endpoint')
+# @cache
+# def my_endpoint_function(request: Request,         # needed by @cache
+#                          ...
+#                          nocache:bool = False,    # needed by @cache
+#                        ):
+#         ...
+def cache(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        start = time.time()
+        request=kwargs['request']
+        cache_service=UseCases().cache_service()
+        nocache=True if request.query_params.get('nocache') \
+                            and request.query_params.get('nocache').lower() == 'true' \
+                     else False
+        cache_key=f"{request.url.path}/{request.query_params}"
+        incache= cache_service.get(cache_key)
+        #logger.debug(f"nocache: {nocache}")
+        #logger.debug(f"incache: {True if incache is not None else False}")
+        
+
+        if incache and not nocache:
+            #logger.debug(f"{cache_key} cached ({settings.redis_cache_expiration})s")
+            logger.debug(f"Getting response from cache")
+            payload=json.loads(incache)
+        else:
+            payload=await func(*args, **kwargs)
+            cache_service.set(cache_key, json.dumps(payload))
+            cache_service.expire(cache_key,settings.redis_cache_expiration)
+        logger.debug(f"{cache_key} elapsed Time: {time.time()-start}")
+        return payload
+    return wrapper
+
 
 def check_apikey(key:str):
     if key != settings.api_key :
         raise HTTPException(status_code=401, detail="Unauthorized")
     return True
-
-def check_cache(request:Request):
-    cache= rd.get(request.url.path)
-
-
-class DatetimeRangeRequest(BaseModel):
-    start_at: datetime = Field(default=datetime.now()-timedelta(days=7))
-    end_at: datetime = datetime.now()
-
-
-class OrderByEnum(str, Enum):
-    ascending = "ASC"
-    descending = "DESC"
-
-class OrderByRequest(BaseModel):
-    order: OrderByEnum = OrderByEnum.ascending
-
-class PaginatedRequest(BaseModel):
-    offset: int|None = 0
-    limit: int|None = 100
-    order_by: OrderByRequest = OrderByEnum.ascending
-
-
-class PageParams(BaseModel):
-    """ Request query params for paginated API. """
-    offset: conint(ge=0) = 0
-    limit: conint(ge=1, le=100000) = 100
-
-T = TypeVar("T")
-
-class PagedResponseSchema(GenericModel,Generic[T]):
-    total: int
-    limit: int
-    offset: int
-    next: str|None
-    previous: str|None
-    results: List[T]
-
-def paginate(request: Request, page_params: PageParams, query, ResponseSchema: BaseModel) -> PagedResponseSchema[T]:
-    """Paginate the query."""
-
-    print(f"{request.url.scheme}://{request.client}/{request.url.path}")
-    paginated_query = query.offset((page_params.offset) * page_params.limit).limit(page_params.limit).all()
-
-    return PagedResponseSchema(
-        total=query.count(),
-        offset=page_params.offset,
-        limit=page_params.limit,
-        next="",
-        previous="",
-        results=[ResponseSchema.from_orm(item) for item in paginated_query],
-    )
-
-class TotalTimeActivityTypeEnum(str, Enum):
-    total_time_at_sea: str = "Total Time at Sea"
-    total_time_in_amp: str = "Total Time in AMP"
-    total_time_in_territorial_waters: str = "Total Time in Territorial Waters"
-    total_time_in_zones_with_no_fishing_rights: str = "Total Time in zones with no fishing rights"
-    total_time_fishing: str = "Total Time Fishing"
-    total_time_fishing_in_amp: str = "Total Time Fishing in AMP"
-    total_time_fishing_in_territorial_waters: str = "Total Time Fishing in Territorial Waters"
-    total_time_fishing_in_zones_with_no_fishing_rights: str = "Total Time Fishing in zones with no fishing rights"
-    total_time_fishing_in_extincting_amp: str = "Total Time in Extincting AMP"
