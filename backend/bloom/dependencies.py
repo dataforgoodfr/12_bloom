@@ -7,7 +7,7 @@ import time
 import json
 from bloom.logger import logger
 from bloom.container import UseCases
-
+from bloom.routers.requests import RangeHeader
 ## Reference for pagination design
 ## https://jayhawk24.hashnode.dev/how-to-implement-pagination-in-fastapi-feat-sqlalchemy
 X_API_KEY_HEADER=APIKeyHeader(name="x-key")

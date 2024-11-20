@@ -22,6 +22,7 @@ from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParam
 from bloom.dependencies import ( X_API_KEY_HEADER, check_apikey,cache)
 
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
@@ -42,11 +43,11 @@ async def read_metrics_vessels_in_activity_total(request: Request,
                                                 pagination=pagination,
                                                 order=order)
     
-    return payload
+    return jsonable_encoder(payload)
 
 @router.get("/metrics/zone-visited")
 @cache
-def read_zone_visited_total(request: Request,
+async def read_zone_visited_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PageParams = Depends(),
                                            order: OrderByRequest = Depends(),
@@ -58,12 +59,11 @@ def read_zone_visited_total(request: Request,
     payload=MetricsService.getZoneVisited(datetime_range=datetime_range,
                                                 pagination=pagination,
                                                 order=order)
-    return payload
+    return jsonable_encoder(payload)
 
-@router.get("/metrics/zones/{zone_id}/visiting-time-by-vessel",
-            response_model=list[ResponseMetricsZoneVisitingTimeByVesselSchema])
+@router.get("/metrics/zones/{zone_id}/visiting-time-by-vessel")
 @cache
-def read_metrics_zone_visiting_time_by_vessel(request: Request,
+async def read_metrics_zone_visiting_time_by_vessel(request: Request,
                                             zone_id: int,
                                             datetime_range: DatetimeRangeRequest = Depends(),
                                             pagination: PageParams = Depends(),
@@ -78,12 +78,12 @@ def read_metrics_zone_visiting_time_by_vessel(request: Request,
                                                 datetime_range=datetime_range,
                                                 pagination=pagination,
                                                 order=order)
-    return payload
+    return jsonable_encoder(payload)
 
-
+"""
 @router.get("/metrics/vessels/{vessel_id}/activity/{activity_type}")
 @cache
-def read_metrics_vessels_visits_by_activity_type(request: Request,
+async def read_metrics_vessels_visits_by_activity_type(request: Request,
                                             vessel_id: int,
                                             activity_type: TotalTimeActivityTypeRequest = Depends(),
                                             datetime_range: DatetimeRangeRequest = Depends(),
@@ -96,4 +96,4 @@ def read_metrics_vessels_visits_by_activity_type(request: Request,
                                                 vessel_id=vessel_id,
                                                 activity_type=activity_type,
                                                 datetime_range=datetime_range)
-    return payload
+    return jsonable_encoder(payload)"""

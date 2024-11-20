@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
@@ -14,22 +14,44 @@ from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.vessel import Vessel
+from bloom.domain.zone import Zone,ZoneListView
 from bloom.logger import logger
-from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
+from bloom.dependencies import (X_API_KEY_HEADER,
+                                check_apikey,
+                                cache)
+from fastapi.responses  import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from typing import Mapping
+from bloom.routers.requests import (
+                                RangeHeader,
+                                RangeHeaderParser
+                                )
+import re
 
 router = APIRouter()
 
 @router.get("/zones")
-@cache
-async def list_zones(request:Request,nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
-    check_apikey(key)  
+#@cache
+async def list_zones(request:Request,
+                     nocache:bool=False,
+                     key: str = Depends(X_API_KEY_HEADER),
+                     range : Annotated[RangeHeader, Depends(RangeHeaderParser)] = None):
+    check_apikey(key)
+    print(f"Range:{range}")
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
-        json_data = [json.loads(z.model_dump_json() if z else "{}")
-                        for z in zone_repository.get_all_zones(session)]
-        return json_data
+        result=zone_repository.get_all_zones(session,range=range)
+        """payload = [ZoneListView(**z.model_dump())
+                        for z,total in zone_repository.get_all_zones(session,range=range)]"""
+
+        response=JSONResponse(content=jsonable_encoder(result.payload))
+        for s in result.spec:
+            response.headers.append(key='Content-Range', value=f"{s.start if s.start != None else ''}-{s.end if s.end != None else ''}/{result.total}")
+        
+
+        return response
 
 @router.get("/zones/all/categories")
 @cache
@@ -39,13 +61,13 @@ async def list_zone_categories(request:Request,nocache:bool=False,key: str = Dep
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
-        json_data = [json.loads(z.model_dump_json()  if z else "{}")
+        json_data = [ZoneListView(**z.model_dump_json())
                         for z in zone_repository.get_all_zone_categories(session)]
         return json_data
 
 @router.get("/zones/by-category/{category}/by-sub-category/{sub}")
 @cache
-async def get_zone_all_by_category(category:str="all",sub:str=None,nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
+async def get_zone_all_by_category(request:Request,category:str="all",sub:str=None,nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
@@ -57,7 +79,7 @@ async def get_zone_all_by_category(category:str="all",sub:str=None,nocache:bool=
 
 @router.get("/zones/by-category/{category}")
 @cache
-async def get_zone_all_by_category(category:str="all",nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
+async def get_zone_all_by_category(request:Request,category:str="all",nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
@@ -69,10 +91,10 @@ async def get_zone_all_by_category(category:str="all",nocache:bool=False,key: st
         
 @router.get("/zones/{zones_id}")
 @cache
-async def get_zone(zones_id:int,key: str = Depends(X_API_KEY_HEADER)):
+async def get_zone(request:Request,zones_id:int,nocache:bool=False,key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
-        return zone_repository.get_zone_by_id(session,zones_id)
+        return jsonable_encoder(zone_repository.get_zone_by_id(session,zones_id))

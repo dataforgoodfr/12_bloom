@@ -7,7 +7,8 @@ from bloom.infra.database.database_manager import Base
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,OrderByEnum, PageParams
 from fastapi.encoders import jsonable_encoder
 
-from bloom.domain.vessel import Vessel
+from bloom.domain.vessel import Vessel,VesselListView
+from bloom.domain.zone import Zone, ZoneListView
 from bloom.infra.repositories.repository_vessel import VesselRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
@@ -57,10 +58,10 @@ class MetricsService():
             # here :
             #  item[0] is Vessel
             #  item[1] is total_time_at_sea
-        return  [jsonable_encoder(ResponseMetricsVesselInActivitySchema(
-            vessel=VesselRepository.map_to_domain(item[0]),
+        return  [ResponseMetricsVesselInActivitySchema(
+            vessel=VesselListView(**VesselRepository.map_to_domain(item[0]).model_dump()),
             total_time_at_sea=item[1]
-            ))\
+            )\
             for item in payload]
     
     def getZoneVisited(self,
@@ -92,10 +93,10 @@ class MetricsService():
             # here :
             #  item[0] is Zone
             #  item[1] is visiting_duration
-        return [jsonable_encoder(ResponseMetricsZoneVisitedSchema(
-            zone=ZoneRepository.map_to_domain(item[0]),
+        return [ResponseMetricsZoneVisitedSchema(
+            zone=ZoneRepository.map_to_domain(item[0]).model_dump(),
             visiting_duration=item[1]
-            ))\
+            )\
             for item in payload]
     
     def getZoneVisitingTimeByVessel(self,
@@ -136,11 +137,11 @@ class MetricsService():
             #  item[0] is Zone
             #  item[1] is Vessel
             #  item[2] is visiting_duration
-        return [jsonable_encoder(ResponseMetricsZoneVisitingTimeByVesselSchema(
-            zone=ZoneRepository.map_to_domain(item[0]),
-            vessel=VesselRepository.map_to_domain(item[1]),
+        return [ResponseMetricsZoneVisitingTimeByVesselSchema(
+            zone=ZoneRepository.map_to_domain(item[0]).model_dump(),
+            vessel=VesselRepository.map_to_domain(item[1]).model_dump(),
             zone_visiting_time_by_vessel=item[2]
-            ))\
+            )\
             for item in payload]
     
     def getVesselVisitsByActivityType(self,

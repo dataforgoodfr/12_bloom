@@ -9,6 +9,8 @@ from bloom.logger import logger
 from bloom.routers.requests import CachedRequest
 from bloom.dependencies import ( X_API_KEY_HEADER,check_apikey,cache)
 from bloom.config import settings
+from bloom.domain.port import PostListView
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 
@@ -22,9 +24,9 @@ async def list_ports(   request:Request,
     port_repository = use_cases.port_repository()
     db = use_cases.db()
     with db.session() as session:
-        json_data = [json.loads(p.model_dump_json() if p else "{}")
+        payload = [PostListView(**p.model_dump())
                         for p in port_repository.get_all_ports(session)]
-        return json_data
+        return jsonable_encoder(payload)
     
 
 @router.get("/ports/{port_id}")

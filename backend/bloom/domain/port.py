@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from shapely import Point, Polygon
 from shapely.geometry import mapping, shape
-from typing import Union
+from typing import Union, ClassVar
 
 class Port(BaseModel):
     model_config = ConfigDict(
@@ -26,3 +26,7 @@ class Port(BaseModel):
     has_excursion: bool = False
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
+
+class PostListView(Port):
+    geometry_point: ClassVar[Union[Point, None]] = None
+    geometry_buffer: ClassVar[Union[Polygon, None]] = None

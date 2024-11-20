@@ -3,8 +3,8 @@ from typing import Generic,TypeVar, List
 from typing_extensions import Annotated, Literal, Optional
 from datetime import datetime, timedelta
 from enum import Enum
-from bloom.domain.vessel import Vessel
-from bloom.domain.zone import ZoneIdent
+from bloom.domain.vessel import Vessel,VesselListView
+from bloom.domain.zone import Zone,ZoneListView
 
 class TotalTimeActivityTypeEnum(str, Enum):
     total_time_at_sea: str = "Total Time at Sea"
@@ -19,16 +19,16 @@ class TotalTimeActivityTypeEnum(str, Enum):
 
 class ResponseMetricsVesselInActivitySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    vessel: Vessel
+    vessel: VesselListView
     total_time_at_sea: Optional[timedelta]
 
 class ResponseMetricsZoneVisitedSchema(BaseModel):
-    zone: ZoneIdent
+    zone: ZoneListView
     visiting_duration: timedelta
 
 class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):
-    zone: ZoneIdent
-    vessel: Vessel
+    zone: ZoneListView
+    vessel: VesselListView
     zone_visiting_time_by_vessel: timedelta
 
 class ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(BaseModel):

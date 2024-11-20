@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union
+from typing import Union, ClassVar
 
 from pydantic import BaseModel
 
@@ -24,3 +24,9 @@ class Vessel(BaseModel):
     details: Union[str, None] = None
     check: Union[str, None] = None
     length_class: Union[str, None] = None
+
+class VesselListView(Vessel):
+    details:ClassVar[Union[str, None]] = None
+    imo:ClassVar[Union[int, None]] = None
+    cfr:ClassVar[Union[str, None]] = None
+    home_port_id:ClassVar[Union[int, None]] = None

@@ -3,7 +3,44 @@ from fastapi import Request
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Generic,TypeVar, List
+from typing import Optional, Annotated
+from fastapi import Header
+import re
 
+
+class RangeSpec(BaseModel):
+    start: Optional[int] = None
+    end: Optional[int] = None
+
+class RangeSet(BaseModel):
+    spec: list[RangeSpec] = []
+
+class RangeHeader(RangeSet):
+    def __init__(self,value:str,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        match=re.search(r'^(items)=.*',value)
+        if(match and len(match.groups())):
+            self.unit = match.group(1)
+        else:
+            raise Exception("Range header bad format {value}. Expected '<unit:str='items'>=<start:int>-<end:int>,...")
+
+        pattern=re.compile(r'((?P<start>\d*)-(?P<end>\d*))')
+        for match in pattern.finditer(value):
+            print(f"match:{match}")
+            spec=RangeSpec()
+            spec.start=int(match.group(2)) if match.group(2) else None
+            spec.end=int(match.group(3)) if match.group(3) else None
+            self.spec.append(spec)
+    unit: str = 'item'
+
+
+P=TypeVar('P')
+
+class PaginatedResult(BaseModel,Generic[P]):
+    unit: str
+    spec: list[RangeSpec] = []
+    payload: P
+    total: int
 
 class CachedRequest(BaseModel):
     nocache:bool=False
@@ -24,6 +61,9 @@ class PaginatedRequest(BaseModel):
     offset: int|None = 0
     limit: int|None = 100
     order_by: OrderByRequest = OrderByEnum.ascending
+    
+def RangeHeaderParser(range:Annotated[Optional[str|None],Header()] = None):
+    return RangeHeader(range)
 
 
 class PageParams(BaseModel):
