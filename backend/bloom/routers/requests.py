@@ -37,10 +37,13 @@ class RangeHeader(RangeSet):
 P=TypeVar('P')
 
 class PaginatedResult(BaseModel,Generic[P]):
-    unit: str
-    spec: list[RangeSpec] = []
+    unit: Optional[str|None] = None
+    spec: Optional[list[RangeSpec]|None] = None
     payload: P
-    total: int
+    total: Optional[int|None]= None
+
+class NonPaginatedResult(BaseModel,Generic[P]):
+    payload: P
 
 class CachedRequest(BaseModel):
     nocache:bool=False
@@ -63,7 +66,7 @@ class PaginatedRequest(BaseModel):
     order_by: OrderByRequest = OrderByEnum.ascending
     
 def RangeHeaderParser(range:Annotated[Optional[str|None],Header()] = None):
-    return RangeHeader(range)
+    return RangeHeader(range) if range is not None else None
 
 
 class PageParams(BaseModel):

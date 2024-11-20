@@ -46,9 +46,11 @@ async def list_zones(request:Request,
         """payload = [ZoneListView(**z.model_dump())
                         for z,total in zone_repository.get_all_zones(session,range=range)]"""
 
-        response=JSONResponse(content=jsonable_encoder(result.payload))
-        for s in result.spec:
-            response.headers.append(key='Content-Range', value=f"{s.start if s.start != None else ''}-{s.end if s.end != None else ''}/{result.total}")
+        response=JSONResponse(  content=jsonable_encoder(result.payload),
+                                status_code=206 if range is not None else 200)
+        if result.spec is not None:
+            for s in result.spec:
+                response.headers.append(key='Content-Range', value=f"{s.start if s.start != None else ''}-{s.end if s.end != None else ''}/{result.total}")
         
 
         return response
