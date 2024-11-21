@@ -109,9 +109,6 @@ class PortRepository:
             latitude=orm_port.latitude,
             longitude=orm_port.longitude,
             geometry_point=to_shape(orm_port.geometry_point),
-            geometry_buffer=to_shape(orm_port.geometry_buffer)
-            if orm_port.geometry_buffer is not None
-            else None,
             has_excursion=orm_port.has_excursion,
             created_at=orm_port.created_at,
             updated_at=orm_port.updated_at,
@@ -127,9 +124,6 @@ class PortRepository:
             latitude=port.latitude,
             longitude=port.longitude,
             geometry_point=from_shape(port.geometry_point),
-            geometry_buffer=from_shape(port.geometry_buffer)
-            if port.geometry_buffer is not None
-            else None,
             has_excursion=port.has_excursion,
             created_at=port.created_at,
             updated_at=port.updated_at,
