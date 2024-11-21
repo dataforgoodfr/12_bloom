@@ -9,7 +9,7 @@ from bloom.container import UseCases
 from bloom.domain.zone import Zone
 from bloom.logger import logger
 
-FIC_ZONE = ["french_metropolitan_mpas.csv", "fishing_coastal_waters.csv", "territorial_seas.csv"]
+FIC_ZONE = ["french_metropolitan_mpas.csv","fishing_coastal_waters.csv", "territorial_seas.csv","clipped_territorial_seas.csv"]
 
 
 def map_to_domain(row: pd.Series) -> Zone:
