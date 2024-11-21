@@ -20,6 +20,14 @@ class Zone(BaseModel):
     geometry: Union[Geometry, None] = None
     centroid: Union[Point, None] = None
     json_data: Union[dict, None] = None
+
+class ZoneSummary(BaseModel):
+    id: Union[int, None] = None
+    category: str
+    sub_category: Union[str, None] = None
+    name: str
+    created_at: Union[datetime, None] = None
+
     
 class ZoneListView(Zone):
     geometry: ClassVar[Union[Geometry, None]] = None
