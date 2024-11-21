@@ -21,7 +21,7 @@ def run():
         
         port_repository = use_cases.port_repository()
         segment_repository = use_cases.segment_repository()
-        excursion_repository = use_cases.segment_repository()
+        excursion_repository = use_cases.excursion_repository()
 
         result= segment_repository.find_segments_in_zones(session)
         new_rels = []
