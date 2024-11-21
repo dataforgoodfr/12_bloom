@@ -265,10 +265,6 @@ class SegmentRepository:
     # passe à False de la colonne last_vessel_segment pour tous les segments des excursions transmises
     # passe à True la colonne last_vessel_segment pour tous les Id de segments les plus récent de chaque excursion
     def update_last_segments(self, session: Session, vessel_ids: list[int]) -> int:
-        if not vessel_ids:
-            print("Aucun vessel_id trouvé, retourner la tête de l'excursion.")
-            return [] 
-        else: 
             for v_id in vessel_ids:
                 upd1 = (update(sql_model.Segment).
                     where(
