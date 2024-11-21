@@ -101,6 +101,15 @@ class PortRepository:
         return res
 
 
+    def update_port_has_excursion(self, session : Session, port_id: int ):
+        stmt = (
+            update(sql_model.Port)
+            .where(sql_model.Port.id == port_id)
+            .values(has_excursion= True)
+        )
+        session.execute(stmt)
+        session.commit()
+
     def has_excursion_for_port(self, session: Session, port_id: int) -> bool:
         stmt = select(sql_model.Excursion).where(
             (sql_model.Excursion.departure_port_id == port_id) |
@@ -115,16 +124,12 @@ class PortRepository:
         
     def batch_update_ports_has_excursion(self, session: Session, ports: list[Port]) -> list[Port]:
         updated_ports = []
-        c=0
         for port in ports:
-            if c<2:
-                print(port)
             port.has_excursion = self.has_excursion_for_port(session, port.id) #True if else False
-            orm = PortRepository.map_to_sql(port)
-            session.merge(orm)  # Met à jour l'objet dans la session
-            session.flush()  # Synchronise avec la base de données
-            updated_ports.append(port)  # Ajoute le port mis à jour à la liste
-            c+=1        
+            sql = PortRepository.map_to_sql(port)
+            session.merge(sql)  
+            session.flush()  
+            updated_ports.append(port)
         return updated_ports
 
     @staticmethod

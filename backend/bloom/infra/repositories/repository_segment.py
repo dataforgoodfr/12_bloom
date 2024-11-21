@@ -161,6 +161,7 @@ class SegmentRepository:
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
 
+    
     def get_vessel_attribute_by_segment(self, session: Session, segment_id: int) -> str:
         stmt = select(
         sql_model.Vessel.country_iso3
@@ -171,13 +172,32 @@ class SegmentRepository:
     ).join(
         sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
     ).filter(
-        sql_model.Segment.id == segment_id  # Utilisez .id pour accéder à l'attribut
+        sql_model.Segment.id == segment_id
+    )
+        
+        result = session.execute(stmt).scalar()
+
+        return result
+    
+
+    def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> str:
+        stmt = select(
+        sql_model.Vessel.country_iso3
+    ).where(
+        sql_model.Segment.updated_at > created_updated_after
+    ).select_from(
+        sql_model.Segment
+    ).join(
+        sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
+    ).join(
+        sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+    ).filter(
+        sql_model.Segment.id == segment_id
     )
 
-        
-        result = session.execute(stmt).scalar()  # Utilise .scalar() pour obtenir la première colonne du premier résultat
+        result = session.execute(stmt).scalar()
 
-        return result  # Si result est None, cela indiquera qu'aucun résultat n'a été trouvé
+        return result
 
 
     def batch_create_segment(
@@ -194,6 +214,25 @@ class SegmentRepository:
         )
         result = session.execute(stmt).scalars()
         return [SegmentRepository.map_to_domain(orm) for orm in result]
+
+
+    def find_segments_in_zones(self, session: Session) -> dict[
+        Segment, list[Zone]]:
+        stmt = select(sql_model.Segment, sql_model.Zone).outerjoin(sql_model.Zone, and_(
+            ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
+            ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
+                                                                           ).order_by(
+            sql_model.Segment.created_at.asc())
+        result = session.execute(stmt)
+        dict = {}
+        for (segment_orm, zone_orm) in result:
+            segment = SegmentRepository.map_to_domain(segment_orm)
+            dict.setdefault(segment, [])
+            zone = ZoneRepository.map_to_domain(zone_orm) if zone_orm else None
+            if zone:
+                dict[segment].append(zone)
+        return dict
+    
 
     def find_segments_in_zones_created_updated_after(self, session: Session, created_after: datetime) -> dict[
         Segment, list[Zone]]:
@@ -226,23 +265,27 @@ class SegmentRepository:
     # passe à False de la colonne last_vessel_segment pour tous les segments des excursions transmises
     # passe à True la colonne last_vessel_segment pour tous les Id de segments les plus récent de chaque excursion
     def update_last_segments(self, session: Session, vessel_ids: list[int]) -> int:
-        for v_id in vessel_ids:
-            upd1 = (update(sql_model.Segment).
-                where(
-                    sql_model.Segment.id.in_(select(sql_model.Segment.id).join(sql_model.Excursion).where(sql_model.Excursion.vessel_id == v_id))).
-            values(last_vessel_segment=False))
-            session.execute(upd1)
-        session.flush()
-        last_segments = session.execute(text("""SELECT DISTINCT ON (vessel_id) s.id FROM fct_segment s
-                                                JOIN fct_excursion e ON e.id = s.excursion_id
-                                                WHERE vessel_id in :vessel_ids 
-                                                ORDER BY vessel_id, timestamp_start DESC"""),
-                                        {"vessel_ids": tuple(vessel_ids)}).all()
-        ids = [r[0] for r in last_segments]
-        upd2 = update(sql_model.Segment).where(sql_model.Segment.id.in_(ids)).values(
-            last_vessel_segment=True)
-        session.execute(upd2)
-        return len(ids)
+        if not vessel_ids:
+            print("Aucun vessel_id trouvé, retourner la tête de l'excursion.")
+            return [] 
+        else: 
+            for v_id in vessel_ids:
+                upd1 = (update(sql_model.Segment).
+                    where(
+                        sql_model.Segment.id.in_(select(sql_model.Segment.id).join(sql_model.Excursion).where(sql_model.Excursion.vessel_id == v_id))).
+                values(last_vessel_segment=False))
+                session.execute(upd1)
+            session.flush()
+            last_segments = session.execute(text("""SELECT DISTINCT ON (vessel_id) s.id FROM fct_segment s
+                                                    JOIN fct_excursion e ON e.id = s.excursion_id
+                                                    WHERE vessel_id in :vessel_ids 
+                                                    ORDER BY vessel_id, timestamp_start DESC"""),
+                                            {"vessel_ids": tuple(vessel_ids)}).all()
+            ids = [r[0] for r in last_segments]
+            upd2 = update(sql_model.Segment).where(sql_model.Segment.id.in_(ids)).values(
+                last_vessel_segment=True)
+            session.execute(upd2)
+            return len(ids)
 
     @staticmethod
     def map_to_domain(segment: sql_model.Segment) -> Segment:

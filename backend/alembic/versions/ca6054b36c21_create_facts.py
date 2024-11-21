@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column("total_time_at_sea", sa.Interval),
         sa.Column("total_time_in_amp", sa.Interval),
         sa.Column("total_time_in_territorial_waters", sa.Interval),
-        sa.Column("total_time_in_costal_waters", sa.Interval),
+        sa.Column("total_time_in_zones_with_no_fishing_rights", sa.Interval),
         sa.Column("total_time_fishing", sa.Interval),
         sa.Column("total_time_fishing_in_amp", sa.Interval),
         sa.Column("total_time_fishing_in_territorial_waters", sa.Interval),
