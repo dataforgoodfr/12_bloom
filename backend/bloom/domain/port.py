@@ -22,11 +22,9 @@ class Port(BaseModel):
     latitude: Union[float, None] = None
     longitude: Union[float, None] = None
     geometry_point: Union[Point, None] = None
-    geometry_buffer: Union[Polygon, None] = None
     has_excursion: bool = False
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None
 
 class PostListView(Port):
     geometry_point: ClassVar[Union[Point, None]] = None
-    geometry_buffer: ClassVar[Union[Polygon, None]] = None
