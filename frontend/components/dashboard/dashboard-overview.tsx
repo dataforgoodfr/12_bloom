@@ -4,15 +4,7 @@ import { Item } from "@/types/item"
 import ListCard from "@/components/ui/list-card"
 import KPICard from "@/components/dashboard/kpi-card"
 
-import { Button } from "../ui/button"
 import { DateRangeSelector } from "../ui/date-range-selector"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select"
 
 const TOTAL_VESSELS = 1700
 const TOTAL_AMPS = 720

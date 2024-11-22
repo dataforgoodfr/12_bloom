@@ -26,23 +26,18 @@ export function convertDurationInHours(durationPattern: string): number {
   return Math.floor(totalHours)
 }
 
-// format date like: 2023-07-15T17:16:27
-export function format(date: Date) {
-  return (
-    [
-      date.getFullYear(),
-      padTwoDigits(date.getMonth() + 1),
-      padTwoDigits(date.getDate()),
-    ].join("-") +
-    "T" +
-    [
-      padTwoDigits(date.getHours()),
-      padTwoDigits(date.getMinutes()),
-      padTwoDigits(date.getSeconds()),
-    ].join(":")
-  )
-}
-
 function padTwoDigits(num: number) {
   return num.toString().padStart(2, "0")
+}
+
+export function getDateRange(days: number) {
+  const today = new Date()
+  const start = new Date(today)
+  start.setDate(today.getDate() - days)
+  start.setHours(0, 0, 0, 0)
+
+  return {
+    startAt: start.toISOString(),
+    endAt: today.toISOString(),
+  }
 }

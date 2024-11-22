@@ -4,10 +4,10 @@ import {
   Vessel,
   VesselExcursion,
   VesselExcursionSegment,
+  VesselMetrics,
   VesselPositions,
-  VesselTrackingTimeDto,
 } from "@/types/vessel"
-import { ZoneVisits, ZoneVisitTimeDto } from "@/types/zone"
+import { ZoneMetrics, ZoneVesselMetrics } from "@/types/zone"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL
 const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "no-key-found"
@@ -64,7 +64,7 @@ export function getTopVesselsInActivity(
 ) {
   const url = `${BASE_URL}/metrics/vessels-in-activity?start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC`
   console.log(`GET ${url}`)
-  return axios.get<VesselTrackingTimeDto[]>(url)
+  return axios.get<VesselMetrics[]>(url)
 }
 
 export function getTopZonesVisited(
@@ -74,11 +74,17 @@ export function getTopZonesVisited(
 ) {
   const url = `${BASE_URL}/metrics/zone-visited?start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
   console.log(`GET ${url}`)
-  return axios.get<ZoneVisitTimeDto[]>(url)
+  return axios.get<ZoneMetrics[]>(url)
 }
 
-export function getZoneDetails(zoneId: string, startAt: string, endAt: string) {
+export async function getZoneDetails(
+  zoneId: string,
+  startAt: string,
+  endAt: string
+) {
   const url = `${BASE_URL}/metrics/zones/${zoneId}/visiting-time-by-vessel?start_at=${startAt}&end_at=${endAt}&order=DESC&limit=10`
   console.log(`GET ${url}`)
-  return axios.get<ZoneVisits[]>(url)
+  const response = await axios.get<ZoneVesselMetrics[]>(url)
+  console.log(response)
+  return response
 }
