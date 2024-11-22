@@ -12,6 +12,7 @@ from bloom.routers.requests import RangeHeader
 ## https://jayhawk24.hashnode.dev/how-to-implement-pagination-in-fastapi-feat-sqlalchemy
 X_API_KEY_HEADER=APIKeyHeader(name="x-key")
 
+from fastapi.encoders import jsonable_encoder
 
 ## FastAPI endpoint decorator to manage Redis caching
 # Needs to add request:Request and nocache:bool parameters to all endpoints
@@ -45,7 +46,7 @@ def cache(func):
             payload=json.loads(incache)
         else:
             payload=await func(*args, **kwargs)
-            cache_service.set(cache_key, json.dumps(payload))
+            cache_service.set(cache_key, json.dumps(jsonable_encoder(payload)))
             cache_service.expire(cache_key,settings.redis_cache_expiration)
         logger.debug(f"{cache_key} elapsed Time: {time.time()-start}")
         return payload
