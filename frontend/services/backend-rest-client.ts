@@ -12,6 +12,7 @@ import { ZoneMetrics, ZoneVesselMetrics, ZoneWithGeometry } from "@/types/zone"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL
 const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "no-key-found"
+const CACHE_CONTROL_HEADER = "public, max-age=2592000" // 30 days in seconds
 
 // Authenticate all requests to Bloom backend
 axios.interceptors.request.use((request: InternalAxiosRequestConfig) => {
@@ -105,7 +106,7 @@ export async function getZones() {
   const responses = await Promise.all(
     ranges.map((range) =>
       axios.get<ZoneWithGeometry[]>(url, {
-        headers: { range },
+        headers: { range, "Cache-Control": CACHE_CONTROL_HEADER },
       })
     )
   )
