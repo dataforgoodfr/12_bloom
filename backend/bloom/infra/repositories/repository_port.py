@@ -27,7 +27,6 @@ class PortRepository:
 
     def get_all_ports(self, session: Session) -> List[Port]:
         q = session.query(sql_model.Port).all()
-        print(f'VOICI LES PORTS : {q}')
         if not q:
             return []
         return [PortRepository.map_to_domain(entity) for entity in q]
@@ -108,7 +107,6 @@ class PortRepository:
             .values(has_excursion= True)
         )
         session.execute(stmt)
-        session.commit()
 
     def has_excursion_for_port(self, session: Session, port_id: int) -> bool:
         stmt = select(sql_model.Excursion).where(

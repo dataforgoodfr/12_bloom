@@ -288,9 +288,9 @@ def run():
                 heading_at_end=result["heading_at_end"].iloc[i],
                 type=result["type"].iloc[i],
                 last_vessel_segment=result["last_vessel_segment"].iloc[i],
-                in_zone_with_no_fishing_rights=0,
-                in_amp_zone=0,
-                in_territorial_waters=0
+                in_zone_with_no_fishing_rights=False,
+                in_amp_zone=False,
+                in_territorial_waters=False
             )
             new_segments.append(new_segment)
         segment_repository.batch_create_segment(session, new_segments)
@@ -317,34 +317,34 @@ def run():
                 segment_in_zone = True
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
-                    segment.in_amp_zone = 1
-                elif zone.category == "Fishing coastal waters (6-12 NM)" :
+                    segment.in_amp_zone = True
+                elif zone.category == "Fishing coastal waters (6-12 NM)":
                     country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
-                    res = country_iso3 in zone.beneficiaries
-                    if res is False :
-                        segment.in_zone_with_no_fishing_rights = 1
-                elif zone.category == 'Clipped territorial seas' :
+                    beneficiaries = zone.json_data.get("beneficiaries", [])
+                    if country_iso3 not in beneficiaries:
+                        segment.in_zone_with_no_fishing_rights = True
+                elif zone.category == "Clipped territorial seas":
                     country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
-                    if country_iso3 != 'FRA':
-                        segment.in_zone_with_no_fishing_rights = 1
+                    if country_iso3 != "FRA":
+                        segment.in_zone_with_no_fishing_rights = True
                 elif zone.category == "Territorial seas":
-                    segment.in_territorial_waters = 1
+                    segment.in_territorial_waters = True
             if segment_in_zone:
                 segments.append(segment)
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
                                        excursion_repository.get_excursion_by_id(session, segment.excursion_id))
-            if segment.in_amp_zone == 1:
+            if segment.in_amp_zone:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_amp += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_amp += segment.segment_duration
-            if segment.in_zone_with_no_fishing_rights == 1:
+            if segment.in_zone_with_no_fishing_rights:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_zones_with_no_fishing_rights += segment.segment_duration
                 elif segment.type == "FISHING":
                     excursion.total_time_fishing_in_zones_with_no_fishing_rights += segment.segment_duration
-            if segment.in_territorial_waters == 1:
+            if segment.in_territorial_waters:
                 if segment.type == "AT_SEA":
                     excursion.total_time_in_territorial_waters += segment.segment_duration
                 elif segment.type == "FISHING":
@@ -378,11 +378,7 @@ def run():
         RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
         logger.info(f"{len(new_rels)} associations(s) créées")
         vessels_ids = set(exc.vessel_id for exc in excursions.values())
-        if not vessels_ids:
-            print("Aucun vessel_id fourni.")
-            nb_last = segment_repository.update_last_segments(session, [])
-        else:
-            nb_last = segment_repository.update_last_segments(session, vessels_ids)
+        nb_last = segment_repository.update_last_segments(session, vessels_ids)
         logger.info(f"{nb_last} derniers segments mis à jour")
         now = datetime.now(timezone.utc)
         TaskExecutionRepository.set_point_in_time(session, "create_update_excursions_segments", now)

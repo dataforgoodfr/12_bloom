@@ -18,7 +18,6 @@ class Zone(BaseModel):
     name: str
     geometry: Union[Geometry, None] = None
     centroid: Union[Point, None] = None
-    beneficiaries: Union[str, None] = None
     json_data: Union[dict, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None

@@ -59,7 +59,6 @@ class ZoneRepository:
             name=zone.name,
             geometry=from_shape(zone.geometry),
             centroid=from_shape(zone.centroid),
-            beneficiaries=zone.beneficiaries,
             json_data=zone.json_data,
             created_at=zone.created_at,
         )
@@ -74,7 +73,6 @@ class ZoneRepository:
             geometry=to_shape(zone.geometry),
             centroid=to_shape(zone.centroid),
             json_data=zone.json_data,
-            beneficiaries=zone.beneficiaries,
             created_at=zone.created_at,
         )
 

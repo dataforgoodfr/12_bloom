@@ -29,7 +29,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String, nullable=False),
         sa.Column("geometry", Geometry(geometry_type="GEOMETRY", srid=settings.srid)),
         sa.Column("centroid", Geometry(geometry_type="POINT", srid=settings.srid)),
-        sa.Column("beneficiaries", sa.String),
         sa.Column("json_data", JSONB),
         sa.Column(
             "created_at",
@@ -41,7 +40,6 @@ def upgrade() -> None:
     )
     op.create_index("i_dim_zone_created_updated", "dim_zone", ["created_at", "updated_at"])
     op.create_index("i_dim_zone_category", "dim_zone", ["category", "sub_category"])
-    #op.add_column('dim_zone', sa.Column('beneficiaries', sa.String(), nullable=True))
 
 
 def downgrade() -> None:
