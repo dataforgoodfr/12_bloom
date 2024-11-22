@@ -8,7 +8,7 @@ import {
 import { swrOptions } from "@/services/swr"
 import useSWR from "swr"
 
-import { format } from "@/libs/dateUtils"
+import { getDateRange } from "@/libs/dateUtils"
 import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper"
 import DashboardHeader from "@/components/dashboard/dashboard-header"
 import DashboardOverview from "@/components/dashboard/dashboard-overview"
@@ -66,14 +66,7 @@ async function fetchTotalAmpsVisited(startAt: string, endAt: string) {
 export default function DashboardPage() {
   const [selectedDays, setSelectedDays] = useState(7)
   const { startAt, endAt } = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const start = new Date(today)
-    start.setDate(today.getDate() - selectedDays)
-    return {
-      startAt: format(start),
-      endAt: format(today),
-    }
+    return getDateRange(selectedDays)
   }, [selectedDays])
 
   const {
