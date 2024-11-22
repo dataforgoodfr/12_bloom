@@ -12,10 +12,6 @@ import { Button } from "../ui/button"
 export default function DashboardHeader() {
   const router = useRouter()
 
-  const onClickMapView = () => {
-    router.push("/map")
-  }
-
   const handleLogout = async () => {
     try {
       const response = await fetch("/api/logout", {
@@ -43,24 +39,26 @@ export default function DashboardHeader() {
         </Link>
       </div>
 
-      <Button
-        variant="ghost"
-        className="mr-5 flex items-center p-3 hover:cursor-pointer"
-        onClick={onClickMapView}
-      >
-        <Map className="text-primary" />
-        <div className="inline text-base font-bold text-primary">
-          Map&nbsp;view
-        </div>
-      </Button>
-      <Button
-        variant="ghost"
-        className="flex items-center p-3 hover:cursor-pointer"
-        onClick={handleLogout}
-      >
-        <LogOut className="text-primary" />
-        <div className="inline text-base font-bold text-primary">Logout</div>
-      </Button>
+      <Link href="/map">
+        <Button
+          variant="ghost"
+          className="mr-5 flex items-center p-3 hover:cursor-pointer"
+        >
+          <Map className="text-primary" />
+          <div className="inline text-base font-bold text-primary">
+            Map&nbsp;view
+          </div>
+        </Button>
+      </Link>
+      <Link href="/login" onClick={handleLogout}>
+        <Button
+          variant="ghost"
+          className="flex items-center p-3 hover:cursor-pointer"
+        >
+          <LogOut className="text-primary" />
+          <div className="inline text-base font-bold text-primary">Logout</div>
+        </Button>
+      </Link>
     </div>
   )
 }
