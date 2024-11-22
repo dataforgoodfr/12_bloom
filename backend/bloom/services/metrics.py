@@ -59,7 +59,7 @@ class MetricsService():
             #  item[0] is Vessel
             #  item[1] is total_time_at_sea
         return  [ResponseMetricsVesselInActivitySchema(
-            vessel=VesselListView(**VesselRepository.map_to_domain(item[0]).model_dump()),
+            vessel=VesselRepository.map_to_domain(item[0]).model_dump(),
             total_time_at_sea=item[1]
             )\
             for item in payload]
