@@ -13,6 +13,7 @@ export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
         description: `IMO / MMSI ${vessel.mmsi} / ${vessel.length} mètres`,
         value: `${convertDurationInHours(vesselMetrics.total_time_at_sea)}h`,
         type: "vessel",
+        countryIso3: vessel.country_iso3,
       }
     })
     .sort((a, b) => {

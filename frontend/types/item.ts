@@ -4,6 +4,7 @@ export type Item = {
   description: string
   value: string
   type: string
+  countryIso3?: string
 }
 
 export type ItemDetails = {
