@@ -1,3 +1,4 @@
+import { TOTAL_AMPS } from "@/constants/totals.constants"
 import axios, { InternalAxiosRequestConfig } from "axios"
 
 import {
@@ -7,7 +8,7 @@ import {
   VesselMetrics,
   VesselPositions,
 } from "@/types/vessel"
-import { ZoneMetrics, ZoneVesselMetrics } from "@/types/zone"
+import { ZoneMetrics, ZoneVesselMetrics, ZoneWithGeometry } from "@/types/zone"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL
 const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "no-key-found"
@@ -87,4 +88,30 @@ export async function getZoneDetails(
   const response = await axios.get<ZoneVesselMetrics[]>(url)
   console.log(response)
   return response
+}
+
+export async function getZones() {
+  const url = `${BASE_URL}/zones`
+  console.log(`GET ${url}`)
+
+  // Calculate ranges for batches of 10
+  const ranges = []
+  for (let i = 0; i < TOTAL_AMPS; i += 10) {
+    const end = Math.min(i + 9, TOTAL_AMPS - 1)
+    ranges.push(`items=${i}-${end}`)
+  }
+
+  // Make parallel requests for each range
+  const responses = await Promise.all(
+    ranges.map((range) =>
+      axios.get<ZoneWithGeometry[]>(url, {
+        headers: { range },
+      })
+    )
+  )
+
+  // Combine all responses
+  return {
+    data: responses.flatMap((response) => response.data),
+  }
 }
