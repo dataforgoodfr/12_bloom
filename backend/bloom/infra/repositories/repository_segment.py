@@ -154,7 +154,7 @@ class SegmentRepository:
         ).filter(
             sql_model.Segment.last_vessel_segment == True
         )
-        q = session.execute(stmt).scalars().all()
+        q = session.execute(stmt)
         if not q:
             return None
         df = pd.DataFrame(q, columns=["vessel_id", "excursion_id", "end_position", "timestamp_end", 'heading_at_end',
