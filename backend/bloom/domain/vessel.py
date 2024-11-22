@@ -27,6 +27,5 @@ class Vessel(BaseModel):
 
 class VesselListView(Vessel):
     details:ClassVar[Union[str, None]] = None
-    imo:ClassVar[Union[int, None]] = None
     cfr:ClassVar[Union[str, None]] = None
     home_port_id:ClassVar[Union[int, None]] = None
