@@ -1,14 +1,15 @@
 import {
   getVessels,
   getVesselsLatestPositions,
+  getZones,
 } from "@/services/backend-rest-client"
 
 import LeftPanel from "@/components/core/left-panel"
 import MapControls from "@/components/core/map-controls"
-import DemoMap from "@/components/core/map/main-map"
+import Map from "@/components/core/map/main-map"
 import PositionPreview from "@/components/core/map/position-preview"
 
-export const revalidate = 3600
+export const revalidate = 900
 
 async function fetchVessels() {
   try {
@@ -33,16 +34,22 @@ async function fetchLatestPositions() {
   }
 }
 
-export default async function MapPage() {
-  const vessels = await fetchVessels()
-  const latestPositions = await fetchLatestPositions()
+async function fetchZones() {
+  const response = await getZones()
+  return response?.data
+}
 
-  // TODO: create new client component dedicated to update store
-  // -> then Map + LeftPanel can just use storeProvider
+export default async function MapPage() {
+  const [vessels, latestPositions, zones] = await Promise.all([
+    fetchVessels(),
+    fetchLatestPositions(),
+    fetchZones(),
+  ])
+
   return (
     <>
       <LeftPanel vessels={vessels} />
-      <DemoMap vesselsPositions={latestPositions} />
+      <Map vesselsPositions={latestPositions} zones={zones} />
       <MapControls />
       <PositionPreview />
     </>

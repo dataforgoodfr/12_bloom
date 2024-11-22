@@ -1,13 +1,12 @@
 "use client"
 
+import { TOTAL_AMPS, TOTAL_VESSELS } from "@/constants/totals.constants"
+
 import { Item } from "@/types/item"
 import ListCard from "@/components/ui/list-card"
 import KPICard from "@/components/dashboard/kpi-card"
 
 import { DateRangeSelector } from "../ui/date-range-selector"
-
-const TOTAL_VESSELS = 1700
-const TOTAL_AMPS = 720
 
 type Props = {
   topVesselsInActivity: Item[]

@@ -9,8 +9,12 @@ import { SimpleMeshLayer } from "@deck.gl/mesh-layers"
 import DeckGL from "@deck.gl/react"
 import { OBJLoader } from "@loaders.gl/obj"
 import chroma from "chroma-js"
-import { FlyToInterpolator, MapViewState, ScatterplotLayer } from "deck.gl"
-import { useTheme } from "next-themes"
+import {
+  FlyToInterpolator,
+  MapViewState,
+  PolygonLayer,
+  ScatterplotLayer,
+} from "deck.gl"
 import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
 
@@ -22,18 +26,19 @@ import {
   VesselPosition,
   VesselPositions,
 } from "@/types/vessel"
+import { ZoneWithGeometry } from "@/types/zone"
 import MapTooltip from "@/components/ui/tooltip-map-template"
+import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
 import { useMapStore } from "@/components/providers/map-store-provider"
 
 const MESH_URL_LOCAL = `../../../data/mesh/boat.obj`
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions
+  zones: ZoneWithGeometry[]
 }
 
-export default function CoreMap({ vesselsPositions }: CoreMapProps) {
-  const { setTheme, theme } = useTheme()
-
+export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   const {
     viewState,
     setViewState,
@@ -160,15 +165,51 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
     loaders: [OBJLoader],
   })
 
+  const zoneLayer = new PolygonLayer({
+    id: `zones-layer-${layerKey}`,
+    data: zones,
+    getPolygon: (d: ZoneWithGeometry) => {
+      // Handle both Polygon and MultiPolygon types
+      if (d.geometry.type === "MultiPolygon") {
+        // Return the first polygon's coordinates for MultiPolygon
+        return d.geometry.coordinates[0]
+      }
+      // For single Polygon, return just the first coordinate ring (outer boundary)
+      return d.geometry.coordinates
+    },
+    getFillColor: (d: ZoneWithGeometry) => {
+      switch (d.category) {
+        case "territorial_seas":
+          return [0, 0, 255, 50]
+        case "fishing_coastal_waters":
+          return [0, 255, 0, 50]
+        case "amp":
+        default:
+          return [255, 0, 0, 50]
+      }
+    },
+    getLineColor: [0, 0, 0, 128], // reduced opacity for borders
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    pickable: true, // disable picking if not needed
+    stroked: true,
+    filled: true,
+    wireframe: false, // disable wireframe for better performance
+    extruded: false,
+    parameters: {
+      depthTest: false,
+      blend: true,
+      blendFunc: [770, 771], // standard transparency blending
+    },
+  })
+
   const layers = [
-    tracksByVesselAndVoyage,
+    zoneLayer,
+    ...tracksByVesselAndVoyage,
     latestPositions,
     positions_mesh_layer,
   ]
-
-  useEffect(() => {
-    setTheme("light")
-  }, [setTheme])
 
   return (
     <DeckGL
@@ -176,20 +217,35 @@ export default function CoreMap({ vesselsPositions }: CoreMapProps) {
       controller={true}
       layers={layers}
       onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
-      getTooltip={({ object }: PickingInfo<VesselPosition>) =>
-        object
-          ? {
-              html: renderToString(<MapTooltip vesselInfo={object} />),
-              style: {
-                backgroundColor: "#fff",
-                fontSize: "0.8em",
-                borderRadius: "10px",
-                overflow: "hidden",
-                padding: "0px",
-              },
-            }
-          : null
-      }
+      getTooltip={({
+        object,
+      }: PickingInfo<VesselPosition | ZoneWithGeometry>) => {
+        if (!object) return null
+
+        if ("vessel" in object) {
+          return {
+            html: renderToString(<MapTooltip vesselInfo={object} />),
+            style: {
+              backgroundColor: "#fff",
+              fontSize: "0.8em",
+              borderRadius: "10px",
+              overflow: "hidden",
+              padding: "0px",
+            },
+          }
+        } else {
+          return {
+            html: renderToString(<ZoneMapTooltip zoneInfo={object} />),
+            style: {
+              backgroundColor: "#fff",
+              fontSize: "0.8em",
+              borderRadius: "10px",
+              overflow: "hidden",
+              padding: "0px",
+            },
+          }
+        }
+      }}
     >
       <MapGL
         mapStyle={`https://api.maptiler.com/maps/bb513c96-848e-4775-b150-437395193f26/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
