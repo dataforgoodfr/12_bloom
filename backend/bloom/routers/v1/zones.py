@@ -58,7 +58,7 @@ async def list_zones_summary(request: Request,
     return result
 
 
-@router.get("/zones/all/categories")
+@router.get("/zones/categories")
 @cache
 async def list_zone_categories(request: Request, nocache: bool = False, key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
@@ -66,8 +66,7 @@ async def list_zone_categories(request: Request, nocache: bool = False, key: str
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
-        json_data = [ZoneListView(**z.model_dump_json())
-                     for z in zone_repository.get_all_zone_categories(session)]
+        json_data = [z for z in zone_repository.get_all_zone_categories(session)]
         return json_data
 
 
