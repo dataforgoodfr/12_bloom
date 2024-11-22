@@ -10,6 +10,8 @@ class Segment(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True,
         json_encoders = {
                 Geometry: lambda geometry: mapping(geometry),
+                # Waiting to manage INF/NaN values, migrating them to None/null
+                float: lambda val: val if val != 'inf' and val != 'NaN' else None,
             },
     )
     id: Union[int, None] = None
