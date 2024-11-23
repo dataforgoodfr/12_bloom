@@ -2,19 +2,14 @@
 
 import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import type { PickingInfo } from "@deck.gl/core"
 import { GeoJsonLayer } from "@deck.gl/layers"
 import { SimpleMeshLayer } from "@deck.gl/mesh-layers"
 import DeckGL from "@deck.gl/react"
 import { OBJLoader } from "@loaders.gl/obj"
 import chroma from "chroma-js"
-import {
-  FlyToInterpolator,
-  MapViewState,
-  PolygonLayer,
-  ScatterplotLayer,
-} from "deck.gl"
+import { MapViewState, PolygonLayer, ScatterplotLayer } from "deck.gl"
 import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
 
@@ -50,7 +45,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   } = useMapStore((state) => state)
 
   // Use a piece of state that changes when `activePosition` changes to force re-render
-  const [layerKey, setLayerKey] = useState(0)
+  // const [layerKey, setLayerKey] = useState(0)
 
   function getColorFromValue(value: number): [number, number, number] {
     const scale = chroma.scale(["yellow", "red", "black"]).domain([0, 15])
@@ -58,23 +53,23 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     return [Math.round(color[0]), Math.round(color[1]), Math.round(color[2])]
   }
 
-  useEffect(() => {
-    // This will change the key of the layer, forcing it to re-render when `activePosition` changes
-    setLayerKey((prevKey) => prevKey + 1)
-  }, [activePosition, trackedVesselIDs])
+  // useEffect(() => {
+  //   // This will change the key of the layer, forcing it to re-render when `activePosition` changes
+  //   setLayerKey((prevKey) => prevKey + 1)
+  // }, [activePosition, trackedVesselIDs])
 
   useEffect(() => {
     setLatestPositions(vesselsPositions)
   }, [setLatestPositions, vesselsPositions])
 
   const latestPositions = new ScatterplotLayer<VesselPosition>({
-    id: `vessels-latest-positions-${layerKey}`,
+    id: `vessels-latest-positions`,
     data: vesselsPositions,
     getPosition: (vp: VesselPosition) => [
       vp?.position?.coordinates[0],
       vp?.position?.coordinates[1],
     ],
-    stroked: true,
+    stroked: false,
     radiusUnits: "meters",
     getRadius: (vp: VesselPosition) => vp.vessel.length,
     radiusMinPixels: 3,
@@ -91,15 +86,18 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     pickable: true,
     onClick: ({ object }) => {
       setActivePosition(object as VesselPosition)
-      setViewState({
-        ...viewState,
-        longitude: object?.position?.coordinates[0],
-        latitude: object?.position?.coordinates[1],
-        zoom: 7,
-        pitch: 40,
-        transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-        transitionDuration: "auto",
-      })
+      // setViewState({
+      //   ...viewState,
+      //   longitude: object?.position?.coordinates[0],
+      //   latitude: object?.position?.coordinates[1],
+      //   zoom: 7,
+      //   pitch: 40,
+      //   transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
+      //   transitionDuration: "auto",
+      // })
+    },
+    updateTriggers: {
+      getFillColor: [activePosition?.vessel.id, trackedVesselIDs],
     },
   })
 
@@ -107,7 +105,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     .map((segments) => toSegmentsGeo(segments))
     .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
       return new GeoJsonLayer<VesselExcursionSegmentGeo>({
-        id: `${segmentsGeo.vesselId}_vessel_trail_${layerKey}`,
+        id: `${segmentsGeo.vesselId}_vessel_trail`,
         data: segmentsGeo,
         getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
         getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
@@ -125,7 +123,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     })
 
   const positions_mesh_layer = new SimpleMeshLayer({
-    id: `vessels-positions-mesh-layer-${layerKey}`,
+    id: `vessels-positions-mesh-layer`,
     data: vesselsPositions,
     mesh: MESH_URL_LOCAL,
     getPosition: (vp: VesselPosition) => [
@@ -150,23 +148,26 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     ],
     scaleUnits: "pixels",
     sizeScale: 100,
-    pickable: true,
+    pickable: false,
     onClick: ({ object }) => {
       setActivePosition(object as VesselPosition)
-      setViewState({
-        ...viewState,
-        longitude: object?.position?.coordinates[0],
-        latitude: object?.position?.coordinates[1],
-        zoom: 7,
-        transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-        transitionDuration: "auto",
-      })
+      // setViewState({
+      //   ...viewState,
+      //   longitude: object?.position?.coordinates[0],
+      //   latitude: object?.position?.coordinates[1],
+      //   zoom: 7,
+      //   transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
+      //   transitionDuration: "auto",
+      // })
+    },
+    updateTriggers: {
+      getFillColor: [activePosition?.vessel.id, trackedVesselIDs],
     },
     loaders: [OBJLoader],
   })
 
   const zoneLayer = new PolygonLayer({
-    id: `zones-layer-${layerKey}`,
+    id: `zones-layer`,
     data: zones,
     getPolygon: (d: ZoneWithGeometry) => {
       // Handle both Polygon and MultiPolygon types
@@ -193,7 +194,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     lineWidthUnits: "pixels",
     lineWidthMinPixels: 1,
     pickable: true, // disable picking if not needed
-    stroked: true,
+    stroked: false,
     filled: true,
     wireframe: false, // disable wireframe for better performance
     extruded: false,
