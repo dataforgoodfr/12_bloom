@@ -97,10 +97,13 @@ export async function getZones() {
 
   // Calculate ranges for batches of 10
   const ranges = []
-  for (let i = 0; i < TOTAL_AMPS; i += 10) {
-    const end = Math.min(i + 9, TOTAL_AMPS - 1)
+  for (let i = 0; i < TOTAL_AMPS; i += 100) {
+    const end = Math.min(i + 99, TOTAL_AMPS - 1)
     ranges.push(`items=${i}-${end}`)
   }
+
+  // Add start time
+  const startTime = performance.now()
 
   // Make parallel requests for each range
   const responses = await Promise.all(
@@ -110,6 +113,10 @@ export async function getZones() {
       })
     )
   )
+
+  // Calculate and log duration
+  const duration = performance.now() - startTime
+  console.log(`Fetched zones in ${(duration / 1000).toFixed(2)}s`)
 
   // Combine all responses
   return {
