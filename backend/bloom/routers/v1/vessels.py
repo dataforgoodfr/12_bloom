@@ -3,11 +3,12 @@ from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
 from typing import Any
+from typing_extensions import Annotated
 import json
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.logger import logger
-from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParams
+from bloom.routers.requests import DatetimeRangeRequest,RangeHeader,RangeHeaderParser, PaginatedSqlResult
 from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
 from fastapi.encoders import jsonable_encoder
 router = APIRouter()
@@ -121,8 +122,9 @@ async def list_vessel_excursions(request: Request, # used by @cache
                                  vessel_id: int,
                                  nocache:bool=False, # used by @cache
                                 datetime_range: DatetimeRangeRequest = Depends(),
-                                pagination: PageParams = Depends(),
-                                order: OrderByRequest = Depends(),
+                                #pagination: PageParams = Depends(),
+                                #order: OrderByRequest = Depends(),
+                                range: Annotated[RangeHeader, Depends(RangeHeaderParser)] = None,
                                 key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
@@ -131,8 +133,14 @@ async def list_vessel_excursions(request: Request, # used by @cache
     db = use_cases.db()
     json_data={}
     with db.session() as session:
-        json_data = [json.loads(p.model_dump_json() if p else "{}")
-                        for p in excursion_repository.get_excursions_by_vessel_id(session,vessel_id)]
+        result=excursion_repository.get_excursions_by_vessel_id(session,
+                                                                vessel_id,
+                                                                range=range,
+                                                                datetime_range=datetime_range)
+        [ print(type(model)) for model in result.payload]
+        #if(isinstance(result,PaginatedSqlResult)): result=result.payload
+        #json_data = [json.loads(p.model_dump_json() if p else "{}" )
+        #                for p in result.payload ]
     return json_data
 
 

@@ -1,10 +1,13 @@
-from pydantic import BaseModel, Field,conint
+from pydantic import BaseModel, Field,conint, ConfigDict
 from fastapi import Request
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Generic,TypeVar, List
 from typing import Optional, Annotated
 from fastapi import Header
+
+from sqlalchemy.orm import Session,Query
+from sqlalchemy.sql.expression import and_,or_,func
 import re
 
 
@@ -36,10 +39,24 @@ class RangeHeader(RangeSet):
 
 P=TypeVar('P')
 
-class PaginatedResult(BaseModel,Generic[P]):
+class PaginatedSqlResult(BaseModel,Generic[P]):
+    model_config= ConfigDict(
+                    arbitrary_types_allowed=True)
+    def __init__(self,
+                 *args,**kwargs):
+        super().__init__(*args,**kwargs)
+        total_query=self.query.add_column(func.count().over().label('total'))
+        result=self.session.execute(total_query).all()
+        total_count=0
+        if len(result) > 0:
+            total_count = result[0][-1]
+        self.payload = [ row[0] for row in result]
+    session: Optional[Session]=None
+    query: Optional[Query]=None
+    range: Optional[RangeSet]=None
     unit: Optional[str|None] = None
     spec: Optional[list[RangeSpec]|None] = None
-    payload: P
+    payload: Optional[P]=None
     total: Optional[int|None]= None
 
 class NonPaginatedResult(BaseModel,Generic[P]):

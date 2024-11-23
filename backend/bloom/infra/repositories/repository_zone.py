@@ -7,7 +7,7 @@ from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy.orm import Session
-from bloom.routers.requests import RangeHeader, PaginatedResult, NonPaginatedResult
+from bloom.routers.requests import RangeHeader, PaginatedSqlResult, NonPaginatedResult
 from sqlalchemy.sql.expression import ScalarSelect, and_, or_, func, text
 
 
@@ -21,7 +21,7 @@ class ZoneRepository:
     def get_zone_by_id(self, session: Session, zone_id: int) -> Union[Zone, None]:
         return ZoneRepository.map_to_domain(session.get(sql_model.Zone, zone_id))
 
-    def get_all_zones(self, session: Session, range: Optional[RangeHeader | None] = None) -> PaginatedResult[
+    def get_all_zones(self, session: Session, range: Optional[RangeHeader | None] = None) -> PaginatedSqlResult[
         list[Zone]]:
 
         # q = session.execute(q)
@@ -40,13 +40,13 @@ class ZoneRepository:
 
                 results = session.execute(paginated).all()
                 total = results[0][1] if len(results) > 0 else 0
-                payload.extend([ZoneRepository.map_to_domain(model[0]).model_dump() for model in results])
                 if spec.end == None: range.spec[i].end = total - 1
-            return PaginatedResult[list[Zone]](payload=payload, total=total, spec=range.spec, unit=range.unit)
+                payload.extend([ZoneRepository.map_to_domain(model[0]).model_dump() for model in results])
+            return PaginatedSqlResult[list[Zone]](payload=payload, total=total, spec=range.spec, unit=range.unit)
         else:
             payload = [ZoneRepository.map_to_domain(model).model_dump()
                        for model in session.execute(session.query(sql_model.Zone)).scalars()]
-            return PaginatedResult[list[Zone]](payload=payload)
+            return PaginatedSqlResult[list[Zone]](payload=payload)
 
     def get_all_zones_summary(self, session: Session) -> list[ZoneSummary]:
         q = session.query(

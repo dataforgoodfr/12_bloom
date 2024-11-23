@@ -1,15 +1,19 @@
 from contextlib import AbstractContextManager
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 
 import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy import desc
 from sqlalchemy import select
+from sqlalchemy.sql.expression import ScalarSelect, and_, or_, func, text
+
 from sqlalchemy.orm import Session
 
 from bloom.domain.excursion import Excursion
 from bloom.infra.database import sql_model
+from bloom.routers.requests import RangeHeader,PaginatedSqlResult, DatetimeRangeRequest
+
 
 
 class ExcursionRepository:
@@ -34,8 +38,50 @@ class ExcursionRepository:
             return None
         return {"arrival_port_id": result.arrival_port_id, "arrival_position": result.arrival_position}
 
-    def get_excursions_by_vessel_id(self, session: Session, vessel_id: int) -> List[Excursion]:
+    def get_excursions_by_vessel_id(self, session: Session,
+                                    vessel_id: int,
+                                    datetime_range: Optional[DatetimeRangeRequest | None] = None,
+                                    range: Optional[RangeHeader | None] = None)\
+         -> PaginatedSqlResult[list[Excursion]]|List[Excursion]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
+        payload=[]
+        query=session.query().add_entity(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)\
+                            .where(or_(
+                                sql_model.Excursion.departure_at.between(datetime_range.start_at,datetime_range.end_at),
+                                sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),
+                            ))
+
+        result=PaginatedSqlResult[list[Excursion]](
+            query=query,
+            session=session,
+            range=range)
+
+        """print(range)
+        if range is not None:
+            filters=session.query().select_from(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)\
+                            .where(or_(
+                                sql_model.Excursion.departure_at.between(datetime_range.start_at,datetime_range.end_at),
+                                sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),
+                            ))
+            base_query=filters.add_columns(sql_model.Excursion)
+                            
+            print(base_query.statement.compile(compile_kwargs={"literal_binds": True}))
+            total_query = filters.add_column(func.count().label('total'))
+            total_count = session.execute(total_query).scalar_one_or_none()
+            print(f"TOTAL COUNT:{total_count}")
+            for i, spec in enumerate(range.spec):
+                paginated=base_query
+                if spec.start != None: paginated = paginated.offset(spec.start)
+                if spec.end != None and spec.start != None: paginated = paginated.limit(spec.end + 1 - spec.start)
+                if spec.end != None and spec.start == None: paginated = paginated.offset(total_count - spec.end).limit(
+                    spec.end)
+                results = session.execute(paginated).all()
+                payload.extend([ExcursionRepository.map_to_domain(model[0]) for model in results])
+                if spec.end == None: range.spec[i].end = total_count - 1
+            return PaginatedSqlResult[list[Excursion]](payload=payload, total=total_count, spec=range.spec, unit=range.unit)"""
+        return result
+
+
         stmt = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)
         result = session.execute(stmt).scalars().all()
         if not result:
@@ -142,6 +188,8 @@ class ExcursionRepository:
 
     @staticmethod
     def map_to_domain(excursion: sql_model.Excursion) -> Excursion:
+        print("############################################")
+        print(type(excursion))
         return Excursion(
             id=excursion.id,
             vessel_id=excursion.vessel_id,
