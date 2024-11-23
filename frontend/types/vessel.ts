@@ -20,6 +20,7 @@ export type VesselMetrics = {
 
 export type VesselDetails = {
   id: number
+  imo: number
   mmsi: number
   ship_name: string
   width: number | null

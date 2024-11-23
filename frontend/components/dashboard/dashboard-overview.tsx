@@ -17,6 +17,8 @@ type Props = {
   totalVesselsActiveLoading: boolean
   totalAmpsVisited: number
   totalAmpsVisitedLoading: boolean
+  totalVesselsTracked: number
+  totalVesselsTrackedLoading: boolean
   onDateRangeChange: (value: string) => void
 }
 
@@ -29,6 +31,8 @@ export default function DashboardOverview({
   totalVesselsActiveLoading,
   totalAmpsVisited,
   totalAmpsVisitedLoading,
+  totalVesselsTracked,
+  totalVesselsTrackedLoading,
   onDateRangeChange,
 }: Props) {
   return (
@@ -44,8 +48,8 @@ export default function DashboardOverview({
               key="total-vessels-in-activity"
               title="Total vessels in Activity"
               kpiValue={totalVesselsActive}
-              totalValue={TOTAL_VESSELS}
-              loading={totalVesselsActiveLoading}
+              totalValue={totalVesselsTracked}
+              loading={totalVesselsActiveLoading || totalVesselsTrackedLoading}
             />
             <KPICard
               key="total-amps-visited"
