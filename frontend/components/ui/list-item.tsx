@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { COUNTRIES_ISO3 } from "@/constants/countries-iso3.constants"
+import { getCountryNameFromIso3 } from "@/utils/vessel.utils"
 import { ChevronRight } from "lucide-react"
 
 import { Item } from "@/types/item"
@@ -21,9 +22,7 @@ export default function ListItem({ item, enableViewDetails }: Props) {
     router.push(`/details/${type}/${id}`)
   }
 
-  const countryLabel = countryIso3
-    ? COUNTRIES_ISO3.find((country) => country.code === countryIso3)?.name
-    : ""
+  const countryLabel = getCountryNameFromIso3(countryIso3)
 
   return (
     <div className="flex min-h-12 gap-8 p-0">

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { getZoneDetails } from "@/services/backend-rest-client"
 import { swrOptions } from "@/services/swr"
+import { getCountryNameFromIso3 } from "@/utils/vessel.utils"
 import useSWR from "swr"
 
 import { convertDurationInHours, getDateRange } from "@/libs/dateUtils"
@@ -36,8 +37,8 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
         const { vessel, zone_visiting_time_by_vessel } = visit
         return {
           id: vessel.id.toString(),
-          title: vessel.ship_name,
-          description: `${vessel.type} - ${vessel.length_class}`,
+          title: `${vessel.ship_name} - ${getCountryNameFromIso3(vessel.country_iso3)}`,
+          description: `IMO: ${vessel.imo} - MMSI: ${vessel.mmsi} - Type: ${vessel.type} - Length: ${vessel.length_class}`,
           value: `${convertDurationInHours(zone_visiting_time_by_vessel)}h`,
           type: "vessels",
         }
