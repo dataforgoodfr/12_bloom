@@ -17,7 +17,7 @@ from bloom.infra.repositories.repository_task_execution import TaskExecutionRepo
 from bloom.logger import logger
 from bloom.domain.rel_segment_zone import RelSegmentZone
 from bloom.infra.repositories.repository_rel_segment_zone import RelSegmentZoneRepository
-
+#from bloom.infra.repositories.repository_port import PortRepository
 warnings.filterwarnings("ignore")
 
 # minimal distance to consider a vessel being in a port (in meters)
@@ -40,6 +40,8 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
                   departure_position: Optional[Point] = None) -> int:
     use_cases = UseCases()
     excursion_repository = use_cases.excursion_repository()
+    port_repository = use_cases.port_repository()
+
     result = excursion_repository.get_param_from_last_excursion(session, vessel_id)
 
     if result:
@@ -69,6 +71,10 @@ def add_excursion(session: Session, vessel_id: int, departure_at: datetime,
         total_time_default_ais=timedelta(0)
     )
     new_excursion = excursion_repository.create_excursion(session, new_excursion)
+
+    if departure_position is None :
+        port_repository.update_port_has_excursion(session, arrival_port_id)
+
     return new_excursion.id
 
 
@@ -76,6 +82,7 @@ def close_excursion(session: Session, excursion_id: int, port_id: int, latitude:
                     arrived_at: datetime) -> None:
     use_cases = UseCases()
     excursion_repository = use_cases.excursion_repository()
+    port_repository = use_cases.port_repository()
 
     excursion = excursion_repository.get_excursion_by_id(session, excursion_id)
 
@@ -84,6 +91,7 @@ def close_excursion(session: Session, excursion_id: int, port_id: int, latitude:
         excursion.arrival_at = arrived_at
         excursion.arrival_position = Point(longitude, latitude)
         excursion_repository.update_excursion(session, excursion)
+        port_repository.update_port_has_excursion(session, port_id)
 
 
 def run():
@@ -310,8 +318,15 @@ def run():
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
                     segment.in_amp_zone = True
-                elif zone.category.startswith("Fishing coastal waters"):
-                    segment.in_zone_with_no_fishing_rights = True
+                elif zone.category == "Fishing coastal waters (6-12 NM)":
+                    country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
+                    beneficiaries = zone.json_data.get("beneficiaries", [])
+                    if country_iso3 not in beneficiaries:
+                        segment.in_zone_with_no_fishing_rights = True
+                elif zone.category == "Clipped territorial seas":
+                    country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
+                    if country_iso3 != "FRA":
+                        segment.in_zone_with_no_fishing_rights = True
                 elif zone.category == "Territorial seas":
                     segment.in_territorial_waters = True
             if segment_in_zone:
@@ -348,12 +363,14 @@ def run():
 
             excursions[excursion.id] = excursion
 
+            
             # Détection de la borne supérieure du traitement
             if segment.updated_at and segment.updated_at > max_created_updated:
                 max_created_updated = segment.updated_at
             elif segment.created_at > max_created_updated:
                 max_created_updated = segment.created_at
 
+        
         excursion_repository.batch_update_excursion(session, excursions.values())
         logger.info(f"{len(excursions.values())} excursions mises à jour")
         segment_repository.batch_update_segment(session, segments)
