@@ -6,12 +6,15 @@ from bloom.routers.v1.metrics import router as router_metrics_v1
 from bloom.routers.v1.vessels import router as router_vessels_v1
 from bloom.routers.v1.ports import router as router_ports_v1
 from bloom.routers.v1.zones import router as router_zones_v1
+from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from bloom.config import settings
 
 API_PREFIX_V1='/api/v1'
 
 app = FastAPI()
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 
 @app.get("/", include_in_schema=False)
@@ -36,4 +39,17 @@ app.include_router(router_ports_v1,prefix=API_PREFIX_V1,tags=["Ports"])
 app.include_router(router_vessels_v1,prefix=API_PREFIX_V1,tags=["Vessels"])
 app.include_router(router_zones_v1,prefix=API_PREFIX_V1,tags=["Zones"])
 
+origins = [
+        "http://localhost",
+        "http://localhost:3000",
+        "https://app-545ad2f8-ac5c-4926-80e2-3f487066df0e.cleverapps.io"
+    ]
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

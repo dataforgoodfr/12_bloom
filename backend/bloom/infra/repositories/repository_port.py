@@ -11,6 +11,7 @@ from shapely import Point
 from shapely.geometry import Polygon
 from sqlalchemy import func, or_, and_, select, update, asc, text
 from sqlalchemy.orm import Session
+from bloom.domain.excursion import Excursion
 
 
 class PortRepository:
@@ -25,7 +26,7 @@ class PortRepository:
             return None
 
     def get_all_ports(self, session: Session) -> List[Port]:
-        q = session.query(sql_model.Port)
+        q = session.query(sql_model.Port).all()
         if not q:
             return []
         return [PortRepository.map_to_domain(entity) for entity in q]
@@ -98,6 +99,37 @@ class PortRepository:
                               {"longitude": longitude, "latitude": latitude, "range": range}).first()
         return res
 
+
+    def update_port_has_excursion(self, session : Session, port_id: int ):
+        stmt = (
+            update(sql_model.Port)
+            .where(sql_model.Port.id == port_id)
+            .values(has_excursion= True)
+        )
+        session.execute(stmt)
+
+    def has_excursion_for_port(self, session: Session, port_id: int) -> bool:
+        stmt = select(sql_model.Excursion).where(
+            (sql_model.Excursion.departure_port_id == port_id) |
+            (sql_model.Excursion.arrival_port_id == port_id)
+        )
+        result = session.execute(stmt).first()
+        if result is not None:
+            # is not None
+            return True#PortRepository.map_to_domain(result)
+        else :
+            return False
+        
+    def batch_update_ports_has_excursion(self, session: Session, ports: list[Port]) -> list[Port]:
+        updated_ports = []
+        for port in ports:
+            port.has_excursion = self.has_excursion_for_port(session, port.id) #True if else False
+            sql = PortRepository.map_to_sql(port)
+            session.merge(sql)  
+            session.flush()  
+            updated_ports.append(port)
+        return updated_ports
+
     @staticmethod
     def map_to_domain(orm_port: sql_model.Port) -> Port:
         return Port(
@@ -109,9 +141,6 @@ class PortRepository:
             latitude=orm_port.latitude,
             longitude=orm_port.longitude,
             geometry_point=to_shape(orm_port.geometry_point),
-            geometry_buffer=to_shape(orm_port.geometry_buffer)
-            if orm_port.geometry_buffer is not None
-            else None,
             has_excursion=orm_port.has_excursion,
             created_at=orm_port.created_at,
             updated_at=orm_port.updated_at,
@@ -120,6 +149,7 @@ class PortRepository:
     @staticmethod
     def map_to_sql(port: Port) -> sql_model.Port:
         return sql_model.Port(
+            id=port.id,
             name=port.name,
             locode=port.locode,
             url=port.url,
@@ -127,9 +157,6 @@ class PortRepository:
             latitude=port.latitude,
             longitude=port.longitude,
             geometry_point=from_shape(port.geometry_point),
-            geometry_buffer=from_shape(port.geometry_buffer)
-            if port.geometry_buffer is not None
-            else None,
             has_excursion=port.has_excursion,
             created_at=port.created_at,
             updated_at=port.updated_at,
