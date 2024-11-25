@@ -22,6 +22,13 @@ from sqlalchemy.orm import Session, Query
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
+def UsingCacheQuery(cache:Annotated[Optional[bool|None],Header()] = None):
+    return True if cache else False
+
+def CacheKey(request:Request):
+    return f"{request.url}/{request.query_params}#{request.headers}"
+
+
 def RangeHeaderParser(range:Annotated[Optional[str|None],Header()] = None):
     return RangeHeader(range) if range is not None else None
 

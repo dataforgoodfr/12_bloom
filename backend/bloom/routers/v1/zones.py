@@ -10,7 +10,9 @@ from fastapi.encoders import jsonable_encoder
 from bloom.dependencies import (
     RangeHeader,
     RangeHeaderParser,
-    PaginatedJSONResponse
+    PaginatedJSONResponse,
+    UsingCacheQuery,
+    CacheKey
 )
 
 
@@ -20,28 +22,34 @@ router = APIRouter()
 @router.get("/zones")
 async def list_zones(request: Request,
                      key: str = Depends(X_API_KEY_HEADER),
-                     range: Annotated[RangeHeader, Depends(RangeHeaderParser)] = None):
+                     range: Annotated[RangeHeader, Depends(RangeHeaderParser)] = None,
+                     use_cache: Annotated[bool, Depends(UsingCacheQuery)]= None,
+                     cache_key: Annotated[str,Depends(CacheKey)]=None):
     check_apikey(key)
     print(f"Range:{range}")
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
-    with db.session() as session:
-        # Récupération d'un PaginatedSqlResult[list[Zone]]
-        # range correspond aux plages demandée dans la requête
-        result = zone_repository.get_all_zones(session, range=range)
-
-        # Génération de la réponse HTTP 200/206 + headers selon présence ou non
-        # d'un paramètre range dans la requête
-        result= PaginatedJSONResponse(result=result,
-                                     request=request)
-        return result
+    cache=UseCases.cache_service()
+    payload=cache.get(cache_key)
+    if not use_cache or payload is None:
+        with db.session() as session:
+            # Récupération d'un PaginatedSqlResult[list[Zone]]
+            # range correspond aux plages demandée dans la requête
+            result = zone_repository.get_all_zones(session, range=range)
+            # Génération de la réponse HTTP 200/206 + headers selon présence ou non
+            # d'un paramètre range dans la requête
+            response= PaginatedJSONResponse(result=result,
+                                        request=request)
+            #cache.set(cache_key,json.dumps(jsonable_encoder(result)))
+    else:
+        response=[] #response= PaginatedJSONResponse(**json.loads(cache.get(cache_key)))
+    return response
         
 
 
 @router.get("/zones/summary") 
 async def list_zones_summary(request: Request,
-                             nocache: bool = False,
                              key: str = Depends(X_API_KEY_HEADER),
                              ):
     check_apikey(key)
