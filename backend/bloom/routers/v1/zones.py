@@ -4,13 +4,13 @@ import json
 from bloom.container import UseCases
 from bloom.domain.zone import ZoneListView
 from bloom.dependencies import (X_API_KEY_HEADER,
-                                check_apikey,
-                                cache)
+                                check_apikey)
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from bloom.routers.requests import (
+from bloom.dependencies import (
     RangeHeader,
-    RangeHeaderParser
+    RangeHeaderParser,
+    PaginatedJSONResponse
 )
 
 
@@ -18,9 +18,7 @@ router = APIRouter()
 
 
 @router.get("/zones")
-# @cache
 async def list_zones(request: Request,
-                     nocache: bool = False,
                      key: str = Depends(X_API_KEY_HEADER),
                      range: Annotated[RangeHeader, Depends(RangeHeaderParser)] = None):
     check_apikey(key)
@@ -29,22 +27,19 @@ async def list_zones(request: Request,
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
+        # Récupération d'un PaginatedSqlResult[list[Zone]]
+        # range correspond aux plages demandée dans la requête
         result = zone_repository.get_all_zones(session, range=range)
-        """payload = [ZoneListView(**z.model_dump())
-                        for z,total in zone_repository.get_all_zones(session,range=range)]"""
 
-        response = JSONResponse(content=jsonable_encoder(result.payload),
-                                status_code=206 if range is not None else 200)
-        if result.spec is not None:
-            for s in result.spec:
-                response.headers.append(key='Content-Range',
-                                        value=f"{s.start if s.start != None else ''}-{s.end if s.end != None else ''}/{result.total}")
-
-        return response
+        # Génération de la réponse HTTP 200/206 + headers selon présence ou non
+        # d'un paramètre range dans la requête
+        result= PaginatedJSONResponse(result=result,
+                                     request=request)
+        return result
+        
 
 
-@router.get("/zones/summary")
-# @cache
+@router.get("/zones/summary") 
 async def list_zones_summary(request: Request,
                              nocache: bool = False,
                              key: str = Depends(X_API_KEY_HEADER),
@@ -59,8 +54,7 @@ async def list_zones_summary(request: Request,
 
 
 @router.get("/zones/categories")
-@cache
-async def list_zone_categories(request: Request, nocache: bool = False, key: str = Depends(X_API_KEY_HEADER)):
+async def list_zone_categories(request: Request, key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
@@ -71,8 +65,7 @@ async def list_zone_categories(request: Request, nocache: bool = False, key: str
 
 
 @router.get("/zones/by-category/{category}/by-sub-category/{sub}")
-@cache
-async def get_zone_all_by_category(request: Request, category: str = "all", sub: str = None, nocache: bool = False,
+async def get_zone_all_by_category(request: Request, category: str = "all", sub: str = None,
                                    key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
@@ -86,8 +79,7 @@ async def get_zone_all_by_category(request: Request, category: str = "all", sub:
 
 
 @router.get("/zones/by-category/{category}")
-@cache
-async def get_zone_all_by_category(request: Request, category: str = "all", nocache: bool = False,
+async def get_zone_all_by_category(request: Request, category: str = "all",
                                    key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
@@ -101,8 +93,7 @@ async def get_zone_all_by_category(request: Request, category: str = "all", noca
 
 
 @router.get("/zones/{zones_id}")
-@cache
-async def get_zone(request: Request, zones_id: int, nocache: bool = False, key: str = Depends(X_API_KEY_HEADER)):
+async def get_zone(request: Request, zones_id: int, key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()

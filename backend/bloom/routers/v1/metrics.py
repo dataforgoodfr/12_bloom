@@ -14,12 +14,8 @@ import json
 import time
 from bloom.domain.vessel import Vessel
 from bloom.infra.database.database_manager import Base
-from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
-                                 ResponseMetricsZoneVisitedSchema,
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema,
-                                 ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
-from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParams,CachedRequest
-from bloom.dependencies import ( X_API_KEY_HEADER, check_apikey,cache)
+from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParams
+from bloom.dependencies import ( X_API_KEY_HEADER, check_apikey)
 
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
 from fastapi.encoders import jsonable_encoder
@@ -28,12 +24,10 @@ router = APIRouter()
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, password=settings.redis_password)
 
 @router.get("/metrics/vessels-in-activity")
-@cache
 async def read_metrics_vessels_in_activity_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PageParams = Depends(),
                                            order: OrderByRequest = Depends(),
-                                           caching: CachedRequest = Depends(),
                                            key: str = Depends(X_API_KEY_HEADER),
                                            ):
     check_apikey(key)
@@ -46,12 +40,10 @@ async def read_metrics_vessels_in_activity_total(request: Request,
     return jsonable_encoder(payload)
 
 @router.get("/metrics/zone-visited")
-@cache
 async def read_zone_visited_total(request: Request,
                                            datetime_range: DatetimeRangeRequest = Depends(),
                                            pagination: PageParams = Depends(),
                                            order: OrderByRequest = Depends(),
-                                           caching: CachedRequest = Depends(),
                                            key: str = Depends(X_API_KEY_HEADER),):
     check_apikey(key)
     use_cases = UseCases()
@@ -62,13 +54,11 @@ async def read_zone_visited_total(request: Request,
     return jsonable_encoder(payload)
 
 @router.get("/metrics/zones/{zone_id}/visiting-time-by-vessel")
-@cache
 async def read_metrics_zone_visiting_time_by_vessel(request: Request,
                                             zone_id: int,
                                             datetime_range: DatetimeRangeRequest = Depends(),
                                             pagination: PageParams = Depends(),
                                             order: OrderByRequest = Depends(),
-                                            caching: CachedRequest = Depends(),
                                             key: str = Depends(X_API_KEY_HEADER),):
     check_apikey(key)
     use_cases = UseCases()
@@ -82,12 +72,10 @@ async def read_metrics_zone_visiting_time_by_vessel(request: Request,
 
 """
 @router.get("/metrics/vessels/{vessel_id}/activity/{activity_type}")
-@cache
 async def read_metrics_vessels_visits_by_activity_type(request: Request,
                                             vessel_id: int,
                                             activity_type: TotalTimeActivityTypeRequest = Depends(),
                                             datetime_range: DatetimeRangeRequest = Depends(),
-                                            caching: CachedRequest = Depends(),
                                             key: str = Depends(X_API_KEY_HEADER),):
     check_apikey(key)
     use_cases = UseCases()

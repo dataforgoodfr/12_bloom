@@ -6,8 +6,7 @@ import json
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.logger import logger
-from bloom.routers.requests import CachedRequest
-from bloom.dependencies import ( X_API_KEY_HEADER,check_apikey,cache)
+from bloom.dependencies import ( X_API_KEY_HEADER,check_apikey)
 from bloom.config import settings
 from bloom.domain.port import PostListView
 from fastapi.encoders import jsonable_encoder
@@ -15,9 +14,7 @@ from fastapi.encoders import jsonable_encoder
 router = APIRouter()
 
 @router.get("/ports")
-@cache
 async def list_ports(   request:Request,
-                        caching: CachedRequest = Depends(),
                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
@@ -30,7 +27,6 @@ async def list_ports(   request:Request,
     
 
 @router.get("/ports/{port_id}")
-@cache
 async def get_port(port_id:int,
                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)

@@ -5,12 +5,13 @@ from bloom.container import UseCases
 from typing import Any
 from typing_extensions import Annotated
 import json
-from bloom.config import settings
 from bloom.container import UseCases
 from bloom.logger import logger
-from bloom.routers.requests import DatetimeRangeRequest,RangeHeader,RangeHeaderParser, PaginatedSqlResult
-from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
+from bloom.routers.requests import DatetimeRangeRequest
+from bloom.dependencies import RangeHeader,RangeHeaderParser
+from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,PaginatedJSONResponse)
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 router = APIRouter()
 
 
@@ -57,7 +58,6 @@ async def list_vessel_countries(request: Request, # used by @cache
 
 
 @router.get("/vessels")
-@cache
 async def list_vessels(request: Request, # used by @cache
                        nocache:bool=False, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
@@ -69,7 +69,6 @@ async def list_vessels(request: Request, # used by @cache
         return jsonable_encoder(vessel_repository.get_vessels_list(session))
 
 @router.get("/vessels/{vessel_id}")
-@cache
 async def get_vessel(request: Request, # used by @cache
                      vessel_id: int,
                      nocache:bool=False, # used by @cache
@@ -84,7 +83,6 @@ async def get_vessel(request: Request, # used by @cache
         return json.loads(vessel_repository.map_to_domain(data).model_dump_json()) if data else {}
 
 @router.get("/vessels/all/positions/last")
-@cache
 async def list_all_vessel_last_position(request: Request, # used by @cache
                                         nocache:bool=False, # used by @cache
                                         key: str = Depends(X_API_KEY_HEADER)):
@@ -100,7 +98,6 @@ async def list_all_vessel_last_position(request: Request, # used by @cache
     return json_data
 
 @router.get("/vessels/{vessel_id}/positions/last")
-@cache
 async def get_vessel_last_position(request: Request, # used by @cache
                                    vessel_id: int,
                                    nocache:bool=False, # used by @cache
@@ -117,7 +114,6 @@ async def get_vessel_last_position(request: Request, # used by @cache
     return json_data
 
 @router.get("/vessels/{vessel_id}/excursions")
-@cache
 async def list_vessel_excursions(request: Request, # used by @cache
                                  vessel_id: int,
                                  nocache:bool=False, # used by @cache
@@ -141,11 +137,11 @@ async def list_vessel_excursions(request: Request, # used by @cache
         #if(isinstance(result,PaginatedSqlResult)): result=result.payload
         #json_data = [json.loads(p.model_dump_json() if p else "{}" )
         #                for p in result.payload ]
-    return json_data
+        response=PaginatedJSONResponse(result=result)
+    return response
 
 
 @router.get("/vessels/{vessel_id}/excursions/{excursions_id}")
-@cache
 async def get_vessel_excursion(request: Request, # used by @cache
                                vessel_id: int,
                                excursions_id: int,
@@ -163,7 +159,6 @@ async def get_vessel_excursion(request: Request, # used by @cache
 
 
 @router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments")
-@cache
 async def list_vessel_excursion_segments(request: Request, # used by @cache
                                          vessel_id: int,
                                          excursions_id: int,
@@ -177,7 +172,6 @@ async def list_vessel_excursion_segments(request: Request, # used by @cache
         return segment_repository.list_vessel_excursion_segments(session,vessel_id,excursions_id)
 
 @router.get("/vessels/{vessel_id}/excursions/{excursions_id}/segments/{segment_id}")
-@cache
 async def get_vessel_excursion_segment(request: Request, # used by @cache
                                        vessel_id: int,
                                        excursions_id: int,

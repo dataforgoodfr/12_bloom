@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 
 from bloom.domain.excursion import Excursion
 from bloom.infra.database import sql_model
-from bloom.routers.requests import RangeHeader,PaginatedSqlResult, DatetimeRangeRequest
+from bloom.routers.requests import DatetimeRangeRequest
+from bloom.dependencies import RangeHeader,PaginatedSqlResult
 
 
 
