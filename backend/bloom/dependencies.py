@@ -109,23 +109,22 @@ class PaginatedJSONResponse(JSONResponse):
         dans le result.range
     """
     def __init__(self, result:PaginatedSqlResult, request:Request) -> None:
-        self.result=result
         status_code=200
-        if len(self.result.items) != self.result.total:
+        if len(result.items) != result.total:
             status_code=206
-        super().__init__(content=self.result.items,
+        super().__init__(content=result.items,
                          status_code=status_code)
-        if self.result.range is not None:
+        if result.range is not None:
             self_header=""
             self_next_header=""
             self_previous_header=""
-            for spec in self.result.range.specs:
+            for spec in result.range.specs:
                 self_header=f"{self_header}{'' if len(self_header) == 0 else ',' }{spec.start}-{spec.end}"
 
                 next_start=spec.end+1
                 next_end=2*spec.end-spec.start+1
-                if next_end > self.result.total: next_end=self.result.total
-                if next_start < self.result.total:
+                if next_end > result.total: next_end=result.total
+                if next_start < result.total:
                     self_next_header=f"{self_next_header}{'' if len(self_next_header) == 0 else ',' }{next_start}-{next_end}"
                 
                 previous_start=2*spec.start-1-spec.end
@@ -134,13 +133,13 @@ class PaginatedJSONResponse(JSONResponse):
                 if previous_end >= previous_start:
                     self_previous_header=f"{self_previous_header}{'' if len(self_previous_header) == 0 else ',' }{previous_start}-{previous_end}"
                 self.headers.append(key='Content-Range',
-                                    value=f"{spec.start if spec.start != None else ''}-{spec.end if spec.end != None else ''}/{self.result.total}")
+                                    value=f"{spec.start if spec.start != None else ''}-{spec.end if spec.end != None else ''}/{result.total}")
                 #if spec.end-spec.start > 0:
                 #    self.headers.append(key='Link',value=f"<{request.url}>; range=\"{spec.end+1}-{2*spec.end-spec.start}\"; rel=\"next\"")
                 #    self.headers.append(key='Link',value=f"<{request.url}>; range=\"{spec.end+1}-{2*spec.end-spec.start}\"; rel=\"previous\"")
             self.headers.append(key='Link',value=f"<{request.url}>; range=\"{self_next_header}\"; rel=\"next\"")
             self.headers.append(key='Link',value=f"<{request.url}>; range=\"{self_previous_header}\"; rel=\"previous\"")
-            for spec in self.result.range.specs:
+            for spec in result.range.specs:
                 size=spec.end-spec.start
                 self.headers.append(key='Link',value=f"<{request.url}>; range=\"{self_header}\"; rel=\"self\"")
 
