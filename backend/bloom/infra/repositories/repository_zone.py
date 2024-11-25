@@ -8,7 +8,7 @@ from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy.orm import Session
 from bloom.dependencies import RangeHeader, PaginatedSqlResult
-from sqlalchemy.sql.expression import ScalarSelect, and_, or_, func, text
+from sqlalchemy.sql.expression import ScalarSelect, and_, or_, func, text, distinct
 
 
 class ZoneRepository:
@@ -24,39 +24,55 @@ class ZoneRepository:
     def get_all_zones(self,
                       session: Session,
                       range: Optional[RangeHeader | None] = None)\
-                        -> PaginatedSqlResult[
-        list[Zone]]:
+                        -> PaginatedSqlResult[list[Zone]]:
         # requête de base
         query=session.query(sql_model.Zone)
+        total=session.query(func.count()).select_from(sql_model.Zone)
+        print(total)
         # obtention du résultat paginé, format Pydantif grâce à la fonction de
         # de conversion map_to_domain fournie
         # spécification de la pagination fournie par range:RangeSet
         result=PaginatedSqlResult[list[Zone]](session=session,
                                               query=query,
+                                              query_total=total,
                                               range=range,
-                                              map_to_domain=ZoneRepository.map_to_domain)
+                                              map_to_domain=lambda row: ZoneRepository.map_to_domain(row[0]))
         return result
 
-    def get_all_zones_summary(self, session: Session) -> list[ZoneSummary]:
+    def get_all_zones_summary(  self,
+                                session: Session,
+                                range: Optional[RangeHeader | None] = None)\
+                                    -> PaginatedSqlResult[list[ZoneSummary]]:
         q = session.query(
-            sql_model.Zone.id,
-            sql_model.Zone.category,
-            sql_model.Zone.sub_category,
-            sql_model.Zone.name,
-            sql_model.Zone.created_at,
-        ).all()
-        if not q:
-            return []
-        return [ZoneRepository.map_to_summary(entity) for entity in q]
+                          sql_model.Zone.id,
+                          sql_model.Zone.category,
+                          sql_model.Zone.sub_category,
+                          sql_model.Zone.name,
+                          sql_model.Zone.created_at
+                          )
+        total=session.query(func.count()).select_from(sql_model.Zone)
+        result=PaginatedSqlResult[list[Zone]](session=session,
+                                              query=q,
+                                              query_total=total,
+                                              range=range,
+                                              map_to_domain=lambda row: ZoneSummary(id=row[0],
+                                                                                    category=row[1],
+                                                                                    sub_category=row[2],
+                                                                                    name=row[3],
+                                                                                    created_at=row[4]
+                                                                                    ))
+        return result
 
-    def get_all_zone_categories(self, session: Session) -> list[ZoneCategory]:
-        q = session.query(sql_model.Zone.category,
-                          sql_model.Zone.sub_category).distinct()
-        q = session.execute(q)
-        if not q:
-            return []
-        return [ZoneRepository.map_zonecategory_to_domain(ZoneCategory(category=cat, sub_category=sub)) for cat, sub in
-                q]
+    def get_all_zone_categories(self,
+                                session: Session,
+                                range=range,) -> PaginatedSqlResult[list[ZoneCategory]]:
+        query = session.query(sql_model.Zone.category,sql_model.Zone.sub_category).distinct()
+        total = session.query(func.count(distinct(func.concat(sql_model.Zone.category,'/',sql_model.Zone.sub_category))))
+        return PaginatedSqlResult[list[Zone]](session=session,
+                                              query=query,
+                                              query_total=total,
+                                              range=range,
+                                              map_to_domain=lambda xy: ZoneCategory(category=xy[0],sub_category=xy[1]))
 
     def get_all_zones_by_category(self, session: Session, category: str = None, sub: str = None) -> list[Zone]:
         q = session.query(sql_model.Zone)

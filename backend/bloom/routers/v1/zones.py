@@ -37,6 +37,7 @@ async def list_zones(request: Request,
             # Récupération d'un PaginatedSqlResult[list[Zone]]
             # range correspond aux plages demandée dans la requête
             result = zone_repository.get_all_zones(session, range=range)
+            result.items=[jsonable_encoder(item) for item in result.items]
             # Génération de la réponse HTTP 200/206 + headers selon présence ou non
             # d'un paramètre range dans la requête
             response= PaginatedJSONResponse(result=result,
@@ -51,25 +52,34 @@ async def list_zones(request: Request,
 @router.get("/zones/summary") 
 async def list_zones_summary(request: Request,
                              key: str = Depends(X_API_KEY_HEADER),
+                             range: Annotated[RangeHeader, Depends(RangeHeaderParser)] = None,
                              ):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
-        result = zone_repository.get_all_zones_summary(session)
-    return result
+        result = zone_repository.get_all_zones_summary(session,range=range)
+        result.items=[jsonable_encoder(item) for item in result.items]
+        response= PaginatedJSONResponse(result=result,
+                                        request=request)
+    return response
 
 
 @router.get("/zones/categories")
-async def list_zone_categories(request: Request, key: str = Depends(X_API_KEY_HEADER)):
+async def list_zone_categories(request: Request,
+                               key: str = Depends(X_API_KEY_HEADER),
+                                range: Annotated[RangeHeader, Depends(RangeHeaderParser)] = None,):
     check_apikey(key)
     use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:
-        json_data = [z for z in zone_repository.get_all_zone_categories(session)]
-        return json_data
+        result = zone_repository.get_all_zone_categories(session,range)
+        result.items=[jsonable_encoder(item) for item in result.items]
+        response= PaginatedJSONResponse(result=result,
+                                        request=request)
+    return response
 
 
 @router.get("/zones/by-category/{category}/by-sub-category/{sub}")

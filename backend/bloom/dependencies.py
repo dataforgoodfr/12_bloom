@@ -77,27 +77,24 @@ class PaginatedSqlResult(BaseModel,Generic[TYPE]):
     def __init__(self,
                  *args,**kwargs):
         super().__init__(*args,**kwargs)
-        total_query=self.query.add_column(func.count().over().label('total'))
+        self.total=self.query_total.first()[0]
         self.items=[]
         if self.range is not None:
             for i, spec in enumerate(self.range.specs):
-                paginated=total_query
+                paginated=self.query
                 if spec.start != None: paginated = paginated.offset(spec.start)
                 if spec.end != None and spec.start != None: paginated = paginated.limit(spec.end + 1 - spec.start)
-                if spec.end != None and spec.start == None: paginated = paginated.offset(total_count - spec.end).limit(
+                if spec.end != None and spec.start == None: paginated = paginated.offset(self.total - spec.end).limit(
                     spec.end)
                 results = self.session.execute(paginated).all()
-                self.items.extend([json.loads(self.map_to_domain(model[0]).model_dump_json()) for model in results])
-                if len(results) > 0:
-                    self.total = results[0][-1]
+                [print(type(item)) for item in results]
+                self.items.extend([self.map_to_domain(model) for model in results])
         else:
-            result=self.session.execute(total_query).all()
-            total_count=0
-            if len(result) > 0:
-                total_count = result[0][-1]
-            self.items = [ json.loads(self.map_to_domain(row[0]).model_dump_json()) for row in result]
+            result=self.session.execute(self.query).all()
+            self.items = [ self.map_to_domain(row) for row in result]
     session: Session
     query: Query
+    query_total: Query
     map_to_domain: Callable
     range: Optional[RangeSet]=None
     unit: Optional[str|None] = None
@@ -128,6 +125,13 @@ class PaginatedJSONResponse(JSONResponse):
             for spec in result.range.specs:
                 self_header=f"{self_header}{'' if len(self_header) == 0 else ',' }{spec.start}-{spec.end}"
 
+                print(f"start:{spec.start}-end:{spec.end}")
+                if spec.end is None : spec.end = result.total-1
+                if spec.start is None :
+                    spec.start = result.total-spec.end
+                    spec.end = result.total-1
+                if spec.start > result.total: spec.start=0
+                if spec.end > result.total: spec.end=result.total-1
                 next_start=spec.end+1
                 next_end=2*spec.end-spec.start+1
                 if next_end > result.total: next_end=result.total
