@@ -18,7 +18,7 @@ export default function Dropdown({ className, options, onSelect }: Props) {
     >
       <select
         id="countries"
-        className="w-full bg-color-3 p-1 text-xxs text-white"
+        className="w-full bg-color-3 p-1 text-base text-white"
       >
         {options.map((option) => (
           <option key={option} value={option}>

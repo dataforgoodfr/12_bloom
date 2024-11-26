@@ -1,15 +1,9 @@
-// @ts-check
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/dashboard",
-        permanent: true,
-      },
-    ]
+  experimental: {
+    serverMinification: false
   },
+  staticPageGenerationTimeout: 1000 * 60 * 5 // 5 minutes
 }
 
 export default nextConfig

@@ -17,8 +17,10 @@ export default function TrackedVesselsPanel({
   parentIsOpen,
   openParent,
 }: Props) {
-  const { trackedVesselIDs, removeTrackedVessel } = useMapStore((state) => state);
-  const { vessels: allVessels } = useVesselsStore((state) => state);
+  const { trackedVesselIDs, removeTrackedVessel } = useMapStore(
+    (state) => state
+  )
+  const { vessels: allVessels } = useVesselsStore((state) => state)
   const [displayTrackedVessels, setDisplayTrackedVessels] = useState(false)
   const [trackedVesselsDetails, setTrackedVesselsDetails] = useState<Vessel[]>()
 
@@ -34,7 +36,7 @@ export default function TrackedVesselsPanel({
       trackedVesselIDs.includes(vessel.id)
     )
     setTrackedVesselsDetails(vesselsDetails)
-  }, [trackedVesselIDs])
+  }, [allVessels, trackedVesselIDs])
 
   return (
     <>
@@ -53,11 +55,15 @@ export default function TrackedVesselsPanel({
         parentIsOpen &&
         trackedVesselsDetails?.map((vessel: Vessel) => {
           return (
-            <div key={vessel.id} className="mb-1 flex border-b-1 border-color-5 pb-1 text-xs text-slate-400">
+            <div
+              key={vessel.id}
+              className="mb-1 flex border-b-1 border-color-5 pb-1 text-xs text-slate-400"
+            >
               <div className="w-full pr-1">
                 <div className="text-xxs text-white">{vessel.ship_name}</div>
                 <div className="text-xxxs">
-                  IMO {vessel.imo} / MMSI {vessel.mmsi} / Length {vessel.length}m
+                  IMO {vessel.imo} / MMSI {vessel.mmsi} / Length {vessel.length}
+                  m
                 </div>
               </div>
               <button

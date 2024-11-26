@@ -6,12 +6,13 @@ import TrawlWatchLogo from "@/public/trawlwatch.svg"
 import { ChartBarIcon } from "@heroicons/react/24/outline"
 import { motion, useAnimationControls } from "framer-motion"
 
+import { Vessel } from "@/types/vessel"
 import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
-
-import TrackedVesselsPanel from "./tracked-vessels-panel"
 import { useVesselsStore } from "@/components/providers/vessels-store-provider"
-import { Vessel } from "@/types/vessel"
+
+import Spinner from "../ui/custom/spinner"
+import TrackedVesselsPanel from "./tracked-vessels-panel"
 
 const containerVariants = {
   close: {
@@ -42,24 +43,25 @@ const svgVariants = {
 }
 
 type LeftPanelProps = {
-  vessels: Vessel[];
+  vessels: Vessel[]
+  isLoading: boolean
 }
 
-export default function({ vessels }: LeftPanelProps) {
+export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
-  const { setVessels } = useVesselsStore((state) => state);
-  
-  useEffect(() => {
-    setVessels(vessels);
-  }, [vessels]);
+  const { setVessels } = useVesselsStore((state) => state)
 
   useEffect(() => {
-    const control = isOpen ? "open" : "close";
-    containerControls.start(control);
-    svgControls.start(control);
-  }, [isOpen])
+    setVessels(vessels)
+  }, [setVessels, vessels])
+
+  useEffect(() => {
+    const control = isOpen ? "open" : "close"
+    containerControls.start(control)
+    svgControls.start(control)
+  }, [containerControls, isOpen, svgControls])
 
   const handleOpenClose = () => {
     setIsOpen(!isOpen)
@@ -114,7 +116,7 @@ export default function({ vessels }: LeftPanelProps) {
           </NavigationLink>
         </div>
         <div className="flex flex-col gap-3 bg-color-3 p-5">
-          <VesselFinderDemo wideMode={isOpen} />
+          {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
         </div>
         <div className="flex flex-col gap-3 overflow-auto bg-color-3 p-5">
           <TrackedVesselsPanel

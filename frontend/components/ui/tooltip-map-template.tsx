@@ -1,5 +1,6 @@
-import { VesselPosition } from "@/types/vessel"
 import Image from "next/image"
+
+import { VesselPosition } from "@/types/vessel"
 
 export interface MapTooltipTypes {
   vesselInfo: VesselPosition
@@ -10,13 +11,16 @@ const MapTooltip = ({
   vesselInfo,
   orientation = "portrait",
 }: MapTooltipTypes) => {
-  const { vessel: { mmsi, ship_name, imo, length }, timestamp } = vesselInfo
+  const {
+    vessel: { mmsi, ship_name, imo, length },
+    timestamp,
+  } = vesselInfo
 
   return (
     <>
       {orientation === "portrait" && (
         <div className="max-w-[288px] rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-800">
-          <Image
+          {/* <Image
             className="rounded-t-lg"
             src="/img/scrombus.jpg"
             alt="default fishing vessel image"
@@ -29,7 +33,7 @@ const MapTooltip = ({
             alt="country flag"
             width={36}
             height={24}
-          />
+          /> */}
           <div className="bg-slate-700 p-5">
             <h5 className="mb-1 text-xl font-bold tracking-tight text-gray-100 dark:text-white">
               {ship_name}
