@@ -31,12 +31,12 @@ class SegmentRepository:
             sql_model.Segment.segment_duration,
             sql_model.Segment.in_amp_zone,
             sql_model.Segment.in_territorial_waters,
-            sql_model.Segment.in_costal_waters
+            sql_model.Segment.in_zone_with_no_fishing_rights
         ).where(sql_model.Segment.excursion_id == id)
         q = session.execute(stmt)
         if not q:
             return None
-        df = pd.DataFrame(q, columns=["segment_duration", "in_amp_zone", "in_territorial_waters", "in_costal_waters"])
+        df = pd.DataFrame(q, columns=["segment_duration", "in_amp_zone", "in_territorial_waters", "in_zone_with_no_fishing_rights"])
         return df
 
     def get_all_vessels_last_position(self, session: Session) -> List[Segment]:
@@ -112,9 +112,9 @@ class SegmentRepository:
             sql_model.Segment.excursion_id == sql_model.Excursion.id
         ).where( sql_model.Segment.excursion_id == excursions_id,
                 sql_model.Excursion.vessel_id == vessel_id)
-        result = session.execute(stmt)
-        if result is not None :
-            return [ SegmentRepository.map_to_domain(record) for record in result.scalars()]
+        result = session.execute(stmt).scalars().all()
+        if result:
+            return [ SegmentRepository.map_to_domain(record) for record in result]
         else:
             return []
 
@@ -127,7 +127,7 @@ class SegmentRepository:
         ).where( sql_model.Segment.excursion_id == excursions_id,
                 sql_model.Excursion.vessel_id == vessel_id,
                 sql_model.Segment.id == segment_id)
-        result = session.execute(stmt)
+        result = session.execute(stmt).scalar_one_or_none()
         if result is not None :
             return [ SegmentRepository.map_to_domain(record) for record in result.scalars()][0]
         else:
@@ -150,7 +150,6 @@ class SegmentRepository:
         ).join(
             sql_model.Vessel,
             sql_model.Excursion.vessel_id == sql_model.Vessel.id
-
         ).filter(
             sql_model.Segment.last_vessel_segment == True
         )
@@ -161,6 +160,45 @@ class SegmentRepository:
                                       'speed_at_end', 'arrival_port_id', 'mmsi'])
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
+
+    
+    def get_vessel_attribute_by_segment(self, session: Session, segment_id: int) -> str:
+        stmt = select(
+        sql_model.Vessel.country_iso3
+    ).select_from(
+        sql_model.Segment
+    ).join(
+        sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
+    ).join(
+        sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+    ).filter(
+        sql_model.Segment.id == segment_id
+    )
+        
+        result = session.execute(stmt).scalar()
+
+        return result
+    
+
+    def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> str:
+        stmt = select(
+        sql_model.Vessel.country_iso3
+    ).select_from(
+        sql_model.Segment
+    ).join(
+        sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
+    ).join(
+        sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+    ).filter(
+        sql_model.Segment.id == segment_id
+    )
+
+        result = session.execute(stmt).scalar()
+
+        return result
+#.where(
+#        sql_model.Segment.updated_at > created_updated_after
+#    )
 
     def batch_create_segment(
             self, session: Session, segments: list[Segment]
@@ -176,6 +214,25 @@ class SegmentRepository:
         )
         result = session.execute(stmt).scalars()
         return [SegmentRepository.map_to_domain(orm) for orm in result]
+
+
+    def find_segments_in_zones(self, session: Session) -> dict[
+        Segment, list[Zone]]:
+        stmt = select(sql_model.Segment, sql_model.Zone).outerjoin(sql_model.Zone, and_(
+            ST_Within(sql_model.Segment.start_position, sql_model.Zone.geometry),
+            ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
+                                                                           ).order_by(
+            sql_model.Segment.created_at.asc())
+        result = session.execute(stmt)
+        dict = {}
+        for (segment_orm, zone_orm) in result:
+            segment = SegmentRepository.map_to_domain(segment_orm)
+            dict.setdefault(segment, [])
+            zone = ZoneRepository.map_to_domain(zone_orm) if zone_orm else None
+            if zone:
+                dict[segment].append(zone)
+        return dict
+    
 
     def find_segments_in_zones_created_updated_after(self, session: Session, created_after: datetime) -> dict[
         Segment, list[Zone]]:
@@ -245,7 +302,7 @@ class SegmentRepository:
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
-            in_costal_waters=segment.in_costal_waters,
+            in_zone_with_no_fishing_rights=segment.in_zone_with_no_fishing_rights,
             last_vessel_segment=segment.last_vessel_segment,
             created_at=segment.created_at,
             updated_at=segment.updated_at
@@ -270,7 +327,7 @@ class SegmentRepository:
             type=segment.type,
             in_amp_zone=segment.in_amp_zone,
             in_territorial_waters=segment.in_territorial_waters,
-            in_costal_waters=segment.in_costal_waters,
+            in_zone_with_no_fishing_rights=segment.in_zone_with_no_fishing_rights,
             last_vessel_segment=segment.last_vessel_segment,
             created_at=segment.created_at,
             updated_at=segment.updated_at

@@ -24,11 +24,11 @@ class Excursion(BaseModel):
     total_time_at_sea: Union[timedelta, None] = None
     total_time_in_amp: Union[timedelta, None] = None
     total_time_in_territorial_waters: Union[timedelta, None] = None
-    total_time_in_costal_waters: Union[timedelta, None] = None
+    total_time_in_zones_with_no_fishing_rights: Union[timedelta, None] = None
     total_time_fishing: Union[timedelta, None] = None
     total_time_fishing_in_amp: Union[timedelta, None] = None
     total_time_fishing_in_territorial_waters: Union[timedelta, None] = None
-    total_time_fishing_in_costal_waters: Union[timedelta, None] = None
-    total_time_extincting_amp: Union[timedelta, None] = None
+    total_time_fishing_in_zones_with_no_fishing_rights: Union[timedelta, None] = None
+    total_time_default_ais: Union[timedelta, None] = None
     created_at: Union[datetime, None] = None
     updated_at: Union[datetime, None] = None

@@ -15,6 +15,24 @@ class VesselRepository:
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
+
+    def get_vessel_tracked_count(self, session: Session) -> int:
+        stmt = select(func.count(sql_model.Vessel.id)).select_from(sql_model.Vessel)\
+            .distinct().where(sql_model.Vessel.tracking_activated == True)
+        return session.execute(stmt).scalar()
+
+    def get_vessel_types(self, session: Session) -> list[str]:
+        stmt = select(sql_model.Vessel.type).select_from(sql_model.Vessel).distinct()
+        return [i for i in session.execute(stmt).scalars()]
+    
+    def get_vessel_length_classes(self, session: Session) -> list[str]:
+        stmt = select(sql_model.Vessel.length_class).select_from(sql_model.Vessel).distinct()
+        return [i for i in session.execute(stmt).scalars()]
+    
+    def get_vessel_countries(self, session: Session) -> list[str]:
+        stmt = select(sql_model.Vessel.country_iso3).select_from(sql_model.Vessel).distinct()
+        return [i for i in session.execute(stmt).scalars()]
+
     def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel, None]:
         return session.get(sql_model.Vessel, vessel_id)
 
