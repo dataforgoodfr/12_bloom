@@ -9,7 +9,7 @@ import { SimpleMeshLayer } from "@deck.gl/mesh-layers"
 import DeckGL from "@deck.gl/react"
 import { OBJLoader } from "@loaders.gl/obj"
 import chroma from "chroma-js"
-import { MapViewState, PolygonLayer, ScatterplotLayer } from "deck.gl"
+import { Layer, MapViewState, PolygonLayer, ScatterplotLayer } from "deck.gl"
 import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
 
@@ -31,9 +31,18 @@ const MESH_URL_LOCAL = `../../../data/mesh/boat.obj`
 type CoreMapProps = {
   vesselsPositions: VesselPositions
   zones: ZoneWithGeometry[]
+  isLoading: {
+    vessels: boolean
+    positions: boolean
+    zones: boolean
+  }
 }
 
-export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
+export default function CoreMap({
+  vesselsPositions,
+  zones,
+  isLoading,
+}: CoreMapProps) {
   const {
     viewState,
     setViewState,
@@ -206,11 +215,11 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   })
 
   const layers = [
-    zoneLayer,
-    ...tracksByVesselAndVoyage,
-    latestPositions,
-    positions_mesh_layer,
-  ]
+    !isLoading.zones && zoneLayer,
+    !isLoading.vessels && !isLoading.positions && tracksByVesselAndVoyage,
+    !isLoading.positions && latestPositions,
+    !isLoading.vessels && !isLoading.positions && positions_mesh_layer,
+  ].filter(Boolean) as Layer[]
 
   return (
     <DeckGL
