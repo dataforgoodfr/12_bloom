@@ -20,6 +20,10 @@ from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
                                  ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParams,CachedRequest
 from bloom.dependencies import ( X_API_KEY_HEADER, check_apikey,cache)
+from bloom.routers.requests import (
+    RangeHeader,
+    RangeHeaderParser
+)
 
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
 from fastapi.encoders import jsonable_encoder
@@ -80,20 +84,24 @@ async def read_metrics_zone_visiting_time_by_vessel(request: Request,
                                                 order=order)
     return jsonable_encoder(payload)
 
-"""
-@router.get("/metrics/vessels/{vessel_id}/activity/{activity_type}")
-@cache
-async def read_metrics_vessels_visits_by_activity_type(request: Request,
-                                            vessel_id: int,
-                                            activity_type: TotalTimeActivityTypeRequest = Depends(),
+@router.get("/metrics/vessels/time-by-zone")
+#@cache
+async def read_metrics_all_vessels_visiting_time_by_zone(request: Request,
+                                            vessel_id: Optional[int] = None,
+                                            category: Optional[str] = None,
+                                            sub_category: Optional[str] = None,
                                             datetime_range: DatetimeRangeRequest = Depends(),
-                                            caching: CachedRequest = Depends(),
+                                            pagination: PageParams = Depends(),
+                                            order: OrderByRequest = Depends(),
                                             key: str = Depends(X_API_KEY_HEADER),):
     check_apikey(key)
     use_cases = UseCases()
     MetricsService=use_cases.metrics_service()
-    payload=MetricsService.getVesselVisitsByActivityType(
+    payload=MetricsService.getVesselVisitingTimeByZone(
                                                 vessel_id=vessel_id,
-                                                activity_type=activity_type,
-                                                datetime_range=datetime_range)
-    return jsonable_encoder(payload)"""
+                                                datetime_range=datetime_range,
+                                                pagination=pagination,
+                                                order=order,
+                                                category=category,
+                                                sub_category=sub_category)
+    return jsonable_encoder(payload)
