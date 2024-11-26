@@ -5,6 +5,9 @@ from sqlalchemy import select, func, and_, or_, text, literal_column
 from bloom.infra.database import sql_model
 from bloom.infra.database.database_manager import Base
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,OrderByEnum, PageParams
+from bloom.routers.requests import RangeHeader, PaginatedResult
+from typing import Any, List, Union, Optional
+from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 
 from bloom.domain.vessel import Vessel,VesselListView
@@ -16,7 +19,8 @@ from bloom.domain.metrics import TotalTimeActivityTypeRequest
 from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
                                  ResponseMetricsZoneVisitedSchema,
                                  ResponseMetricsZoneVisitingTimeByVesselSchema,
-                                 ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema)
+                                 ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
+                                 ResponseMetricsVesselVisitingTimeByZoneSchema)
 
 class MetricsService():
     def __init__(
@@ -102,8 +106,9 @@ class MetricsService():
     def getZoneVisitingTimeByVessel(self,
                                     zone_id: int,
                                     datetime_range: DatetimeRangeRequest,
-                                    pagination: PageParams,
-                                    order: OrderByRequest):
+                                    session: Session,
+                                    order: OrderByRequest,
+                                    pagination: PageParams,):
         payload=[]
         with self.session_factory() as session:
             
@@ -144,6 +149,50 @@ class MetricsService():
             )\
             for item in payload]
     
+    def getVesselVisitingTimeByZone(self,
+                                    order: OrderByRequest,
+                                    datetime_range: DatetimeRangeRequest,
+                                    pagination: PageParams,
+                                    vessel_id: int = None,
+                                    category:Optional[str]=None,
+                                    sub_category:Optional[str]=None,
+                                    ):
+        payload=[]
+        with self.session_factory() as session:
+            stmt=select(sql_model.Vessel,
+                        sql_model.Zone,
+                        func.sum(sql_model.Segment.segment_duration).label("vessel_visiting_time_by_zone")
+                        )\
+                .select_from(sql_model.Vessel)\
+                .join(sql_model.Excursion, sql_model.Excursion.vessel_id == sql_model.Vessel.id)\
+                .join(sql_model.Segment, sql_model.Segment.excursion_id == sql_model.Excursion.id)\
+                .join(sql_model.RelSegmentZone, sql_model.RelSegmentZone.segment_id == sql_model.Segment.id)\
+                .join(sql_model.Zone, sql_model.Zone.id == sql_model.RelSegmentZone.zone_id)\
+                .where(
+                    or_(sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
+                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at))
+                )\
+                .group_by(sql_model.Vessel,
+                        sql_model.Zone,)
+            if category:
+                stmt = stmt.where(sql_model.Zone.category == category)
+            if sub_category:
+                stmt = stmt.where(sql_model.Zone.sub_category == sub_category)
+            stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
+                if  order.order == OrderByEnum.ascending \
+                else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
+            stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+            stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            if vessel_id is not None:
+                stmt=stmt.where(sql_model.Vessel.id==vessel_id)
+            
+            
+        return [ResponseMetricsVesselVisitingTimeByZoneSchema(
+                    vessel=VesselListView(**VesselRepository.map_to_domain(model[0]).model_dump()),
+                    zone=ZoneListView(**ZoneRepository.map_to_domain(model[1]).model_dump()),
+                    vessel_visiting_time_by_zone=model[2]) for model in session.execute(stmt).all()]
+
+
     def getVesselVisitsByActivityType(self,
                                         vessel_id: int,
                                         activity_type: TotalTimeActivityTypeRequest,

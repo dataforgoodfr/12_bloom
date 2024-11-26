@@ -46,6 +46,12 @@ class ResponseMetricsZoneVisitingTimeByVesselSchema(BaseModel):
     vessel: VesselListView
     zone_visiting_time_by_vessel: timedelta
 
+
+class ResponseMetricsVesselVisitingTimeByZoneSchema(BaseModel):
+    zone: ZoneListView
+    vessel: VesselListView
+    vessel_visiting_time_by_zone: timedelta
+
 class ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(BaseModel):
     vessel_id : int
     activity: str
