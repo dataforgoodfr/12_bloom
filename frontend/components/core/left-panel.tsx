@@ -11,6 +11,7 @@ import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 
+import Spinner from "../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessels-panel"
 
 const containerVariants = {
@@ -43,9 +44,10 @@ const svgVariants = {
 
 type LeftPanelProps = {
   vessels: Vessel[]
+  isLoading: boolean
 }
 
-export default function LeftPanel({ vessels }: LeftPanelProps) {
+export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
@@ -114,7 +116,7 @@ export default function LeftPanel({ vessels }: LeftPanelProps) {
           </NavigationLink>
         </div>
         <div className="flex flex-col gap-3 bg-color-3 p-5">
-          <VesselFinderDemo wideMode={isOpen} />
+          {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
         </div>
         <div className="flex flex-col gap-3 overflow-auto bg-color-3 p-5">
           <TrackedVesselsPanel
