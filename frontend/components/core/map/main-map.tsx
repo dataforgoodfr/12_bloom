@@ -258,7 +258,7 @@ export default function CoreMap({
       }}
     >
       <MapGL
-        mapStyle={`https://api.maptiler.com/maps/bb513c96-848e-4775-b150-437395193f26/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
+        mapStyle={"https://api.maptiler.com/maps/e9b57486-1b91-47e1-a763-6df391697483/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}"}
         attributionControl={false}
       ></MapGL>
     </DeckGL>
