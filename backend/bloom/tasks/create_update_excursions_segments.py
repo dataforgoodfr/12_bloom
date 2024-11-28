@@ -104,6 +104,7 @@ def run():
     port_repository = use_cases.port_repository()
     excursion_repository = use_cases.excursion_repository()
     metrics_repository = use_cases.metrics_repository() #1
+    metrics_repository = use_cases.metrics_repository() #1
     nb_created_excursion = 0
     nb_closed_excursion = 0
 
@@ -310,6 +311,7 @@ def run():
         excursions = {}
         segments = []
         new_metricss=[]
+        new_metricss=[]
         max_created_updated = point_in_time
         i=0
         for segment, zones in result.items():
@@ -363,6 +365,9 @@ def run():
 
                 new_metricss.append(new_metrics) #1
 
+
+                new_metricss.append(new_metrics) #1
+
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
                                        excursion_repository.get_excursion_by_id(session, segment.excursion_id))
@@ -409,6 +414,8 @@ def run():
         logger.info(f"{len(segments)} segments mis à jour")
         RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
         logger.info(f"{len(new_rels)} associations(s) créées")
+        metrics_repository.batch_create_metrics(session, new_metricss) #1
+        logger.info(f"{len(new_metricss)} metrics(s) créés") #1
         metrics_repository.batch_create_metrics(session, new_metricss) #1
         logger.info(f"{len(new_metricss)} metrics(s) créés") #1
         vessels_ids = set(exc.vessel_id for exc in excursions.values())
