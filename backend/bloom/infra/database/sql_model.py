@@ -260,12 +260,14 @@ class MetricsVesselInActivity(Base):
 class Metrics(Base):
     __tablename__ = "fct_metrics"
     timestamp = Column("timestamp", DateTime(timezone=True), primary_key=True)
-    vessel_id= Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
+    vessel_id= Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), primary_key=True)
+    type = Column("type", String, nullable=False)  # Ajouté comme clé primaire
     vessel_mmsi= Column("vessel_mmsi", Integer, ForeignKey("dim_vessel.mmsi"), nullable=False)
     ship_name= Column("ship_name", String, ForeignKey("dim_vessel.ship_name"), nullable=False)
-    type= Column("type", String, nullable= False)
-    duration_total= Column("duration_total", Integer, nullable= False)
-    duration_fishing= Column("duration_fishing", Integer)
-    mpa_name= Column("mpa_name", String, ForeignKey("dim_zone.name"))
+    vessel_country_iso3= Column("vessel_country_iso3", String, ForeignKey("dim_vessel.country_iso3"), nullable=False)
+    vessel_imo= Column("vessel_imo", Integer, ForeignKey("dim_vessel.imo"))
+    duration_total= Column("duration_total", Double, nullable= False)
+    duration_fishing= Column("duration_fishing", Double)
+    mpa_name= Column("mpa_name", String, ForeignKey("dim_zone.name"),primary_key=True)
 
 

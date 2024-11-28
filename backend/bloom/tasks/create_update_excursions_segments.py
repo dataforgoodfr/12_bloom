@@ -311,28 +311,33 @@ def run():
         segments = []
         new_metricss=[]
         max_created_updated = point_in_time
+        i=0
         for segment, zones in result.items():
             segment_in_zone = False
-            df= metrics_repository.get_vessel_excursion_segment_by_id(session,segment.id) #1
-            types=[]
+            df= segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)#metrics_repository.get_vessel_excursion_segment_by_id(session,segment.id) #1
+            types='AT_SEA'
             zones_names=[]
             for zone in zones:
                 if segment.type == "DEFAULT_AIS":
                     # Issue 234: ne pas créer les relations pour les segments en default AIS
+                    types='DEFAULT_AIS'
                     continue
                 segment_in_zone = True
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
                     segment.in_amp_zone = True
+                    types='in_amp'
                 elif zone.category == "Fishing coastal waters (6-12 NM)":
-                    country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
+                    country_iso3 = df.loc[0, "vessel_country_iso3"]
                     beneficiaries = zone.json_data.get("beneficiaries", [])
                     if country_iso3 not in beneficiaries:
                         segment.in_zone_with_no_fishing_rights = True
+                        types='in_zone_with_no_fishing_rights'
                 elif zone.category == "Clipped territorial seas":
-                    country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
+                    country_iso3 = df.loc[0, "vessel_country_iso3"]
                     if country_iso3 != "FRA":
                         segment.in_zone_with_no_fishing_rights = True
+                        types='in_zone_with_no_fishing_rights'
                 elif zone.category == "Territorial seas":
                     segment.in_territorial_waters = True
                     types="in_territorial_water" #1
@@ -342,10 +347,12 @@ def run():
                 duration_total_seconds = segment.segment_duration.total_seconds()
 
                 new_metrics= Metrics(#1
-                    timestamp = point_in_time, #1
-                    vessel_id = df['vessel_id'].iloc[0] if not df.empty else None, #1
-                    vessel_mmsi = df['vessel_mmsi'].iloc[0] if not df.empty else None, #1
-                    ship_name = df['ship_name'].iloc[0] if not df.empty else None, #1
+                    timestamp = segment.timestamp_start, #1
+                    vessel_id = df.loc[0, 'vessel_id'] if not df.empty else None, #1
+                    vessel_mmsi = df.loc[0,'vessel_mmsi'] if not df.empty else None, #1
+                    ship_name = df.loc[0,'ship_name'] if not df.empty else None, #1
+                    vessel_country_iso3= df.loc[0,'vessel_country_iso3'] if not df.empty else None,
+                    vessel_imo=df.loc[0,'vessel_imo'] if not df.empty else None,
                     type = types, #1
                     duration_total = duration_total_seconds, #fonctionne si 1 segment = zone max #1
                     duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None, #1
