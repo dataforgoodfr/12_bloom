@@ -80,6 +80,20 @@ export default function CoreMap({
     setLatestPositions(vesselsPositions)
   }, [setLatestPositions, vesselsPositions])
 
+  const onMapClick = ({ layer }: PickingInfo) => {
+    if (layer?.id !== 'vessels-latest-positions') {
+      setActivePosition(null);
+    }
+  }
+
+  const onVesselClick = ({ object }: PickingInfo) => {
+    setActivePosition(object as VesselPosition);
+  }
+
+  const onZoneClick = () => {
+    return;
+  }
+
   const latestPositions = new IconLayer<VesselPosition>({
     id: `vessels-latest-positions`,
     data: vesselsPositions,
@@ -107,9 +121,7 @@ export default function CoreMap({
     },
 
     pickable: true,
-    onClick: ({ object }) => {
-      setActivePosition(object as VesselPosition)
-    },
+    onClick: onVesselClick,
     updateTriggers: {
       getColor: [activePosition?.vessel.id, trackedVesselIDs],
     },
@@ -143,60 +155,45 @@ export default function CoreMap({
     return "vessel" in object ? "vessel" : "zone"
   }
 
-  // Single combined layer instead of three separate ones
-  const combinedZonesLayer = useMemo(
-    () =>
-      new PolygonLayer({
-        id: "combined-zones-layer",
-        data: zones,
-        getPolygon: (d: ZoneWithType) => {
-          if (d.geometry.type === "MultiPolygon") {
-            return d.geometry.coordinates[0]
-          }
-          return d.geometry.coordinates
-        },
-        getFillColor: (d: ZoneWithType) => {
-          switch (d.category) {
-            case ZoneCategory.AMP:
-              return [30, 224, 171, 25]
-            case ZoneCategory.FISHING_COASTAL_WATERS:
-              return [132, 0, 0, 25]
-            case ZoneCategory.TERRITORIAL_SEAS:
-            default:
-              return [0, 0, 0, 0]
-          }
-        },
-        getLineColor: (d: ZoneWithType) => {
-          switch (d.category) {
-            case ZoneCategory.AMP:
-              return [44, 226, 176, 255]
-            case ZoneCategory.TERRITORIAL_SEAS:
-              return [132, 0, 0, 255]
-            case ZoneCategory.FISHING_COASTAL_WATERS:
-            default:
-              return [0, 0, 0, 0]
-          }
-        },
-        getLineWidth: (d: ZoneWithType) =>
-          d.category !== ZoneCategory.FISHING_COASTAL_WATERS ? 0.5 : 0,
-        lineWidthUnits: "pixels",
-        pickable: true,
-        stroked: true,
-        filled: true,
-        wireframe: false,
-        extruded: false,
-        // Only apply dash pattern to AMP zones
-        getDashArray: [4, 12],
-        extensions: zones.some((z) => z.category === ZoneCategory.AMP)
-          ? [new PathStyleExtension({ dash: true })]
-          : [],
-        parameters: {
-          depthTest: false,
-          blend: true,
-        },
-      }),
-    [zones]
-  )
+  const zoneLayer = new PolygonLayer({
+    id: `zones-layer`,
+    data: zones,
+    getPolygon: (d: ZoneWithGeometry) => {
+      // Handle both Polygon and MultiPolygon types
+      if (d.geometry.type === "MultiPolygon") {
+        // Return the first polygon's coordinates for MultiPolygon
+        return d.geometry.coordinates[0]
+      }
+      // For single Polygon, return just the first coordinate ring (outer boundary)
+      return d.geometry.coordinates
+    },
+    getFillColor: (d: ZoneWithGeometry) => {
+      switch (d.category) {
+        case "territorial_seas":
+          return [0, 0, 255, 50]
+        case "fishing_coastal_waters":
+          return [0, 255, 0, 50]
+        case "amp":
+        default:
+          return [255, 0, 0, 50]
+      }
+    },
+    getLineColor: [0, 0, 0, 128], // reduced opacity for borders
+    getLineWidth: 1,
+    lineWidthUnits: "pixels",
+    lineWidthMinPixels: 1,
+    pickable: true, // disable picking if not needed
+    stroked: false,
+    filled: true,
+    wireframe: false, // disable wireframe for better performance
+    extruded: false,
+    parameters: {
+      depthTest: false,
+      blend: true,
+      blendFunc: [770, 771], // standard transparency blending
+    },
+    onClick: onZoneClick
+  })
 
   const layers = [
     !isLoading.zones && combinedZonesLayer,
@@ -204,17 +201,7 @@ export default function CoreMap({
     !isLoading.positions && latestPositions,
   ].filter(Boolean) as Layer[]
 
-  const onMapClick = ({ picked, object }: PickingInfo) => {
-    if (picked) {
-      setActivePosition(object as VesselPosition)
-    } else {
-      setActivePosition(null)
-    }
-  }
-
-  const getTooltip = ({
-    object,
-  }: Partial<PickingInfo<VesselPosition | ZoneWithGeometry>>) => {
+  const getTooltip = ({ object }: Partial<PickingInfo<VesselPosition | ZoneWithGeometry>>) => {
     const objectType = getObjectType(object)
     const style = {
       backgroundColor: "#fff",
