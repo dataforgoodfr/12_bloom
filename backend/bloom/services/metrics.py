@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from contextlib import AbstractContextManager
 from dependency_injector.providers import Callable
-from sqlalchemy import select, func, and_, or_, text, literal_column, asc, desc, distinct
+from sqlalchemy import select, func, and_, or_, text, literal_column, asc, desc
 from bloom.infra.database import sql_model
 from bloom.infra.database.database_manager import Base
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,OrderByEnum, PageParams
@@ -41,20 +41,30 @@ class MetricsService():
             #   departure <= start_at and ( arrival == None or arrival >= end_at)
             stmt=select(sql_model.Vessel,
                         func.sum(sql_model.Segment.segment_duration).label("total_time_in_mpa")
+                        func.sum(sql_model.Segment.segment_duration).label("total_time_in_mpa")
                         )\
                 .select_from(sql_model.Segment)\
                 .join(sql_model.Excursion,sql_model.Segment.excursion_id==sql_model.Excursion.id)\
                 .join(sql_model.Vessel,sql_model.Vessel.id ==sql_model.Excursion.vessel_id)\
+                .join(sql_model.Excursion,sql_model.Segment.excursion_id==sql_model.Excursion.id)\
+                .join(sql_model.Vessel,sql_model.Vessel.id ==sql_model.Excursion.vessel_id)\
                 .where(
+                    sql_model.Segment.in_amp_zone == True
                     sql_model.Segment.in_amp_zone == True
                 )\
                 .where(
                         sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
                         sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)\
                 .group_by(sql_model.Vessel)
+                .where(
+                        sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
+                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)\
+                .group_by(sql_model.Vessel)
             stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
             stmt =  stmt.order_by(asc("total_time_in_mpa"))\
+            stmt =  stmt.order_by(asc("total_time_in_mpa"))\
                     if  order.order == OrderByEnum.ascending \
+                    else stmt.order_by(desc("total_time_in_mpa"))
                     else stmt.order_by(desc("total_time_in_mpa"))
             stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
             payload=session.execute(stmt).all()
