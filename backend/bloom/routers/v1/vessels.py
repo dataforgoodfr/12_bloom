@@ -132,7 +132,7 @@ async def list_vessel_excursions(request: Request, # used by @cache
     json_data={}
     with db.session() as session:
         json_data = [json.loads(p.model_dump_json() if p else "{}")
-                        for p in excursion_repository.get_excursions_by_vessel_id(session,vessel_id)]
+                        for p in excursion_repository.get_excursions_by_vessel_id(session,vessel_id, datetime_range)]
     return json_data
 
 
