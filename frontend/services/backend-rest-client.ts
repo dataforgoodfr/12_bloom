@@ -26,6 +26,12 @@ export function getVessels() {
   return axios.get<Vessel[]>(url)
 }
 
+export function getVesselsAtSea(startAt: string, endAt: string) {
+  const url = `${BASE_URL}/metrics/vessels-at-sea?start_at=${startAt}&end_at=${endAt}`
+  console.log(`GET ${url}`)
+  return axios.get<number>(url)
+}
+
 export function getVesselsTrackedCount() {
   const url = `${BASE_URL}/vessels/trackedCount`
   console.log(`GET ${url}`)
