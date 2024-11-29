@@ -84,9 +84,12 @@ export function getTopVesselsInActivity(
 export function getTopZonesVisited(
   startAt: string,
   endAt: string,
-  topZonesLimit: number
+  topZonesLimit: number,
+  category?: string
 ) {
-  const url = `${BASE_URL}/metrics/zone-visited?start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
+  const url = `${BASE_URL}/metrics/zone-visited?${
+    category ? `category=${category}&` : ""
+  }start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
   console.log(`GET ${url}`)
   return axios.get<ZoneMetrics[]>(url)
 }
