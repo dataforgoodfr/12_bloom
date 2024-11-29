@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from contextlib import AbstractContextManager
 from dependency_injector.providers import Callable
-from sqlalchemy import select, func, and_, or_, text, literal_column, asc, desc
+from sqlalchemy import select, func, and_, or_, text, literal_column, asc, desc, distinct
 from bloom.infra.database import sql_model
 from bloom.infra.database.database_manager import Base
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,OrderByEnum, PageParams
@@ -67,6 +67,29 @@ class MetricsService():
             total_time_at_sea=item[1]
             )\
             for item in payload]
+    
+    def getVesselsAtSea(self,
+                        datetime_range: DatetimeRangeRequest,
+                        ):
+        with self.session_factory() as session:
+            stmt = (
+                select(func.count(distinct(sql_model.Vessel.id)))
+                .select_from(sql_model.Excursion)
+                .join(
+                    sql_model.Vessel,
+                    sql_model.Excursion.vessel_id == sql_model.Vessel.id,
+                )
+                .where(
+                    or_(
+                        sql_model.Excursion.arrival_at.between(
+                            datetime_range.start_at, datetime_range.end_at
+                        ),
+                        sql_model.Excursion.arrival_at == None,
+                    )
+                )
+            )
+        return session.execute(stmt).scalar()
+
     
     def getZoneVisited(self,
                         datetime_range: DatetimeRangeRequest,
