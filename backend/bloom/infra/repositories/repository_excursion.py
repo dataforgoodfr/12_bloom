@@ -1,10 +1,11 @@
 from contextlib import AbstractContextManager
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 
 import pandas as pd
+from bloom.routers.requests import DatetimeRangeRequest
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
-from sqlalchemy import desc
+from sqlalchemy import desc, and_, or_
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -34,9 +35,21 @@ class ExcursionRepository:
             return None
         return {"arrival_port_id": result.arrival_port_id, "arrival_position": result.arrival_position}
 
-    def get_excursions_by_vessel_id(self, session: Session, vessel_id: int) -> List[Excursion]:
+    def get_excursions_by_vessel_id(self, session: Session, 
+                                    vessel_id: int,
+                                    datetime_range: DatetimeRangeRequest,
+    )-> List[Excursion]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
-        stmt = select(sql_model.Excursion).where(sql_model.Excursion.vessel_id == vessel_id)
+        stmt = select(sql_model.Excursion).where(
+            and_(
+                sql_model.Excursion.vessel_id == vessel_id,
+                sql_model.Excursion.departure_at < datetime_range.end_at,
+                or_(
+                    sql_model.Excursion.arrival_at > datetime_range.start_at,
+                    sql_model.Excursion.arrival_at == None
+                ),
+            )
+        )
         result = session.execute(stmt).scalars().all()
         if not result:
             return []
