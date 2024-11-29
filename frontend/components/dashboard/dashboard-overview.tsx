@@ -53,7 +53,7 @@ export default function DashboardOverview({
             />
             <KPICard
               key="total-amps-visited"
-              title="Total AMPs visited"
+              title="Total MPAs visited"
               kpiValue={totalAmpsVisited}
               totalValue={TOTAL_AMPS}
               loading={totalAmpsVisitedLoading}
@@ -65,7 +65,7 @@ export default function DashboardOverview({
           <div className="grid grid-cols-1 gap-y-12 xl:gap-y-16">
             <ListCard
               key="top-amps-visited"
-              title="Top AMPs visited during the period"
+              title="Top MPAs visited during the period"
               items={topAmpsVisited ?? []}
               enableViewDetails
               loading={topAmpsVisitedLoading}
@@ -73,7 +73,7 @@ export default function DashboardOverview({
             />
             <ListCard
               key="top-vessels-in-activity"
-              title="Top Vessels visiting AMPS"
+              title="Top Vessels visiting MPAs"
               items={topVesselsInActivity ?? []}
               enableViewDetails
               loading={topVesselsInActivityLoading}
