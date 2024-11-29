@@ -106,7 +106,6 @@ class MetricsService():
     def getZoneVisitingTimeByVessel(self,
                                     zone_id: int,
                                     datetime_range: DatetimeRangeRequest,
-                                    session: Session,
                                     order: OrderByRequest,
                                     pagination: PageParams,):
         payload=[]
