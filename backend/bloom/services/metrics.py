@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from contextlib import AbstractContextManager
 from dependency_injector.providers import Callable
-from sqlalchemy import select, func, and_, or_, text, literal_column, asc, desc
+from sqlalchemy import select, func, and_, or_, text, literal_column, asc, desc, distinct
 from bloom.infra.database import sql_model
 from bloom.infra.database.database_manager import Base
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,OrderByEnum, PageParams
@@ -40,24 +40,22 @@ class MetricsService():
             #   arrival time in range start_at/end_at
             #   departure <= start_at and ( arrival == None or arrival >= end_at)
             stmt=select(sql_model.Vessel,
-                        func.sum(sql_model.Excursion.total_time_at_sea).label("total_time_at_sea")
+                        func.sum(sql_model.Segment.segment_duration).label("total_time_in_mpa")
                         )\
                 .select_from(sql_model.Segment)\
-                .join(sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id)\
-                .join(sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id)\
+                .join(sql_model.Excursion,sql_model.Segment.excursion_id==sql_model.Excursion.id)\
+                .join(sql_model.Vessel,sql_model.Vessel.id ==sql_model.Excursion.vessel_id)\
                 .where(
-                    or_(
-                        sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),
-                        and_(sql_model.Excursion.departure_at <= datetime_range.end_at,
-                             or_(sql_model.Excursion.arrival_at == None, sql_model.Excursion.arrival_at >= datetime_range.end_at )))
+                    sql_model.Segment.in_amp_zone == True
                 )\
-                .group_by(sql_model.Vessel.id)
+                .where(
+                        sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
+                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)\
+                .group_by(sql_model.Vessel)
             stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
-            stmt = (
-                stmt.order_by(asc("total_time_at_sea"))
-                if order.order == OrderByEnum.ascending
-                else stmt.order_by(desc("total_time_at_sea"))
-            )
+            stmt =  stmt.order_by(asc("total_time_in_mpa"))\
+                    if  order.order == OrderByEnum.ascending \
+                    else stmt.order_by(desc("total_time_in_mpa"))
             stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
             payload=session.execute(stmt).all()
             # payload contains a list of sets(Vessel,datetime.timedelta)
@@ -69,7 +67,30 @@ class MetricsService():
             total_time_at_sea=item[1]
             )\
             for item in payload]
+    
+    def getVesselsAtSea(self,
+                        datetime_range: DatetimeRangeRequest,
+                        ):
+        with self.session_factory() as session:
+            stmt = (
+                select(func.count(distinct(sql_model.Vessel.id)))
+                .select_from(sql_model.Excursion)
+                .join(
+                    sql_model.Vessel,
+                    sql_model.Excursion.vessel_id == sql_model.Vessel.id,
+                )
+                .where(
+                    or_(
+                        sql_model.Excursion.arrival_at.between(
+                            datetime_range.start_at, datetime_range.end_at
+                        ),
+                        sql_model.Excursion.arrival_at == None,
+                    )
+                )
+            )
+        return session.execute(stmt).scalar()
 
+    
     def getZoneVisited(self,
                         datetime_range: DatetimeRangeRequest,
                         pagination: PageParams,
@@ -108,7 +129,7 @@ class MetricsService():
             visiting_duration=item[1]
             )\
             for item in payload]
-
+    
     def getZoneVisitingTimeByVessel(self,
                                     zone_id: int,
                                     datetime_range: DatetimeRangeRequest,
@@ -116,7 +137,7 @@ class MetricsService():
                                     pagination: PageParams,):
         payload=[]
         with self.session_factory() as session:
-
+            
             stmt=select(
                 sql_model.Zone,
                 sql_model.Vessel,
@@ -134,7 +155,7 @@ class MetricsService():
                         sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),))
                 )\
             .group_by(sql_model.Zone.id,sql_model.Vessel.id)
-
+            
             stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
                     if  order.order == OrderByEnum.ascending \
                     else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
@@ -197,6 +218,7 @@ class MetricsService():
                     zone=ZoneListView(**ZoneRepository.map_to_domain(model[1]).model_dump()),
                     vessel_visiting_time_by_zone=model[2]) for model in session.execute(stmt).all()]
 
+
     def getVesselVisitsByActivityType(self,
                                         vessel_id: int,
                                         activity_type: TotalTimeActivityTypeRequest,
@@ -221,9 +243,10 @@ class MetricsService():
                     literal_column('0 seconds'),
                 ))
             payload=session.execute(stmt.limit(1)).scalar_one_or_none()
-
+            
         return [ ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(
                 vessel_id=item.id,
                 activity=item.activity,
                 total_activity_time=item.total_activity_time,
                     ) for item in payload]
+    
