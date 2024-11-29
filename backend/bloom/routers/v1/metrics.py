@@ -46,8 +46,20 @@ async def read_metrics_vessels_in_activity_total(request: Request,
     payload=MetricsService.getVesselsInActivity(datetime_range=datetime_range,
                                                 pagination=pagination,
                                                 order=order)
-    
+
     return jsonable_encoder(payload)
+
+
+@router.get("/metrics/vessels-at-sea")
+async def list_vessel_at_sea(
+    request: Request,
+    datetime_range: DatetimeRangeRequest = Depends(),
+    key: str = Depends(X_API_KEY_HEADER),  # used by @cache
+):
+    check_apikey(key)
+    use_cases = UseCases()
+    MetricsService = use_cases.metrics_service()
+    return MetricsService.getVesselsAtSea(datetime_range=datetime_range)
 
 
 @router.get("/metrics/zone-visited")
