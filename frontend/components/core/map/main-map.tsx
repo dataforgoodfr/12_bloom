@@ -2,17 +2,18 @@
 
 import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect } from "react"
 import type { PickingInfo } from "@deck.gl/core"
 import { GeoJsonLayer } from "@deck.gl/layers"
-import { SimpleMeshLayer } from "@deck.gl/mesh-layers"
 import DeckGL from "@deck.gl/react"
-import { OBJLoader } from "@loaders.gl/obj"
 import chroma from "chroma-js"
-import { Layer, MapViewState, PolygonLayer, ScatterplotLayer } from "deck.gl"
+import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
+import { useEffect } from "react"
 import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
 
+import { useMapStore } from "@/components/providers/map-store-provider"
+import MapTooltip from "@/components/ui/tooltip-map-template"
+import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
 import {
   VesselExcursionSegment,
   VesselExcursionSegmentGeo,
@@ -22,11 +23,6 @@ import {
   VesselPositions,
 } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
-import MapTooltip from "@/components/ui/tooltip-map-template"
-import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
-import { useMapStore } from "@/components/providers/map-store-provider"
-
-const MESH_URL_LOCAL = `../../../data/mesh/boat.obj`
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions
@@ -56,10 +52,18 @@ export default function CoreMap({
   // Use a piece of state that changes when `activePosition` changes to force re-render
   // const [layerKey, setLayerKey] = useState(0)
 
+  const VESSEL_COLOR = [16, 181, 16, 210];
+  const TRACKED_VESSEL_COLOR = [128, 16, 189, 210];
+
   function getColorFromValue(value: number): [number, number, number] {
     const scale = chroma.scale(["yellow", "red", "black"]).domain([0, 15])
     const color = scale(value).rgb()
     return [Math.round(color[0]), Math.round(color[1]), Math.round(color[2])]
+  }
+
+  const isVesselSelected = (vp: VesselPosition) => {
+    return vp.vessel.id === activePosition?.vessel.id ||
+      trackedVesselIDs.includes(vp.vessel.id)
   }
 
   // useEffect(() => {
@@ -71,27 +75,30 @@ export default function CoreMap({
     setLatestPositions(vesselsPositions)
   }, [setLatestPositions, vesselsPositions])
 
-  const latestPositions = new ScatterplotLayer<VesselPosition>({
+  const latestPositions = new IconLayer<VesselPosition>({
     id: `vessels-latest-positions`,
     data: vesselsPositions,
     getPosition: (vp: VesselPosition) => [
       vp?.position?.coordinates[0],
       vp?.position?.coordinates[1],
     ],
-    stroked: false,
-    radiusUnits: "meters",
-    getRadius: (vp: VesselPosition) => vp.vessel.length,
-    radiusMinPixels: 3,
-    radiusMaxPixels: 25,
-    radiusScale: 200,
-    getFillColor: (vp: VesselPosition) => {
-      return vp.vessel.id === activePosition?.vessel.id ||
-        trackedVesselIDs.includes(vp.vessel.id)
-        ? [128, 16, 189, 210]
-        : [16, 181, 16, 210]
+    getAngle: (vp: VesselPosition) => vp.heading ? Math.round(vp.heading) : 0,
+    getIcon: () => "default",
+    iconAtlas: "../../../img/map-vessel.png",
+    iconMapping: {
+      default: {
+        x: 0,
+        y: 0,
+        width: 35,
+        height: 27,
+        mask: true,
+      },
     },
-    getLineColor: [0, 0, 0],
-    getLineWidth: 3,
+    getSize: 16,
+    getColor: (vp: VesselPosition) => {
+      return new Uint8ClampedArray(isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR)
+    },
+
     pickable: true,
     onClick: ({ object }) => {
       setActivePosition(object as VesselPosition)
@@ -106,7 +113,7 @@ export default function CoreMap({
       // })
     },
     updateTriggers: {
-      getFillColor: [activePosition?.vessel.id, trackedVesselIDs],
+      getColor: [activePosition?.vessel.id, trackedVesselIDs],
     },
   })
 
@@ -131,49 +138,10 @@ export default function CoreMap({
       })
     })
 
-  const positions_mesh_layer = new SimpleMeshLayer({
-    id: `vessels-positions-mesh-layer`,
-    data: vesselsPositions,
-    mesh: MESH_URL_LOCAL,
-    getPosition: (vp: VesselPosition) => [
-      vp?.position?.coordinates[0],
-      vp?.position?.coordinates[1],
-    ],
-    getColor: (vp: VesselPosition) => {
-      return vp.vessel.id === activePosition?.vessel.id ||
-        trackedVesselIDs.includes(vp.vessel.id)
-        ? [128, 16, 189, 210]
-        : [16, 181, 16, 210]
-    },
-    getOrientation: (vp: VesselPosition) => [
-      0,
-      Math.round(vp.heading ? vp.heading : 0),
-      90,
-    ],
-    getScale: (vp: VesselPosition) => [
-      vp.vessel.length,
-      vp.vessel.length * 1.5,
-      vp.vessel.length / 1.5,
-    ],
-    scaleUnits: "pixels",
-    sizeScale: 100,
-    pickable: false,
-    onClick: ({ object }) => {
-      setActivePosition(object as VesselPosition)
-      // setViewState({
-      //   ...viewState,
-      //   longitude: object?.position?.coordinates[0],
-      //   latitude: object?.position?.coordinates[1],
-      //   zoom: 7,
-      //   transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-      //   transitionDuration: "auto",
-      // })
-    },
-    updateTriggers: {
-      getFillColor: [activePosition?.vessel.id, trackedVesselIDs],
-    },
-    loaders: [OBJLoader],
-  })
+  const getObjectType = (object: VesselPosition | ZoneWithGeometry | undefined) => {
+    if (!object) return null
+    return "vessel" in object ? "vessel" : "zone"
+  }
 
   const zoneLayer = new PolygonLayer({
     id: `zones-layer`,
@@ -218,8 +186,38 @@ export default function CoreMap({
     !isLoading.zones && zoneLayer,
     !isLoading.vessels && !isLoading.positions && tracksByVesselAndVoyage,
     !isLoading.positions && latestPositions,
-    !isLoading.vessels && !isLoading.positions && positions_mesh_layer,
   ].filter(Boolean) as Layer[]
+
+  const onMapClick = ({ picked, object }: PickingInfo) => {
+    if (picked) {
+      setActivePosition(object as VesselPosition)
+    } else {
+      setActivePosition(null)
+    }
+  }
+
+  const getTooltip = ({ object }: Partial<PickingInfo<VesselPosition | ZoneWithGeometry>>) => {
+    const objectType = getObjectType(object)
+    const style = {
+      backgroundColor: "#fff",
+      fontSize: "0.8em",
+      borderRadius: "10px",
+      overflow: "hidden",
+      padding: "0px",
+    }
+    let element: React.ReactNode;
+    if (objectType === "vessel") {
+      const vesselInfo = object as VesselPosition
+      element = <MapTooltip vesselInfo={vesselInfo} />
+    } else if (objectType === "zone") {
+      const zoneInfo = object as ZoneWithGeometry
+      element = <ZoneMapTooltip zoneInfo={zoneInfo} />
+    }
+    return {
+      html: renderToString(element),
+      style,
+    }
+  }
 
   return (
     <DeckGL
@@ -227,34 +225,15 @@ export default function CoreMap({
       controller={true}
       layers={layers}
       onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
+      getCursor={({ isHovering, isDragging }) => {
+        return isDragging ? "move" : isHovering ? "pointer" : "grab";
+      }}
+      onClick={onMapClick}
       getTooltip={({
         object,
       }: PickingInfo<VesselPosition | ZoneWithGeometry>) => {
         if (!object) return null
-
-        if ("vessel" in object) {
-          return {
-            html: renderToString(<MapTooltip vesselInfo={object} />),
-            style: {
-              backgroundColor: "#fff",
-              fontSize: "0.8em",
-              borderRadius: "10px",
-              overflow: "hidden",
-              padding: "0px",
-            },
-          }
-        } else {
-          return {
-            html: renderToString(<ZoneMapTooltip zoneInfo={object} />),
-            style: {
-              backgroundColor: "#fff",
-              fontSize: "0.8em",
-              borderRadius: "10px",
-              overflow: "hidden",
-              padding: "0px",
-            },
-          }
-        }
+        return getTooltip({ object })
       }}
     >
       <MapGL
