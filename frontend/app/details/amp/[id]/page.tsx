@@ -38,7 +38,7 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
         return {
           id: vessel.id.toString(),
           title: `${vessel.ship_name} - ${getCountryNameFromIso3(vessel.country_iso3)}`,
-          description: `IMO: ${vessel.imo} - MMSI: ${vessel.mmsi} - Type: ${vessel.type} - Length: ${vessel.length_class}`,
+          description: `IMO: ${vessel.imo} - MMSI: ${vessel.mmsi} - Type: ${vessel.type} - Length: ${vessel.length} m`,
           value: `${convertDurationInHours(zone_visiting_time_by_vessel)}h`,
           type: "vessels",
         }
