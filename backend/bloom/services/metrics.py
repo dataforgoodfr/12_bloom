@@ -71,7 +71,9 @@ class MetricsService():
     def getZoneVisited(self,
                         datetime_range: DatetimeRangeRequest,
                         pagination: PageParams,
-                        order: OrderByRequest):
+                        order: OrderByRequest,
+                        category: Optional[str]=None,
+                        ):
         payload=[]
         with self.session_factory() as session:
             stmt=select(
@@ -84,9 +86,11 @@ class MetricsService():
                 .where(
                     or_(
                         sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
-                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)
+                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at))
                 )\
                 .group_by(sql_model.Zone.id)
+            if (category):
+                stmt = stmt.where(sql_model.Zone.category == category)
             stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
                     if  order.order == OrderByEnum.ascending \
                     else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
