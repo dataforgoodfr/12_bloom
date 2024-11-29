@@ -2,6 +2,7 @@ import { TOTAL_VESSELS } from "@/constants/totals.constants"
 import {
   getTopVesselsInActivity,
   getTopZonesVisited,
+  getVesselsAtSea,
   getVesselsTrackedCount,
 } from "@/services/backend-rest-client"
 import { swrOptions } from "@/services/swr"
@@ -81,8 +82,8 @@ export const useDashboardData = (
     `totalVesselsInActivity-${startAt}-${endAt}`,
     async () => {
       try {
-        const response = await getTopVesselsInActivity(startAt, endAt, 1700)
-        return response?.data?.length
+        const response = await getVesselsAtSea(startAt, endAt)
+        return response?.data
       } catch (error) {
         console.log(
           "An error occurred while fetching total vessels in activity: " + error
