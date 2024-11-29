@@ -62,7 +62,8 @@ export const useDashboardData = (
           const response = await getTopZonesVisited(
             startAt,
             endAt,
-            TOP_ITEMS_SIZE
+            TOP_ITEMS_SIZE,
+            "amp"
           )
           return convertZoneDtoToItem(response?.data || [])
         } catch (error) {
@@ -99,7 +100,12 @@ export const useDashboardData = (
       `totalAmpsVisited-${startAt}-${endAt}`,
       async () => {
         try {
-          const response = await getTopZonesVisited(startAt, endAt, 100000)
+          const response = await getTopZonesVisited(
+            startAt,
+            endAt,
+            100000,
+            "amp"
+          )
           return response?.data?.length
         } catch (error) {
           console.log(
