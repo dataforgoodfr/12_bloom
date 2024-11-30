@@ -53,8 +53,13 @@ class MetricsService():
                     sql_model.Segment.in_amp_zone == True
                 )\
                 .where(
-                        sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
-                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),)\
+                        and_(
+                            sql_model.Segment.timestamp_start <= datetime_range.end_at,
+                            or_(sql_model.Segment.timestamp_end>= datetime_range.start_at,
+                                sql_model.Segment.timestamp_end == None
+                            )
+                        )
+                    )\
                 .group_by(sql_model.Vessel)
                 .where(
                         sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
@@ -117,10 +122,13 @@ class MetricsService():
                 .join(sql_model.RelSegmentZone,sql_model.RelSegmentZone.zone_id == sql_model.Zone.id)\
                 .join(sql_model.Segment,sql_model.RelSegmentZone.segment_id == sql_model.Segment.id)\
                 .where(
-                    or_(
-                        sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
-                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at))
-                )\
+                        and_(
+                            sql_model.Segment.timestamp_start <= datetime_range.end_at,
+                            or_(sql_model.Segment.timestamp_end>= datetime_range.start_at,
+                                sql_model.Segment.timestamp_end == None
+                            )
+                        )
+                    )\
                 .group_by(sql_model.Zone.id)
             if (category):
                 stmt = stmt.where(sql_model.Zone.category == category)
@@ -158,11 +166,14 @@ class MetricsService():
             .join(sql_model.Segment, sql_model.RelSegmentZone.segment_id == sql_model.Segment.id)\
             .join(sql_model.Excursion, sql_model.Excursion.id == sql_model.Segment.excursion_id)\
             .join(sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id)\
+            .where(sql_model.Zone.id == zone_id)\
             .where(
-                and_(sql_model.Zone.id == zone_id,
-                    or_(
-                        sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
-                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at),))
+                    and_(
+                        sql_model.Segment.timestamp_start <= datetime_range.end_at,
+                        or_(sql_model.Segment.timestamp_end>= datetime_range.start_at,
+                            sql_model.Segment.timestamp_end == None
+                        )
+                    )
                 )\
             .group_by(sql_model.Zone.id,sql_model.Vessel.id)
             
@@ -205,9 +216,13 @@ class MetricsService():
                 .join(sql_model.RelSegmentZone, sql_model.RelSegmentZone.segment_id == sql_model.Segment.id)\
                 .join(sql_model.Zone, sql_model.Zone.id == sql_model.RelSegmentZone.zone_id)\
                 .where(
-                    or_(sql_model.Segment.timestamp_start.between(datetime_range.start_at,datetime_range.end_at),
-                        sql_model.Segment.timestamp_end.between(datetime_range.start_at,datetime_range.end_at))
-                )\
+                        and_(
+                            sql_model.Segment.timestamp_start <= datetime_range.end_at,
+                            or_(sql_model.Segment.timestamp_end>= datetime_range.start_at,
+                                sql_model.Segment.timestamp_end == None
+                            )
+                        )
+                    )\
                 .group_by(sql_model.Vessel,
                         sql_model.Zone,)
             if category:
@@ -240,12 +255,15 @@ class MetricsService():
                         func.sum(sql_model.Excursion.total_time_at_sea).label("total_activity_time")
                         )\
                 .select_from(sql_model.Excursion)\
+                .where(sql_model.Excursion.vessel_id == vessel_id)\
                 .where(
-                and_(sql_model.Excursion.vessel_id == vessel_id,
-                    or_(
-                        sql_model.Excursion.departure_at.between(datetime_range.start_at,datetime_range.end_at),
-                        sql_model.Excursion.arrival_at.between(datetime_range.start_at,datetime_range.end_at),))
-                )\
+                        and_(
+                            sql_model.Excursion.departure_at <= datetime_range.end_at,
+                            or_(sql_model.Excursion.arrival_at>= datetime_range.start_at,
+                                sql_model.Excursion.arrival_at == None
+                            )
+                        )
+                    )\
                 .group_by(sql_model.Excursion.vessel_id)\
                 .union(select(
                     literal_column(vessel_id),

@@ -8,9 +8,15 @@ from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy import desc, and_, or_
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import and_,or_, asc, desc
 
 from bloom.domain.excursion import Excursion
 from bloom.infra.database import sql_model
+
+from bloom.routers.requests import ( DatetimeRangeRequest,
+                                     OrderByRequest,
+                                        PageParams,
+                                        OrderByEnum)
 
 
 class ExcursionRepository:
@@ -35,10 +41,13 @@ class ExcursionRepository:
             return None
         return {"arrival_port_id": result.arrival_port_id, "arrival_position": result.arrival_position}
 
-    def get_excursions_by_vessel_id(self, session: Session, 
+    def get_excursions_by_vessel_id(self,
+                                    session: Session,
                                     vessel_id: int,
                                     datetime_range: DatetimeRangeRequest,
-    )-> List[Excursion]:
+                                    order: OrderByRequest,
+                                    pagination: PageParams
+                                    ) -> List[Excursion]:
         """Recheche l'excursion en cours d'un bateau, c'est-à-dire l'excursion qui n'a pas de date d'arrivée"""
         stmt = select(sql_model.Excursion).where(
             and_(
@@ -50,6 +59,11 @@ class ExcursionRepository:
                 ),
             )
         )
+        stmt =  stmt.order_by(asc(sql_model.Excursion.departure_at))\
+                if  order.order == OrderByEnum.ascending \
+                else stmt.order_by(desc(sql_model.Excursion.departure_at))
+        stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+        stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
         result = session.execute(stmt).scalars().all()
         if not result:
             return []
