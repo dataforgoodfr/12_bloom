@@ -358,7 +358,8 @@ def run():
                     type = types, #1
                     duration_total = duration_total_seconds, #fonctionne si 1 segment = zone max #1
                     duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None, #1
-                    zone_name = zone.name #1
+                    zone_name = zone.name,#1
+                    zone_sub_category=zone.sub_category
                 ) #1
             if segment_in_zone:
                 segments.append(segment)

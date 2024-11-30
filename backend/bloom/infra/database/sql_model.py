@@ -269,5 +269,5 @@ class Metrics(Base):
     duration_total= Column("duration_total", Double, nullable= False)
     duration_fishing= Column("duration_fishing", Double)
     zone_name= Column("zone_name", String, ForeignKey("dim_zone.name"),primary_key=True)
-
+    zone_sub_category= Column("zone_sub_category", String, ForeignKey("dim_zone.sub_category"))
 

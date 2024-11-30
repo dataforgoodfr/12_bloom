@@ -32,6 +32,7 @@ def upgrade() -> None:
         sa.Column('duration_total', sa.FLOAT, nullable=False),
         sa.Column('duration_fishing', sa.FLOAT, nullable=True),
         sa.Column("zone_name", sa.String, primary_key=True),
+        sa.Column('zone_sub_category', sa.String, nullable=True),
     )
 
 
