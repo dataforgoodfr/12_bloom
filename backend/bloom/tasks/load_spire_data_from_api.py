@@ -9,6 +9,7 @@ from bloom.domain.vessel import Vessel
 from bloom.infra.http.spire_api_utils import map_raw_vessels_to_domain
 from bloom.logger import logger
 from pydantic import ValidationError
+from bloom.infra.repositories.repository_task_execution import TaskExecutionRepository
 
 
 def run(dump_path: str) -> None:
@@ -24,9 +25,10 @@ def run(dump_path: str) -> None:
             vessels: list[Vessel] = vessel_repository.get_vessels_list(session)
             if len(vessels) > 0:
                 raw_vessels = spire_traffic_usecase.get_raw_vessels_from_spire(vessels)
+                current_datetime=datetime.now(timezone.utc)
                 if dump_path is not None:
                     try:
-                        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+                        now =current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
                         dump_file = Path(args.dump_path, f"spire_{now}").with_suffix(".json")
                         with dump_file.open("wt") as handle:
                             json.dump(raw_vessels, handle)
@@ -38,6 +40,9 @@ def run(dump_path: str) -> None:
                         spire_ais_data,
                         session,
                     )
+                    TaskExecutionRepository.set_point_in_time(session,
+                                                              "load_spire_data_from_api",
+                                                              current_datetime)
                 session.commit()
     except ValidationError as e:
         logger.error("Erreur de validation des données JSON")
