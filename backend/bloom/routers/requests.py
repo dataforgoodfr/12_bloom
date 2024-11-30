@@ -55,7 +55,7 @@ class OrderByEnum(str, Enum):
 
 class DatetimeRangeRequest(BaseModel):
     start_at: datetime = Field(default=datetime.now()-timedelta(days=7))
-    end_at: datetime = datetime.now()
+    end_at: datetime= datetime.now()
 
 class OrderByRequest(BaseModel):
     order: OrderByEnum = OrderByEnum.ascending
