@@ -18,9 +18,17 @@ depends_on = None
 
 
 def upgrade() -> None:
+    """
+    Create a new task_executions table that permit to store historical data
+    for each task execution
+    The goal is to be able to detect timeframe not covered by Spire API interrogation
+    """
+    # drop constraint from existing table to free the constraint name
     op.drop_constraint(table_name="tasks_executions",
                        constraint_name="tasks_executions_pkey")
+    # rename existing table to keep existing data
     op.rename_table('tasks_executions','tasks_executions_tmp')
+    # create the new task_executions table with id and active columns in addition
     op.create_table("tasks_executions",
                     sa.Column("id", sa.Integer(),sa.Identity(), primary_key=True, index=True),
                     sa.Column("task_name", sa.String),
@@ -37,26 +45,23 @@ def upgrade() -> None:
                                 index=True,
                                 default=False),
                     )
+    # copy of existing data to new table with active=True
     op.execute("insert into tasks_executions "
                +"(task_name,point_in_time,created_at,updated_at,active) "
                +"select task_name,point_in_time,created_at,updated_at,true "
                +"from tasks_executions_tmp")
-    #conn=op.get_bind()
-    #query=conn.execute("select task_name,point_in_time,created_at,updated_at from tasks_executions_tmp")
-    #results = query.fetchall()
-    #executions=[{'task_name': row[0],
-    #             'point_in_time': row[1],
-    #             'created_at': row[2],
-    #             'updated_at': row[3]} for row in results]
-    #op.bulk_insert('tasks_executions',executions)
+    # drop old table
     op.drop_table('tasks_executions_tmp')
     pass
 
 
 def downgrade() -> None:
+    # delete all lines active=False as they have no equivalent in old task_executions
     op.execute("delete from tasks_executions where active=False")
+    # drop active and id table
     op.drop_column("tasks_executions","active")
     op.drop_column("tasks_executions","id")
+    # recreate the primary unique key constraint of old table
     op.create_unique_constraint("tasks_executions_pkey",
                                 "tasks_executions",
                                 ["task_name"],
