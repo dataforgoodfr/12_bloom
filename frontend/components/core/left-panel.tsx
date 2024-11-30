@@ -13,6 +13,7 @@ import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 
 import Spinner from "../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessels-panel"
+import { ChevronLeftIcon } from "lucide-react"
 
 const containerVariants = {
   close: {
@@ -24,7 +25,7 @@ const containerVariants = {
     },
   },
   open: {
-    width: "16rem",
+    width: "20rem",
     transition: {
       type: "spring",
       damping: 15,
@@ -76,39 +77,26 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
         className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow shadow-color-2"
       >
         <div className="flex w-full flex-row place-items-center justify-between p-5">
-          {!!isOpen && (
-            <Image
+          <Image
               src={TrawlWatchLogo}
               alt="Trawlwatch logo"
               height={80}
               width={80}
             />
-          )}
-          <button
-            className="ml-3 flex rounded-full p-1"
-            onClick={() => handleOpenClose()}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1}
-              stroke="currentColor"
-              className="size-6 stroke-neutral-200"
+          <div className="absolute right-0 top-0 translate-x-3/4 bg-color-3 rounded-lg h-16 flex items-center justify-right px-1">
+            <button
+              className="ml-3 flex rounded-full p-1"
+              onClick={() => handleOpenClose()}
             >
-              <motion.path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                variants={svgVariants}
+              <motion.div
                 animate={svgControls}
-                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                transition={{
-                  duration: 0.5,
-                  ease: "easeInOut",
-                }}
-              />
-            </svg>
-          </button>
+                variants={svgVariants}
+                initial="close"
+              >
+                <ChevronLeftIcon className="size-8" />
+              </motion.div>
+            </button>
+          </div>
         </div>
         <div className="flex flex-col gap-3 p-5">
           <NavigationLink href="/dashboard" name="Dashboard" wide={isOpen}>
@@ -118,7 +106,7 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
         <div className="flex flex-col gap-3 bg-color-3 p-5">
           {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
         </div>
-        <div className="flex flex-col gap-3 overflow-auto bg-color-3 p-5">
+        <div className="flex flex-col gap-3 overflow-auto bg-color-2 p-5">
           <TrackedVesselsPanel
             wideMode={isOpen}
             parentIsOpen={isOpen}

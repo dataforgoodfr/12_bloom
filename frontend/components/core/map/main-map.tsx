@@ -75,6 +75,20 @@ export default function CoreMap({
     setLatestPositions(vesselsPositions)
   }, [setLatestPositions, vesselsPositions])
 
+  const onMapClick = ({ picked, object, layer }: PickingInfo) => {
+    if (layer === null) {
+      setActivePosition(null);
+    }
+  }
+
+  const onVesselClick = ({ picked, object }: PickingInfo) => {
+    setActivePosition(object as VesselPosition);
+  }
+
+  const onZoneClick = ({ picked, object }: PickingInfo) => {
+    return;
+  }
+
   const latestPositions = new IconLayer<VesselPosition>({
     id: `vessels-latest-positions`,
     data: vesselsPositions,
@@ -100,18 +114,7 @@ export default function CoreMap({
     },
 
     pickable: true,
-    onClick: ({ object }) => {
-      setActivePosition(object as VesselPosition)
-      // setViewState({
-      //   ...viewState,
-      //   longitude: object?.position?.coordinates[0],
-      //   latitude: object?.position?.coordinates[1],
-      //   zoom: 7,
-      //   pitch: 40,
-      //   transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-      //   transitionDuration: "auto",
-      // })
-    },
+    onClick: onVesselClick,
     updateTriggers: {
       getColor: [activePosition?.vessel.id, trackedVesselIDs],
     },
@@ -180,21 +183,14 @@ export default function CoreMap({
       blend: true,
       blendFunc: [770, 771], // standard transparency blending
     },
+    onClick: onZoneClick
   })
 
   const layers = [
-    !isLoading.zones && zoneLayer,
+    // !isLoading.zones && zoneLayer,
     !isLoading.vessels && !isLoading.positions && tracksByVesselAndVoyage,
     !isLoading.positions && latestPositions,
   ].filter(Boolean) as Layer[]
-
-  const onMapClick = ({ picked, object }: PickingInfo) => {
-    if (picked) {
-      setActivePosition(object as VesselPosition)
-    } else {
-      setActivePosition(null)
-    }
-  }
 
   const getTooltip = ({ object }: Partial<PickingInfo<VesselPosition | ZoneWithGeometry>>) => {
     const objectType = getObjectType(object)
