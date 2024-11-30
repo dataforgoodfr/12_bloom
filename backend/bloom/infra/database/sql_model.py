@@ -10,7 +10,8 @@ from sqlalchemy import (
     Integer,
     Interval,
     String,
-    PrimaryKeyConstraint
+    PrimaryKeyConstraint,
+    Identity
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func, select
@@ -224,10 +225,12 @@ class Segment(Base):
 
 class TaskExecution(Base):
     __tablename__ = "tasks_executions"
-    task_name = Column("task_name", String, primary_key=True)
+    id = Column("id", Integer, Identity(), primary_key=True)
+    task_name = Column("task_name", String)
     point_in_time = Column("point_in_time", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    active = Column("active", Boolean, nullable=False)
 
 
 class RelSegmentZone(Base):
