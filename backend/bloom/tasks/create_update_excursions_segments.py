@@ -18,7 +18,7 @@ from bloom.logger import logger
 from bloom.domain.rel_segment_zone import RelSegmentZone
 from bloom.infra.repositories.repository_rel_segment_zone import RelSegmentZoneRepository
 from bloom.infra.repositories.repository_port import PortRepository
-from bloom.domain.metrics_new import Metrics #1
+from bloom.domain.metrics import Metrics #1
 
 warnings.filterwarnings("ignore")
 
@@ -316,7 +316,7 @@ def run():
         i=0
         for segment, zones in result.items():
             segment_in_zone = False
-            df= segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)#metrics_repository.get_vessel_excursion_segment_by_id(session,segment.id) #1
+            vessel_attributes= segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)#metrics_repository.get_vessel_excursion_segment_by_id(session,segment.id) #1
             types='AT_SEA'
             zones_names=[]
             for zone in zones:
@@ -330,13 +330,13 @@ def run():
                     segment.in_amp_zone = True
                     types='in_amp'
                 elif zone.category == "Fishing coastal waters (6-12 NM)":
-                    country_iso3 = df.loc[0, "vessel_country_iso3"]
+                    country_iso3 = vessel_attributes.country_iso3#df.loc[0, "vessel_country_iso3"]
                     beneficiaries = zone.json_data.get("beneficiaries", [])
                     if country_iso3 not in beneficiaries:
                         segment.in_zone_with_no_fishing_rights = True
                         types='in_zone_with_no_fishing_rights'
                 elif zone.category == "Clipped territorial seas":
-                    country_iso3 = df.loc[0, "vessel_country_iso3"]
+                    country_iso3 = vessel_attributes.country_iso3#df.loc[0, "vessel_country_iso3"]
                     if country_iso3 != "FRA":
                         segment.in_zone_with_no_fishing_rights = True
                         types='in_zone_with_no_fishing_rights'
@@ -350,21 +350,18 @@ def run():
 
                 new_metrics= Metrics(#1
                     timestamp = segment.timestamp_start, #1
-                    vessel_id = df.loc[0, 'vessel_id'] if not df.empty else None, #1
-                    vessel_mmsi = df.loc[0,'vessel_mmsi'] if not df.empty else None, #1
-                    ship_name = df.loc[0,'ship_name'] if not df.empty else None, #1
-                    vessel_country_iso3= df.loc[0,'vessel_country_iso3'] if not df.empty else None,
-                    vessel_imo=df.loc[0,'vessel_imo'] if not df.empty else None,
+                    vessel_id = vessel_attributes.id,#df.loc[0, 'vessel_id'] if not df.empty else None, #1
+                    vessel_mmsi = vessel_attributes.mmsi,#df.loc[0,'vessel_mmsi'] if not df.empty else None, #1
+                    ship_name = vessel_attributes.ship_name,#df.loc[0,'ship_name'] if not df.empty else None, #1
+                    vessel_country_iso3=vessel_attributes.country_iso3,# df.loc[0,'vessel_country_iso3'] if not df.empty else None,
+                    vessel_imo=vessel_attributes.imo,#df.loc[0,'vessel_imo'] if not df.empty else None,
                     type = types, #1
                     duration_total = duration_total_seconds, #fonctionne si 1 segment = zone max #1
                     duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None, #1
-                    mpa_name = zone.name #1
+                    zone_name = zone.name #1
                 ) #1
             if segment_in_zone:
                 segments.append(segment)
-
-                new_metricss.append(new_metrics) #1
-
 
                 new_metricss.append(new_metrics) #1
 
@@ -414,8 +411,6 @@ def run():
         logger.info(f"{len(segments)} segments mis à jour")
         RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
         logger.info(f"{len(new_rels)} associations(s) créées")
-        metrics_repository.batch_create_metrics(session, new_metricss) #1
-        logger.info(f"{len(new_metricss)} metrics(s) créés") #1
         metrics_repository.batch_create_metrics(session, new_metricss) #1
         logger.info(f"{len(new_metricss)} metrics(s) créés") #1
         vessels_ids = set(exc.vessel_id for exc in excursions.values())
