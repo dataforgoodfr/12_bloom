@@ -29,5 +29,6 @@ class TaskExecutionRepository:
         stmt = insert(sql_model.TaskExecution).values(
                     task_name=task_name,
                     point_in_time=pit,
-                    active=True)
+                    active=True,
+                    updated_at=datetime(timezone.utc))
         session.execute(stmt)
