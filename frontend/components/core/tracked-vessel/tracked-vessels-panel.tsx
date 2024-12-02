@@ -1,11 +1,14 @@
+"use client"
+
 import { useEffect, useState } from "react"
-import { ChevronRight, PenIcon, Ship as ShipIcon, X } from "lucide-react"
+import { ChevronRight, PenIcon, Ship as ShipIcon } from "lucide-react"
 
 import { Vessel } from "@/types/vessel"
-import { Button, ButtonProps } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 
-import { useMapStore } from "../providers/map-store-provider"
-import { useVesselsStore } from "../providers/vessels-store-provider"
+import { useMapStore } from "@/components/providers/map-store-provider"
+import { useVesselsStore } from "@/components/providers/vessels-store-provider"
+import TrackedVesselItem from "./tracked-vessel-item"
 
 type Props = {
   wideMode: boolean
@@ -82,42 +85,39 @@ export default function TrackedVesselsPanel({
     setTrackedVesselsDetails(vesselsDetails)
   }, [allVessels, trackedVesselIDs])
 
+  const onRemoveVesselTracked = (vesselID: number) => {
+    removeTrackedVessel(vesselID)
+  }
+
   const WideModeTab = () => {
     return (
       <>
         {trackedVesselIDs.length === 0 && <NoVesselsPlaceholder />}
+
+        {trackedVesselsDetails?.map((vessel: Vessel, index) => {
+          return (
+            <TrackedVesselItem
+              key={vessel.id}
+              vessel={vessel}
+              colorIndex={index}
+              onRemove={onRemoveVesselTracked}
+              onView={() => {}}
+              className={`${
+                index < allVessels.slice(10, 20).length - 1
+                  ? "border-b border-color-3"
+                  : ""
+              }`}
+            />
+          )
+        })}
+
         <VesselsActions
           disabledCreateFleet={true}
           onViewTracks={() => {
             console.log("View tracks")
-        }}
-        disabledViewTracks={true}
-      />
-
-        { displayTrackedVessels &&
-          parentIsOpen &&
-          trackedVesselsDetails?.map((vessel: Vessel) => {
-            return (
-              <div
-                key={vessel.id}
-                className="mb-1 flex border-b-1 border-color-5 pb-1 text-xs text-slate-400"
-              >
-                <div className="w-full pr-1">
-                  <div className="text-xxs text-white">{vessel.ship_name}</div>
-                  <div className="text-xxxs">
-                    IMO {vessel.imo} / MMSI {vessel.mmsi} / Length {vessel.length}
-                    m
-                  </div>
-                </div>
-                <button
-                  className="block"
-                  onClick={() => removeTrackedVessel(vessel.id)}
-                >
-                  <X size={15} color="#2CE2B0" strokeWidth={2} />
-                </button>
-              </div>
-            )
-          })}
+          }}
+          disabledViewTracks={true}
+        />
       </>
     )
   }
@@ -136,7 +136,7 @@ export default function TrackedVesselsPanel({
         </h5>
       </div>
 
-      { wideMode && <WideModeTab />}
+      {wideMode && <WideModeTab />}
     </>
   )
 }

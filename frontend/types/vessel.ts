@@ -81,11 +81,15 @@ export type VesselExcursion = {
   departure_port_id: number
   departure_at: string
   departure_position: {
+    type: 'Point'
     coordinates: number[]
   }
-  arrival_port_id: number
-  arrival_at: number
-  arrival_position: number
+  arrival_port_id: number | null
+  arrival_at: string | null
+  arrival_position: {
+    type: 'Point'
+    coordinates: number[]
+  } | null
   excursion_duration: number
   total_time_at_sea: string
   total_time_in_amp: string

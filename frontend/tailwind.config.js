@@ -63,6 +63,23 @@ module.exports = {
         "color-3": "#26314C",
         "color-4": "#A7ADBD",
         "color-5": "#374056",
+
+        // Vessel colors
+        "vessel-color-1": "#FF5A81",
+        "vessel-color-2": "#E0B51E",
+        "vessel-color-3": "#AEFF00",
+        "vessel-color-4": "#7DFFBC",
+        "vessel-color-5": "#5090FF",
+        "vessel-color-6": "#D01EE0",
+        "vessel-color-7": "#FF7D53",
+        "vessel-color-8": "#FFB972",
+        "vessel-color-9": "#61FF31",
+        "vessel-color-10": "#00E0AC",
+        "vessel-color-11": "#31CCFF",
+        "vessel-color-12": "#927FFF",
+
+        // Progress Colors
+        "progress-color-1": "#6E83B7",
       },
       borderRadius: {
         lg: `var(--radius)`,

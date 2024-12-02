@@ -38,7 +38,7 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
-export function getVesselExcursion(vesselId: number) {
+export function getVesselExcursions(vesselId: number) {
   const url = `${BASE_URL}/vessels/${vesselId}/excursions`
   console.log(`GET ${url}`)
   return axios.get<VesselExcursion[]>(url)
@@ -52,7 +52,7 @@ export function getVesselSegments(vesselId: number, excursionId: number) {
 
 export async function getVesselFirstExcursionSegments(vesselId: number) {
   try {
-    const response = await getVesselExcursion(vesselId)
+    const response = await getVesselExcursions(vesselId)
     const excursionId = response?.data[0]?.id
     if (!!excursionId) {
       const segments = await getVesselSegments(vesselId, excursionId)

@@ -12,8 +12,8 @@ import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 
 import Spinner from "../ui/custom/spinner"
-import TrackedVesselsPanel from "./tracked-vessels-panel"
-import { ChevronLeftIcon } from "lucide-react"
+import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
+import { ChevronRightIcon } from "lucide-react"
 
 const containerVariants = {
   close: {
@@ -25,7 +25,7 @@ const containerVariants = {
     },
   },
   open: {
-    width: "20rem",
+    width: "24rem",
     transition: {
       type: "spring",
       damping: 15,
@@ -93,7 +93,7 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
                 variants={svgVariants}
                 initial="close"
               >
-                <ChevronLeftIcon className="size-8" />
+                <ChevronRightIcon className="size-8" />
               </motion.div>
             </button>
           </div>
