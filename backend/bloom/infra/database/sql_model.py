@@ -230,6 +230,7 @@ class TaskExecution(Base):
     point_in_time = Column("point_in_time", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    delta = Column("delta", Interval, nullable=False)
     active = Column("active", Boolean, nullable=False)
 
 
