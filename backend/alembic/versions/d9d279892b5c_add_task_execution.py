@@ -56,6 +56,21 @@ def upgrade() -> None:
                +"from tasks_executions_tmp")
     # drop old table
     op.drop_table('tasks_executions_tmp')
+
+    # Retrieve all historical spire api interrogation from spire_ais_data table
+    op.execute(
+        """insert into public.tasks_executions (task_name,point_in_time,created_at,delta,active)
+            select distinct
+            'load_spire_data_from_api' as "task_name",
+            T1.created_at as "point_in_time",
+            T1.created_at,
+            T1.created_at-(select distinct created_at from spire_ais_data where created_at < T1.created_at group by created_at order by created_at desc limit 1) as "delta",
+            case when T1.created_at = (select MAX(created_at) from spire_ais_data) and not EXISTS(select 1 from public.tasks_executions where task_name = 'load_spire_data_from_api' and active = True) then true else false end as "active"
+            from spire_ais_data T1
+            where T1.created_at not in (select point_in_time from public.tasks_executions where task_name = 'load_spire_data_from_api')
+            group by T1.created_at
+            order by T1.created_at desc
+        """)
     pass
 
 
@@ -63,6 +78,7 @@ def downgrade() -> None:
     # delete all lines active=False as they have no equivalent in old task_executions
     op.execute("delete from tasks_executions where active=False")
     # drop active and id table
+    op.drop_column("tasks_executions","delta")
     op.drop_column("tasks_executions","active")
     op.drop_column("tasks_executions","id")
     # recreate the primary unique key constraint of old table

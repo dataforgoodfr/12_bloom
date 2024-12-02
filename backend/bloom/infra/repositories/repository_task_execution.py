@@ -13,7 +13,7 @@ class TaskExecutionRepository:
         stmt = select(sql_model.TaskExecution)\
                 .where(sql_model.TaskExecution.task_name == task_name)\
                 .where(sql_model.TaskExecution.active == True)
-        e = session.execute(stmt).scalar()
+        e = session.execute(stmt).scalar_one_or_none()
         if not e:
             return datetime.fromtimestamp(0, timezone.utc)
         else:
