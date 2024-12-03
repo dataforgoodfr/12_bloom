@@ -1,3 +1,5 @@
+"use client"
+
 import TrackedVesselMetric from "./tracked-vessel-metric"
 import { Vessel, VesselExcursion } from "@/types/vessel"
 import TrackedVesselExcursion from "./tracked-vessel-excursion"
@@ -21,6 +23,7 @@ export default function TrackedVesselDetails({
   const [excursions, setExcursions] = useState<VesselExcursion[]>([])
 
   useEffect(() => {
+
     getVesselExcursions(vessel.id).then((response) => {
       setExcursions(response.data)
     })

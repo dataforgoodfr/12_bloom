@@ -22,6 +22,7 @@ const shipColorsBackground = [
 ]
 
 export interface TrackedVesselItemProps {
+  showDetails: boolean
   colorIndex: number
   vessel: Vessel
   onRemove: (vesselID: number) => void
@@ -30,6 +31,7 @@ export interface TrackedVesselItemProps {
 }
 
 export default function TrackedVesselItem({
+  showDetails,
   vessel,
   colorIndex = 0,
   onRemove,
@@ -43,7 +45,7 @@ export default function TrackedVesselItem({
   return (
     <div className="flex gap-1">
       <div className={`flex w-full flex-col gap-2 py-2 ${className}`}>
-        <Toggle.Root>
+        <Toggle.Root disabled={!showDetails}>
           <Toggle.Header className="flex items-center justify-between">
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center gap-2">

@@ -19,6 +19,7 @@ export type MapState = {
   activePosition: VesselPosition | null
   trackedVesselIDs: number[]
   trackedVesselSegments: VesselExcursionSegments[]
+  mode: "position" | "excursion"
 }
 
 export type MapActions = {
@@ -32,6 +33,7 @@ export type MapActions = {
   removeTrackedVessel: (vesselID: number) => void
   clearLatestPositions: () => void
   cleartrackedVessels: () => void
+  setMode: (mode: "position" | "excursion") => void
 }
 
 export type MapStore = MapState & MapActions
@@ -48,12 +50,19 @@ export const defaultInitState: MapState = {
   latestPositions: [],
   activePosition: null,
   trackedVesselIDs: [],
-  trackedVesselSegments: []
+  trackedVesselSegments: [],
+  mode: "position"
 }
 
 export const createMapStore = (initState: MapState = defaultInitState) => {
   return createStore<MapStore>()((set) => ({
     ...initState,
+    setMode: (mode: "position" | "excursion") => {
+      set((state) => ({
+        ...state,
+        mode,
+      }))
+    },
     decrementCount: () => set((state) => ({ count: state.count - 1 })),
     incrementCount: () => set((state) => ({ count: state.count + 1 })),
     setViewState: (viewState?: MapViewState) => {

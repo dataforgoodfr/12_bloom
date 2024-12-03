@@ -11,8 +11,8 @@ export interface TrackedVesselMetricProps {
 }
 
 export default function TrackedVesselMetric({ title, value, baseValue, children, unit }: TrackedVesselMetricProps) {
-  return children ? (
-    <Toggle.Root className="w-full justify-between">
+  return (
+    <Toggle.Root className="w-full justify-between" disabled={!children}>
       <Toggle.Header>
         <TrackedVesselMetricHeader title={title} value={value} baseValue={baseValue} unit={unit} />
       </Toggle.Header>
@@ -20,8 +20,6 @@ export default function TrackedVesselMetric({ title, value, baseValue, children,
         {children}
       </Toggle.Content>
     </Toggle.Root>
-  ) : (
-    <TrackedVesselMetricHeader title={title} value={value} baseValue={baseValue} unit={unit} />
   )
 }
 

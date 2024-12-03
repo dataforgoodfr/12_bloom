@@ -14,6 +14,7 @@ import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 import Spinner from "../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 import { ChevronRightIcon } from "lucide-react"
+import { useMapStore } from "../providers/map-store-provider"
 
 const containerVariants = {
   close: {
@@ -53,6 +54,10 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
   const { setVessels } = useVesselsStore((state) => state)
+
+  const { mode: mapMode, setMode: setMapMode } = useMapStore(
+    (state) => state
+  )
 
   useEffect(() => {
     setVessels(vessels)
@@ -98,14 +103,18 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
             </button>
           </div>
         </div>
-        <div className="flex flex-col gap-3 p-5">
-          <NavigationLink href="/dashboard" name="Dashboard" wide={isOpen}>
-            <ChartBarIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
-          </NavigationLink>
-        </div>
-        <div className="flex flex-col gap-3 bg-color-3 p-5">
-          {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
-        </div>
+        {mapMode === "position" && (
+          <>
+            <div className="flex flex-col gap-3 p-5">
+              <NavigationLink href="/dashboard" name="Dashboard" wide={isOpen}>
+                <ChartBarIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
+            </NavigationLink>
+          </div>
+          <div className="flex flex-col gap-3 bg-color-3 p-5">
+              {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
+            </div>
+          </>
+        )}
         <div className="flex flex-col gap-3 overflow-auto bg-color-2 p-5">
           <TrackedVesselsPanel
             wideMode={isOpen}

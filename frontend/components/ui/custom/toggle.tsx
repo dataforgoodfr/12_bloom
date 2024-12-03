@@ -1,19 +1,21 @@
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { motion, useAnimationControls } from "framer-motion"
 import { ChevronUpIcon } from "lucide-react"
-import React from "react"
 
 function ToggleHeader({
+  disabled = false,
+  onClick,
   children,
   className,
-  onClick,
 }: {
+  disabled?: boolean
+  onClick?: () => void
   children: React.ReactNode
   className?: string
-  onClick?: () => void
 }) {
+  const baseClassName = disabled ? "" : "cursor-pointer"
   return (
-    <div className={`cursor-pointer ${className}`} onClick={onClick}>
+    <div className={`${baseClassName} ${className}`} onClick={onClick}>
       {children}
     </div>
   )
@@ -30,14 +32,12 @@ function ToggleContent({
 }
 
 export interface ToggleProps {
+  disabled?: boolean
   children: React.ReactNode
   className?: string
 }
 
-function Toggle({
-  children,
-  className,
-}: ToggleProps) {
+function Toggle({ disabled = false, children, className }: ToggleProps) {
   const [showContent, setShowContent] = useState(false)
   const svgControls = useAnimationControls()
 
@@ -57,9 +57,11 @@ function Toggle({
 
   const onShowContent = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
-    const target = e.target as HTMLButtonElement
-    if (!target.closest('button')) {
-      setShowContent(!showContent)
+    if (!disabled) {
+      const target = e.target as HTMLButtonElement
+      if (!target.closest("button")) {
+        setShowContent(!showContent)
+      }
     }
   }
 
@@ -72,28 +74,35 @@ function Toggle({
   const header = findChildren(ToggleHeader)
   const content = findChildren(ToggleContent)
 
-  const headerWithClick = header && React.cloneElement(header, {
-    onClick: onShowContent,
-  })
+  const headerWithProps =
+    header &&
+    React.cloneElement(header, {
+      onClick: onShowContent,
+      disabled,
+    })
 
   return (
     <div className={`flex gap-1 ${className}`}>
-      <div className="flex items-start mt-1">
-        <button className="flex rounded-full" onClick={() => setShowContent(!showContent)}>
-          <motion.div
-            animate={svgControls}
-            variants={svgVariants}
-            initial="close"
+      {!disabled && (
+        <div className="mt-1 flex items-start">
+          <button
+            className="flex rounded-full"
+            onClick={() => setShowContent(!showContent)}
           >
-            <ChevronUpIcon className="size-5" />
-          </motion.div>
-        </button>
-      </div>
+            <motion.div
+              animate={svgControls}
+              variants={svgVariants}
+              initial="close"
+              
+            >
+              <ChevronUpIcon className="size-5" />
+            </motion.div>
+          </button>
+        </div>
+      )}
       <div className={`flex w-full flex-col gap-2 py-2`}>
-        {headerWithClick}
-        {showContent && (
-          content
-        )}
+        {headerWithProps}
+        {showContent && content}
       </div>
     </div>
   )

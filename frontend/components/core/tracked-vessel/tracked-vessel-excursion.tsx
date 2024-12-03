@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react"
-import { motion, useAnimationControls } from "framer-motion"
-import { ChevronUpIcon, CrosshairIcon, EyeIcon } from "lucide-react"
+import { useMemo } from "react"
+import { CrosshairIcon, EyeIcon } from "lucide-react"
 
 import { VesselExcursion } from "@/types/vessel"
 import Toggle from "@/components/ui/custom/toggle"
