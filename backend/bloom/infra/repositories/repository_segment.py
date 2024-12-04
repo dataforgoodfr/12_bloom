@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 
 from bloom.logger import logger
 from bloom.domain.segment import Segment
+from bloom.domain.vessel import Vessel
+
 from bloom.domain.vessel_last_position import VesselLastPosition
 from bloom.domain.zone import Zone
 from bloom.infra.database import sql_model
@@ -180,25 +182,43 @@ class SegmentRepository:
         return result
     
 
-    def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> str:
-        stmt = select(
-        sql_model.Vessel.country_iso3
-    ).select_from(
-        sql_model.Segment
-    ).join(
-        sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
-    ).join(
-        sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
-    ).filter(
-        sql_model.Segment.id == segment_id
-    )
+    def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> Vessel:
+        stmt = (
+            select(
+                sql_model.Vessel
+                
+                #ql_model.Vessel.id,
+                #sql_model.Vessel.mmsi,
+                #sql_model.Vessel.ship_name,
+                #sql_model.Vessel.country_iso3,
+                #sql_model.Vessel.imo
+            )
+            .where(
+                or_(
+                    and_(
+                        sql_model.Segment.updated_at.is_(None),
+                        sql_model.Segment.created_at > created_updated_after
+                    ),
+                    sql_model.Segment.updated_at > created_updated_after
+                )
+            )
+            .select_from(sql_model.Segment)
+            .join(
+                sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
+            )
+            .join(
+                sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+            )
+            .filter(sql_model.Segment.id == segment_id)
+        )
 
-        result = session.execute(stmt).scalar()
-
-        return result
-#.where(
-#        sql_model.Segment.updated_at > created_updated_after
-#    )
+        vessel = session.execute(stmt).scalar()
+        if not vessel:
+            return None
+        else:
+            return VesselRepository.map_to_domain(vessel)
+        #df = pd.DataFrame(result, columns=["vessel_id", "vessel_mmsi", "ship_name", "vessel_country_iso3","vessel_imo"])
+        #return df
 
     def batch_create_segment(
             self, session: Session, segments: list[Segment]

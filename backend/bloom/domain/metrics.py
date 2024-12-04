@@ -5,6 +5,21 @@ from datetime import datetime, timedelta
 from enum import Enum
 from bloom.domain.vessel import Vessel,VesselListView
 from bloom.domain.zone import Zone,ZoneListView
+from typing import Union
+
+class Metrics(BaseModel) :
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    timestamp : datetime
+    vessel_id: int
+    type : str
+    vessel_mmsi: int
+    ship_name: str
+    vessel_country_iso3: str 
+    vessel_imo: int
+    duration_total : float
+    duration_fishing: Optional[float] = None
+    zone_name : str
+    zone_sub_category : Union[str, None]
 
 class TotalTimeActivityTypeEnum(str, Enum):
     total_time_at_sea: str = "Total Time at Sea"
