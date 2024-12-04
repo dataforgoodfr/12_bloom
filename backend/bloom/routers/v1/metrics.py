@@ -50,6 +50,7 @@ async def read_metrics_vessels_in_activity_total(request: Request,
     return jsonable_encoder(payload)
 
 
+
 @router.get("/metrics/vessels-at-sea")
 async def list_vessel_at_sea(
     request: Request,
@@ -62,24 +63,40 @@ async def list_vessel_at_sea(
     return MetricsService.getVesselsAtSea(datetime_range=datetime_range)
 
 
-@router.get("/metrics/zone-visited")
+@router.get("/metrics/zone-visited/count")
 @cache
-async def read_zone_visited_total(
-    request: Request,
-    datetime_range: DatetimeRangeRequest = Depends(),
-    category: Optional[str] = None,
-    pagination: PageParams = Depends(),
-    order: OrderByRequest = Depends(),
-    caching: CachedRequest = Depends(),
-    key: str = Depends(X_API_KEY_HEADER),
-):
+async def read_zone_visited_total_count(request: Request,
+                                           datetime_range: DatetimeRangeRequest = Depends(),
+                                            category: Optional[str] = None,
+                                            sub_category: Optional[str] = None,
+                                           caching: CachedRequest = Depends(),
+                                           key: str = Depends(X_API_KEY_HEADER),):
     check_apikey(key)
     use_cases = UseCases()
     MetricsService=use_cases.metrics_service()
     payload=MetricsService.getZoneVisited(datetime_range=datetime_range,
-                                          category=category,
-                                                pagination=pagination,
-                                                order=order)
+                                                category=category,
+                                                sub_category=sub_category)
+    return len(payload)
+
+@router.get("/metrics/zone-visited")
+@cache
+async def read_zone_visited_total(request: Request,
+                                           datetime_range: DatetimeRangeRequest = Depends(),
+                                            category: Optional[str] = None,
+                                            sub_category: Optional[str] = None,
+                                           pagination: PageParams = Depends(),
+                                           order: OrderByRequest = Depends(),
+                                           caching: CachedRequest = Depends(),
+                                           key: str = Depends(X_API_KEY_HEADER),):
+    check_apikey(key)
+    use_cases = UseCases()
+    MetricsService=use_cases.metrics_service()
+    payload=MetricsService.getZoneVisited(datetime_range=datetime_range,
+                                        category=category,
+                                        sub_category=sub_category,
+                                        pagination=pagination,
+                                        order=order)
     return jsonable_encoder(payload)
 
 

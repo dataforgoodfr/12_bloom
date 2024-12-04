@@ -98,10 +98,10 @@ class MetricsService():
     
     def getZoneVisited(self,
                         datetime_range: DatetimeRangeRequest,
-                        pagination: PageParams,
-                        order: OrderByRequest,
-                        category: Optional[str]=None,
-                        ):
+                        pagination: Optional[PageParams] = None,
+                        order: Optional[OrderByRequest]=None,
+                        category: Optional[str] = None,
+                        sub_category: Optional[str] = None,):
         payload=[]
         with self.session_factory() as session:
             stmt=select(
@@ -120,13 +120,17 @@ class MetricsService():
                         )
                     )\
                 .group_by(sql_model.Zone.id)
-            if (category):
-                stmt = stmt.where(sql_model.Zone.category == category)
-            stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
-                    if  order.order == OrderByEnum.ascending \
-                    else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
-            stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
-            stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            if category:
+                stmt=stmt.where(sql_model.Zone.category == category)
+            if sub_category:
+                stmt=stmt.where(sql_model.Zone.sub_category == sub_category)
+            if pagination:
+                stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+                stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            if order:
+                stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
+                        if  order.order == OrderByEnum.ascending \
+                        else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
             payload=session.execute(stmt).all()
             # payload contains a list of sets(Zone,datetime.timedelta)
             # here :
