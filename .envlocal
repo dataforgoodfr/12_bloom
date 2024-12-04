@@ -1,0 +1,5 @@
+export POSTGRES_DB="postgres"
+export POSTGRES_HOSTNAME="localhost"
+export POSTGRES_PASSWORD=""
+export POSTGRES_PORT="5436"
+export POSTGRES_USER="marthevienne"

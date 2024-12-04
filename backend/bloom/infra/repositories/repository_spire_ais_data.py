@@ -85,55 +85,137 @@ class SpireAisDataRepository:
     def get_all_data_between_date(
             self, session: Session, created_updated_after: datetime, created_updated_before: datetime
     ) -> pd.DataFrame:
-        stmt = select(
-            sql_model.SpireAisData.id,
-            sql_model.SpireAisData.spire_update_statement,
-            sql_model.SpireAisData.vessel_mmsi,
-            sql_model.Vessel.id,
-            sql_model.SpireAisData.position_accuracy,
-            sql_model.SpireAisData.position_collection_type,
-            sql_model.SpireAisData.position_course,
-            sql_model.SpireAisData.position_heading,
-            sql_model.SpireAisData.position_latitude,
-            sql_model.SpireAisData.position_longitude,
-            sql_model.SpireAisData.position_maneuver,
-            sql_model.SpireAisData.position_navigational_status,
-            sql_model.SpireAisData.position_rot,
-            sql_model.SpireAisData.position_speed,
-            sql_model.SpireAisData.position_timestamp,
-            sql_model.SpireAisData.position_update_timestamp,
-            sql_model.SpireAisData.created_at,
-        ).join(
-            sql_model.Vessel,
-            sql_model.Vessel.mmsi == sql_model.SpireAisData.vessel_mmsi
-        ).where(
-            and_(
-                sql_model.Vessel.tracking_activated == True,
-                sql_model.SpireAisData.created_at > created_updated_after,
-                sql_model.SpireAisData.created_at <= created_updated_before
+        stmt = (
+            select(
+                sql_model.SpireAisData.id,
+                sql_model.SpireAisData.spire_update_statement,
+                sql_model.SpireAisData.vessel_mmsi,
+                sql_model.SpireAisData.vessel_name,
+                sql_model.SpireAisData.vessel_imo,
+                sql_model.SpireAisData.vessel_callsign,
+                sql_model.Vessel.id,
+                sql_model.SpireAisData.position_accuracy,
+                sql_model.SpireAisData.position_collection_type,
+                sql_model.SpireAisData.position_course,
+                sql_model.SpireAisData.position_heading,
+                sql_model.SpireAisData.position_latitude,
+                sql_model.SpireAisData.position_longitude,
+                sql_model.SpireAisData.position_maneuver,
+                sql_model.SpireAisData.position_navigational_status,
+                sql_model.SpireAisData.position_rot,
+                sql_model.SpireAisData.position_speed,
+                sql_model.SpireAisData.position_timestamp,
+                sql_model.SpireAisData.position_update_timestamp,
+                sql_model.SpireAisData.created_at,
             )
-        ).order_by(sql_model.SpireAisData.created_at.asc())
+            .join(
+                sql_model.Vessel,
+                sql_model.Vessel.mmsi == sql_model.SpireAisData.vessel_mmsi,
+            )
+            .where(
+                and_(
+                    sql_model.Vessel.tracking_activated == True,
+                    sql_model.SpireAisData.created_at > created_updated_after,
+                    sql_model.SpireAisData.created_at <= created_updated_before,
+                )
+            )
+            .order_by(sql_model.SpireAisData.created_at.asc())
+        )
         result = session.execute(stmt)
-        return pd.DataFrame(result, columns=[
-            "id",
-            "spire_update_statement",
-            "vessel_mmsi",
-            "vessel_id",
-            "position_accuracy",
-            "position_collection_type",
-            "position_course",
-            "position_heading",
-            "position_latitude",
-            "position_longitude",
-            "position_maneuver",
-            "position_navigational_status",
-            "position_rot",
-            "position_speed",
-            "position_timestamp",
-            "position_update_timestamp",
-            "created_at"
-        ],
-                            )
+        return pd.DataFrame(
+            result,
+            columns=[
+                "id",
+                "spire_update_statement",
+                "vessel_mmsi",
+                "vessel_name",
+                "vessel_imo",
+                "vessel_callsign",
+                "vessel_id",
+                "position_accuracy",
+                "position_collection_type",
+                "position_course",
+                "position_heading",
+                "position_latitude",
+                "position_longitude",
+                "position_maneuver",
+                "position_navigational_status",
+                "position_rot",
+                "position_speed",
+                "position_timestamp",
+                "position_update_timestamp",
+                "created_at",
+            ],
+        )
+
+    def get_all_data_between_date_bis(
+        self,
+        session: Session,
+        created_updated_after: datetime,
+        created_updated_before: datetime,
+    ) -> pd.DataFrame:
+        stmt = (
+            select(
+                sql_model.SpireAisData.id,
+                sql_model.SpireAisData.spire_update_statement,
+                sql_model.SpireAisData.vessel_mmsi,
+                sql_model.SpireAisData.vessel_name,
+                sql_model.SpireAisData.vessel_imo,
+                sql_model.SpireAisData.vessel_callsign,
+                sql_model.Vessel.id,
+                sql_model.SpireAisData.position_accuracy,
+                sql_model.SpireAisData.position_collection_type,
+                sql_model.SpireAisData.position_course,
+                sql_model.SpireAisData.position_heading,
+                sql_model.SpireAisData.position_latitude,
+                sql_model.SpireAisData.position_longitude,
+                sql_model.SpireAisData.position_maneuver,
+                sql_model.SpireAisData.position_navigational_status,
+                sql_model.SpireAisData.position_rot,
+                sql_model.SpireAisData.position_speed,
+                sql_model.SpireAisData.position_timestamp,
+                sql_model.SpireAisData.position_update_timestamp,
+                sql_model.SpireAisData.created_at,
+            )
+            .join(
+                sql_model.Vessel,
+                sql_model.Vessel.mmsi == sql_model.SpireAisData.vessel_mmsi,
+            )
+            .where(
+                and_(
+                    sql_model.Vessel.tracking_activated == True,
+                    sql_model.SpireAisData.created_at > created_updated_after,
+                    sql_model.SpireAisData.created_at <= created_updated_before,
+                )
+            )
+            .order_by(sql_model.SpireAisData.created_at.asc())
+        )
+        result = session.execute(stmt)
+        return pd.DataFrame(
+            result,
+            columns=[
+                "id",
+                "spire_update_statement",
+                "vessel_mmsi",
+                "vessel_name",
+                "vessel_imo",
+                "vessel_callsign",
+                "vessel_id",
+                "position_accuracy",
+                "position_collection_type",
+                "position_course",
+                "position_heading",
+                "position_latitude",
+                "position_longitude",
+                "position_maneuver",
+                "position_navigational_status",
+                "position_rot",
+                "position_speed",
+                "position_timestamp",
+                "position_update_timestamp",
+                "created_at",
+            ],
+        )
 
     def get_all_data_by_mmsi(
             self,

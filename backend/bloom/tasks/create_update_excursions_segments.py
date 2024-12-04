@@ -127,7 +127,6 @@ def run():
                                    "longitude": "end_longitude",
                                    "latitude": "end_latitude"
                                    }, inplace=True)
-            df_end.sort_values("timestamp_end", inplace=True)
             df_end.reset_index(drop=True, inplace=True)
             # get every end entry but the last one ; each one of them will be the start point of a segment
             df_start = df_end.iloc[0:-1, :].copy()
