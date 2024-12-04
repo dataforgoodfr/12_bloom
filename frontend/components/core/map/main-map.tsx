@@ -1,29 +1,33 @@
-"use client"
+"use client";
 
-import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect, useMemo } from "react"
-import type { PickingInfo } from "@deck.gl/core"
-import { PathStyleExtension } from "@deck.gl/extensions"
-import { GeoJsonLayer } from "@deck.gl/layers"
-import DeckGL from "@deck.gl/react"
-import chroma from "chroma-js"
-import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
-import { renderToString } from "react-dom/server"
-import { Map as MapGL } from "react-map-gl/maplibre"
 
-import {
-  VesselExcursionSegment,
-  VesselExcursionSegmentGeo,
-  VesselExcursionSegments,
-  VesselExcursionSegmentsGeo,
-  VesselPosition,
-  VesselPositions,
-} from "@/types/vessel"
-import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
-import MapTooltip from "@/components/ui/tooltip-map-template"
-import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
-import { useMapStore } from "@/components/providers/map-store-provider"
+
+import "maplibre-gl/dist/maplibre-gl.css";
+
+
+
+import { useEffect, useMemo } from "react";
+import type { PickingInfo } from "@deck.gl/core";
+import { PathStyleExtension } from "@deck.gl/extensions";
+import { GeoJsonLayer } from "@deck.gl/layers";
+import DeckGL from "@deck.gl/react";
+import chroma from "chroma-js";
+import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl";
+import { renderToString } from "react-dom/server";
+import { Map as MapGL } from "react-map-gl/maplibre";
+
+
+
+import { VesselExcursionSegment, VesselExcursionSegmentGeo, VesselExcursionSegments, VesselExcursionSegmentsGeo, VesselPosition, VesselPositions } from "@/types/vessel";
+import { ZoneCategory, ZoneWithGeometry } from "@/types/zone";
+import MapTooltip from "@/components/ui/tooltip-map-template";
+import ZoneMapTooltip from "@/components/ui/zone-map-tooltip";
+import { useMapStore } from "@/components/providers/map-store-provider";
+
+
+
+
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions
@@ -35,8 +39,8 @@ type CoreMapProps = {
   }
 }
 
-const VESSEL_COLOR = [16, 181, 16, 210]
-const TRACKED_VESSEL_COLOR = [128, 16, 189, 210]
+const VESSEL_COLOR = [16, 181, 16, 0]
+const TRACKED_VESSEL_COLOR = [255, 255, 255]
 
 // Add a type to distinguish zones
 type ZoneWithType = ZoneWithGeometry & {
@@ -134,11 +138,12 @@ export default function CoreMap({
         id: `${segmentsGeo.vesselId}_vessel_trail`,
         data: segmentsGeo,
         getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
-        getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
+        // getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
+        getLineColor: [255, 255, 255],
         pickable: false,
         stroked: true,
         filled: false,
-        getLineWidth: 0.5,
+        getLineWidth: 1,
         lineWidthMinPixels: 0.5,
         lineWidthMaxPixels: 3,
         lineWidthUnits: "pixels",
@@ -198,7 +203,7 @@ export default function CoreMap({
         wireframe: false,
         extruded: false,
         // Only apply dash pattern to AMP zones
-        getDashArray: [4, 12],
+        // getDashArray: [4, 12],
         extensions: zones.some((z) => z.category === ZoneCategory.AMP)
           ? [new PathStyleExtension({ dash: true })]
           : [],

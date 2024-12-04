@@ -44,8 +44,10 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
-export function getVesselExcursion(vesselId: number) {
-  const url = `${BASE_URL}/vessels/${vesselId}/excursions`
+export function getVesselExcursion(vesselId: number, startAt?: string, endAt?: string) {
+  var url = `${BASE_URL}/vessels/${vesselId}/excursions`
+  if (startAt && endAt) 
+    url = url + `?start_at=${startAt}&end_at=${endAt}`
   console.log(`GET ${url}`)
   return axios.get<VesselExcursion[]>(url)
 }
@@ -56,15 +58,20 @@ export function getVesselSegments(vesselId: number, excursionId: number) {
   return axios.get<VesselExcursionSegment[]>(url)
 }
 
-export async function getVesselFirstExcursionSegments(vesselId: number) {
+export async function getVesselExcursionSegments(vesselId: number, startAt: string, endAt: string) {
   try {
-    const response = await getVesselExcursion(vesselId)
-    const excursionId = response?.data[0]?.id
-    if (!!excursionId) {
-      const segments = await getVesselSegments(vesselId, excursionId)
-      return segments.data
+    const response = await getVesselExcursion(vesselId, startAt, endAt);
+    const excursionIds = response?.data.map((exc: VesselExcursion) => exc.id);
+
+    const segments: VesselExcursionSegment[] = [];
+
+    for (const id of excursionIds) {
+      if (!!id) {
+        const seg = await getVesselSegments(vesselId, id);
+        segments.push(...seg.data);
+      }
     }
-    return []
+    return segments;
   } catch (error) {
     console.error(error)
     return []

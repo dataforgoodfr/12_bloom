@@ -1,21 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
-import { FlyToInterpolator } from "deck.gl"
+import { useState } from "react";
+import { getVesselExcursionSegments } from "@/services/backend-rest-client"
+import { FlyToInterpolator } from "deck.gl";
 
-import { Vessel, VesselPosition } from "@/types/vessel"
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
-import { useMapStore } from "@/components/providers/map-store-provider"
-import { useVesselsStore } from "@/components/providers/vessels-store-provider"
+
+
+import { Vessel, VesselPosition } from "@/types/vessel";
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import { useMapStore } from "@/components/providers/map-store-provider";
+import { useVesselsStore } from "@/components/providers/vessels-store-provider";
+
+
+
+
 
 type Props = {
   wideMode: boolean
@@ -38,7 +36,7 @@ export function VesselFinderDemo({ wideMode }: Props) {
 
   const onSelectVessel = async (vesselIdentifier: string) => {
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
-    const response = await getVesselFirstExcursionSegments(vesselId)
+    const response = await getVesselExcursionSegments(vesselId, "2024-11-01", "2024-12-05")
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
       addTrackedVessel(vesselId, response)
     }

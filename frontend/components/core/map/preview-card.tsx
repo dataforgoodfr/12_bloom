@@ -1,12 +1,18 @@
-import Image from "next/image"
-import Link from "next/link"
-import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
-import { XIcon } from "lucide-react"
+import Image from "next/image";
+import Link from "next/link";
+import { getVesselExcursionSegments } from "@/services/backend-rest-client";
+import { XIcon } from "lucide-react";
 
-import { VesselPosition } from "@/types/vessel"
-import { Button } from "@/components/ui/button"
-import IconButton from "@/components/ui/icon-button"
-import { useMapStore } from "@/components/providers/map-store-provider"
+
+
+import { VesselPosition } from "@/types/vessel";
+import { Button } from "@/components/ui/button";
+import IconButton from "@/components/ui/icon-button";
+import { useMapStore } from "@/components/providers/map-store-provider";
+
+
+
+
 
 export interface PreviewCardTypes {
   vesselInfo: VesselPosition
@@ -32,7 +38,7 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
       removeTrackedVessel(vesselId)
       return
     }
-    const response = await getVesselFirstExcursionSegments(vesselId)
+    const response = await getVesselExcursionSegments(vesselId, "2024-01-01", "2024-12-05")
     addTrackedVessel(vesselId, response)
   }
   return (
