@@ -4,4 +4,5 @@ export const swrOptions = {
   dedupingInterval: 1000 * 60 * 60,
   keepPreviousData: true,
   revalidateOnMount: true,
+  revalidateIfStale: false,
 }
