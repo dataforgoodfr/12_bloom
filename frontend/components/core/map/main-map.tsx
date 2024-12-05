@@ -40,7 +40,7 @@ type CoreMapProps = {
 }
 
 const VESSEL_COLOR = [16, 181, 16, 0]
-const TRACKED_VESSEL_COLOR = [255, 255, 255]
+const TRACKED_VESSEL_COLOR = [255, 255, 255, 0]
 
 // Add a type to distinguish zones
 type ZoneWithType = ZoneWithGeometry & {
@@ -140,15 +140,27 @@ export default function CoreMap({
     },
   })
 
+  const PALETTE = ["7DFFBC", "AEFF00", "FF5A81", "E0B51E", "5090FF", "D01EE0"]
+
+  const getRgb = (hex: string) => {
+  const first = hex.substring(0, 2)
+    const second = hex.substring(2, 4)
+    const third = hex.substring(4)
+
+    return [parseInt(first, 16), parseInt(second, 16) ,parseInt(third, 16)]
+  }
+
+ 
   const tracksByVesselAndVoyage = trackedVesselSegments
     .map((segments) => toSegmentsGeo(segments))
-    .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
+    .map((segmentsGeo: VesselExcursionSegmentsGeo, _index) => {
       return new GeoJsonLayer<VesselExcursionSegmentGeo>({
         id: `${segmentsGeo.vesselId}_vessel_trail`,
         data: segmentsGeo,
-        getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
+        // getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
         // getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
-        getLineColor: [255, 255, 255],
+        getLineColor: getRgb(PALETTE[_index]),
+        // getLineColor: [255, 255, 255],
         pickable: false,
         stroked: true,
         filled: false,
@@ -174,7 +186,9 @@ export default function CoreMap({
     () =>
       new PolygonLayer({
         id: "combined-zones-layer",
-        data: zones,
+        data: zones
+          .sort((a, b) => a.category.localeCompare(b.category))
+          .reverse(),
         getPolygon: (d: ZoneWithType) => {
           if (d.geometry.type === "MultiPolygon") {
             return d.geometry.coordinates[0]
@@ -186,7 +200,7 @@ export default function CoreMap({
             case ZoneCategory.AMP:
               return [30, 224, 171, 25]
             case ZoneCategory.FISHING_COASTAL_WATERS:
-              return [132, 0, 0, 25]
+              return [255, 0, 0, 50]
             case ZoneCategory.TERRITORIAL_SEAS:
             default:
               return [0, 0, 0, 0]
@@ -197,7 +211,7 @@ export default function CoreMap({
             case ZoneCategory.AMP:
               return [44, 226, 176, 255]
             case ZoneCategory.TERRITORIAL_SEAS:
-              return [132, 0, 0, 255]
+              return [255, 0, 0, 255]
             case ZoneCategory.FISHING_COASTAL_WATERS:
             default:
               return [0, 0, 0, 0]
@@ -255,6 +269,7 @@ export default function CoreMap({
       style,
     }
   }
+
 
   return (
     <DeckGL

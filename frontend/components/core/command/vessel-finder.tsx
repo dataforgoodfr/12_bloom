@@ -36,7 +36,7 @@ export function VesselFinderDemo({ wideMode }: Props) {
 
   const onSelectVessel = async (vesselIdentifier: string) => {
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
-    const response = await getVesselExcursionSegments(vesselId, "2024-11-01", "2024-12-05")
+    const response = await getVesselExcursionSegments(vesselId, "2024-12-02", "2024-12-05")
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
       addTrackedVessel(vesselId, response)
     }
