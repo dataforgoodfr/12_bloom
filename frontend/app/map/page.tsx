@@ -93,13 +93,8 @@ export default function MapPage() {
           zones: isLoadingZones,
         }}
       />
-      <MapControls />
+      <MapControls zoneLoading={isLoading} />
       <PositionPreview />
-      {isLoading && (
-        <div className="absolute bottom-10 left-5">
-          <Spinner className="text-white" />
-        </div>
-      )}
     </>
   )
 }

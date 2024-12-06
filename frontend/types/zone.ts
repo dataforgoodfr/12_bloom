@@ -2,8 +2,8 @@ import { VesselDetails } from "./vessel"
 
 export enum ZoneCategory {
   AMP = "amp",
-  TERRITORIAL_SEAS = "Territorial seas",
   FISHING_COASTAL_WATERS = "Fishing coastal waters (6-12 NM)",
+  TERRITORIAL_SEAS = "Territorial seas",
 }
 
 export type ZoneVisitTimeDto = {

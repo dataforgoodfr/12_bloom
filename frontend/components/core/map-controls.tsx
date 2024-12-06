@@ -6,8 +6,16 @@ import { Layers, Minus, Plus, SlidersHorizontal } from "lucide-react"
 import IconButton from "@/components/ui/icon-button"
 import { useMapStore } from "@/components/providers/map-store-provider"
 
-const MapControls = () => {
-  const { viewState, setZoom } = useMapStore((state) => state)
+import ZoneFilterModal from "./map/zone-filter-modal"
+
+interface MapControlsProps {
+  zoneLoading: boolean
+}
+
+const MapControls = ({ zoneLoading }: MapControlsProps) => {
+  const { viewState, setZoom, displayedZones, setDisplayedZones } = useMapStore(
+    (state) => state
+  )
 
   const handleZoomIn = () => {
     setZoom(viewState.zoom - 1)
@@ -26,9 +34,11 @@ const MapControls = () => {
       <IconButton description="Set filters">
         <SlidersHorizontal className="size-5 text-black dark:text-white" />
       </IconButton>
-      <IconButton description="Configure layers display settings">
-        <Layers className="size-5 text-black dark:text-white" />
-      </IconButton>
+      <ZoneFilterModal
+        activeZones={displayedZones}
+        setActiveZones={setDisplayedZones}
+        isLoading={zoneLoading}
+      />
     </div>
   )
 }

@@ -56,6 +56,7 @@ export default function CoreMap({
     trackedVesselIDs,
     trackedVesselSegments,
     setLatestPositions,
+    displayedZones,
   } = useMapStore((state) => state)
 
   function getColorFromValue(value: number): [number, number, number] {
@@ -71,11 +72,6 @@ export default function CoreMap({
     )
   }
 
-  // useEffect(() => {
-  //   // This will change the key of the layer, forcing it to re-render when `activePosition` changes
-  //   setLayerKey((prevKey) => prevKey + 1)
-  // }, [activePosition, trackedVesselIDs])
-
   useEffect(() => {
     setLatestPositions(vesselsPositions)
   }, [setLatestPositions, vesselsPositions])
@@ -90,63 +86,76 @@ export default function CoreMap({
     setActivePosition(object as VesselPosition)
   }
 
-  const onZoneClick = () => {
-    return
-  }
+  const latestPositions = useMemo(
+    () =>
+      new IconLayer<VesselPosition>({
+        id: `vessels-latest-positions`,
+        data: vesselsPositions,
+        getPosition: (vp: VesselPosition) => [
+          vp?.position?.coordinates[0],
+          vp?.position?.coordinates[1],
+        ],
+        getAngle: (vp: VesselPosition) =>
+          vp.heading ? Math.round(vp.heading) : 0,
+        getIcon: () => "default",
+        iconAtlas: "../../../img/map-vessel.png",
+        iconMapping: {
+          default: {
+            x: 0,
+            y: 0,
+            width: 35,
+            height: 27,
+            mask: true,
+          },
+        },
+        getSize: 16,
+        getColor: (vp: VesselPosition) => {
+          return new Uint8ClampedArray(
+            isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR
+          )
+        },
 
-  const latestPositions = new IconLayer<VesselPosition>({
-    id: `vessels-latest-positions`,
-    data: vesselsPositions,
-    getPosition: (vp: VesselPosition) => [
-      vp?.position?.coordinates[0],
-      vp?.position?.coordinates[1],
-    ],
-    getAngle: (vp: VesselPosition) => (vp.heading ? Math.round(vp.heading) : 0),
-    getIcon: () => "default",
-    iconAtlas: "../../../img/map-vessel.png",
-    iconMapping: {
-      default: {
-        x: 0,
-        y: 0,
-        width: 35,
-        height: 27,
-        mask: true,
-      },
-    },
-    getSize: 16,
-    getColor: (vp: VesselPosition) => {
-      return new Uint8ClampedArray(
-        isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR
-      )
-    },
+        pickable: true,
+        onClick: onVesselClick,
+        updateTriggers: {
+          getColor: [activePosition?.vessel.id, trackedVesselIDs],
+        },
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      vesselsPositions,
+      activePosition?.vessel.id,
+      trackedVesselIDs,
+      isVesselSelected,
+    ]
+  )
 
-    pickable: true,
-    onClick: onVesselClick,
-    updateTriggers: {
-      getColor: [activePosition?.vessel.id, trackedVesselIDs],
-    },
-  })
-
-  const tracksByVesselAndVoyage = trackedVesselSegments
-    .map((segments) => toSegmentsGeo(segments))
-    .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
-      return new GeoJsonLayer<VesselExcursionSegmentGeo>({
-        id: `${segmentsGeo.vesselId}_vessel_trail`,
-        data: segmentsGeo,
-        getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
-        getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
-        pickable: false,
-        stroked: true,
-        filled: false,
-        getLineWidth: 0.5,
-        lineWidthMinPixels: 0.5,
-        lineWidthMaxPixels: 3,
-        lineWidthUnits: "pixels",
-        lineWidthScale: 2,
-        getPointRadius: 4,
-        getTextSize: 12,
-      })
-    })
+  const tracksByVesselAndVoyage = useMemo(
+    () =>
+      trackedVesselSegments
+        .map((segments) => toSegmentsGeo(segments))
+        .map((segmentsGeo: VesselExcursionSegmentsGeo) => {
+          return new GeoJsonLayer<VesselExcursionSegmentGeo>({
+            id: `${segmentsGeo.vesselId}_vessel_trail`,
+            data: segmentsGeo,
+            getFillColor: (feature) =>
+              getColorFromValue(feature.properties?.speed),
+            getLineColor: (feature) =>
+              getColorFromValue(feature.properties?.speed),
+            pickable: false,
+            stroked: true,
+            filled: false,
+            getLineWidth: 0.5,
+            lineWidthMinPixels: 0.5,
+            lineWidthMaxPixels: 3,
+            lineWidthUnits: "pixels",
+            lineWidthScale: 2,
+            getPointRadius: 4,
+            getTextSize: 12,
+          })
+        }),
+    [trackedVesselSegments]
+  )
 
   const getObjectType = (
     object: VesselPosition | ZoneWithGeometry | undefined
@@ -155,12 +164,17 @@ export default function CoreMap({
     return "vessel" in object ? "vessel" : "zone"
   }
 
+  const filteredZones = useMemo(
+    () => zones.filter((z) => displayedZones.includes(z.category)),
+    [displayedZones, zones]
+  )
+
   // Single combined layer instead of three separate ones
   const combinedZonesLayer = useMemo(
     () =>
       new PolygonLayer({
         id: "combined-zones-layer",
-        data: zones,
+        data: filteredZones,
         getPolygon: (d: ZoneWithType) => {
           if (d.geometry.type === "MultiPolygon") {
             return d.geometry.coordinates[0]
@@ -193,29 +207,43 @@ export default function CoreMap({
           d.category !== ZoneCategory.FISHING_COASTAL_WATERS ? 0.5 : 0,
         lineWidthUnits: "pixels",
         pickable: true,
-        stroked: true,
+        stroked: false,
         filled: true,
         wireframe: false,
         extruded: false,
         // Only apply dash pattern to AMP zones
         getDashArray: [4, 12],
-        extensions: zones.some((z) => z.category === ZoneCategory.AMP)
-          ? [new PathStyleExtension({ dash: true })]
-          : [],
+        // extensions: zones.some((z) => z.category === ZoneCategory.AMP)
+        //   ? [new PathStyleExtension({ dash: true })]
+        //   : [],
         parameters: {
           depthTest: false,
           blendFunc: [770, 771], // standard transparency blending
         },
-        onClick: onZoneClick,
+        updateTriggers: {
+          data: [displayedZones],
+          getPolygon: [displayedZones],
+        },
       }),
-    [zones]
+    [filteredZones, displayedZones]
   )
 
-  const layers = [
-    !isLoading.zones && combinedZonesLayer,
-    !isLoading.vessels && !isLoading.positions && tracksByVesselAndVoyage,
-    !isLoading.positions && latestPositions,
-  ].filter(Boolean) as Layer[]
+  const layers = useMemo(
+    () =>
+      [
+        !isLoading.zones && combinedZonesLayer,
+        !isLoading.vessels && !isLoading.positions && tracksByVesselAndVoyage,
+        !isLoading.positions && latestPositions,
+      ].filter(Boolean) as Layer[],
+    [
+      isLoading.zones,
+      isLoading.vessels,
+      isLoading.positions,
+      combinedZonesLayer,
+      tracksByVesselAndVoyage,
+      latestPositions,
+    ]
+  )
 
   const getTooltip = ({
     object,
