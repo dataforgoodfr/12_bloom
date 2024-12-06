@@ -2,15 +2,17 @@
 
 import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect, useMemo } from "react"
-import type { PickingInfo } from "@deck.gl/core"
-import { PathStyleExtension } from "@deck.gl/extensions"
-import { GeoJsonLayer } from "@deck.gl/layers"
-import DeckGL from "@deck.gl/react"
-import chroma from "chroma-js"
-import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
-import { renderToString } from "react-dom/server"
-import { Map as MapGL } from "react-map-gl/maplibre"
+import { useEffect, useMemo, useState } from "react";
+import type { PickingInfo } from "@deck.gl/core";
+import { PathStyleExtension } from "@deck.gl/extensions";
+import { GeoJsonLayer } from "@deck.gl/layers";
+import DeckGL from "@deck.gl/react";
+import chroma from "chroma-js";
+import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl";
+import { renderToString } from "react-dom/server";
+import { Map as MapGL } from "react-map-gl/maplibre";
+
+
 
 import {
   VesselExcursionSegment,
@@ -59,6 +61,8 @@ export default function CoreMap({
     displayedZones,
   } = useMapStore((state) => state)
 
+  const [coordinates, setCoordinates] = useState<string>("-°N -°E")
+
   function getColorFromValue(value: number): [number, number, number] {
     const scale = chroma.scale(["yellow", "red", "black"]).domain([0, 15])
     const color = scale(value).rgb()
@@ -80,6 +84,13 @@ export default function CoreMap({
     if (layer?.id !== "vessels-latest-positions") {
       setActivePosition(null)
     }
+  }
+
+  const onMapHover = ({ coordinate }: PickingInfo) => {
+    coordinate &&
+    setCoordinates(
+      coordinate[1].toFixed(3).toString() + "°N " + coordinate[0].toFixed(3) + "°E"
+    )
   }
 
   const onVesselClick = ({ object }: PickingInfo) => {
@@ -279,6 +290,7 @@ export default function CoreMap({
       getCursor={({ isHovering, isDragging }) => {
         return isDragging ? "move" : isHovering ? "pointer" : "grab"
       }}
+      onHover={onMapHover}
       onClick={onMapClick}
       getTooltip={({
         object,
@@ -291,6 +303,7 @@ export default function CoreMap({
         mapStyle={`https://api.maptiler.com/maps/e9b57486-1b91-47e1-a763-6df391697483/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
         attributionControl={false}
       ></MapGL>
+      <div className="bg-color-3 absolute bottom-0 right-0 w-fit px-4 py-2 text-color-4 text-xs">{coordinates}</div>
     </DeckGL>
   )
 }
