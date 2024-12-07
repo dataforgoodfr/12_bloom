@@ -38,6 +38,6 @@ export type ZoneVesselMetrics = {
 export type ZoneWithGeometry = ZoneDetails & {
   geometry: {
     type: string
-    coordinates: number[][][]
+    coordinates: GeoJSON.Position[][][]
   }
 }
