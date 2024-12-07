@@ -18,14 +18,13 @@ const fetcher = async (url: string) => {
 }
 
 export default function MapPage() {
-  const [isLoadingPositions, setIsLoadingPositions] = useState(true)
-  const [latestPositions, setLatestPositions] = useState<VesselPosition[]>([])
   const { data: vessels = [], isLoading: isLoadingVessels } = useSWR<Vessel[]>(
     "/api/vessels",
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      keepPreviousData: true,
     }
   )
 
@@ -34,20 +33,18 @@ export default function MapPage() {
   >("/api/zones", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    keepPreviousData: true,
   })
 
-  useEffect(() => {
-    const loadPositions = async () => {
-      const response = await fetch("/api/vessels/positions", {
-        cache: "force-cache",
-        next: { revalidate: 900 }, // 15 minutes
-      })
-      const positionsData = await response.json()
-      setLatestPositions(positionsData)
-      setIsLoadingPositions(false)
-    }
-    loadPositions()
-  }, [])
+  const { data: latestPositions = [], isLoading: isLoadingPositions } = useSWR<
+    VesselPosition[]
+  >("/api/vessels/positions", fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    keepPreviousData: true,
+    revalidateOnMount: true,
+    refreshInterval: 900000, // 15 minutes in milliseconds
+  })
 
   const isLoading = isLoadingVessels || isLoadingPositions || isLoadingZones
 

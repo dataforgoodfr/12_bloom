@@ -175,9 +175,20 @@ export default function CoreMap({
     return "vessel" in object ? "vessel" : "zone"
   }
 
-  const ampZones = useMemo(() => {
+  const ampMultiZones = useMemo(() => {
     const filteredZones = displayedZones.includes(ZoneCategory.AMP)
-      ? zones.filter((z) => z.category === ZoneCategory.AMP)
+      ? zones
+          .filter((z) => z.category === ZoneCategory.AMP)
+          .filter((z) => z.geometry.type === "MultiPolygon")
+      : []
+    return filteredZones
+  }, [displayedZones, zones])
+
+  const ampSingleZones = useMemo(() => {
+    const filteredZones = displayedZones.includes(ZoneCategory.AMP)
+      ? zones
+          .filter((z) => z.category === ZoneCategory.AMP)
+          .filter((z) => z.geometry.type === "Polygon")
       : []
     return filteredZones
   }, [displayedZones, zones])
@@ -199,13 +210,13 @@ export default function CoreMap({
     [displayedZones, zones]
   )
 
-  const ampZonesLayer = useMemo(
+  const ampMultiZonesLayer = useMemo(
     () =>
       new GeoJsonLayer<ZoneWithGeometry>({
         id: "amp-zones-layer",
         data: {
           type: "FeatureCollection",
-          features: ampZones.map((zone) => ({
+          features: ampMultiZones.map((zone) => ({
             type: "Feature",
             properties: {
               name: zone.name,
@@ -224,7 +235,28 @@ export default function CoreMap({
         extruded: false,
         visible: displayedZones.includes(ZoneCategory.AMP),
       }),
-    [ampZones, displayedZones]
+    [ampMultiZones, displayedZones]
+  )
+
+  const ampSingleZonesLayer = useMemo(
+    () =>
+      new PolygonLayer({
+        id: "amp-single-zones-layer",
+        data: ampSingleZones,
+        getPolygon: (d) => d.geometry.coordinates,
+        getFillColor: [30, 224, 171, 25],
+        pickable: true,
+        stroked: false,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        parameters: {
+          depthTest: false,
+          blendFunc: [770, 771],
+        },
+        visible: displayedZones.includes(ZoneCategory.AMP),
+      }),
+    [ampSingleZones, displayedZones]
   )
 
   const territorialZonesLayer = useMemo(
@@ -287,7 +319,8 @@ export default function CoreMap({
     () =>
       [
         !isLoading.zones && [
-          ampZonesLayer,
+          ampMultiZonesLayer,
+          ampSingleZonesLayer,
           territorialZonesLayer,
           fishingZonesLayer,
         ],
@@ -300,7 +333,8 @@ export default function CoreMap({
       isLoading.zones,
       isLoading.vessels,
       isLoading.positions,
-      ampZonesLayer,
+      ampMultiZonesLayer,
+      ampSingleZonesLayer,
       territorialZonesLayer,
       fishingZonesLayer,
       tracksByVesselAndVoyage,
