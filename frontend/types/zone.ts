@@ -1,5 +1,11 @@
 import { VesselDetails } from "./vessel"
 
+export enum ZoneCategory {
+  AMP = "amp",
+  FISHING_COASTAL_WATERS = "Fishing coastal waters (6-12 NM)",
+  TERRITORIAL_SEAS = "Territorial seas",
+}
+
 export type ZoneVisitTimeDto = {
   zone_id: number
   zone_category: string
@@ -20,6 +26,7 @@ export interface ZoneDetails {
 export interface ZoneMetrics {
   zone: ZoneDetails
   visiting_duration: string
+  vessel_visiting_time_by_zone: string
 }
 
 export type ZoneVesselMetrics = {
@@ -28,9 +35,15 @@ export type ZoneVesselMetrics = {
   zone_visiting_time_by_vessel: string
 }
 
+export type VesselZoneMetrics = {
+  vessel: VesselDetails
+  zone: ZoneDetails
+  vessel_visiting_time_by_zone: string
+}
+
 export type ZoneWithGeometry = ZoneDetails & {
   geometry: {
     type: string
-    coordinates: number[][][]
+    coordinates: GeoJSON.Position[][][]
   }
 }

@@ -8,7 +8,12 @@ import {
   VesselMetrics,
   VesselPositions,
 } from "@/types/vessel"
-import { ZoneMetrics, ZoneVesselMetrics, ZoneWithGeometry } from "@/types/zone"
+import {
+  VesselZoneMetrics,
+  ZoneMetrics,
+  ZoneVesselMetrics,
+  ZoneWithGeometry,
+} from "@/types/zone"
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL
 const API_KEY = process.env.NEXT_PUBLIC_BACKEND_API_KEY ?? "no-key-found"
@@ -24,6 +29,12 @@ export function getVessels() {
   const url = `${BASE_URL}/vessels`
   console.log(`GET ${url}`)
   return axios.get<Vessel[]>(url)
+}
+
+export function getVesselsAtSea(startAt: string, endAt: string) {
+  const url = `${BASE_URL}/metrics/vessels-at-sea?start_at=${startAt}&end_at=${endAt}`
+  console.log(`GET ${url}`)
+  return axios.get<number>(url)
 }
 
 export function getVesselsTrackedCount() {
@@ -85,11 +96,28 @@ export function getTopVesselsInActivity(
 export function getTopZonesVisited(
   startAt: string,
   endAt: string,
-  topZonesLimit: number
+  topZonesLimit: number,
+  category?: string
 ) {
-  const url = `${BASE_URL}/metrics/zone-visited?start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
+  const url = `${BASE_URL}/metrics/zone-visited?${
+    category ? `category=${category}&` : ""
+  }start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
   console.log(`GET ${url}`)
   return axios.get<ZoneMetrics[]>(url)
+}
+
+export function getTimeByZone(
+  startAt: string,
+  endAt: string,
+  topZonesLimit: number,
+  category?: string,
+  vesselId?: string
+) {
+  const url = `${BASE_URL}/metrics/vessels/time-by-zone?${
+    category ? `category=${category}&` : ""
+  }${vesselId ? `vessel_id=${vesselId}&` : ""}start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
+  console.log(`GET ${url}`)
+  return axios.get<VesselZoneMetrics[]>(url)
 }
 
 export async function getZoneDetails(

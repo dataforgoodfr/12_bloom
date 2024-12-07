@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
-from typing import Any
+from typing import Any, Optional
 import json
 from bloom.config import settings
 from bloom.container import UseCases
@@ -120,7 +120,7 @@ async def get_vessel_last_position(request: Request, # used by @cache
 async def list_vessel_excursions(request: Request, # used by @cache
                                  vessel_id: int,
                                  nocache:bool=False, # used by @cache
-                                datetime_range: DatetimeRangeRequest = Depends(),
+                                datetime_range: DatetimeRangeRequest= Depends(),
                                 pagination: PageParams = Depends(),
                                 order: OrderByRequest = Depends(),
                                 key: str = Depends(X_API_KEY_HEADER)):
@@ -132,7 +132,12 @@ async def list_vessel_excursions(request: Request, # used by @cache
     json_data={}
     with db.session() as session:
         json_data = [json.loads(p.model_dump_json() if p else "{}")
-                        for p in excursion_repository.get_excursions_by_vessel_id(session,vessel_id)]
+                        for p in excursion_repository.get_excursions_by_vessel_id(
+                                                    session,
+                                                    vessel_id,
+                                                    datetime_range,
+                                                    pagination=pagination,
+                                                    order=order)]
     return json_data
 
 

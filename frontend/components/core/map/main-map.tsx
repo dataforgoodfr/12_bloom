@@ -20,7 +20,7 @@ import {
   VesselPosition,
   VesselPositions,
 } from "@/types/vessel"
-import { ZoneWithGeometry } from "@/types/zone"
+import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
 import MapTooltip from "@/components/ui/tooltip-map-template"
 import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
 import { useMapStore } from "@/components/providers/map-store-provider"
@@ -34,6 +34,14 @@ type CoreMapProps = {
     zones: boolean
     excursions: boolean
   }
+}
+
+const VESSEL_COLOR = [16, 181, 16, 210]
+const TRACKED_VESSEL_COLOR = [128, 16, 189, 210]
+
+// Add a type to distinguish zones
+type ZoneWithType = ZoneWithGeometry & {
+  renderType: "amp" | "territorial" | "fishing"
 }
 
 export default function CoreMap({
@@ -51,7 +59,10 @@ export default function CoreMap({
     setLatestPositions,
     mode: mapMode,
     trackModeOptions,
+    displayedZones,
   } = useMapStore((state) => state)
+
+  const [coordinates, setCoordinates] = useState<string>("-°N -°E")
 
   // Use a piece of state that changes when `activePosition` changes to force re-render
   // const [layerKey, setLayerKey] = useState(0)
@@ -76,17 +87,13 @@ export default function CoreMap({
     return trackedVesselIDs.map((id) => vesselsPositions.find((vp) => vp.vessel.id === id)).map((vp) => vp?.vessel)
   }
 
-  useEffect(() => {
-    setLatestPositions(vesselsPositions)
-  }, [setLatestPositions, vesselsPositions])
-
-  const onMapClick = ({ picked, object, layer }: PickingInfo) => {
-    if (layer === null) {
+  const onMapClick = ({ layer }: PickingInfo) => {
+    if (layer?.id !== "vessels-latest-positions") {
       setActivePosition(null)
     }
   }
 
-  const onVesselClick = ({ picked, object }: PickingInfo) => {
+  const onVesselClick = ({ object }: PickingInfo) => {
     setActivePosition(object as VesselPosition)
   }
 
@@ -108,37 +115,49 @@ export default function CoreMap({
     return { type: "FeatureCollection", features: segmentsGeo ?? [] }
   }
 
-  const latestPositions = new IconLayer<VesselPosition>({
-    id: `vessels-latest-positions`,
-    data: vesselsPositions,
-    getPosition: (vp: VesselPosition) => [
-      vp?.position?.coordinates[0],
-      vp?.position?.coordinates[1],
-    ],
-    getAngle: (vp: VesselPosition) => (vp.heading ? Math.round(vp.heading) : 0),
-    getIcon: () => "default",
-    iconAtlas: "../../../img/map-vessel.png",
-    iconMapping: {
-      default: {
-        x: 0,
-        y: 0,
-        width: 35,
-        height: 27,
-        mask: true,
-      },
-    },
-    getSize: 16,
-    getColor: (vp: VesselPosition) => {
-      return new Uint8ClampedArray(
-        isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR
-      )
-    },
-    pickable: true,
-    onClick: onVesselClick,
-    updateTriggers: {
-      getColor: [activePosition?.vessel.id, trackedVesselIDs],
-    },
-  })
+  const latestPositions = useMemo(
+    () =>
+      new IconLayer<VesselPosition>({
+        id: `vessels-latest-positions`,
+        data: vesselsPositions,
+        getPosition: (vp: VesselPosition) => [
+          vp?.position?.coordinates[0],
+          vp?.position?.coordinates[1],
+        ],
+        getAngle: (vp: VesselPosition) =>
+          vp.heading ? Math.round(vp.heading) : 0,
+        getIcon: () => "default",
+        iconAtlas: "../../../img/map-vessel.png",
+        iconMapping: {
+          default: {
+            x: 0,
+            y: 0,
+            width: 35,
+            height: 27,
+            mask: true,
+          },
+        },
+        getSize: 16,
+        getColor: (vp: VesselPosition) => {
+          return new Uint8ClampedArray(
+            isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR
+          )
+        },
+
+        pickable: true,
+        onClick: onVesselClick,
+        updateTriggers: {
+          getColor: [activePosition?.vessel.id, trackedVesselIDs],
+        },
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      vesselsPositions,
+      activePosition?.vessel.id,
+      trackedVesselIDs,
+      isVesselSelected,
+    ]
+  )
 
   const [segmentsLayer, setSegmentsLayer] = useState<Layer[]>([])
 
@@ -163,13 +182,10 @@ export default function CoreMap({
   }
 
   useEffect(() => {
-    console.log("mapMode", mapMode)
     if (mapMode === "track") {
-      console.log("Map mode is track")
       const trackedVessels = getTrackedVessels();
       const layers: Layer[] = []
 
-      console.log({trackedVessels})
       for (const vessel of trackedVessels) {
         const excursionsTimeframe = vessel?.excursions_timeframe;
 
@@ -178,17 +194,26 @@ export default function CoreMap({
         }
 
         const excursions = excursionsTimeframe.excursions;
-        console.log({excursions})
         for (const excursion of excursions) {
           if (excursion.mapVisibility === false) continue;
 
-          layers.push(excursionToSegmentsLayer(excursion))  
+          layers.push(excursionToSegmentsLayer(excursion))
         }
       }
       console.log("Layers", layers)
       setSegmentsLayer(layers)
     }
   }, [mapMode])
+
+  const onMapHover = ({ coordinate }: PickingInfo) => {
+    coordinate &&
+      setCoordinates(
+        coordinate[1].toFixed(3).toString() +
+          "°N " +
+          coordinate[0].toFixed(3) +
+          "°E"
+      )
+  }
 
   const getObjectType = (
     object: VesselPosition | ZoneWithGeometry | undefined
@@ -197,51 +222,180 @@ export default function CoreMap({
     return "vessel" in object ? "vessel" : "zone"
   }
 
-  const zoneLayer = new PolygonLayer({
-    id: `zones-layer`,
-    data: zones,
-    getPolygon: (d: ZoneWithGeometry) => {
-      // Handle both Polygon and MultiPolygon types
-      if (d.geometry.type === "MultiPolygon") {
-        // Return the first polygon's coordinates for MultiPolygon
-        return d.geometry.coordinates[0]
-      }
-      // For single Polygon, return just the first coordinate ring (outer boundary)
-      return d.geometry.coordinates
-    },
-    getFillColor: (d: ZoneWithGeometry) => {
-      switch (d.category) {
-        case "territorial_seas":
-          return [0, 0, 255, 50]
-        case "fishing_coastal_waters":
-          return [0, 255, 0, 50]
-        case "amp":
-        default:
-          return [255, 0, 0, 50]
-      }
-    },
-    getLineColor: [0, 0, 0, 128], // reduced opacity for borders
-    getLineWidth: 1,
-    lineWidthUnits: "pixels",
-    lineWidthMinPixels: 1,
-    pickable: true, // disable picking if not needed
-    stroked: false,
-    filled: true,
-    wireframe: false, // disable wireframe for better performance
-    extruded: false,
-    parameters: {
-      depthTest: false,
-      blend: true,
-      blendFunc: [770, 771], // standard transparency blending
-    },
-    onClick: () => {},
-  })
+  const isAMPDisplayed = displayedZones.includes(ZoneCategory.AMP)
+  const isTerritorialDisplayed = displayedZones.includes(
+    ZoneCategory.TERRITORIAL_SEAS
+  )
+  const isFishingDisplayed = displayedZones.includes(
+    ZoneCategory.FISHING_COASTAL_WATERS
+  )
 
-  const layers = [
-    // !isLoading.zones && zoneLayer,
-    !isLoading.vessels && !isLoading.positions && !isLoading.excursions && segmentsLayer,
-    !isLoading.positions && latestPositions,
-  ].filter(Boolean) as Layer[]
+  const ampMultiZones = useMemo(() => {
+    const filteredZones = isAMPDisplayed
+      ? zones
+          .filter((z) => z.category === ZoneCategory.AMP)
+          .filter((z) => z.geometry.type === "MultiPolygon")
+      : []
+    return filteredZones
+  }, [isAMPDisplayed, zones])
+
+  const ampSingleZones = useMemo(() => {
+    const filteredZones = isAMPDisplayed
+      ? zones
+          .filter((z) => z.category === ZoneCategory.AMP)
+          .filter((z) => z.geometry.type === "Polygon")
+      : []
+    return filteredZones
+  }, [isAMPDisplayed, zones])
+
+  const territorialZones = useMemo(
+    () =>
+      isTerritorialDisplayed
+        ? zones.filter((z) => z.category === ZoneCategory.TERRITORIAL_SEAS)
+        : [],
+    [isTerritorialDisplayed, zones]
+  )
+  const fishingZones = useMemo(
+    () =>
+      isFishingDisplayed
+        ? zones.filter(
+            (z) => z.category === ZoneCategory.FISHING_COASTAL_WATERS
+          )
+        : [],
+    [isFishingDisplayed, zones]
+  )
+
+  const ampMultiZonesLayer = useMemo(
+    () =>
+      new GeoJsonLayer<ZoneWithGeometry>({
+        id: "amp-zones-layer",
+        data: {
+          type: "FeatureCollection",
+          features: ampMultiZones.map((zone) => ({
+            type: "Feature",
+            properties: {
+              name: zone.name,
+            },
+            geometry: {
+              type: "MultiPolygon",
+              coordinates: zone.geometry.coordinates,
+            },
+          })),
+        },
+        getFillColor: [30, 224, 171, 25],
+        pickable: true,
+        stroked: false,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        visible: isAMPDisplayed,
+      }),
+    [ampMultiZones, isAMPDisplayed]
+  )
+
+  const ampSingleZonesLayer = useMemo(
+    () =>
+      new PolygonLayer({
+        id: "amp-single-zones-layer",
+        data: ampSingleZones,
+        getPolygon: (d) => d.geometry.coordinates,
+        getFillColor: [30, 224, 171, 25],
+        pickable: true,
+        stroked: false,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        parameters: {
+          depthTest: false,
+          blendFunc: [770, 771],
+        },
+        visible: isAMPDisplayed,
+      }),
+    [ampSingleZones, isAMPDisplayed]
+  )
+
+  const territorialZonesLayer = useMemo(
+    () =>
+      new PolygonLayer({
+        id: "territorial-zones-layer",
+        data: territorialZones,
+        getPolygon: (d) => {
+          return d.geometry.type === "MultiPolygon"
+            ? d.geometry.coordinates[0]
+            : d.geometry.coordinates
+        },
+        getFillColor: [0, 0, 0, 0],
+        getLineColor: [132, 0, 0, 255],
+        getLineWidth: 0.5,
+        lineWidthUnits: "pixels",
+        pickable: true,
+        stroked: true,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        parameters: {
+          depthTest: false,
+          blendFunc: [770, 771],
+        },
+        visible: isTerritorialDisplayed,
+      }),
+    [territorialZones, isTerritorialDisplayed]
+  )
+
+  const fishingZonesLayer = useMemo(
+    () =>
+      new PolygonLayer({
+        id: "fishing-zones-layer",
+        data: fishingZones,
+        getPolygon: (d) => {
+          return d.geometry.type === "MultiPolygon"
+            ? d.geometry.coordinates[0]
+            : d.geometry.coordinates
+        },
+        getFillColor: [132, 0, 0, 25],
+        getLineColor: [0, 0, 0, 0],
+        getLineWidth: 0,
+        lineWidthUnits: "pixels",
+        pickable: true,
+        stroked: false,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        parameters: {
+          depthTest: false,
+          blendFunc: [770, 771],
+        },
+        visible: isFishingDisplayed,
+      }),
+    [fishingZones, isFishingDisplayed]
+  )
+
+  const layers = useMemo(
+    () =>
+      [
+        !isLoading.zones && [
+          ampMultiZonesLayer,
+          ampSingleZonesLayer,
+          territorialZonesLayer,
+          fishingZonesLayer,
+        ],
+        !isLoading.vessels && !isLoading.positions && segmentsLayer,
+        !isLoading.positions && latestPositions,
+      ]
+        .flat()
+        .filter(Boolean) as Layer[],
+    [
+      isLoading.zones,
+      isLoading.vessels,
+      isLoading.positions,
+      ampMultiZonesLayer,
+      ampSingleZonesLayer,
+      territorialZonesLayer,
+      fishingZonesLayer,
+      segmentsLayer,
+      latestPositions,
+    ]
+  )
 
   const getTooltip = ({
     object,
@@ -277,6 +431,7 @@ export default function CoreMap({
       getCursor={({ isHovering, isDragging }) => {
         return isDragging ? "move" : isHovering ? "pointer" : "grab"
       }}
+      onHover={onMapHover}
       onClick={onMapClick}
       getTooltip={({
         object,
@@ -289,6 +444,9 @@ export default function CoreMap({
         mapStyle={`https://api.maptiler.com/maps/e9b57486-1b91-47e1-a763-6df391697483/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
         attributionControl={false}
       ></MapGL>
+      <div className="absolute bottom-0 right-0 w-fit bg-color-3 px-4 py-2 text-xs text-color-4">
+        {coordinates}
+      </div>
     </DeckGL>
   )
 }

@@ -40,7 +40,7 @@ export function VesselFinderDemo({ wideMode }: Props) {
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
     const response = await getVesselFirstExcursionSegments(vesselId)
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
-      addTrackedVessel(vesselId, response)
+      addTrackedVessel(vesselId)
     }
     if (vesselId) {
       const selectedVesselLatestPosition = latestPositions.find(

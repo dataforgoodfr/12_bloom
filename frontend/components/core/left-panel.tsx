@@ -45,23 +45,17 @@ const svgVariants = {
 }
 
 type LeftPanelProps = {
-  vessels: Vessel[]
   isLoading: boolean
 }
 
-export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
+export default function LeftPanel({ isLoading }: LeftPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
-  const { setVessels } = useVesselsStore((state) => state)
 
   const { mode: mapMode } = useMapStore(
     (state) => state
   )
-
-  useEffect(() => {
-    setVessels(vessels)
-  }, [setVessels, vessels])
 
   useEffect(() => {
     const control = isOpen ? "open" : "close"

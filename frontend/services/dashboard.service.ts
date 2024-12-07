@@ -2,6 +2,7 @@ import { TOTAL_VESSELS } from "@/constants/totals.constants"
 import {
   getTopVesselsInActivity,
   getTopZonesVisited,
+  getVesselsAtSea,
   getVesselsTrackedCount,
 } from "@/services/backend-rest-client"
 import { swrOptions } from "@/services/swr"
@@ -34,7 +35,7 @@ export const useDashboardData = (
     data: topVesselsInActivity = [],
     isLoading: topVesselsInActivityLoading,
   } = useSWR(
-    `topVesselsInActivity-${startAt}-${endAt}`,
+    `topVesselsInActivity-${startAt}`,
     async () => {
       try {
         const response = await getTopVesselsInActivity(
@@ -55,13 +56,14 @@ export const useDashboardData = (
 
   const { data: topAmpsVisited = [], isLoading: topAmpsVisitedLoading } =
     useSWR(
-      `topAmpsVisited-${startAt}-${endAt}`,
+      `topAmpsVisited-${startAt}`,
       async () => {
         try {
           const response = await getTopZonesVisited(
             startAt,
             endAt,
-            TOP_ITEMS_SIZE
+            TOP_ITEMS_SIZE,
+            "amp"
           )
           return convertZoneDtoToItem(response?.data || [])
         } catch (error) {
@@ -78,11 +80,11 @@ export const useDashboardData = (
     data: totalVesselsInActivity = 0,
     isLoading: totalVesselsInActivityLoading,
   } = useSWR(
-    `totalVesselsInActivity-${startAt}-${endAt}`,
+    `totalVesselsInActivity-${startAt}`,
     async () => {
       try {
-        const response = await getTopVesselsInActivity(startAt, endAt, 1700)
-        return response?.data?.length
+        const response = await getVesselsAtSea(startAt, endAt)
+        return response?.data
       } catch (error) {
         console.log(
           "An error occurred while fetching total vessels in activity: " + error
@@ -95,10 +97,15 @@ export const useDashboardData = (
 
   const { data: totalAmpsVisited = 0, isLoading: totalAmpsVisitedLoading } =
     useSWR(
-      `totalAmpsVisited-${startAt}-${endAt}`,
+      `totalAmpsVisited-${startAt}`,
       async () => {
         try {
-          const response = await getTopZonesVisited(startAt, endAt, 100000)
+          const response = await getTopZonesVisited(
+            startAt,
+            endAt,
+            100000,
+            "amp"
+          )
           return response?.data?.length
         } catch (error) {
           console.log(

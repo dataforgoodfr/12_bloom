@@ -19,7 +19,10 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
   const { data: zoneVisits = [], isLoading } = useSWR(
     [params.id, startAt, endAt],
     () => getZoneDetails(params.id, startAt, endAt).then((res) => res.data),
-    swrOptions
+    {
+      revalidateOnMount: true,
+      keepPreviousData: true,
+    }
   )
 
   const zoneDetails = useMemo(() => {
@@ -38,7 +41,7 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
         return {
           id: vessel.id.toString(),
           title: `${vessel.ship_name} - ${getCountryNameFromIso3(vessel.country_iso3)}`,
-          description: `IMO: ${vessel.imo} - MMSI: ${vessel.mmsi} - Type: ${vessel.type} - Length: ${vessel.length_class}`,
+          description: `IMO: ${vessel.imo} - MMSI: ${vessel.mmsi} - Type: ${vessel.type} - Length: ${vessel.length} m`,
           value: `${convertDurationInHours(zone_visiting_time_by_vessel)}h`,
           type: "vessels",
         }
@@ -49,6 +52,7 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
   return (
     <div className="h-screen">
       <DetailsContainer
+        type="zone"
         details={zoneDetails}
         onDateRangeChange={(value) => {
           setSelectedDays(Number(value))
