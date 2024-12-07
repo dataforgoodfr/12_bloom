@@ -2,17 +2,14 @@
 
 import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect, useMemo, useState } from "react";
-import type { PickingInfo } from "@deck.gl/core";
-import { PathStyleExtension } from "@deck.gl/extensions";
-import { GeoJsonLayer } from "@deck.gl/layers";
-import DeckGL from "@deck.gl/react";
-import chroma from "chroma-js";
-import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl";
-import { renderToString } from "react-dom/server";
-import { Map as MapGL } from "react-map-gl/maplibre";
-
-
+import { useEffect, useMemo, useState } from "react"
+import type { PickingInfo } from "@deck.gl/core"
+import { GeoJsonLayer } from "@deck.gl/layers"
+import DeckGL from "@deck.gl/react"
+import chroma from "chroma-js"
+import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
+import { renderToString } from "react-dom/server"
+import { Map as MapGL } from "react-map-gl/maplibre"
 
 import {
   VesselExcursionSegment,
@@ -88,9 +85,12 @@ export default function CoreMap({
 
   const onMapHover = ({ coordinate }: PickingInfo) => {
     coordinate &&
-    setCoordinates(
-      coordinate[1].toFixed(3).toString() + "°N " + coordinate[0].toFixed(3) + "°E"
-    )
+      setCoordinates(
+        coordinate[1].toFixed(3).toString() +
+          "°N " +
+          coordinate[0].toFixed(3) +
+          "°E"
+      )
   }
 
   const onVesselClick = ({ object }: PickingInfo) => {
@@ -175,82 +175,134 @@ export default function CoreMap({
     return "vessel" in object ? "vessel" : "zone"
   }
 
-  const filteredZones = useMemo(
-    () => zones.filter((z) => displayedZones.includes(z.category)),
+  const ampZones = useMemo(() => {
+    const filteredZones = displayedZones.includes(ZoneCategory.AMP)
+      ? zones.filter((z) => z.category === ZoneCategory.AMP)
+      : []
+    return filteredZones
+  }, [displayedZones, zones])
+
+  const territorialZones = useMemo(
+    () =>
+      displayedZones.includes(ZoneCategory.TERRITORIAL_SEAS)
+        ? zones.filter((z) => z.category === ZoneCategory.TERRITORIAL_SEAS)
+        : [],
+    [displayedZones, zones]
+  )
+  const fishingZones = useMemo(
+    () =>
+      displayedZones.includes(ZoneCategory.FISHING_COASTAL_WATERS)
+        ? zones.filter(
+            (z) => z.category === ZoneCategory.FISHING_COASTAL_WATERS
+          )
+        : [],
     [displayedZones, zones]
   )
 
-  // Single combined layer instead of three separate ones
-  const combinedZonesLayer = useMemo(
+  const ampZonesLayer = useMemo(
+    () =>
+      new GeoJsonLayer<ZoneWithGeometry>({
+        id: "amp-zones-layer",
+        data: {
+          type: "FeatureCollection",
+          features: ampZones.map((zone) => ({
+            type: "Feature",
+            properties: {
+              name: zone.name,
+            },
+            geometry: {
+              type: "MultiPolygon",
+              coordinates: zone.geometry.coordinates,
+            },
+          })),
+        },
+        getFillColor: [30, 224, 171, 25],
+        pickable: true,
+        stroked: false,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        visible: displayedZones.includes(ZoneCategory.AMP),
+      }),
+    [ampZones, displayedZones]
+  )
+
+  const territorialZonesLayer = useMemo(
     () =>
       new PolygonLayer({
-        id: "combined-zones-layer",
-        data: filteredZones,
-        getPolygon: (d: ZoneWithType) => {
-          if (d.geometry.type === "MultiPolygon") {
-            return d.geometry.coordinates[0]
-          }
-          return d.geometry.coordinates
+        id: "territorial-zones-layer",
+        data: territorialZones,
+        getPolygon: (d) => {
+          return d.geometry.type === "MultiPolygon"
+            ? d.geometry.coordinates[0]
+            : d.geometry.coordinates
         },
-        getFillColor: (d: ZoneWithType) => {
-          switch (d.category) {
-            case ZoneCategory.AMP:
-              return [30, 224, 171, 25]
-            case ZoneCategory.FISHING_COASTAL_WATERS:
-              return [132, 0, 0, 25]
-            case ZoneCategory.TERRITORIAL_SEAS:
-            default:
-              return [0, 0, 0, 0]
-          }
+        getFillColor: [0, 0, 0, 0],
+        getLineColor: [132, 0, 0, 255],
+        getLineWidth: 0.5,
+        lineWidthUnits: "pixels",
+        pickable: true,
+        stroked: true,
+        filled: true,
+        wireframe: false,
+        extruded: false,
+        parameters: {
+          depthTest: false,
+          blendFunc: [770, 771],
         },
-        getLineColor: (d: ZoneWithType) => {
-          switch (d.category) {
-            case ZoneCategory.AMP:
-              return [44, 226, 176, 255]
-            case ZoneCategory.TERRITORIAL_SEAS:
-              return [132, 0, 0, 255]
-            case ZoneCategory.FISHING_COASTAL_WATERS:
-            default:
-              return [0, 0, 0, 0]
-          }
+        visible: displayedZones.includes(ZoneCategory.TERRITORIAL_SEAS),
+      }),
+    [territorialZones, displayedZones]
+  )
+
+  const fishingZonesLayer = useMemo(
+    () =>
+      new PolygonLayer({
+        id: "fishing-zones-layer",
+        data: fishingZones,
+        getPolygon: (d) => {
+          return d.geometry.type === "MultiPolygon"
+            ? d.geometry.coordinates[0]
+            : d.geometry.coordinates
         },
-        getLineWidth: (d: ZoneWithType) =>
-          d.category !== ZoneCategory.FISHING_COASTAL_WATERS ? 0.5 : 0,
+        getFillColor: [132, 0, 0, 25],
+        getLineColor: [0, 0, 0, 0],
+        getLineWidth: 0,
         lineWidthUnits: "pixels",
         pickable: true,
         stroked: false,
         filled: true,
         wireframe: false,
         extruded: false,
-        // Only apply dash pattern to AMP zones
-        getDashArray: [4, 12],
-        // extensions: zones.some((z) => z.category === ZoneCategory.AMP)
-        //   ? [new PathStyleExtension({ dash: true })]
-        //   : [],
         parameters: {
           depthTest: false,
-          blendFunc: [770, 771], // standard transparency blending
+          blendFunc: [770, 771],
         },
-        updateTriggers: {
-          data: [displayedZones],
-          getPolygon: [displayedZones],
-        },
+        visible: displayedZones.includes(ZoneCategory.FISHING_COASTAL_WATERS),
       }),
-    [filteredZones, displayedZones]
+    [fishingZones, displayedZones]
   )
 
   const layers = useMemo(
     () =>
       [
-        !isLoading.zones && combinedZonesLayer,
+        !isLoading.zones && [
+          ampZonesLayer,
+          territorialZonesLayer,
+          fishingZonesLayer,
+        ],
         !isLoading.vessels && !isLoading.positions && tracksByVesselAndVoyage,
         !isLoading.positions && latestPositions,
-      ].filter(Boolean) as Layer[],
+      ]
+        .flat()
+        .filter(Boolean) as Layer[],
     [
       isLoading.zones,
       isLoading.vessels,
       isLoading.positions,
-      combinedZonesLayer,
+      ampZonesLayer,
+      territorialZonesLayer,
+      fishingZonesLayer,
       tracksByVesselAndVoyage,
       latestPositions,
     ]
@@ -303,7 +355,9 @@ export default function CoreMap({
         mapStyle={`https://api.maptiler.com/maps/e9b57486-1b91-47e1-a763-6df391697483/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
         attributionControl={false}
       ></MapGL>
-      <div className="bg-color-3 absolute bottom-0 right-0 w-fit px-4 py-2 text-color-4 text-xs">{coordinates}</div>
+      <div className="absolute bottom-0 right-0 w-fit bg-color-3 px-4 py-2 text-xs text-color-4">
+        {coordinates}
+      </div>
     </DeckGL>
   )
 }
