@@ -175,39 +175,47 @@ export default function CoreMap({
     return "vessel" in object ? "vessel" : "zone"
   }
 
+  const isAMPDisplayed = displayedZones.includes(ZoneCategory.AMP)
+  const isTerritorialDisplayed = displayedZones.includes(
+    ZoneCategory.TERRITORIAL_SEAS
+  )
+  const isFishingDisplayed = displayedZones.includes(
+    ZoneCategory.FISHING_COASTAL_WATERS
+  )
+
   const ampMultiZones = useMemo(() => {
-    const filteredZones = displayedZones.includes(ZoneCategory.AMP)
+    const filteredZones = isAMPDisplayed
       ? zones
           .filter((z) => z.category === ZoneCategory.AMP)
           .filter((z) => z.geometry.type === "MultiPolygon")
       : []
     return filteredZones
-  }, [displayedZones, zones])
+  }, [isAMPDisplayed, zones])
 
   const ampSingleZones = useMemo(() => {
-    const filteredZones = displayedZones.includes(ZoneCategory.AMP)
+    const filteredZones = isAMPDisplayed
       ? zones
           .filter((z) => z.category === ZoneCategory.AMP)
           .filter((z) => z.geometry.type === "Polygon")
       : []
     return filteredZones
-  }, [displayedZones, zones])
+  }, [isAMPDisplayed, zones])
 
   const territorialZones = useMemo(
     () =>
-      displayedZones.includes(ZoneCategory.TERRITORIAL_SEAS)
+      isTerritorialDisplayed
         ? zones.filter((z) => z.category === ZoneCategory.TERRITORIAL_SEAS)
         : [],
-    [displayedZones, zones]
+    [isTerritorialDisplayed, zones]
   )
   const fishingZones = useMemo(
     () =>
-      displayedZones.includes(ZoneCategory.FISHING_COASTAL_WATERS)
+      isFishingDisplayed
         ? zones.filter(
             (z) => z.category === ZoneCategory.FISHING_COASTAL_WATERS
           )
         : [],
-    [displayedZones, zones]
+    [isFishingDisplayed, zones]
   )
 
   const ampMultiZonesLayer = useMemo(
@@ -233,9 +241,9 @@ export default function CoreMap({
         filled: true,
         wireframe: false,
         extruded: false,
-        visible: displayedZones.includes(ZoneCategory.AMP),
+        visible: isAMPDisplayed,
       }),
-    [ampMultiZones, displayedZones]
+    [ampMultiZones, isAMPDisplayed]
   )
 
   const ampSingleZonesLayer = useMemo(
@@ -254,9 +262,9 @@ export default function CoreMap({
           depthTest: false,
           blendFunc: [770, 771],
         },
-        visible: displayedZones.includes(ZoneCategory.AMP),
+        visible: isAMPDisplayed,
       }),
-    [ampSingleZones, displayedZones]
+    [ampSingleZones, isAMPDisplayed]
   )
 
   const territorialZonesLayer = useMemo(
@@ -282,9 +290,9 @@ export default function CoreMap({
           depthTest: false,
           blendFunc: [770, 771],
         },
-        visible: displayedZones.includes(ZoneCategory.TERRITORIAL_SEAS),
+        visible: isTerritorialDisplayed,
       }),
-    [territorialZones, displayedZones]
+    [territorialZones, isTerritorialDisplayed]
   )
 
   const fishingZonesLayer = useMemo(
@@ -310,9 +318,9 @@ export default function CoreMap({
           depthTest: false,
           blendFunc: [770, 771],
         },
-        visible: displayedZones.includes(ZoneCategory.FISHING_COASTAL_WATERS),
+        visible: isFishingDisplayed,
       }),
-    [fishingZones, displayedZones]
+    [fishingZones, isFishingDisplayed]
   )
 
   const layers = useMemo(
