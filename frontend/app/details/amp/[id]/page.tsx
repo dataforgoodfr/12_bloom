@@ -19,7 +19,10 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
   const { data: zoneVisits = [], isLoading } = useSWR(
     [params.id, startAt, endAt],
     () => getZoneDetails(params.id, startAt, endAt).then((res) => res.data),
-    swrOptions
+    {
+      revalidateOnMount: true,
+      keepPreviousData: true,
+    }
   )
 
   const zoneDetails = useMemo(() => {
@@ -49,6 +52,7 @@ export default function AmpDetailsPage({ params }: { params: { id: string } }) {
   return (
     <div className="h-screen">
       <DetailsContainer
+        type="zone"
         details={zoneDetails}
         onDateRangeChange={(value) => {
           setSelectedDays(Number(value))

@@ -35,6 +35,12 @@ export type ZoneVesselMetrics = {
   zone_visiting_time_by_vessel: string
 }
 
+export type VesselZoneMetrics = {
+  vessel: VesselDetails
+  zone: ZoneDetails
+  vessel_visiting_time_by_zone: string
+}
+
 export type ZoneWithGeometry = ZoneDetails & {
   geometry: {
     type: string

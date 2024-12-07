@@ -11,6 +11,7 @@ type Props = {
   onDateRangeChange: (value: string) => void
   defaultDateRange: string
   isLoading: boolean
+  type: "vessel" | "zone"
 }
 
 export default function DetailsContainer({
@@ -18,6 +19,7 @@ export default function DetailsContainer({
   onDateRangeChange,
   defaultDateRange,
   isLoading,
+  type,
 }: Props) {
   if (!details) {
     return null
@@ -37,8 +39,12 @@ export default function DetailsContainer({
         <div className="grid min-h-0 w-full flex-1 grid-cols-2 gap-8 xl:gap-16">
           <Card className="relative h-full overflow-hidden">
             <Image
-              src={"/img/placeholder-zone.png"}
-              alt={"Zone map image"}
+              src={
+                type === "zone"
+                  ? "/img/placeholder-zone.png"
+                  : "/img/scrombus.jpg"
+              }
+              alt={type === "zone" ? "Zone map image" : "Vessel image"}
               className="object-cover"
               fill
             />

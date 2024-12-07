@@ -25,7 +25,9 @@ export default function ListItem({ item, enableViewDetails }: Props) {
   const countryLabel = getCountryNameFromIso3(countryIso3)
 
   return (
-    <div className="flex min-h-12 gap-8 p-0">
+    <div
+      className={`flex min-h-12 gap-8 ${showViewDetailsButton ? "p-0" : "p-2"}`}
+    >
       <div className="flex-1">
         <div className="text-md text-white">{title}</div>
         <div className="text-sm text-color-4">{description}</div>
@@ -35,11 +37,11 @@ export default function ListItem({ item, enableViewDetails }: Props) {
           {countryLabel}
         </div>
       )}
-      <div className="flex w-16 items-center justify-end text-sm text-white">
+      <div className="flex w-10 items-center justify-end text-sm text-white">
         {value}
       </div>
-      <div className="flex w-24 items-center">
-        {showViewDetailsButton && (
+      {showViewDetailsButton && (
+        <div className="flex w-24 items-center">
           <Button
             className="flex items-center gap-2 border-none text-base"
             title="View"
@@ -48,8 +50,8 @@ export default function ListItem({ item, enableViewDetails }: Props) {
             View
             <ChevronRight className="size-4" />
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
