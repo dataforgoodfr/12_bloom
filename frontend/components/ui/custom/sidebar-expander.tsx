@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { motion, useAnimationControls } from "framer-motion"
 import { ChevronUpIcon } from "lucide-react"
 
-function ToggleHeader({
+function SidebarExpanderHeader({
   disabled = false,
   onClick,
   children,
@@ -21,7 +21,7 @@ function ToggleHeader({
   )
 }
 
-function ToggleContent({
+function SidebarExpanderContent({
   children,
   className,
 }: {
@@ -31,13 +31,13 @@ function ToggleContent({
   return <div className={className}>{children}</div>
 }
 
-export interface ToggleProps {
+export interface SidebarExpanderProps {
   disabled?: boolean
   children: React.ReactNode
   className?: string
 }
 
-function Toggle({ disabled = false, children, className }: ToggleProps) {
+function SidebarExpander({ disabled = false, children, className }: SidebarExpanderProps) {
   const [showContent, setShowContent] = useState(false)
   const svgControls = useAnimationControls()
 
@@ -71,8 +71,8 @@ function Toggle({ disabled = false, children, className }: ToggleProps) {
     ) as React.ReactElement | undefined
   }
 
-  const header = findChildren(ToggleHeader)
-  const content = findChildren(ToggleContent)
+  const header = findChildren(SidebarExpanderHeader)
+  const content = findChildren(SidebarExpanderContent)
 
   const headerWithProps =
     header &&
@@ -93,7 +93,7 @@ function Toggle({ disabled = false, children, className }: ToggleProps) {
               animate={svgControls}
               variants={svgVariants}
               initial="close"
-              
+
             >
               <ChevronUpIcon className="size-5" />
             </motion.div>
@@ -109,7 +109,7 @@ function Toggle({ disabled = false, children, className }: ToggleProps) {
 }
 
 export default {
-  Root: Toggle,
-  Header: ToggleHeader,
-  Content: ToggleContent,
+  Root: SidebarExpander,
+  Header: SidebarExpanderHeader,
+  Content: SidebarExpanderContent,
 }

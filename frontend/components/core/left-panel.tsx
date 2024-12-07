@@ -55,7 +55,7 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
   const svgControls = useAnimationControls()
   const { setVessels } = useVesselsStore((state) => state)
 
-  const { mode: mapMode, setMode: setMapMode } = useMapStore(
+  const { mode: mapMode } = useMapStore(
     (state) => state
   )
 
@@ -115,11 +115,12 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
             </div>
           </>
         )}
-        <div className="flex flex-col gap-3 overflow-auto bg-color-2 p-5">
+        <div
+          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 ${isOpen ? "cursor-default" : "cursor-pointer"}`}
+          onClick={() => !isOpen && setIsOpen(true)}
+        >
           <TrackedVesselsPanel
             wideMode={isOpen}
-            parentIsOpen={isOpen}
-            openParent={() => setIsOpen(true)}
           />
         </div>
       </motion.nav>

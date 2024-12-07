@@ -1,4 +1,4 @@
-import { VesselExcursionSegment, VesselExcursionSegments, VesselExcursionSegmentsGeo, VesselPosition } from "@/types/vessel"
+import { Vessel, VesselExcursion, VesselExcursionSegments, VesselPosition } from "@/types/vessel"
 import { MapViewState } from "@deck.gl/core"
 import { createStore } from "zustand/vanilla"
 
@@ -12,14 +12,27 @@ export interface ViewState {
   transitionInterpolator?: any
 }
 
+
+export interface TrackModeOptions {
+  startDate: Date | undefined
+  endDate: Date | undefined
+  vesselsIDsShown: number[]
+}
+
+export interface PositionModeOptions {
+  vesselsShown: number[]
+}
+
 export type MapState = {
   count: number
   viewState: MapViewState
+  trackModeOptions: TrackModeOptions
+  positionModeOptions: PositionModeOptions
   latestPositions: VesselPosition[]
   activePosition: VesselPosition | null
   trackedVesselIDs: number[]
   trackedVesselSegments: VesselExcursionSegments[]
-  mode: "position" | "excursion"
+  mode: "position" | "track"
 }
 
 export type MapActions = {
@@ -29,11 +42,15 @@ export type MapActions = {
   setZoom: (zoom: number) => void
   setLatestPositions: (latestPositions: VesselPosition[]) => void
   setActivePosition: (activePosition: VesselPosition | null) => void
-  addTrackedVessel: (vesselID: number, segments: VesselExcursionSegment[]) => void
+  addTrackedVessel: (vesselID: number) => void
   removeTrackedVessel: (vesselID: number) => void
   clearLatestPositions: () => void
   cleartrackedVessels: () => void
-  setMode: (mode: "position" | "excursion") => void
+  setMode: (mode: "position" | "track") => void
+
+  setTrackModeOptions: (trackModeOptions: TrackModeOptions) => void
+
+  setPositionModeOptions: (positionModeOptions: PositionModeOptions) => void
 }
 
 export type MapStore = MapState & MapActions
@@ -51,13 +68,21 @@ export const defaultInitState: MapState = {
   activePosition: null,
   trackedVesselIDs: [],
   trackedVesselSegments: [],
-  mode: "position"
+  mode: "position",
+  trackModeOptions: {
+    startDate: undefined,
+    endDate: undefined,
+    vesselsIDsShown: [],
+  },
+  positionModeOptions: {
+    vesselsShown: [],
+  },
 }
 
 export const createMapStore = (initState: MapState = defaultInitState) => {
   return createStore<MapStore>()((set) => ({
     ...initState,
-    setMode: (mode: "position" | "excursion") => {
+    setMode: (mode: "position" | "track") => {
       set((state) => ({
         ...state,
         mode,
@@ -89,11 +114,10 @@ export const createMapStore = (initState: MapState = defaultInitState) => {
         activePosition,
       }))
     },
-    addTrackedVessel: (vesselId: number, segments: VesselExcursionSegment[]) => {
+    addTrackedVessel: (vesselId: number) => {
       set((state) => ({
         ...state,
         trackedVesselIDs: [...state.trackedVesselIDs, vesselId],
-        trackedVesselSegments: [...state.trackedVesselSegments, { vesselId, segments }]
       }))
     },
     removeTrackedVessel: (vesselId: number) => {
@@ -118,6 +142,18 @@ export const createMapStore = (initState: MapState = defaultInitState) => {
         ...state,
         trackedVesselIDs: [],
         trackedVesselSegments: []
+      }))
+    },
+    setTrackModeOptions: (trackModeOptions: TrackModeOptions) => {
+      set((state) => ({
+        ...state,
+        trackModeOptions,
+      }))
+    },
+    setPositionModeOptions: (positionModeOptions: PositionModeOptions) => {
+      set((state) => ({
+        ...state,
+        positionModeOptions,
       }))
     },
   }))

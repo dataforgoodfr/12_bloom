@@ -38,8 +38,15 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
-export function getVesselExcursions(vesselId: number) {
-  const url = `${BASE_URL}/vessels/${vesselId}/excursions`
+export function getVesselExcursions(vesselId: number, startDate?: Date, endDate?: Date) {
+  let queryParams: string[] = []
+  if (startDate) {
+    queryParams.push(`start_at=${startDate.toISOString()}`);
+  }
+  if (endDate) {
+    queryParams.push(`end_at=${endDate.toISOString()}`);
+  }
+  const url = `${BASE_URL}/vessels/${vesselId}/excursions${queryParams.length > 0 ? `?${queryParams.join("&")}` : ""}`
   console.log(`GET ${url}`)
   return axios.get<VesselExcursion[]>(url)
 }

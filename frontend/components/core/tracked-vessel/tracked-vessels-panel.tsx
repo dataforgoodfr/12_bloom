@@ -11,22 +11,17 @@ import {
   Ship as ShipIcon,
   XIcon,
 } from "lucide-react"
+import { DayPicker, getDefaultClassNames, Matcher } from "react-day-picker"
 
 import { Vessel } from "@/types/vessel"
 import { cn } from "@/libs/utils"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { Popover } from "@/components/ui/popover"
 import { useMapStore } from "@/components/providers/map-store-provider"
 import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 
 import TrackedVesselItem from "./tracked-vessel-item"
-
-type Props = {
-  wideMode: boolean
-  parentIsOpen: boolean
-  openParent: () => void
-}
 
 function NoVesselsPlaceholder() {
   return (
@@ -54,16 +49,11 @@ function VesselsActions({
         onClick={onCreateFleet}
         disabled={disabledCreateFleet}
         className="border border-color-1 bg-inherit text-color-1"
-        color="primary"
       >
         <PenIcon className="size-4" />
         Create fleet
       </Button>
-      <Button
-        onClick={onViewTracks}
-        disabled={disabledViewTracks}
-        color="primary"
-      >
+      <Button onClick={onViewTracks} disabled={disabledViewTracks}>
         View tracks
         <ChevronRight className="size-4" />
       </Button>
@@ -72,63 +62,107 @@ function VesselsActions({
 }
 
 function TrackModeDatePicker({
+  label,
   date,
   setDate,
   maxDate,
   minDate,
+  className,
 }: {
+  label: string
   date: Date | undefined
   setDate: (date: Date | undefined) => void
   maxDate?: Date
   minDate?: Date
+  className?: string
 }) {
+  const defaultClassNames = getDefaultClassNames()
+  const disabledMatchers: Matcher[] = []
+
+  if (minDate) {
+    disabledMatchers.push({ before: minDate })
+  }
+
+  if (maxDate) {
+    disabledMatchers.push({ after: maxDate })
+  }
+
+  const onClear = () => {
+    setDate(undefined)
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
           className={cn(
-            "justify-start text-left font-normal bg-popover",
-            !date && "text-muted-foreground"
+            "justify-start bg-white text-left font-normal !text-color-2 shadow-md hover:border-color-1 hover:bg-white",
+            !date && "text-muted-foreground",
+            className
           )}
+          color="primary"
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span className="">Pick a date</span>}
+          <CalendarIcon className="mr-2 size-4" />
+          {date ? (
+            format(date, "dd/MM/yyyy")
+          ) : (
+            <span className="">{label}</span>
+          )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar
+      <PopoverContent className="z-10 w-auto p-0">
+        <DayPicker
           mode="single"
           selected={date}
           onSelect={setDate}
-          initialFocus
-          className="bg-white"
-          toDate={maxDate}
-          fromDate={minDate}
-
+          classNames={{
+            root: `${defaultClassNames.root} bg-white rounded-md`,
+            selected: `bg-color-1 rounded-md`,
+            today: `text-color-1`,
+            chevron: `fill-color-1`,
+            disabled: `${defaultClassNames.disabled} text-muted-foreground hover:bg-transparent`,
+            day: `text-color-2 hover:bg-color-1/20 rounded-md`,
+            month_caption: `text-color-2 p-3`,
+            weekdays: `text-color-2`,
+          }}
+          footer={
+            <div className="flex justify-center gap-1 p-4">
+              <Button
+                variant="outline"
+                onClick={onClear}
+                disabled={!date}
+                className="h-8 border-color-1 bg-white text-color-1 hover:border-color-1/20 hover:bg-white hover:text-color-1/40"
+              >
+                Clear
+              </Button>
+            </div>
+          }
+          disabled={disabledMatchers}
         />
       </PopoverContent>
     </Popover>
   )
 }
 
-function TrackModeHeader({
-  startDate,
-  setStartDate,
-  endDate,
-  setEndDate,
-}: {
-  startDate: Date | undefined
-  setStartDate: (date: Date | undefined) => void
-  endDate: Date | undefined
-  setEndDate: (date: Date | undefined) => void
-}) {
-  const { setMode: setMapMode } = useMapStore((state) => state)
-  const today = new Date()
+function TrackModeHeader() {
+  const {
+    setMode: setMapMode,
+    trackModeOptions,
+    setTrackModeOptions,
+  } = useMapStore((state) => state)
+  const { startDate, endDate } = trackModeOptions
 
-  const minDate = useMemo(() => {
-    return startDate ? startDate : today
-  }, [startDate])
+  const setStartDate = (date: Date | undefined) => {
+    setTrackModeOptions({ ...trackModeOptions, startDate: date })
+  }
+
+  const setEndDate = (date: Date | undefined) => {
+    setTrackModeOptions({ ...trackModeOptions, endDate: date })
+  }
+
+  const today = new Date();
+  const minDate = startDate ? startDate : today;
 
   const onSetStartDate = (date: Date | undefined) => {
     setStartDate(date)
@@ -151,18 +185,22 @@ function TrackModeHeader({
         />
       </div>
       <div className="flex justify-between">
-        <div className="flex justify-center items-center">
+        <div className="flex w-full items-center justify-center">
           <TrackModeDatePicker
+            label="Start date"
             date={startDate}
             setDate={onSetStartDate}
             maxDate={today}
+            className="flex-1"
           />
-          <MinusIcon className="size-4 text-color-1 mx-2" />
+          <MinusIcon className="mx-2 size-4 text-color-1" />
           <TrackModeDatePicker
+            label="End date"
             date={endDate}
             setDate={onSetEndDate}
             maxDate={today}
             minDate={minDate}
+            className="flex-1"
           />
         </div>
       </div>
@@ -170,30 +208,22 @@ function TrackModeHeader({
   )
 }
 
+type TrackedVesselsPanelProps = {
+  wideMode: boolean
+}
+
 export default function TrackedVesselsPanel({
   wideMode,
-  parentIsOpen,
-  openParent,
-}: Props) {
+}: TrackedVesselsPanelProps) {
   const {
     trackedVesselIDs,
-    removeTrackedVessel,
     mode: mapMode,
     setMode: setMapMode,
+    trackModeOptions,
+    setTrackModeOptions,
   } = useMapStore((state) => state)
   const { vessels: allVessels } = useVesselsStore((state) => state)
-  const [displayTrackedVessels, setDisplayTrackedVessels] = useState(false)
   const [trackedVesselsDetails, setTrackedVesselsDetails] = useState<Vessel[]>()
-
-  const [startDate, setStartDate] = useState<Date | undefined>()
-  const [endDate, setEndDate] = useState<Date | undefined>()
-
-  const showOrHideTrackedVessels = () => {
-    if (!parentIsOpen) {
-      openParent()
-    }
-    setDisplayTrackedVessels(!displayTrackedVessels)
-  }
 
   useEffect(() => {
     const vesselsDetails = allVessels.filter((vessel) =>
@@ -206,36 +236,38 @@ export default function TrackedVesselsPanel({
     return trackedVesselIDs.length > 0
   }, [trackedVesselIDs])
 
-  const onRemoveVesselTracked = (vesselID: number) => {
-    removeTrackedVessel(vesselID)
+  const onViewTracks = () => {
+    setTrackModeOptions({
+      ...trackModeOptions,
+      vesselsIDsShown: trackedVesselIDs,
+    })
+    setMapMode("track")
   }
 
-  const onViewTracks = () => {
-    setMapMode("excursion")
-  }
+  const vesselsSelectedCount = trackedVesselIDs.length
+
+  const [animateBadge, setAnimateBadge] = useState(false);
+
+  useEffect(() => {
+    if (vesselsSelectedCount > 0) {
+      setAnimateBadge(true);
+      const timer = setTimeout(() => setAnimateBadge(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [vesselsSelectedCount]);
 
   const WideModeTab = () => {
     return (
       <>
-        {mapMode === "excursion" && (
-          <TrackModeHeader
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-          />
-        )}
+        {mapMode === "track" && <TrackModeHeader />}
         {!hasTrackedVessels && <NoVesselsPlaceholder />}
 
         {trackedVesselsDetails?.map((vessel: Vessel, index) => {
           return (
             <TrackedVesselItem
               key={vessel.id}
-              showDetails={mapMode === "excursion"}
               vessel={vessel}
               colorIndex={index}
-              onRemove={onRemoveVesselTracked}
-              onView={() => {}}
               className={`${
                 index < allVessels.slice(10, 20).length - 1
                   ? "border-b border-color-3"
@@ -261,9 +293,23 @@ export default function TrackedVesselsPanel({
       <div>
         <h5
           className="flex gap-1 text-sm font-bold uppercase leading-6"
-          onClick={() => showOrHideTrackedVessels()}
         >
-          {!wideMode && <ShipIcon className="w-8 min-w-8" />}
+          {!wideMode && (
+            <div className="relative">
+              <ShipIcon className="w-8 min-w-8" />
+              {vesselsSelectedCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 flex justify-center items-center size-5 bg-color-1 text-color-3 border-none",
+                    animateBadge && "animate-grow-shrink"
+                  )}
+                >
+                  {vesselsSelectedCount}
+                </Badge>
+              )}
+            </div>
+          )}
           {mapMode === "position" && wideMode && (
             <span>{`Selected vessel (${trackedVesselIDs.length})`}</span>
           )}

@@ -11,6 +11,8 @@ export type Vessel = {
   external_marking: string
   ircs: string
   length_class: string
+  excursions_timeframe?: TimeframeExcursions
+  mapVisibility?: boolean
 }
 
 export type VesselMetrics = {
@@ -41,7 +43,7 @@ export type VesselPositions = VesselPosition[]
 
 export interface VesselPosition {
   arrival_port: string
-  excurision_id: number
+  excursion_id: number
   heading: number
   position: VesselPositionCoordinates
   speed: number
@@ -64,14 +66,19 @@ export type VesselExcursionSegmentGeo = {
   }
 }
 
+export type TimeframeExcursions = {
+  startDate?: Date
+  endDate?: Date
+  excursions: VesselExcursion[]
+  mapVisibility?: boolean
+}
+
 export type VesselExcursionSegmentsGeo = {
-  vesselId: number
   type: any
   features: any
 }
 
 export type VesselExcursionSegments = {
-  vesselId: number
   segments: VesselExcursionSegment[]
 }
 
@@ -100,8 +107,12 @@ export type VesselExcursion = {
   total_time_fishing_in_territorial_waters: string
   total_time_fishing_in_costal_waters: string
   total_time_extincting_amp: string
+
   created_at: string
   updated_at: String
+
+  segments?: VesselExcursionSegment[]
+  mapVisibility?: boolean
 }
 
 export type VesselExcursionSegment = {

@@ -27,13 +27,12 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
     return trackedVesselIDs.includes(vesselId)
   }
 
-  const handleDisplayTrail = async (vesselId: number) => {
+  const handleDisplayTrackedVessel = async (vesselId: number) => {
     if (isVesselTracked(vesselId)) {
       removeTrackedVessel(vesselId)
-      return
+    } else {
+      addTrackedVessel(vesselId)
     }
-    const response = await getVesselFirstExcursionSegments(vesselId)
-    addTrackedVessel(vesselId, response)
   }
   return (
     <div className="w-wrap flex flex-col rounded-t-lg bg-white shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 md:max-w-xl md:flex-row">
@@ -73,14 +72,12 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
           <p className="mb-1 text-gray-700 dark:text-gray-400">{timestamp}</p>
         </section>
         <section id="vessel-actions">
-          <Button onClick={() => handleDisplayTrail(vesselId)}>
-            {isVesselTracked(vesselId) ? "Hide" : "Display"} track
+          <Button
+            onClick={() => handleDisplayTrackedVessel(vesselId)}
+            className={`hover:bg-none ${!isVesselTracked(vesselId) ? "bg-color-1 hover:bg-color-1/50" : "bg-color-2 hover:bg-color-2/50"}`}
+          >
+            {isVesselTracked(vesselId) ? "Unselect" : "Select"} vessel
           </Button>
-          {isVesselTracked(vesselId) && (
-            <Link href="#" className="ml-2">
-              Show track details
-            </Link>
-          )}
         </section>
 
         <div className="absolute right-0 top-0 pr-3 pt-4">

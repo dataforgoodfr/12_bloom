@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import { CrosshairIcon, EyeIcon } from "lucide-react"
 
 import { VesselExcursion } from "@/types/vessel"
-import Toggle from "@/components/ui/custom/toggle"
+import SidebarExpander from "@/components/ui/custom/sidebar-expander"
 
 import TrackedVesselMetric from "./tracked-vessel-metric"
 
@@ -39,12 +39,12 @@ export default function TrackedVesselExcursion({
     }
 
     return outputTitle
-  }, [excursion])
+  }, [index, excursion])
 
   return (
-    <div className="flex gap-1">
-      <Toggle.Root className="w-full justify-between">
-        <Toggle.Header className="flex items-center justify-between">
+    <div className={`flex gap-1 ${className}`}>
+      <SidebarExpander.Root className="w-full justify-between">
+        <SidebarExpander.Header className="flex items-center justify-between">
           <h6 className="text-sm font-bold">{title}</h6>
           <div className="flex gap-2">
             <button
@@ -60,9 +60,9 @@ export default function TrackedVesselExcursion({
               <CrosshairIcon className="size-4" />
             </button>
           </div>
-        </Toggle.Header>
+        </SidebarExpander.Header>
 
-        <Toggle.Content>
+        <SidebarExpander.Content>
           <div className="flex w-full flex-col">
             <TrackedVesselMetric title="Total time fishing" value={1234} unit="time" />
             <TrackedVesselMetric title="MPA" value={123438} baseValue={2345} unit="time" >
@@ -72,8 +72,8 @@ export default function TrackedVesselExcursion({
             <TrackedVesselMetric title="Zones with no fishing rights" value={1} baseValue={100} unit="time" />
             <TrackedVesselMetric title="AIS default" value={37.2} baseValue={100} unit="time" />
           </div>
-        </Toggle.Content>
-      </Toggle.Root>
+        </SidebarExpander.Content>
+      </SidebarExpander.Root>
     </div>
   )
 }

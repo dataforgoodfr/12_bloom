@@ -1,6 +1,6 @@
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/libs/utils"
-import Toggle from "@/components/ui/custom/toggle"
+import SidebarExpander from "@/components/ui/custom/sidebar-expander"
 
 export interface TrackedVesselMetricProps {
   title: string
@@ -12,14 +12,14 @@ export interface TrackedVesselMetricProps {
 
 export default function TrackedVesselMetric({ title, value, baseValue, children, unit }: TrackedVesselMetricProps) {
   return (
-    <Toggle.Root className="w-full justify-between" disabled={!children}>
-      <Toggle.Header>
+    <SidebarExpander.Root className="w-full justify-between" disabled={!children}>
+      <SidebarExpander.Header>
         <TrackedVesselMetricHeader title={title} value={value} baseValue={baseValue} unit={unit} />
-      </Toggle.Header>
-      <Toggle.Content>
+      </SidebarExpander.Header>
+      <SidebarExpander.Content>
         {children}
-      </Toggle.Content>
-    </Toggle.Root>
+      </SidebarExpander.Content>
+    </SidebarExpander.Root>
   )
 }
 
