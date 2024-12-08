@@ -9,6 +9,8 @@ from bloom.infra.repositories.repository_vessel import VesselRepository
 from bloom.infra.repositories.repository_vessel_position import VesselPositionRepository
 from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
+from bloom.infra.repositories.repository_metrics import MetricsRepository
+
 from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.services.metrics import MetricsService
 from bloom.usecase.GenerateAlerts import GenerateAlerts
@@ -87,5 +89,10 @@ class UseCases(containers.DeclarativeContainer):
 
     metrics_service = providers.Factory(
         MetricsService,
+        session_factory=db.provided.session,
+    )
+
+    metrics_repository = providers.Factory(
+        MetricsRepository,
         session_factory=db.provided.session,
     )

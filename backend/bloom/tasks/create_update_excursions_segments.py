@@ -17,7 +17,9 @@ from bloom.infra.repositories.repository_task_execution import TaskExecutionRepo
 from bloom.logger import logger
 from bloom.domain.rel_segment_zone import RelSegmentZone
 from bloom.infra.repositories.repository_rel_segment_zone import RelSegmentZoneRepository
-#from bloom.infra.repositories.repository_port import PortRepository
+from bloom.infra.repositories.repository_port import PortRepository
+from bloom.domain.metrics import Metrics #1
+
 warnings.filterwarnings("ignore")
 
 # minimal distance to consider a vessel being in a port (in meters)
@@ -101,7 +103,8 @@ def run():
     vessel_position_repository = use_cases.vessel_position_repository()
     port_repository = use_cases.port_repository()
     excursion_repository = use_cases.excursion_repository()
-
+    metrics_repository = use_cases.metrics_repository() #1
+    metrics_repository = use_cases.metrics_repository() #1
     nb_created_excursion = 0
     nb_closed_excursion = 0
 
@@ -307,30 +310,62 @@ def run():
         new_rels = []
         excursions = {}
         segments = []
+        new_metricss=[]
+        new_metricss=[]
         max_created_updated = point_in_time
+        i=0
         for segment, zones in result.items():
             segment_in_zone = False
+            vessel_attributes= segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)#metrics_repository.get_vessel_excursion_segment_by_id(session,segment.id) #1
+            types='AT_SEA'
+            zones_names=[]
             for zone in zones:
                 if segment.type == "DEFAULT_AIS":
                     # Issue 234: ne pas créer les relations pour les segments en default AIS
+                    types='DEFAULT_AIS'
                     continue
                 segment_in_zone = True
                 new_rels.append(RelSegmentZone(segment_id=segment.id, zone_id=zone.id))
                 if zone.category == "amp":
                     segment.in_amp_zone = True
+                    types='in_amp'
                 elif zone.category == "Fishing coastal waters (6-12 NM)":
-                    country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
+                    country_iso3 = vessel_attributes.country_iso3
                     beneficiaries = zone.json_data.get("beneficiaries", [])
                     if country_iso3 not in beneficiaries:
                         segment.in_zone_with_no_fishing_rights = True
+                        types='in_zone_with_no_fishing_rights'
                 elif zone.category == "Clipped territorial seas":
-                    country_iso3 = segment_repository.get_vessel_attribute_by_segment_created_updated_after(session, segment.id, point_in_time)
+                    country_iso3 = vessel_attributes.country_iso3
                     if country_iso3 != "FRA":
                         segment.in_zone_with_no_fishing_rights = True
+                        types='in_zone_with_no_fishing_rights'
                 elif zone.category == "Territorial seas":
                     segment.in_territorial_waters = True
+                    types="in_territorial_water" #1
+                #elif zone.category == "white zone":    #prospectif
+                #    segment.in_white_zone = True
+                #    types="white_zone"  
+                #duration_total_seconds = segment.segment_duration.total_seconds()
+
+                new_metrics= Metrics(#1
+                    timestamp = segment.timestamp_start, 
+                    vessel_id = vessel_attributes.id,
+                    vessel_mmsi = vessel_attributes.mmsi,
+                    ship_name = vessel_attributes.ship_name,
+                    vessel_country_iso3=vessel_attributes.country_iso3,
+                    vessel_imo=vessel_attributes.imo,
+                    type = types, 
+                    duration_total = duration_total_seconds,
+                    duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None,
+                    zone_name = zone.name,
+                    zone_sub_category=zone.sub_category
+                ) 
             if segment_in_zone:
                 segments.append(segment)
+
+                new_metricss.append(new_metrics) 
+
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
                                        excursion_repository.get_excursion_by_id(session, segment.excursion_id))
@@ -377,6 +412,8 @@ def run():
         logger.info(f"{len(segments)} segments mis à jour")
         RelSegmentZoneRepository.batch_create_rel_segment_zone(session, new_rels)
         logger.info(f"{len(new_rels)} associations(s) créées")
+        metrics_repository.batch_create_metrics(session, new_metricss) #1
+        logger.info(f"{len(new_metricss)} metrics(s) créés") #1
         vessels_ids = set(exc.vessel_id for exc in excursions.values())
         nb_last = segment_repository.update_last_segments(session, vessels_ids)
         logger.info(f"{nb_last} derniers segments mis à jour")
