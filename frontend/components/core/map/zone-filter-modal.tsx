@@ -12,11 +12,14 @@ import {
 import IconButton from "@/components/ui/icon-button"
 
 import { FilterButton } from "./filter-button"
+import { cn } from "@/libs/utils"
+import { LayersIcon } from "lucide-react"
 
 interface ZoneFilterModalProps {
   activeZones: string[]
   setActiveZones: (zones: string[]) => void
   isLoading: boolean
+  className?: string
 }
 
 const ZONE_LABELS = [
@@ -38,6 +41,7 @@ export default function ZoneFilterModal({
   activeZones,
   setActiveZones,
   isLoading,
+  className,
 }: ZoneFilterModalProps) {
   const zoneCategories = Object.values(ZoneCategory)
 
@@ -55,20 +59,16 @@ export default function ZoneFilterModal({
         <IconButton
           disabled={isLoading}
           description="Configure layers display settings"
+          className="dark:text-white"
         >
           {isLoading ? (
             <Spinner />
           ) : (
-            <Image
-              src="/icons/card-file.svg"
-              alt="Layers"
-              width={26}
-              height={26}
-            />
+            <LayersIcon className="size-5 text-black dark:text-white" />
           )}
         </IconButton>
       </DialogTrigger>
-      <DialogContent className="flex w-64 flex-col gap-6 bg-white">
+      <DialogContent className={cn("flex w-64 flex-col gap-6 bg-white", className)}>
         <DialogHeader className="flex flex-row items-center justify-between space-y-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Image
