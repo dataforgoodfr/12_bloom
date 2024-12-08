@@ -330,13 +330,13 @@ def run():
                     segment.in_amp_zone = True
                     types='in_amp'
                 elif zone.category == "Fishing coastal waters (6-12 NM)":
-                    country_iso3 = vessel_attributes.country_iso3#df.loc[0, "vessel_country_iso3"]
+                    country_iso3 = vessel_attributes.country_iso3
                     beneficiaries = zone.json_data.get("beneficiaries", [])
                     if country_iso3 not in beneficiaries:
                         segment.in_zone_with_no_fishing_rights = True
                         types='in_zone_with_no_fishing_rights'
                 elif zone.category == "Clipped territorial seas":
-                    country_iso3 = vessel_attributes.country_iso3#df.loc[0, "vessel_country_iso3"]
+                    country_iso3 = vessel_attributes.country_iso3
                     if country_iso3 != "FRA":
                         segment.in_zone_with_no_fishing_rights = True
                         types='in_zone_with_no_fishing_rights'
@@ -346,25 +346,25 @@ def run():
                 #elif zone.category == "white zone":    #prospectif
                 #    segment.in_white_zone = True
                 #    types="white_zone"  
-                duration_total_seconds = segment.segment_duration.total_seconds()
+                #duration_total_seconds = segment.segment_duration.total_seconds()
 
                 new_metrics= Metrics(#1
-                    timestamp = segment.timestamp_start, #1
-                    vessel_id = vessel_attributes.id,#df.loc[0, 'vessel_id'] if not df.empty else None, #1
-                    vessel_mmsi = vessel_attributes.mmsi,#df.loc[0,'vessel_mmsi'] if not df.empty else None, #1
-                    ship_name = vessel_attributes.ship_name,#df.loc[0,'ship_name'] if not df.empty else None, #1
-                    vessel_country_iso3=vessel_attributes.country_iso3,# df.loc[0,'vessel_country_iso3'] if not df.empty else None,
-                    vessel_imo=vessel_attributes.imo,#df.loc[0,'vessel_imo'] if not df.empty else None,
-                    type = types, #1
-                    duration_total = duration_total_seconds, #fonctionne si 1 segment = zone max #1
-                    duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None, #1
-                    zone_name = zone.name,#1
+                    timestamp = segment.timestamp_start, 
+                    vessel_id = vessel_attributes.id,
+                    vessel_mmsi = vessel_attributes.mmsi,
+                    ship_name = vessel_attributes.ship_name,
+                    vessel_country_iso3=vessel_attributes.country_iso3,
+                    vessel_imo=vessel_attributes.imo,
+                    type = types, 
+                    duration_total = duration_total_seconds,
+                    duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None,
+                    zone_name = zone.name,
                     zone_sub_category=zone.sub_category
-                ) #1
+                ) 
             if segment_in_zone:
                 segments.append(segment)
 
-                new_metricss.append(new_metrics) #1
+                new_metricss.append(new_metrics) 
 
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
