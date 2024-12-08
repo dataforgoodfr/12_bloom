@@ -70,13 +70,8 @@ export default function ZoneFilterModal({
       </DialogTrigger>
       <DialogContent className={cn("flex w-64 flex-col gap-6 bg-white", className)}>
         <DialogHeader className="flex flex-row items-center justify-between space-y-0">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Image
-              src="/icons/card-file.svg"
-              alt="Layers"
-              width={26}
-              height={26}
-            />
+          <DialogTitle className="flex items-center gap-2 text-xl text-black">
+            <LayersIcon className="size-5" />
             Zones
           </DialogTitle>
         </DialogHeader>
