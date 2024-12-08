@@ -1,5 +1,6 @@
 "use client"
 
+import { useShallow } from "zustand/react/shallow"
 import { useState } from "react"
 import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 import { FlyToInterpolator } from "deck.gl"
@@ -14,8 +15,9 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
-import { useMapStore } from "@/components/providers/map-store-provider"
-import { useVesselsStore } from "@/components/providers/vessels-store-provider"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useVesselsStore } from "@/libs/stores/vessels-store"
 
 type Props = {
   wideMode: boolean
@@ -26,15 +28,33 @@ const SEPARATOR = "___"
 export function VesselFinderDemo({ wideMode }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState<string>("")
+
+  const { addTrackedVessel, trackedVesselIDs } = useTrackModeOptionsStore(
+    useShallow((state) => ({
+      addTrackedVessel: state.addTrackedVessel,
+      trackedVesselIDs: state.trackedVesselIDs,
+    }))
+  )
+
   const {
-    addTrackedVessel,
-    trackedVesselIDs,
     setActivePosition,
     viewState,
+    latestPositions,
     setViewState,
-  } = useMapStore((state) => state)
-  const { vessels: allVessels } = useVesselsStore((state) => state)
-  const { latestPositions } = useMapStore((state) => state)
+  } = useMapStore(
+    useShallow((state) => ({
+      viewState: state.viewState,
+      latestPositions: state.latestPositions,
+      setActivePosition: state.setActivePosition,
+      setViewState: state.setViewState,
+    }))
+  )
+
+  const { vessels: allVessels } = useVesselsStore(
+    useShallow((state) => ({
+      vessels: state.vessels,
+    }))
+  )
 
   const onSelectVessel = async (vesselIdentifier: string) => {
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])

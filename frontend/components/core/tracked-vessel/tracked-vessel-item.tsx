@@ -3,9 +3,11 @@ import { EyeIcon, XIcon } from "lucide-react"
 
 import { Vessel } from "@/types/vessel"
 import SidebarExpander from "@/components/ui/custom/sidebar-expander"
-import { useMapStore } from "@/components/providers/map-store-provider"
+import { useMapStore } from "@/libs/stores/map-store"
 
 import TrackedVesselDetails from "./tracked-vessel-details"
+import { useShallow } from "zustand/react/shallow"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
 
 const shipColorsBackground = [
   "bg-vessel-color-1",
@@ -33,13 +35,20 @@ export default function TrackedVesselItem({
   colorIndex = 0,
   className,
 }: TrackedVesselItemProps) {
-  const vesselBgColorClass = useMemo(() => {
-    return shipColorsBackground[colorIndex]
-  }, [colorIndex])
-  const { mode: mapMode, removeTrackedVessel, trackModeOptions, setTrackModeOptions } = useMapStore((state) => state)
-  const isTrackMode = mapMode === "track"
+  const { mode: mapMode } = useMapStore(useShallow((state) => ({
+    mode: state.mode,
+  })))
 
-  const [isExcursionsTimeframeVisible, setIsExcursionsTimeframeVisible] = useState(true)
+  const { removeTrackedVessel, vesselsIDsHidden, setVesselVisibility } = useTrackModeOptionsStore(useShallow((state) => ({
+    removeTrackedVessel: state.removeTrackedVessel,
+    vesselsIDsHidden: state.vesselsIDsHidden,
+    setVesselVisibility: state.setVesselVisibility,
+  })))
+
+  const isHidden = vesselsIDsHidden.includes(vessel.id)
+
+  const vesselBgColorClass = shipColorsBackground[colorIndex];
+  const isTrackMode = mapMode === "track"
 
   const onRemove = () => {
     removeTrackedVessel(vessel.id)
@@ -49,13 +58,7 @@ export default function TrackedVesselItem({
     if (!vessel.excursions_timeframe) {
       return
     }
-    if (isExcursionsTimeframeVisible) {
-      vessel.excursions_timeframe.mapVisibility = false
-      setIsExcursionsTimeframeVisible(false)
-    } else {
-      vessel.excursions_timeframe.mapVisibility = true
-      setIsExcursionsTimeframeVisible(true)
-    }
+    setVesselVisibility(vessel.id, !isHidden)
   }
 
   return (
@@ -88,7 +91,7 @@ export default function TrackedVesselItem({
               {isTrackMode && (
                 <button
                   onClick={onShowSidebarExpander}
-                  className={`transition-colors hover:text-color-1 hover:text-color-1/40 ${isExcursionsTimeframeVisible ? 'text-color-1' : ''}`}
+                  className={`transition-colors hover:text-color-1 hover:text-color-1/40 ${!isHidden ? 'text-color-1' : ''}`}
                 >
                   <EyeIcon className="size-4" />
                 </button>

@@ -23,7 +23,10 @@ import {
 import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
 import MapTooltip from "@/components/ui/tooltip-map-template"
 import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
-import { useMapStore } from "@/components/providers/map-store-provider"
+
+import { useMapStore } from "@/libs/stores/map-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useShallow } from "zustand/react/shallow"
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions
@@ -49,18 +52,28 @@ export default function CoreMap({
   zones,
   isLoading,
 }: CoreMapProps) {
+  const { trackedVesselIDs } = useTrackModeOptionsStore(
+    useShallow((state) => ({
+      trackedVesselIDs: state.trackedVesselIDs,
+    }))
+  )
+
   const {
-    viewState,
-    setViewState,
-    activePosition,
-    setActivePosition,
-    trackedVesselIDs,
-    trackedVesselSegments,
-    setLatestPositions,
     mode: mapMode,
-    trackModeOptions,
+    viewState,
+    activePosition,
     displayedZones,
-  } = useMapStore((state) => state)
+    setActivePosition,
+    setViewState,
+  } = useMapStore(useShallow((state) => ({
+    mode: state.mode,
+    viewState: state.viewState,
+    activePosition: state.activePosition,
+    displayedZones: state.displayedZones,
+    setViewState: state.setViewState,
+    setActivePosition: state.setActivePosition,
+    }))
+  )
 
   const [coordinates, setCoordinates] = useState<string>("-°N -°E")
 

@@ -8,6 +8,7 @@ import {
   getVesselsLatestPositions,
 } from "@/services/backend-rest-client"
 import useSWR from "swr"
+import { useShallow } from 'zustand/react/shallow'
 
 import { Vessel, VesselPosition } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
@@ -15,8 +16,9 @@ import LeftPanel from "@/components/core/left-panel"
 import MapControls from "@/components/core/map-controls"
 import Map from "@/components/core/map/main-map"
 import PositionPreview from "@/components/core/map/position-preview"
-import { useMapStore } from "@/components/providers/map-store-provider"
-import { useVesselsStore } from "@/components/providers/vessels-store-provider"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useVesselsStore } from "@/libs/stores/vessels-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, {
@@ -26,15 +28,14 @@ const fetcher = async (url: string) => {
 }
 
 export default function MapPage() {
-  const { setVessels } = useVesselsStore((state) => state)
+  const setVessels = useVesselsStore((state) => state.setVessels)
 
-  const {
-    trackedVesselIDs,
-    mode: mapMode,
-    trackModeOptions,
-    setTrackModeOptions
-  } = useMapStore((state) => state)
-
+  const mapMode = useMapStore((state) => state.mode)
+  const { startDate, endDate, trackedVesselIDs } = useTrackModeOptionsStore(useShallow((state) => ({
+    startDate: state.startDate,
+    endDate: state.endDate,
+    trackedVesselIDs: state.trackedVesselIDs,
+  })))
 
   const { data: vessels = [], isLoading: isLoadingVessels } = useSWR<Vessel[]>(
     "/api/vessels",
@@ -71,7 +72,6 @@ export default function MapPage() {
   })
 
   const [isLoadingExcursions, setIsLoadingExcursions] = useState(false);
-  const { startDate, endDate, vesselsIDsShown } = trackModeOptions;
 
   const vesselsWithExcursionsTimeframeShown = useMemo(() => {
     return vessels.filter((vessel) => trackedVesselIDs.includes(vessel.id) && vessel.excursions_timeframe?.mapVisibility !== false);

@@ -6,15 +6,14 @@ import TrawlWatchLogo from "@/public/trawlwatch.svg"
 import { ChartBarIcon } from "@heroicons/react/24/outline"
 import { motion, useAnimationControls } from "framer-motion"
 
-import { Vessel } from "@/types/vessel"
 import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
-import { useVesselsStore } from "@/components/providers/vessels-store-provider"
 
 import Spinner from "../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 import { ChevronRightIcon } from "lucide-react"
-import { useMapStore } from "../providers/map-store-provider"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useShallow } from "zustand/react/shallow"
 
 const containerVariants = {
   close: {
@@ -53,9 +52,9 @@ export default function LeftPanel({ isLoading }: LeftPanelProps) {
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
 
-  const { mode: mapMode } = useMapStore(
-    (state) => state
-  )
+  const { mode: mapMode } = useMapStore(useShallow((state) => ({
+    mode: state.mode,
+  })))
 
   useEffect(() => {
     const control = isOpen ? "open" : "close"

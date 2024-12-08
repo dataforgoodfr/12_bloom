@@ -18,8 +18,11 @@ import { cn } from "@/libs/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Popover } from "@/components/ui/popover"
-import { useMapStore } from "@/components/providers/map-store-provider"
-import { useVesselsStore } from "@/components/providers/vessels-store-provider"
+
+import { useVesselsStore } from "@/libs/stores/vessels-store"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useShallow } from "zustand/react/shallow"
 
 import TrackedVesselItem from "./tracked-vessel-item"
 
@@ -147,19 +150,17 @@ function TrackModeDatePicker({
 
 function TrackModeHeader() {
   const {
-    setMode: setMapMode,
-    trackModeOptions,
-    setTrackModeOptions,
-  } = useMapStore((state) => state)
-  const { startDate, endDate } = trackModeOptions
+    setMode: setMapMode
+  } = useMapStore(useShallow((state) => ({
+    setMode: state.setMode,
+  })))
 
-  const setStartDate = (date: Date | undefined) => {
-    setTrackModeOptions({ ...trackModeOptions, startDate: date })
-  }
-
-  const setEndDate = (date: Date | undefined) => {
-    setTrackModeOptions({ ...trackModeOptions, endDate: date })
-  }
+  const { startDate, endDate, setStartDate, setEndDate } = useTrackModeOptionsStore(useShallow((state) => ({
+    startDate: state.startDate,
+    endDate: state.endDate,
+    setStartDate: state.setStartDate,
+    setEndDate: state.setEndDate,
+  })))
 
   const today = new Date();
   const minDate = startDate ? startDate : today;
@@ -216,31 +217,32 @@ export default function TrackedVesselsPanel({
   wideMode,
 }: TrackedVesselsPanelProps) {
   const {
-    trackedVesselIDs,
     mode: mapMode,
     setMode: setMapMode,
-    trackModeOptions,
-    setTrackModeOptions,
-  } = useMapStore((state) => state)
-  const { vessels: allVessels } = useVesselsStore((state) => state)
-  const [trackedVesselsDetails, setTrackedVesselsDetails] = useState<Vessel[]>()
+  } = useMapStore(useShallow((state) => ({
+    mode: state.mode,
+    setMode: state.setMode,
+  })))
 
-  useEffect(() => {
-    const vesselsDetails = allVessels.filter((vessel) =>
-      trackedVesselIDs.includes(vessel.id)
-    )
-    setTrackedVesselsDetails(vesselsDetails)
+  const { trackedVesselIDs, setTrackedVesselIDs } = useTrackModeOptionsStore(useShallow((state) => ({
+    trackedVesselIDs: state.trackedVesselIDs,
+    setTrackedVesselIDs: state.setTrackedVesselIDs,
+  })))
+
+  const { vessels: allVessels } = useVesselsStore(useShallow((state) => ({
+    vessels: state.vessels,
+  })))
+
+  const trackedVesselsDetails = useMemo(() => {
+    return allVessels.filter((vessel) => trackedVesselIDs.includes(vessel.id))
   }, [allVessels, trackedVesselIDs])
+
 
   const hasTrackedVessels = useMemo(() => {
     return trackedVesselIDs.length > 0
   }, [trackedVesselIDs])
 
   const onViewTracks = () => {
-    setTrackModeOptions({
-      ...trackModeOptions,
-      vesselsIDsShown: trackedVesselIDs,
-    })
     setMapMode("track")
   }
 
