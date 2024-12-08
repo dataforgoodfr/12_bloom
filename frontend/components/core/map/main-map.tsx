@@ -34,12 +34,19 @@ type CoreMapProps = {
   }
 }
 
-const VESSEL_COLOR = [16, 181, 16, 210]
-const TRACKED_VESSEL_COLOR = [128, 16, 189, 210]
+const VESSEL_COLOR = [94, 141, 185]
+const TRACKED_VESSEL_COLOR = [30, 224, 171]
 
-// Add a type to distinguish zones
-type ZoneWithType = ZoneWithGeometry & {
-  renderType: "amp" | "territorial" | "fishing"
+const getOpacityFromTimestamp = (timestamp: string) => {
+  const now = new Date()
+  const positionTime = new Date(timestamp)
+  const diffInHours =
+    (now.getTime() - positionTime.getTime()) / (1000 * 60 * 60)
+
+  if (diffInHours <= 0.75) return 255 // 100% opacity
+  if (diffInHours <= 3) return 179 // 70% opacity
+  if (diffInHours <= 5) return 140 // 55% opacity
+  return 102 // 40% opacity
 }
 
 export default function CoreMap({
@@ -119,13 +126,24 @@ export default function CoreMap({
             mask: true,
           },
         },
-        getSize: 16,
-        getColor: (vp: VesselPosition) => {
-          return new Uint8ClampedArray(
-            isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR
-          )
+        getSize: (vp: VesselPosition) => {
+          const length = vp.vessel.length || 0
+          if (length > 80) return 30 // Large vessels
+          if (length > 40) return 20 // Small vessels
+          return 14 // Medium vessels (default)
         },
-
+        getColor: (vp: VesselPosition) => {
+          const baseColor = isVesselSelected(vp)
+            ? TRACKED_VESSEL_COLOR
+            : VESSEL_COLOR
+          const opacity = getOpacityFromTimestamp(vp.timestamp)
+          return new Uint8ClampedArray([
+            baseColor[0],
+            baseColor[1],
+            baseColor[2],
+            opacity,
+          ])
+        },
         pickable: true,
         onClick: onVesselClick,
         updateTriggers: {
@@ -378,7 +396,11 @@ export default function CoreMap({
   return (
     <DeckGL
       viewState={viewState}
-      controller={true}
+      controller={{
+        dragRotate: false,
+        touchRotate: false,
+        keyboard: false,
+      }}
       layers={layers}
       onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
       getCursor={({ isHovering, isDragging }) => {

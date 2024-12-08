@@ -116,7 +116,13 @@ export default function LeftPanel({ vessels, isLoading }: LeftPanelProps) {
           </NavigationLink>
         </div>
         <div className="flex flex-col gap-3 bg-color-3 p-5">
-          {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <Spinner className="text-white" />
+            </div>
+          ) : (
+            <VesselFinderDemo wideMode={isOpen} />
+          )}
         </div>
         <div className="flex flex-col gap-3 overflow-auto bg-color-3 p-5">
           <TrackedVesselsPanel
