@@ -10,7 +10,7 @@ class Metrics(BaseModel) :
     vessel_mmsi: int
     ship_name: str
     type : str
-    duration_total : timedelta
-    duration_fishing: Optional[timedelta] = None
+    duration_total : int
+    duration_fishing: Optional[int] = None
     mpa_name : Optional[str] = None
 
