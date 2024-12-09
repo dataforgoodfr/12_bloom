@@ -13,6 +13,7 @@ import Spinner from "../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 import { ChevronRightIcon } from "lucide-react"
 import { useMapStore } from "@/libs/stores/map-store"
+import { useLoaderStore } from "@/libs/stores/loader-store"
 import { useShallow } from "zustand/react/shallow"
 
 const containerVariants = {
@@ -43,14 +44,14 @@ const svgVariants = {
   },
 }
 
-type LeftPanelProps = {
-  isLoading: boolean
-}
-
-export default function LeftPanel({ isLoading }: LeftPanelProps) {
+export default function LeftPanel() {
   const [isOpen, setIsOpen] = useState(false)
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
+
+  const { vesselsLoading } = useLoaderStore(useShallow((state) => ({
+    vesselsLoading: state.vesselsLoading,
+  })))
 
   const { mode: mapMode } = useMapStore(useShallow((state) => ({
     mode: state.mode,
@@ -104,7 +105,7 @@ export default function LeftPanel({ isLoading }: LeftPanelProps) {
             </NavigationLink>
           </div>
           <div className="flex flex-col gap-3 bg-color-3 p-5">
-              {isLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
+              {vesselsLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
             </div>
           </>
         )}

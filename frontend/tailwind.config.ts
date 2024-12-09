@@ -3,7 +3,7 @@ const { fontFamily } = require("tailwindcss/defaultTheme")
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
-  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
+  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "libs/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -65,18 +65,18 @@ module.exports = {
         "color-5": "#374056",
 
         // Vessel colors
-        "vessel-color-1": "#FF5A81",
-        "vessel-color-2": "#E0B51E",
-        "vessel-color-3": "#AEFF00",
-        "vessel-color-4": "#7DFFBC",
-        "vessel-color-5": "#5090FF",
-        "vessel-color-6": "#D01EE0",
-        "vessel-color-7": "#FF7D53",
-        "vessel-color-8": "#FFB972",
-        "vessel-color-9": "#61FF31",
-        "vessel-color-10": "#00E0AC",
-        "vessel-color-11": "#31CCFF",
-        "vessel-color-12": "#927FFF",
+        "vessel-color-0": "rgb(255, 90, 129)",
+        "vessel-color-1": "rgb(224, 181, 30)",
+        "vessel-color-2": "rgb(174, 255, 0)",
+        "vessel-color-3": "rgb(125, 255, 188)",
+        "vessel-color-4": "rgb(80, 144, 255)",
+        "vessel-color-5": "rgb(208, 30, 224)",
+        "vessel-color-6": "rgb(255, 125, 83)",
+        "vessel-color-7": "rgb(255, 185, 114)",
+        "vessel-color-8": "rgb(97, 255, 49)",
+        "vessel-color-9": "rgb(0, 224, 172)",
+        "vessel-color-10": "rgb(49, 204, 255)",
+        "vessel-color-11": "rgb(146, 127, 255)",
 
         // Progress Colors
         "progress-color-1": "#6E83B7",

@@ -44,7 +44,7 @@ const defaultInitState: IMapState = {
   latestPositions: [],
   mode: "position",
   displayedZones: [],
-  activePosition: null,
+  activePosition: null
 }
 
 export const useMapStore = create<IMapStore>()((set) => ({
@@ -91,5 +91,5 @@ export const useMapStore = create<IMapStore>()((set) => ({
       ...state,
       displayedZones,
     }))
-  },
+  }
 }))

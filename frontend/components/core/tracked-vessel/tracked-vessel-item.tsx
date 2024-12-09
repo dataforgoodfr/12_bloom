@@ -8,57 +8,40 @@ import { useMapStore } from "@/libs/stores/map-store"
 import TrackedVesselDetails from "./tracked-vessel-details"
 import { useShallow } from "zustand/react/shallow"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-
-const shipColorsBackground = [
-  "bg-vessel-color-1",
-  "bg-vessel-color-2",
-  "bg-vessel-color-3",
-  "bg-vessel-color-4",
-  "bg-vessel-color-5",
-  "bg-vessel-color-6",
-  "bg-vessel-color-7",
-  "bg-vessel-color-8",
-  "bg-vessel-color-9",
-  "bg-vessel-color-10",
-  "bg-vessel-color-11",
-  "bg-vessel-color-12",
-]
+import { getVesselColorBg } from "@/libs/colors"
 
 export interface TrackedVesselItemProps {
-  colorIndex: number
+  listIndex: number
   vessel: Vessel
   className?: string
 }
 
 export default function TrackedVesselItem({
   vessel,
-  colorIndex = 0,
+  listIndex = 0,
   className,
 }: TrackedVesselItemProps) {
   const { mode: mapMode } = useMapStore(useShallow((state) => ({
     mode: state.mode,
   })))
 
-  const { removeTrackedVessel, vesselsIDsHidden, setVesselVisibility } = useTrackModeOptionsStore(useShallow((state) => ({
+  const { removeTrackedVessel, vesselsIDsHidden, toggleVesselVisibility } = useTrackModeOptionsStore(useShallow((state) => ({
     removeTrackedVessel: state.removeTrackedVessel,
     vesselsIDsHidden: state.vesselsIDsHidden,
-    setVesselVisibility: state.setVesselVisibility,
+    toggleVesselVisibility: state.toggleVesselVisibility,
   })))
 
-  const isHidden = vesselsIDsHidden.includes(vessel.id)
+  const isHidden = useMemo(() => vesselsIDsHidden.includes(vessel.id), [vesselsIDsHidden, vessel.id])
 
-  const vesselBgColorClass = shipColorsBackground[colorIndex];
+  const vesselBgColorClass = getVesselColorBg(listIndex);
   const isTrackMode = mapMode === "track"
 
   const onRemove = () => {
     removeTrackedVessel(vessel.id)
   }
 
-  const onShowSidebarExpander = () => {
-    if (!vessel.excursions_timeframe) {
-      return
-    }
-    setVesselVisibility(vessel.id, !isHidden)
+  const onToggleVisibility = () => {
+    toggleVesselVisibility(vessel.id)
   }
 
   return (
@@ -90,7 +73,7 @@ export default function TrackedVesselItem({
               </button>
               {isTrackMode && (
                 <button
-                  onClick={onShowSidebarExpander}
+                  onClick={onToggleVisibility}
                   className={`transition-colors hover:text-color-1 hover:text-color-1/40 ${!isHidden ? 'text-color-1' : ''}`}
                 >
                   <EyeIcon className="size-4" />
@@ -102,8 +85,6 @@ export default function TrackedVesselItem({
             <div className="flex w-full  flex-col">
               <TrackedVesselDetails
                 vessel={vessel}
-                onExcursionView={() => {}}
-                onExcursionFocus={() => {}}
               />
             </div>
           </SidebarExpander.Content>

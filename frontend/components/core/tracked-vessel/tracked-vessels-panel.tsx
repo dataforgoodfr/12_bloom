@@ -25,6 +25,7 @@ import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store
 import { useShallow } from "zustand/react/shallow"
 
 import TrackedVesselItem from "./tracked-vessel-item"
+import Spinner from "@/components/ui/custom/spinner"
 
 function NoVesselsPlaceholder() {
   return (
@@ -119,6 +120,7 @@ function TrackModeDatePicker({
           mode="single"
           selected={date}
           onSelect={setDate}
+
           classNames={{
             root: `${defaultClassNames.root} bg-white rounded-md`,
             selected: `bg-color-1 rounded-md`,
@@ -162,18 +164,26 @@ function TrackModeHeader() {
     setEndDate: state.setEndDate,
   })))
 
+  const [startDateSelected, setStartDateSelected] = useState(startDate);
+  const [endDateSelected, setEndDateSelected] = useState(endDate);
+
   const today = new Date();
   const minDate = startDate ? startDate : today;
 
   const onSetStartDate = (date: Date | undefined) => {
-    setStartDate(date)
-    if (date && endDate && date > endDate) {
-      setEndDate(undefined)
+    setStartDateSelected(date)
+    if (date && endDateSelected && date > endDateSelected) {
+      setEndDateSelected(undefined)
     }
   }
 
   const onSetEndDate = (date: Date | undefined) => {
-    setEndDate(date)
+    setEndDateSelected(date)
+  }
+
+  const onApply = () => {
+    setStartDate(startDateSelected)
+    setEndDate(endDateSelected)
   }
 
   return (
@@ -186,23 +196,24 @@ function TrackModeHeader() {
         />
       </div>
       <div className="flex justify-between">
-        <div className="flex w-full items-center justify-center">
+        <div className="flex w-full items-center justify-center gap-2">
           <TrackModeDatePicker
             label="Start date"
-            date={startDate}
+            date={startDateSelected}
             setDate={onSetStartDate}
             maxDate={today}
             className="flex-1"
           />
-          <MinusIcon className="mx-2 size-4 text-color-1" />
+          <MinusIcon className="size-4 text-color-1" />
           <TrackModeDatePicker
             label="End date"
-            date={endDate}
+            date={endDateSelected}
             setDate={onSetEndDate}
             maxDate={today}
             minDate={minDate}
             className="flex-1"
           />
+          <Button onClick={onApply}>OK</Button>
         </div>
       </div>
     </div>
@@ -219,9 +230,11 @@ export default function TrackedVesselsPanel({
   const {
     mode: mapMode,
     setMode: setMapMode,
+    setActivePosition: setActivePosition,
   } = useMapStore(useShallow((state) => ({
     mode: state.mode,
     setMode: state.setMode,
+    setActivePosition: state.setActivePosition,
   })))
 
   const { trackedVesselIDs, setTrackedVesselIDs } = useTrackModeOptionsStore(useShallow((state) => ({
@@ -244,6 +257,7 @@ export default function TrackedVesselsPanel({
 
   const onViewTracks = () => {
     setMapMode("track")
+    setActivePosition(null)
   }
 
   const vesselsSelectedCount = trackedVesselIDs.length
@@ -269,9 +283,9 @@ export default function TrackedVesselsPanel({
             <TrackedVesselItem
               key={vessel.id}
               vessel={vessel}
-              colorIndex={index}
+              listIndex={index}
               className={`${
-                index < allVessels.slice(10, 20).length - 1
+                index < trackedVesselsDetails.length - 1
                   ? "border-b border-color-3"
                   : ""
               }`}

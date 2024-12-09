@@ -1,3 +1,5 @@
+import type {Feature, Geometry} from 'geojson';
+
 export type Vessel = {
   id: number
   mmsi: number
@@ -11,8 +13,6 @@ export type Vessel = {
   external_marking: string
   ircs: string
   length_class: string
-  excursions_timeframe?: TimeframeExcursions
-  mapVisibility?: boolean
 }
 
 export type VesselMetrics = {
@@ -57,6 +57,7 @@ export interface VesselPositionCoordinates {
 }
 
 export type VesselExcursionSegmentGeo = {
+  vessel_id: number
   speed: number
   heading?: number
   navigational_status: string
@@ -66,16 +67,9 @@ export type VesselExcursionSegmentGeo = {
   }
 }
 
-export type TimeframeExcursions = {
-  startDate?: Date
-  endDate?: Date
-  excursions: VesselExcursion[]
-  mapVisibility?: boolean
-}
-
 export type VesselExcursionSegmentsGeo = {
-  type: any
-  features: any
+  type: "FeatureCollection"
+  features: Feature<Geometry, VesselExcursionSegmentGeo>[]
 }
 
 export type VesselExcursionSegments = {
@@ -112,7 +106,6 @@ export type VesselExcursion = {
   updated_at: String
 
   segments?: VesselExcursionSegment[]
-  mapVisibility?: boolean
 }
 
 export type VesselExcursionSegment = {

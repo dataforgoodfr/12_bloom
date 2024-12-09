@@ -9,6 +9,7 @@ interface ITrackModeOptions {
   excursions: { [vesselID: number]: VesselExcursion[] }
   vesselsIDsHidden: number[]
   excursionsIDsHidden: number[]
+  focusedExcursionID: number | null
 }
 
 interface ITrackModeOptionsActions {
@@ -21,24 +22,28 @@ interface ITrackModeOptionsActions {
   removeTrackedVessel: (vesselID: number) => void
   clearTrackedVessels: () => void
   setVesselVisibility: (vesselID: number, visible: boolean) => void
+  toggleVesselVisibility: (vesselID: number) => void
 
   // Excursions
   setExcursions: (excursions: { [vesselID: number]: VesselExcursion[] }) => void
-  addExcursion: (vesselID: number, excursion: VesselExcursion) => void
-  removeExcursion: (vesselID: number, excursionID: number) => void
+  setVesselExcursions: (vesselID: number, excursions: VesselExcursion[]) => void
+  removeVesselExcursions: (vesselID: number, excursionID: number) => void
   clearExcursions: () => void
   setExcursionVisibility: (excursionID: number, visible: boolean) => void
+  toggleExcursionVisibility: (excursionID: number) => void
+  setFocusedExcursionID: (excursionID: number | null) => void
 }
 
 type ITrackModeOptionsStore = ITrackModeOptions & ITrackModeOptionsActions
 
 const defaultInitState: ITrackModeOptions = {
-  startDate: undefined,
-  endDate: undefined,
+  startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+  endDate: new Date(),
   trackedVesselIDs: [],
   excursions: {},
   vesselsIDsHidden: [],
   excursionsIDsHidden: [],
+  focusedExcursionID: null,
 }
 
 export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
@@ -68,20 +73,27 @@ export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
       set((state) => ({
         ...state,
         vesselsIDsHidden: visible
-          ? []
-          : state.vesselsIDsHidden.filter((id) => id !== vesselID),
+          ? state.vesselsIDsHidden.filter((id) => id !== vesselID)
+          : [...state.vesselsIDsHidden, vesselID],
+      })),
+    toggleVesselVisibility: (vesselID) =>
+      set((state) => ({
+        ...state,
+        vesselsIDsHidden: state.vesselsIDsHidden.includes(vesselID)
+          ? state.vesselsIDsHidden.filter((id) => id !== vesselID)
+          : [...state.vesselsIDsHidden, vesselID],
       })),
 
     setExcursions: (excursions) => set((state) => ({ ...state, excursions })),
-    addExcursion: (vesselID, excursion) =>
+    setVesselExcursions: (vesselID, excursions) =>
       set((state) => ({
         ...state,
         excursions: {
           ...state.excursions,
-          [vesselID]: [...state.excursions[vesselID], excursion],
+          [vesselID]: excursions,
         },
       })),
-    removeExcursion: (vesselID, excursionID) =>
+    removeVesselExcursions: (vesselID, excursionID) =>
       set((state) => ({
         ...state,
         excursions: {
@@ -96,8 +108,17 @@ export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
       set((state) => ({
         ...state,
         excursionsIDsHidden: visible
-          ? []
-          : state.excursionsIDsHidden.filter((id) => id !== excursionID),
+          ? state.excursionsIDsHidden.filter((id) => id !== excursionID)
+          : [...state.excursionsIDsHidden, excursionID],
       })),
+    toggleExcursionVisibility: (excursionID) =>
+      set((state) => ({
+        ...state,
+        excursionsIDsHidden: state.excursionsIDsHidden.includes(excursionID)
+          ? state.excursionsIDsHidden.filter((id) => id !== excursionID)
+          : [...state.excursionsIDsHidden, excursionID],
+      })),
+    setFocusedExcursionID: (excursionID) =>
+      set((state) => ({ ...state, focusedExcursionID: excursionID })),
   })
 )

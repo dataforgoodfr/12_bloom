@@ -8,53 +8,53 @@ import { GeoJsonLayer } from "@deck.gl/layers"
 import DeckGL from "@deck.gl/react"
 import chroma from "chroma-js"
 import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
+import type { Feature, Geometry } from "geojson"
 import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
+import { useShallow } from "zustand/react/shallow"
 
 import {
   VesselExcursion,
   VesselExcursionSegment,
   VesselExcursionSegmentGeo,
-  VesselExcursionSegments,
   VesselExcursionSegmentsGeo,
   VesselPosition,
   VesselPositions,
 } from "@/types/vessel"
 import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
-import MapTooltip from "@/components/ui/tooltip-map-template"
-import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
-
+import { getVesselColorRGB } from "@/libs/colors"
+import { useLoaderStore } from "@/libs/stores/loader-store"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useShallow } from "zustand/react/shallow"
+import MapTooltip from "@/components/ui/tooltip-map-template"
+import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions
   zones: ZoneWithGeometry[]
-  isLoading: {
-    vessels: boolean
-    positions: boolean
-    zones: boolean
-    excursions: boolean
-  }
 }
-
-const VESSEL_COLOR = [16, 181, 16, 210]
-const TRACKED_VESSEL_COLOR = [128, 16, 189, 210]
 
 // Add a type to distinguish zones
 type ZoneWithType = ZoneWithGeometry & {
   renderType: "amp" | "territorial" | "fishing"
 }
 
-export default function CoreMap({
-  vesselsPositions,
-  zones,
-  isLoading,
-}: CoreMapProps) {
-  const { trackedVesselIDs } = useTrackModeOptionsStore(
+export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
+  const {
+    trackedVesselIDs,
+    vesselsIDsHidden,
+    excursions,
+    excursionsIDsHidden,
+    focusedExcursionID,
+    setFocusedExcursionID,
+  } = useTrackModeOptionsStore(
     useShallow((state) => ({
       trackedVesselIDs: state.trackedVesselIDs,
+      vesselsIDsHidden: state.vesselsIDsHidden,
+      excursionsIDsHidden: state.excursionsIDsHidden,
+      excursions: state.excursions,
+      focusedExcursionID: state.focusedExcursionID,
+      setFocusedExcursionID: state.setFocusedExcursionID,
     }))
   )
 
@@ -65,15 +65,26 @@ export default function CoreMap({
     displayedZones,
     setActivePosition,
     setViewState,
-  } = useMapStore(useShallow((state) => ({
-    mode: state.mode,
-    viewState: state.viewState,
-    activePosition: state.activePosition,
-    displayedZones: state.displayedZones,
-    setViewState: state.setViewState,
-    setActivePosition: state.setActivePosition,
+  } = useMapStore(
+    useShallow((state) => ({
+      mode: state.mode,
+      viewState: state.viewState,
+      activePosition: state.activePosition,
+      displayedZones: state.displayedZones,
+      setViewState: state.setViewState,
+      setActivePosition: state.setActivePosition,
     }))
   )
+
+  const { zonesLoading, positionsLoading, vesselsLoading, excursionsLoading } =
+    useLoaderStore(
+      useShallow((state) => ({
+        zonesLoading: state.zonesLoading,
+        positionsLoading: state.positionsLoading,
+        vesselsLoading: state.vesselsLoading,
+        excursionsLoading: state.excursionsLoading,
+      }))
+    )
 
   const [coordinates, setCoordinates] = useState<string>("-°N -°E")
 
@@ -90,15 +101,37 @@ export default function CoreMap({
   }
 
   const isVesselSelected = (vp: VesselPosition) => {
-    return (
-      vp.vessel.id === activePosition?.vessel.id ||
-      trackedVesselIDs.includes(vp.vessel.id)
-    )
+    let vesselSelected = vp.vessel.id === activePosition?.vessel.id
+    if (mapMode === "position") {
+      vesselSelected = vesselSelected || trackedVesselIDs.includes(vp.vessel.id)
+    }
+    return vesselSelected
   }
 
-  function getTrackedVessels() {
-    return trackedVesselIDs.map((id) => vesselsPositions.find((vp) => vp.vessel.id === id)).map((vp) => vp?.vessel)
-  }
+  const trackedVessels = useMemo(() => {
+    return vesselsPositions
+      .map((vp) => vp.vessel)
+      .filter((vessel) => trackedVesselIDs.includes(vessel.id))
+  }, [vesselsPositions, trackedVesselIDs])
+
+  const trackedAndShownVessels = useMemo(() => {
+    return trackedVessels.filter(
+      (vessel) => !vesselsIDsHidden.includes(vessel.id)
+    )
+  }, [trackedVessels, vesselsIDsHidden])
+
+  const trackedAndShownExcursions = useMemo(() => {
+    const trackedAndShownExcursions: VesselExcursion[] = []
+    trackedAndShownVessels.forEach((vessel) => {
+      const vesselExcursions = excursions[vessel.id] || []
+      trackedAndShownExcursions.push(
+        ...vesselExcursions.filter(
+          (excursion) => !excursionsIDsHidden.includes(excursion.id)
+        )
+      )
+    })
+    return trackedAndShownExcursions
+  }, [trackedAndShownVessels, excursions, excursionsIDsHidden])
 
   const onMapClick = ({ layer }: PickingInfo) => {
     if (layer?.id !== "vessels-latest-positions") {
@@ -110,12 +143,82 @@ export default function CoreMap({
     setActivePosition(object as VesselPosition)
   }
 
-  function toSegmentsGeo(segments: VesselExcursionSegment[] | undefined): VesselExcursionSegmentsGeo {
+  const getVesselColor = (vp: VesselPosition) => {
+    if (isVesselSelected(vp)) {
+      return TRACKED_VESSEL_COLOR
+    }
+
+    if (mapMode === "track") {
+      const listIndex = trackedVesselIDs.indexOf(vp.vessel.id)
+      return getVesselColorRGB(listIndex)
+    }
+
+    return VESSEL_COLOR
+  }
+
+  const latestPositions = useMemo(() => {
+    let displayedPositions = vesselsPositions
+    if (mapMode === "track") {
+      displayedPositions = displayedPositions.filter((vp) =>
+        trackedVesselIDs.includes(vp.vessel.id)
+      )
+    }
+    return new IconLayer<VesselPosition>({
+      id: `vessels-latest-positions`,
+      data: displayedPositions,
+      getPosition: (vp: VesselPosition) => [
+        vp?.position?.coordinates[0],
+        vp?.position?.coordinates[1],
+      ],
+      getAngle: (vp: VesselPosition) =>
+        vp.heading ? Math.round(vp.heading) : 0,
+      getIcon: () => "default",
+      iconAtlas: "../../../img/map-vessel.png",
+      iconMapping: {
+        default: {
+          x: 0,
+          y: 0,
+          width: 35,
+          height: 27,
+          mask: true,
+        },
+      },
+      getSize: 16,
+      getColor: (vp: VesselPosition) => {
+        return new Uint8ClampedArray(getVesselColor(vp))
+      },
+
+      pickable: true,
+      onClick: onVesselClick,
+      updateTriggers: {
+        getColor: [activePosition?.vessel.id, trackedVesselIDs],
+      },
+    })
+  }, [
+    mapMode,
+    vesselsPositions,
+    activePosition?.vessel.id,
+    trackedVesselIDs,
+    isVesselSelected,
+  ])
+
+  const [segmentsLayer, setSegmentsLayer] = useState<Layer[]>([])
+
+  function getSegmentsColor(
+    feature: Feature<Geometry, VesselExcursionSegmentGeo>
+  ) {
+    const listIndex = trackedVesselIDs.indexOf(feature.properties.vessel_id)
+    return getVesselColorRGB(listIndex)
+  }
+
+  function toSegmentsGeo(
+    vesselId: number,
+    segments: VesselExcursionSegment[] | undefined
+  ): VesselExcursionSegmentsGeo {
     if (!segments) return { type: "FeatureCollection", features: [] }
     const segmentsGeo = segments?.map((segment: VesselExcursionSegment) => {
       return {
-        speed: segment.average_speed,
-        navigational_status: "unknown",
+        type: "Feature",
         geometry: {
           type: "LineString",
           coordinates: [
@@ -123,64 +226,28 @@ export default function CoreMap({
             segment.end_position.coordinates,
           ],
         },
-      }
+        properties: {
+          vessel_id: vesselId,
+          speed: segment.average_speed,
+          navigational_status: "unknown",
+        },
+      } as Feature<Geometry, VesselExcursionSegmentGeo>
     })
     return { type: "FeatureCollection", features: segmentsGeo ?? [] }
   }
 
-  const latestPositions = useMemo(
-    () =>
-      new IconLayer<VesselPosition>({
-        id: `vessels-latest-positions`,
-        data: vesselsPositions,
-        getPosition: (vp: VesselPosition) => [
-          vp?.position?.coordinates[0],
-          vp?.position?.coordinates[1],
-        ],
-        getAngle: (vp: VesselPosition) =>
-          vp.heading ? Math.round(vp.heading) : 0,
-        getIcon: () => "default",
-        iconAtlas: "../../../img/map-vessel.png",
-        iconMapping: {
-          default: {
-            x: 0,
-            y: 0,
-            width: 35,
-            height: 27,
-            mask: true,
-          },
-        },
-        getSize: 16,
-        getColor: (vp: VesselPosition) => {
-          return new Uint8ClampedArray(
-            isVesselSelected(vp) ? TRACKED_VESSEL_COLOR : VESSEL_COLOR
-          )
-        },
-
-        pickable: true,
-        onClick: onVesselClick,
-        updateTriggers: {
-          getColor: [activePosition?.vessel.id, trackedVesselIDs],
-        },
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      vesselsPositions,
-      activePosition?.vessel.id,
-      trackedVesselIDs,
-      isVesselSelected,
-    ]
-  )
-
-  const [segmentsLayer, setSegmentsLayer] = useState<Layer[]>([])
-
   function excursionToSegmentsLayer(excursion: VesselExcursion) {
-    const segmentsGeo = toSegmentsGeo(excursion.segments)
+    const segmentsGeo = toSegmentsGeo(excursion.vessel_id, excursion.segments)
     return new GeoJsonLayer<VesselExcursionSegmentGeo>({
       id: `${excursion.vessel_id}_vessel_trail`,
       data: segmentsGeo,
-      getFillColor: (feature) => getColorFromValue(feature.properties?.speed),
-      getLineColor: (feature) => getColorFromValue(feature.properties?.speed),
+      getFillColor: (feature) => {
+        return getSegmentsColor(feature)
+      },
+      getLineColor: (feature) => {
+        const color = getSegmentsColor(feature)
+        return new Uint8ClampedArray(color)
+      },
       pickable: false,
       stroked: false,
       filled: true,
@@ -196,27 +263,18 @@ export default function CoreMap({
 
   useEffect(() => {
     if (mapMode === "track") {
-      const trackedVessels = getTrackedVessels();
       const layers: Layer[] = []
 
-      for (const vessel of trackedVessels) {
-        const excursionsTimeframe = vessel?.excursions_timeframe;
+      trackedAndShownExcursions.forEach((excursion) => {
+        layers.push(excursionToSegmentsLayer(excursion))
+      })
 
-        if (!excursionsTimeframe || !excursionsTimeframe.excursions || excursionsTimeframe.mapVisibility === false) {
-          continue;
-        }
-
-        const excursions = excursionsTimeframe.excursions;
-        for (const excursion of excursions) {
-          if (excursion.mapVisibility === false) continue;
-
-          layers.push(excursionToSegmentsLayer(excursion))
-        }
-      }
       console.log("Layers", layers)
       setSegmentsLayer(layers)
+    } else {
+      setSegmentsLayer([])
     }
-  }, [mapMode])
+  }, [mapMode, trackedAndShownExcursions])
 
   const onMapHover = ({ coordinate }: PickingInfo) => {
     coordinate &&
@@ -227,6 +285,74 @@ export default function CoreMap({
           "°E"
       )
   }
+
+  useEffect(() => {
+    if (focusedExcursionID) {
+      // Find the focused excursion
+      const focusedExcursion = Object.values(excursions)
+        .flat()
+        .find((excursion) => excursion.id === focusedExcursionID)
+
+      if (focusedExcursion) {
+        // Get all coordinates from excursion segments
+        const coordinates = focusedExcursion?.segments?.map(
+          (segment) => segment.start_position.coordinates
+        )
+
+        if (!coordinates) return
+
+        // Find bounds
+        const bounds = coordinates.reduce(
+          (acc, coord) => {
+            return {
+              minLng: Math.min(acc.minLng, coord[0]),
+              maxLng: Math.max(acc.maxLng, coord[0]),
+              minLat: Math.min(acc.minLat, coord[1]),
+              maxLat: Math.max(acc.maxLat, coord[1]),
+            }
+          },
+          {
+            minLng: Infinity,
+            maxLng: -Infinity,
+            minLat: Infinity,
+            maxLat: -Infinity,
+          }
+        )
+
+        // Add padding
+        const padding = 0.5 // degrees
+        bounds.minLng -= padding
+        bounds.maxLng += padding
+        bounds.minLat -= padding
+        bounds.maxLat += padding
+
+        // Calculate center and zoom
+        const center = [
+          (bounds.minLng + bounds.maxLng) / 2,
+          (bounds.minLat + bounds.maxLat) / 2,
+        ]
+
+        const latDiff = bounds.maxLat - bounds.minLat
+        const lngDiff = bounds.maxLng - bounds.minLng
+        const zoom = Math.min(
+          Math.floor(9 - Math.log2(Math.max(latDiff, lngDiff))),
+          20 // max zoom
+        )
+
+        setViewState({
+          ...viewState,
+          longitude: center[0],
+          latitude: center[1],
+          zoom: zoom,
+          transitionDuration: 500,
+        })
+      }
+    }
+  }, [focusedExcursionID])
+
+  useEffect(() => {
+    setFocusedExcursionID(null)
+  }, [viewState.longitude, viewState.latitude])
 
   const getObjectType = (
     object: VesselPosition | ZoneWithGeometry | undefined
@@ -386,21 +512,21 @@ export default function CoreMap({
   const layers = useMemo(
     () =>
       [
-        !isLoading.zones && [
+        !zonesLoading && [
           ampMultiZonesLayer,
           ampSingleZonesLayer,
           territorialZonesLayer,
           fishingZonesLayer,
         ],
-        !isLoading.vessels && !isLoading.positions && segmentsLayer,
-        !isLoading.positions && latestPositions,
+        !vesselsLoading && !positionsLoading && segmentsLayer,
+        !positionsLoading && latestPositions,
       ]
         .flat()
         .filter(Boolean) as Layer[],
     [
-      isLoading.zones,
-      isLoading.vessels,
-      isLoading.positions,
+      zonesLoading,
+      vesselsLoading,
+      positionsLoading,
       ampMultiZonesLayer,
       ampSingleZonesLayer,
       territorialZonesLayer,
