@@ -12,7 +12,7 @@ import geoalchemy2
 
 # revision identifiers, used by Alembic.
 revision = 'c32d65d6e6fd'
-down_revision = '06bb3c26076f'
+down_revision = 'd9d279892b5c'
 branch_labels = None
 depends_on = None
 
@@ -29,9 +29,10 @@ def upgrade() -> None:
         sa.Column('ship_name', sa.String, nullable=False),
         sa.Column('vessel_country_iso3', sa.String, nullable=False),
         sa.Column('vessel_imo', sa.Integer),
-        sa.Column('duration_total', sa.FLOAT, nullable=False),
-        sa.Column('duration_fishing', sa.FLOAT, nullable=True),
-        sa.Column("mpa_name", sa.String, primary_key=True),
+        sa.Column('duration_total', sa.Interval, nullable=False),
+        sa.Column('duration_fishing', sa.Interval, nullable=True),
+        sa.Column("zone_name", sa.String, primary_key=True),
+        sa.Column('zone_sub_category', sa.String, nullable=True),
     )
 
 
