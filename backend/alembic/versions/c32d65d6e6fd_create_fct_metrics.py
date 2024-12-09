@@ -22,14 +22,16 @@ def upgrade() -> None:
     # Création de la table fct_metrics
     op.create_table(
         'fct_metrics',
-        sa.Column('timestamp', sa.DateTime, primary_key=True), #granule
-        sa.Column('vessel_id', sa.Integer, nullable=False), #vessel id
-        sa.Column('vessel_mmsi', sa.Integer, nullable=False), #vessel mmsi
-        sa.Column('ship_name', sa.String, nullable=False), #vessel name
-        sa.Column('type', sa.String, nullable=False), #IN_MPA or AT_SEA
-        sa.Column('duration_total', sa.FLOAT, nullable=False), #time spent at sea at timestamp
-        sa.Column('duration_fishing', sa.FLOAT, nullable=True), #time spent fishing 
-        sa.Column("mpa_name", sa.String, nullable=True), # if type is in_mpa, write here the mpa name
+        sa.Column('timestamp', sa.DateTime, primary_key=True),
+        sa.Column('vessel_id', sa.Integer, primary_key=True),
+        sa.Column('type', sa.String, nullable=False), 
+        sa.Column('vessel_mmsi', sa.Integer, nullable=False),
+        sa.Column('ship_name', sa.String, nullable=False),
+        sa.Column('vessel_country_iso3', sa.String, nullable=False),
+        sa.Column('vessel_imo', sa.Integer),
+        sa.Column('duration_total', sa.FLOAT, nullable=False),
+        sa.Column('duration_fishing', sa.FLOAT, nullable=True),
+        sa.Column("mpa_name", sa.String, primary_key=True),
     )
 
 

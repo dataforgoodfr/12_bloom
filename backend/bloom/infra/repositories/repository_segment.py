@@ -180,25 +180,39 @@ class SegmentRepository:
         return result
     
 
-    def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> str:
-        stmt = select(
-        sql_model.Vessel.country_iso3
-    ).select_from(
-        sql_model.Segment
-    ).join(
-        sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
-    ).join(
-        sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
-    ).filter(
-        sql_model.Segment.id == segment_id
-    )
+    def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> pd.DataFrame:
+        stmt = (
+            select(
+                sql_model.Vessel.id,
+                sql_model.Vessel.mmsi,
+                sql_model.Vessel.ship_name,
+                sql_model.Vessel.country_iso3,
+                sql_model.Vessel.imo
+            )
+            .where(
+                or_(
+                    and_(
+                        sql_model.Segment.updated_at.is_(None),
+                        sql_model.Segment.created_at > created_updated_after
+                    ),
+                    sql_model.Segment.updated_at > created_updated_after
+                )
+            )
+            .select_from(sql_model.Segment)
+            .join(
+                sql_model.Excursion, sql_model.Segment.excursion_id == sql_model.Excursion.id
+            )
+            .join(
+                sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+            )
+            .filter(sql_model.Segment.id == segment_id)
+        )
 
-        result = session.execute(stmt).scalar()
-
-        return result
-#.where(
-#        sql_model.Segment.updated_at > created_updated_after
-#    )
+        result = session.execute(stmt)
+        if not result:
+            return None
+        df = pd.DataFrame(result, columns=["vessel_id", "vessel_mmsi", "ship_name", "vessel_country_iso3","vessel_imo"])
+        return df
 
     def batch_create_segment(
             self, session: Session, segments: list[Segment]

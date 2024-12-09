@@ -6,11 +6,13 @@ from datetime import datetime, timedelta
 class Metrics(BaseModel) :
     model_config = ConfigDict(arbitrary_types_allowed=True)
     timestamp : datetime
-    vessel_id: Optional[int]
+    vessel_id: int
+    type : str
     vessel_mmsi: int
     ship_name: str
-    type : str
-    duration_total : int
-    duration_fishing: Optional[int] = None
-    mpa_name : Optional[str] = None
+    vessel_country_iso3: str 
+    vessel_imo: int
+    duration_total : float
+    duration_fishing: Optional[float] = None
+    mpa_name : str
 
