@@ -260,3 +260,14 @@ class MetricsVesselInActivity(Base):
     #vessel_id: Mapped[Optional[int]]
     #total_time_at_sea: Mapped[Optional[timedelta]]
     
+
+class metrics(Base):
+    __tablename__ = "fct_metrics"
+    timestamp = Column("timestamp", DateTime(timezone=True), primary_key=True)
+    vessel_id= Column("vessel_id", Integer, ForeignKey("dim_vessel.id"), nullable=False)
+    type= Column("type", String, nullable= False)
+    duration_total= Column("duration_total", DateTime(timezone=True), nullable= False)
+    duration_fishing= Column("duration_fishing", DateTime(timezone=True))
+    mpa_name= Column("mpa_name", String, ForeignKey("dim_zone.name"))
+
+
