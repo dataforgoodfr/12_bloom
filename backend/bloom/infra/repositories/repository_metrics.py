@@ -1,4 +1,4 @@
-from bloom.domain.metrics_new import Metrics
+from bloom.domain.metrics import Metrics
 from contextlib import AbstractContextManager
 from typing import Any, List, Union
 
@@ -64,7 +64,8 @@ class MetricsRepository:
             vessel_imo=metrics.vessel_imo,
             duration_total=metrics.duration_total,
             duration_fishing=metrics.duration_fishing,
-            mpa_name=metrics.mpa_name,
+            zone_name=metrics.zone_name,
+            zone_sub_category=metrics.zone_sub_category,
         )            
 
 
@@ -80,7 +81,8 @@ class MetricsRepository:
                 vessel_imo=metrics.vessel_imo,
                 duration_total=metrics.duration_total,
                 duration_fishing=metrics.duration_fishing,
-                mpa_name=metrics.mpa_name,
+                zone_name=metrics.zone_name,
+                zone_sub_category=metrics.zone_sub_category,
             )            
 
 

@@ -270,8 +270,8 @@ class Metrics(Base):
     ship_name= Column("ship_name", String, ForeignKey("dim_vessel.ship_name"), nullable=False)
     vessel_country_iso3= Column("vessel_country_iso3", String, ForeignKey("dim_vessel.country_iso3"), nullable=False)
     vessel_imo= Column("vessel_imo", Integer, ForeignKey("dim_vessel.imo"))
-    duration_total= Column("duration_total", Double, nullable= False)
-    duration_fishing= Column("duration_fishing", Double)
-    mpa_name= Column("mpa_name", String, ForeignKey("dim_zone.name"),primary_key=True)
-
+    duration_total= Column("duration_total", Interval, nullable= False)
+    duration_fishing= Column("duration_fishing", Interval)
+    zone_name= Column("zone_name", String, ForeignKey("dim_zone.name"),primary_key=True)
+    zone_sub_category= Column("zone_sub_category", String, ForeignKey("dim_zone.sub_category"))
 
