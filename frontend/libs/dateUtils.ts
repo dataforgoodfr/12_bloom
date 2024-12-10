@@ -27,7 +27,7 @@ export function convertDurationInSeconds(durationPattern: string): number {
 }
 
 export function convertDurationInHours(durationPattern: string): number {
-  return convertDurationInSeconds(durationPattern) / 3600
+  return Math.round(convertDurationInSeconds(durationPattern) / 3600)
 }
 
 export function getDateRange(days: number) {

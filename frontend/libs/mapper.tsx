@@ -1,6 +1,6 @@
 import { Item } from "@/types/item"
 import { VesselMetrics } from "@/types/vessel"
-import { ZoneMetrics, ZoneVisitTimeDto } from "@/types/zone"
+import { ZoneMetrics } from "@/types/zone"
 import { convertDurationInHours } from "@/libs/dateUtils"
 
 export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
