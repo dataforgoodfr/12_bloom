@@ -1,14 +1,11 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import {
-  getTimeByZone,
-  getTopZonesVisited,
-} from "@/services/backend-rest-client"
+import { getTimeByZone } from "@/services/backend-rest-client"
 import { getCountryNameFromIso3 } from "@/utils/vessel.utils"
 import useSWR from "swr"
 
-import { convertDurationInHours, getDateRange } from "@/libs/dateUtils"
+import { convertDurationInHoursStr, getDateRange } from "@/libs/dateUtils"
 import DetailsContainer from "@/components/details/details-container"
 
 export default function VesselDetailsPage({
@@ -51,7 +48,7 @@ export default function VesselDetailsPage({
           id: zone.id.toString(),
           title: zone.name,
           description: zone.sub_category,
-          value: `${convertDurationInHours(vessel_visiting_time_by_zone)}h`,
+          value: `${convertDurationInHoursStr(vessel_visiting_time_by_zone)}h`,
           type: "zones",
         }
       }),

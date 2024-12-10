@@ -26,8 +26,12 @@ export function convertDurationInSeconds(durationPattern: string): number {
   return Math.floor(totalSeconds)
 }
 
-export function convertDurationInHours(durationPattern: string): number {
+function convertDurationInHours(durationPattern: string): number {
   return Math.round(convertDurationInSeconds(durationPattern) / 3600)
+}
+
+export function convertDurationInHoursStr(durationPattern: string): string {
+  return convertDurationInHours(durationPattern).toLocaleString("fr-FR")
 }
 
 export function getDateRange(days: number) {
