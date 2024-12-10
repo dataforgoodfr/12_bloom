@@ -39,6 +39,18 @@ type ZoneWithType = ZoneWithGeometry & {
   renderType: "amp" | "territorial" | "fishing"
 }
 
+const getOpacityFromTimestamp = (timestamp: string) => {
+  const now = new Date()
+  const positionTime = new Date(timestamp)
+  const diffInHours =
+    (now.getTime() - positionTime.getTime()) / (1000 * 60 * 60)
+
+  if (diffInHours <= 0.75) return 255 // 100% opacity
+  if (diffInHours <= 3) return 179 // 70% opacity
+  if (diffInHours <= 5) return 140 // 55% opacity
+  return 102 // 40% opacity
+}
+
 export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   const {
     trackedVesselIDs,
@@ -141,16 +153,20 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   }
 
   const getVesselColor = (vp: VesselPosition) => {
+    let colorRgb = VESSEL_COLOR
+
     if (isVesselSelected(vp)) {
-      return TRACKED_VESSEL_COLOR
+      colorRgb = TRACKED_VESSEL_COLOR
     }
 
     if (mapMode === "track") {
       const listIndex = trackedVesselIDs.indexOf(vp.vessel.id)
-      return getVesselColorRGB(listIndex)
+      colorRgb = getVesselColorRGB(listIndex)
     }
 
-    return VESSEL_COLOR
+    const opacity = getOpacityFromTimestamp(vp.timestamp)
+
+    return [colorRgb[0], colorRgb[1], colorRgb[2], opacity]
   }
 
   const latestPositions = useMemo(() => {
@@ -180,7 +196,12 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
           mask: true,
         },
       },
-      getSize: 16,
+      getSize: (vp: VesselPosition) => {
+        const length = vp.vessel.length || 0
+        if (length > 80) return 30 // Large vessels
+        if (length > 40) return 20 // Small vessels
+        return 14 // Medium vessels (default)
+      },
       getColor: (vp: VesselPosition) => {
         return new Uint8ClampedArray(getVesselColor(vp))
       },
@@ -259,7 +280,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       pickable: true,
       stroked: false,
       filled: true,
-      getLineWidth: 1,
+      getLineWidth: 0.5,
       lineWidthMinPixels: 0.5,
       lineWidthMaxPixels: 3,
       lineWidthUnits: "pixels",
@@ -579,7 +600,11 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   return (
     <DeckGL
       viewState={viewState}
-      controller={true}
+      controller={{
+        dragRotate: false,
+        touchRotate: false,
+        keyboard: false,
+      }}
       layers={layers}
       onViewStateChange={(e) => setViewState(e.viewState as MapViewState)}
       getCursor={({ isHovering, isDragging }) => {

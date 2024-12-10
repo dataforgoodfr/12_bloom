@@ -5,16 +5,16 @@ import Image from "next/image"
 import TrawlWatchLogo from "@/public/trawlwatch.svg"
 import { ChartBarIcon } from "@heroicons/react/24/outline"
 import { motion, useAnimationControls } from "framer-motion"
+import { ChevronRightIcon } from "lucide-react"
+import { useShallow } from "zustand/react/shallow"
 
+import { useLoaderStore } from "@/libs/stores/loader-store"
+import { useMapStore } from "@/libs/stores/map-store"
 import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
 import Spinner from "../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
-import { ChevronRightIcon } from "lucide-react"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useLoaderStore } from "@/libs/stores/loader-store"
-import { useShallow } from "zustand/react/shallow"
 
 const containerVariants = {
   close: {
@@ -48,15 +48,23 @@ export default function LeftPanel() {
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
 
-  const { vesselsLoading } = useLoaderStore(useShallow((state) => ({
-    vesselsLoading: state.vesselsLoading,
-  })))
+  const { vesselsLoading } = useLoaderStore(
+    useShallow((state) => ({
+      vesselsLoading: state.vesselsLoading,
+    }))
+  )
 
-  const { mode: mapMode, leftPanelOpened, setLeftPanelOpened } = useMapStore(useShallow((state) => ({
-    mode: state.mode,
-    leftPanelOpened: state.leftPanelOpened,
-    setLeftPanelOpened: state.setLeftPanelOpened,
-  })))
+  const {
+    mode: mapMode,
+    leftPanelOpened,
+    setLeftPanelOpened,
+  } = useMapStore(
+    useShallow((state) => ({
+      mode: state.mode,
+      leftPanelOpened: state.leftPanelOpened,
+      setLeftPanelOpened: state.setLeftPanelOpened,
+    }))
+  )
 
   useEffect(() => {
     const control = leftPanelOpened ? "open" : "close"
@@ -78,12 +86,12 @@ export default function LeftPanel() {
       >
         <div className="flex w-full flex-row place-items-center justify-between p-5">
           <Image
-              src={TrawlWatchLogo}
-              alt="Trawlwatch logo"
-              height={80}
-              width={80}
-            />
-          <div className="absolute right-0 top-0 translate-x-3/4 bg-color-3 rounded-lg h-16 flex items-center justify-right px-1">
+            src={TrawlWatchLogo}
+            alt="Trawlwatch logo"
+            height={80}
+            width={80}
+          />
+          <div className="justify-right absolute right-0 top-0 flex h-16 translate-x-3/4 items-center rounded-lg bg-color-3 px-1">
             <button
               className="ml-3 flex rounded-full p-1"
               onClick={() => handleOpenClose()}
@@ -101,12 +109,22 @@ export default function LeftPanel() {
         {mapMode === "position" && (
           <>
             <div className="flex flex-col gap-3 p-5">
-              <NavigationLink href="/dashboard" name="Dashboard" wide={leftPanelOpened}>
+              <NavigationLink
+                href="/dashboard"
+                name="Dashboard"
+                wide={leftPanelOpened}
+              >
                 <ChartBarIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
-            </NavigationLink>
-          </div>
-          <div className="flex flex-col gap-3 bg-color-3 p-5">
-              {vesselsLoading ? <Spinner /> : <VesselFinderDemo wideMode={leftPanelOpened} />}
+              </NavigationLink>
+            </div>
+            <div className="flex flex-col gap-3 bg-color-3 p-5">
+              {vesselsLoading ? (
+                <div className="flex items-center justify-center">
+                  <Spinner className="text-white" />
+                </div>
+              ) : (
+                <VesselFinderDemo wideMode={leftPanelOpened} />
+              )}
             </div>
           </>
         )}
@@ -114,9 +132,7 @@ export default function LeftPanel() {
           className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
           onClick={() => !leftPanelOpened && setLeftPanelOpened(true)}
         >
-          <TrackedVesselsPanel
-            wideMode={leftPanelOpened}
-          />
+          <TrackedVesselsPanel wideMode={leftPanelOpened} />
         </div>
       </motion.nav>
     </>
