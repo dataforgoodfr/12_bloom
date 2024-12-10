@@ -23,7 +23,7 @@ export function convertDurationInHours(durationPattern: string): number {
     parseInt(minutes) / 60 +
     parseFloat(seconds) / 3600
 
-  return Math.floor(totalHours)
+  return Math.round(totalHours)
 }
 
 function padTwoDigits(num: number) {
