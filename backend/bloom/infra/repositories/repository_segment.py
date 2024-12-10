@@ -104,6 +104,43 @@ class SegmentRepository:
         else:
             return []
 
+    def get_all_vessels_positions_at(self, session: Session, date: datetime) -> List[Segment]:
+        stmt = (
+            select(
+                sql_model.Vessel,
+                sql_model.Segment.excursion_id,
+                sql_model.Segment.end_position,
+                sql_model.Segment.timestamp_end,
+                sql_model.Segment.heading_at_end,
+                sql_model.Segment.speed_at_end,
+                sql_model.Excursion.arrival_port_id,
+            )
+            .join(
+                sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+            )
+            .join(
+                sql_model.Segment,
+                sql_model.Segment.excursion_id == sql_model.Excursion.id,
+            )
+            .filter(
+                sql_model.Segment.timestamp_start <= date,
+                sql_model.Segment.timestamp_end >= date,
+            )
+        )
+        result = session.execute(stmt)
+        if result is not None :
+            return [VesselLastPosition(
+                    vessel=VesselRepository.map_to_domain(record[0]),
+                    excursion_id=record[1],
+                    position=to_shape(record[2]),
+                    timestamp=record[3],
+                    heading=record[4],
+                    speed=record[5],
+                    arrival=record[6],
+                ) for record in result]
+        else:
+            return []
+
     def list_vessel_excursion_segments(self,session,vessel_id:int,excursions_id: int) -> List[Segment]:
         stmt = select(
             sql_model.Segment
@@ -161,7 +198,6 @@ class SegmentRepository:
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
 
-    
     def get_vessel_attribute_by_segment(self, session: Session, segment_id: int) -> str:
         stmt = select(
         sql_model.Vessel.country_iso3
@@ -174,11 +210,10 @@ class SegmentRepository:
     ).filter(
         sql_model.Segment.id == segment_id
     )
-        
+
         result = session.execute(stmt).scalar()
 
         return result
-    
 
     def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> str:
         stmt = select(
@@ -196,9 +231,9 @@ class SegmentRepository:
         result = session.execute(stmt).scalar()
 
         return result
-#.where(
-#        sql_model.Segment.updated_at > created_updated_after
-#    )
+    # .where(
+    #        sql_model.Segment.updated_at > created_updated_after
+    #    )
 
     def batch_create_segment(
             self, session: Session, segments: list[Segment]
@@ -214,7 +249,6 @@ class SegmentRepository:
         )
         result = session.execute(stmt).scalars()
         return [SegmentRepository.map_to_domain(orm) for orm in result]
-
 
     def find_segments_in_zones(self, session: Session) -> dict[
         Segment, list[Zone]]:
@@ -232,7 +266,6 @@ class SegmentRepository:
             if zone:
                 dict[segment].append(zone)
         return dict
-    
 
     def find_segments_in_zones_created_updated_after(self, session: Session, created_after: datetime) -> dict[
         Segment, list[Zone]]:

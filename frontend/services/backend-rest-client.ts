@@ -44,6 +44,12 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
+export function getVesselsPositionsAt(at: string) {
+  const url = `${BASE_URL}/vessels/all/positions/${at}`
+  console.log(`GET ${url}`)
+  return axios.get<VesselPositions>(url)
+}
+
 export function getVesselExcursion(vesselId: number, startAt?: string, endAt?: string) {
   var url = `${BASE_URL}/vessels/${vesselId}/excursions`
   if (startAt && endAt) 

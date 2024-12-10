@@ -10,6 +10,8 @@ from bloom.logger import logger
 from bloom.routers.requests import DatetimeRangeRequest,OrderByRequest,PageParams
 from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
 from fastapi.encoders import jsonable_encoder
+from datetime import datetime
+
 router = APIRouter()
 
 
@@ -97,6 +99,29 @@ async def list_all_vessel_last_position(request: Request, # used by @cache
         json_data = [json.loads(p.model_dump_json() if p else "{}")
                         for p in segment_repository.get_all_vessels_last_position(session)]
     return json_data
+
+
+@router.get("/vessels/all/positions/{timestamp}")
+@cache
+async def list_all_vessel_position_at(
+    request: Request,  # used by @cache
+    timestamp: datetime,
+    nocache: bool = False,  # used by @cache
+    key: str = Depends(X_API_KEY_HEADER),
+):
+    check_apikey(key)
+    use_cases = UseCases()
+    use_cases = UseCases()
+    segment_repository = use_cases.segment_repository()
+    db = use_cases.db()
+    json_data = {}
+    with db.session() as session:
+        json_data = [
+            json.loads(p.model_dump_json() if p else "{}")
+            for p in segment_repository.get_all_vessels_positions_at(session, timestamp)
+        ]
+    return json_data
+
 
 @router.get("/vessels/{vessel_id}/positions/last")
 @cache

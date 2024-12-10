@@ -39,8 +39,8 @@ type CoreMapProps = {
   }
 }
 
-const VESSEL_COLOR = [16, 181, 16, 0]
-const TRACKED_VESSEL_COLOR = [255, 255, 255, 0]
+ const VESSEL_COLOR = [94, 141, 185]
+ const TRACKED_VESSEL_COLOR = [30, 224, 171]
 
 // Add a type to distinguish zones
 type ZoneWithType = ZoneWithGeometry & {

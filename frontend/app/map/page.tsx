@@ -1,18 +1,21 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import {
-  getVessels,
-  getVesselsLatestPositions,
-} from "@/services/backend-rest-client"
+import { useEffect, useState } from "react";
+import { getVessels, getVesselsLatestPositions, getVesselsPositionsAt } from "@/services/backend-rest-client";
 
-import { Vessel, VesselPosition } from "@/types/vessel"
-import { ZoneWithGeometry } from "@/types/zone"
-import Spinner from "@/components/ui/custom/spinner"
-import LeftPanel from "@/components/core/left-panel"
-import MapControls from "@/components/core/map-controls"
-import Map from "@/components/core/map/main-map"
-import PositionPreview from "@/components/core/map/position-preview"
+
+
+import { Vessel, VesselPosition } from "@/types/vessel";
+import { ZoneWithGeometry } from "@/types/zone";
+import Spinner from "@/components/ui/custom/spinner";
+import LeftPanel from "@/components/core/left-panel";
+import MapControls from "@/components/core/map-controls";
+import Map from "@/components/core/map/main-map";
+import PositionPreview from "@/components/core/map/position-preview";
+
+
+
+
 
 async function fetchVessels() {
   try {
@@ -55,18 +58,31 @@ export default function MapPage() {
     loadVessels()
   }, [])
 
+
   useEffect(() => {
     const loadPositions = async () => {
-      const response = await fetch("/api/vessels/positions", {
-        cache: "force-cache",
-        next: { revalidate: 900 }, // 15 minutes
-      })
-      const positionsData = await response.json()
+      const response = await getVesselsPositionsAt(
+        "2024-12-05 14:00:00"
+      )
+      const positionsData = response?.data || []
       setLatestPositions(positionsData)
       setIsLoadingPositions(false)
     }
     loadPositions()
   }, [])
+
+  // useEffect(() => {
+  //   const loadPositions = async () => {
+  //     const response = await fetch("/api/vessels/positions/", {
+  //       cache: "force-cache",
+  //       next: { revalidate: 900 }, // 15 minutes
+  //     })
+  //     const positionsData = await response.json()
+  //     setLatestPositions(positionsData)
+  //     setIsLoadingPositions(false)
+  //   }
+  //   loadPositions()
+  // }, [])
 
   useEffect(() => {
     const loadZones = async () => {
