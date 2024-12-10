@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { EyeIcon, LoaderIcon, XIcon } from "lucide-react"
+import { EyeIcon, Loader2Icon, LoaderIcon, XIcon } from "lucide-react"
 
 import { Vessel } from "@/types/vessel"
 import SidebarExpander from "@/components/ui/custom/sidebar-expander"
@@ -79,7 +79,7 @@ export default function TrackedVesselItem({
                 )}
                 <h6 className="text-sm font-bold">{vessel.ship_name}</h6>
                 {excursionsLoading && (
-                  <LoaderIcon className="size-4 animate-spin" />
+                  <Loader2Icon className="size-4 animate-spin" />
                 )}
               </div>
               <div>

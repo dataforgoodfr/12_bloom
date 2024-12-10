@@ -2,7 +2,7 @@
 
 import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import type { PickingInfo } from "@deck.gl/core"
 import { GeoJsonLayer } from "@deck.gl/layers"
 import DeckGL from "@deck.gl/react"
@@ -89,6 +89,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     )
 
   const [coordinates, setCoordinates] = useState<string>("-°N -°E")
+  const [mapTransitioning, setMapTransitioning] = useState(false)
 
   // Use a piece of state that changes when `activePosition` changes to force re-render
   // const [layerKey, setLayerKey] = useState(0)
@@ -235,7 +236,11 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
 
   function onSegmentClick({ object }: PickingInfo) {
     const segment = object as Feature<Geometry, VesselExcursionSegmentGeo>
-    setFocusedExcursionID(segment.properties.excursion_id)
+    if (focusedExcursionID !== segment.properties.excursion_id) {
+      setFocusedExcursionID(segment.properties.excursion_id)
+    } else {
+      focusOnExcursion(segment.properties.excursion_id)
+    }
     setLeftPanelOpened(true)
   }
 
@@ -289,69 +294,80 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       )
   }
 
+  const focusOnExcursion = (excursionID: number) => {
+    const focusedExcursion = Object.values(excursions)
+      .flat()
+      .find((excursion) => excursion.id === focusedExcursionID)
+
+    if (focusedExcursion) {
+      // Get all coordinates from excursion segments
+      const coordinates = focusedExcursion?.segments?.map(
+        (segment) => segment.start_position.coordinates
+      )
+
+      if (!coordinates) return
+
+      // Find bounds
+      const bounds = coordinates.reduce(
+        (acc, coord) => {
+          return {
+            minLng: Math.min(acc.minLng, coord[0]),
+            maxLng: Math.max(acc.maxLng, coord[0]),
+            minLat: Math.min(acc.minLat, coord[1]),
+            maxLat: Math.max(acc.maxLat, coord[1]),
+          }
+        },
+        {
+          minLng: Infinity,
+          maxLng: -Infinity,
+          minLat: Infinity,
+          maxLat: -Infinity,
+        }
+      )
+
+      // Add padding
+      const padding = 0.5 // degrees
+      bounds.minLng -= padding
+      bounds.maxLng += padding
+      bounds.minLat -= padding
+      bounds.maxLat += padding
+
+      // Calculate center and zoom
+      const center = [
+        (bounds.minLng + bounds.maxLng) / 2,
+        (bounds.minLat + bounds.maxLat) / 2,
+      ]
+
+      const latDiff = bounds.maxLat - bounds.minLat
+      const lngDiff = bounds.maxLng - bounds.minLng
+      const zoom = Math.min(
+        Math.floor(9 - Math.log2(Math.max(latDiff, lngDiff))),
+        20 // max zoom
+      )
+
+      setViewState({
+        ...viewState,
+        longitude: center[0],
+        latitude: center[1],
+        zoom: zoom,
+        transitionDuration: 500,
+        onTransitionStart: () => setMapTransitioning(true),
+        onTransitionEnd: () => setMapTransitioning(false),
+      })
+    }
+  }
+
   useEffect(() => {
     if (focusedExcursionID) {
-      // Find the focused excursion
-      const focusedExcursion = Object.values(excursions)
-        .flat()
-        .find((excursion) => excursion.id === focusedExcursionID)
-
-      if (focusedExcursion) {
-        // Get all coordinates from excursion segments
-        const coordinates = focusedExcursion?.segments?.map(
-          (segment) => segment.start_position.coordinates
-        )
-
-        if (!coordinates) return
-
-        // Find bounds
-        const bounds = coordinates.reduce(
-          (acc, coord) => {
-            return {
-              minLng: Math.min(acc.minLng, coord[0]),
-              maxLng: Math.max(acc.maxLng, coord[0]),
-              minLat: Math.min(acc.minLat, coord[1]),
-              maxLat: Math.max(acc.maxLat, coord[1]),
-            }
-          },
-          {
-            minLng: Infinity,
-            maxLng: -Infinity,
-            minLat: Infinity,
-            maxLat: -Infinity,
-          }
-        )
-
-        // Add padding
-        const padding = 0.5 // degrees
-        bounds.minLng -= padding
-        bounds.maxLng += padding
-        bounds.minLat -= padding
-        bounds.maxLat += padding
-
-        // Calculate center and zoom
-        const center = [
-          (bounds.minLng + bounds.maxLng) / 2,
-          (bounds.minLat + bounds.maxLat) / 2,
-        ]
-
-        const latDiff = bounds.maxLat - bounds.minLat
-        const lngDiff = bounds.maxLng - bounds.minLng
-        const zoom = Math.min(
-          Math.floor(9 - Math.log2(Math.max(latDiff, lngDiff))),
-          20 // max zoom
-        )
-
-        setViewState({
-          ...viewState,
-          longitude: center[0],
-          latitude: center[1],
-          zoom: zoom,
-          transitionDuration: 500,
-        })
-      }
+      focusOnExcursion(focusedExcursionID)
     }
   }, [focusedExcursionID])
+
+  useEffect(() => {
+    if (!mapTransitioning) {
+      setFocusedExcursionID(null)
+    }
+  }, [viewState.latitude, viewState.longitude])
 
   const getObjectType = (
     object: VesselPosition | ZoneWithGeometry | undefined
