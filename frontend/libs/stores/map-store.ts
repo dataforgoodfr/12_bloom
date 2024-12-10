@@ -1,53 +1,31 @@
 import { MapViewState } from "@deck.gl/core"
-import { createStore } from "zustand/vanilla"
+import { create } from "zustand"
 
-import {
-  VesselExcursionSegment,
-  VesselExcursionSegments,
-  VesselPosition,
-} from "@/types/vessel"
+import { VesselExcursion, VesselPosition } from "@/types/vessel"
 
-export interface ViewState {
-  longitude: number
-  latitude: number
-  zoom: number
-  pitch?: number
-  bearing?: number
-  transitionDuration?: number
-  transitionInterpolator?: any
-}
-
-export type MapState = {
-  count: number
+interface IMapState {
   viewState: MapViewState
   latestPositions: VesselPosition[]
-  activePosition: VesselPosition | null
-  trackedVesselIDs: number[]
-  trackedVesselSegments: VesselExcursionSegments[]
+  mode: "position" | "track"
   displayedZones: string[]
+  activePosition: VesselPosition | null
+  leftPanelOpened: boolean
 }
 
-export type MapActions = {
-  decrementCount: () => void
-  incrementCount: () => void
+interface IMapActions {
   setViewState: (viewState: MapViewState) => void
   setZoom: (zoom: number) => void
   setLatestPositions: (latestPositions: VesselPosition[]) => void
-  setActivePosition: (activePosition: VesselPosition | null) => void
-  addTrackedVessel: (
-    vesselID: number,
-    segments: VesselExcursionSegment[]
-  ) => void
-  removeTrackedVessel: (vesselID: number) => void
   clearLatestPositions: () => void
-  cleartrackedVessels: () => void
+  setMode: (mode: "position" | "track") => void
   setDisplayedZones: (zones: string[]) => void
+  setActivePosition: (activePosition: VesselPosition | null) => void
+  setLeftPanelOpened: (leftPanelOpened: boolean) => void
 }
 
-export type MapStore = MapState & MapActions
+type IMapStore = IMapState & IMapActions
 
-export const defaultInitState: MapState = {
-  count: 0,
+const defaultInitState: IMapState = {
   viewState: {
     longitude: 3.788086,
     latitude: 47.840291,
@@ -56,83 +34,61 @@ export const defaultInitState: MapState = {
     bearing: 0,
   },
   latestPositions: [],
-  activePosition: null,
-  trackedVesselIDs: [],
-  trackedVesselSegments: [],
+  mode: "position",
   displayedZones: [],
+  activePosition: null,
+  leftPanelOpened: false,
 }
 
-export const createMapStore = (initState: MapState = defaultInitState) => {
-  return createStore<MapStore>()((set) => ({
-    ...initState,
-    decrementCount: () => set((state) => ({ count: state.count - 1 })),
-    incrementCount: () => set((state) => ({ count: state.count + 1 })),
-    setViewState: (viewState?: MapViewState) => {
-      set((state) => ({
-        ...state,
-        viewState,
-      }))
-    },
-    setZoom: (zoom: number) => {
-      set((state) => ({
-        ...state,
-        viewState: { ...state.viewState, zoom },
-      }))
-    },
-    setLatestPositions: (latestPositions: VesselPosition[]) => {
-      set((state) => ({
-        ...state,
-        latestPositions,
-      }))
-    },
-    setActivePosition: (activePosition: VesselPosition | null) => {
-      set((state) => ({
-        ...state,
-        activePosition,
-      }))
-    },
-    addTrackedVessel: (
-      vesselId: number,
-      segments: VesselExcursionSegment[]
-    ) => {
-      set((state) => ({
-        ...state,
-        trackedVesselIDs: [...state.trackedVesselIDs, vesselId],
-        trackedVesselSegments: [
-          ...state.trackedVesselSegments,
-          { vesselId, segments },
-        ],
-      }))
-    },
-    removeTrackedVessel: (vesselId: number) => {
-      set((state) => ({
-        ...state,
-        trackedVesselIDs: state.trackedVesselIDs.filter(
-          (id) => id !== vesselId
-        ),
-        trackedVesselSegments: state.trackedVesselSegments.filter(
-          ({ vesselId }) => vesselId !== vesselId
-        ),
-      }))
-    },
-    clearLatestPositions: () => {
-      set((state) => ({
-        ...state,
-        latestPositions: [],
-      }))
-    },
-    cleartrackedVessels: () => {
-      set((state) => ({
-        ...state,
-        trackedVesselIDs: [],
-        trackedVesselSegments: [],
-      }))
-    },
-    setDisplayedZones: (displayedZones: string[]) => {
-      set((state) => ({
-        ...state,
-        displayedZones,
-      }))
-    },
-  }))
-}
+export const useMapStore = create<IMapStore>()((set) => ({
+  ...defaultInitState,
+
+  setMode: (mode: "position" | "track") => {
+    set((state) => ({
+      ...state,
+      mode,
+    }))
+  },
+  setViewState: (viewState?: MapViewState) => {
+    set((state) => ({
+      ...state,
+      viewState,
+    }))
+  },
+  setZoom: (zoom: number) => {
+    set((state) => ({
+      ...state,
+      viewState: { ...state.viewState, zoom },
+    }))
+  },
+  setLatestPositions: (latestPositions: VesselPosition[]) => {
+    set((state) => ({
+      ...state,
+      latestPositions,
+    }))
+  },
+  setActivePosition: (activePosition: VesselPosition | null) => {
+    set((state) => ({
+      ...state,
+      activePosition,
+    }))
+  },
+  clearLatestPositions: () => {
+    set((state) => ({
+      ...state,
+      latestPositions: [],
+    }))
+  },
+  setDisplayedZones: (displayedZones: string[]) => {
+    set((state) => ({
+      ...state,
+      displayedZones,
+    }))
+  },
+  setLeftPanelOpened: (leftPanelOpened: boolean) => {
+    set((state) => ({
+      ...state,
+      leftPanelOpened,
+    }))
+  },
+}))

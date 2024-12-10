@@ -1,7 +1,7 @@
 import { Item } from "@/types/item"
 import { VesselMetrics } from "@/types/vessel"
 import { ZoneMetrics } from "@/types/zone"
-import { convertDurationInHours } from "@/libs/dateUtils"
+import { convertDurationInHoursStr } from "@/libs/dateUtils"
 
 export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
   return metrics
@@ -11,7 +11,7 @@ export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
         id: `${vessel.id}`,
         title: vessel.ship_name,
         description: `IMO ${vessel.imo} / MMSI ${vessel.mmsi} / ${vessel.length} m`,
-        value: `${convertDurationInHours(vesselMetrics.total_time_at_sea)}h`,
+        value: `${convertDurationInHoursStr(vesselMetrics.total_time_at_sea)}h`,
         type: "vessel",
         countryIso3: vessel.country_iso3,
       }
@@ -28,7 +28,7 @@ export function convertZoneDtoToItem(zoneMetrics: ZoneMetrics[]): Item[] {
       id: `${zone.id}`,
       title: zone.name,
       description: zone.sub_category,
-      value: `${convertDurationInHours(visiting_duration)}h`,
+      value: `${convertDurationInHoursStr(visiting_duration)}h`,
       type: "amp",
     }
   })

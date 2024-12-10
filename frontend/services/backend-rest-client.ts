@@ -49,8 +49,15 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
-export function getVesselExcursion(vesselId: number) {
-  const url = `${BASE_URL}/vessels/${vesselId}/excursions`
+export function getVesselExcursions(vesselId: number, startDate?: Date, endDate?: Date) {
+  let queryParams: string[] = []
+  if (startDate) {
+    queryParams.push(`start_at=${startDate.toISOString()}`);
+  }
+  if (endDate) {
+    queryParams.push(`end_at=${endDate.toISOString()}`);
+  }
+  const url = `${BASE_URL}/vessels/${vesselId}/excursions${queryParams.length > 0 ? `?${queryParams.join("&")}` : ""}`
   console.log(`GET ${url}`)
   return axios.get<VesselExcursion[]>(url)
 }
@@ -63,7 +70,7 @@ export function getVesselSegments(vesselId: number, excursionId: number) {
 
 export async function getVesselFirstExcursionSegments(vesselId: number) {
   try {
-    const response = await getVesselExcursion(vesselId)
+    const response = await getVesselExcursions(vesselId)
     const excursionId = response?.data[0]?.id
     if (!!excursionId) {
       const segments = await getVesselSegments(vesselId, excursionId)

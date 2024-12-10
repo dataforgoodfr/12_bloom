@@ -2,9 +2,10 @@
 
 import React from "react"
 import { Layers, Minus, Plus, SlidersHorizontal } from "lucide-react"
+import { useShallow } from "zustand/react/shallow"
 
+import { useMapStore } from "@/libs/stores/map-store"
 import IconButton from "@/components/ui/icon-button"
-import { useMapStore } from "@/components/providers/map-store-provider"
 
 import ZoneFilterModal from "./map/zone-filter-modal"
 
@@ -14,7 +15,12 @@ interface MapControlsProps {
 
 const MapControls = ({ zoneLoading }: MapControlsProps) => {
   const { viewState, setZoom, displayedZones, setDisplayedZones } = useMapStore(
-    (state) => state
+    useShallow((state) => ({
+      viewState: state.viewState,
+      setZoom: state.setZoom,
+      displayedZones: state.displayedZones,
+      setDisplayedZones: state.setDisplayedZones,
+    }))
   )
 
   const handleZoomIn = () => {

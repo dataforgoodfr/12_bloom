@@ -6,19 +6,29 @@ import { XIcon } from "lucide-react"
 import { VesselPosition } from "@/types/vessel"
 import { Button } from "@/components/ui/button"
 import IconButton from "@/components/ui/icon-button"
-import { useMapStore } from "@/components/providers/map-store-provider"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useShallow } from "zustand/react/shallow"
 
 export interface PreviewCardTypes {
   vesselInfo: VesselPosition
 }
 
 const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
+  const { setActivePosition } = useMapStore(useShallow((state) => ({
+    setActivePosition: state.setActivePosition,
+  })))
+
   const {
-    setActivePosition,
     addTrackedVessel,
     trackedVesselIDs,
     removeTrackedVessel,
-  } = useMapStore((state) => state)
+  } = useTrackModeOptionsStore(useShallow((state) => ({
+    addTrackedVessel: state.addTrackedVessel,
+    trackedVesselIDs: state.trackedVesselIDs,
+    removeTrackedVessel: state.removeTrackedVessel,
+  })))
+
   const {
     vessel: { id: vesselId, mmsi, ship_name, imo, length },
     timestamp,
@@ -27,13 +37,12 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
     return trackedVesselIDs.includes(vesselId)
   }
 
-  const handleDisplayTrail = async (vesselId: number) => {
+  const handleDisplayTrackedVessel = async (vesselId: number) => {
     if (isVesselTracked(vesselId)) {
       removeTrackedVessel(vesselId)
-      return
+    } else {
+      addTrackedVessel(vesselId)
     }
-    const response = await getVesselFirstExcursionSegments(vesselId)
-    addTrackedVessel(vesselId, response)
   }
   return (
     <div className="w-wrap flex flex-col rounded-t-lg bg-white shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 md:max-w-xl md:flex-row">
@@ -73,14 +82,12 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
           <p className="mb-1 text-gray-700 dark:text-gray-400">{timestamp}</p>
         </section>
         <section id="vessel-actions">
-          <Button onClick={() => handleDisplayTrail(vesselId)}>
-            {isVesselTracked(vesselId) ? "Hide" : "Display"} track
+          <Button
+            onClick={() => handleDisplayTrackedVessel(vesselId)}
+            className={`hover:bg-none ${!isVesselTracked(vesselId) ? "bg-color-1 hover:bg-color-1/50" : "bg-color-2 hover:bg-color-2/50"}`}
+          >
+            {isVesselTracked(vesselId) ? "Unselect" : "Select"} vessel
           </Button>
-          {isVesselTracked(vesselId) && (
-            <Link href="#" className="ml-2">
-              Show track details
-            </Link>
-          )}
         </section>
 
         <div className="absolute right-0 top-0 pr-3 pt-4">

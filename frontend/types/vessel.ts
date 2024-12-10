@@ -1,3 +1,5 @@
+import type {Feature, Geometry} from 'geojson';
+
 export type Vessel = {
   id: number
   mmsi: number
@@ -41,7 +43,7 @@ export type VesselPositions = VesselPosition[]
 
 export interface VesselPosition {
   arrival_port: string
-  excurision_id: number
+  excursion_id: number
   heading: number
   position: VesselPositionCoordinates
   speed: number
@@ -55,23 +57,19 @@ export interface VesselPositionCoordinates {
 }
 
 export type VesselExcursionSegmentGeo = {
+  vessel_id: number
+  excursion_id: number
   speed: number
   heading?: number
   navigational_status: string
-  geometry: {
-    type: string
-    coordinates: number[][]
-  }
 }
 
 export type VesselExcursionSegmentsGeo = {
-  vesselId: number
-  type: any
-  features: any
+  type: "FeatureCollection"
+  features: Feature<Geometry, VesselExcursionSegmentGeo>[]
 }
 
 export type VesselExcursionSegments = {
-  vesselId: number
   segments: VesselExcursionSegment[]
 }
 
@@ -81,23 +79,40 @@ export type VesselExcursion = {
   departure_port_id: number
   departure_at: string
   departure_position: {
+    type: 'Point'
     coordinates: number[]
   }
-  arrival_port_id: number
-  arrival_at: number
-  arrival_position: number
-  excursion_duration: number
+  arrival_port_id: number | null
+  arrival_at: string | null
+  arrival_position: {
+    type: 'Point'
+    coordinates: number[]
+  } | null
+  excursion_duration: string
   total_time_at_sea: string
   total_time_in_amp: string
   total_time_in_territorial_waters: string
-  total_time_in_costal_waters: string
+  total_time_in_zones_with_no_fishing_rights: string
+
   total_time_fishing: string
   total_time_fishing_in_amp: string
   total_time_fishing_in_territorial_waters: string
-  total_time_fishing_in_costal_waters: string
-  total_time_extincting_amp: string
+  total_time_fishing_in_zones_with_no_fishing_rights: string
+
+  total_time_default_ais: string
+
   created_at: string
   updated_at: String
+
+  segments?: VesselExcursionSegment[]
+}
+
+export interface ExcursionMetrics {
+  totalTimeFishing: number
+  mpa: number
+  frenchTerritorialWaters: number
+  zonesWithNoFishingRights: number
+  aisDefault: number
 }
 
 export type VesselExcursionSegment = {

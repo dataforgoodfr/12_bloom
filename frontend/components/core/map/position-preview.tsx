@@ -6,12 +6,13 @@ import {
 } from "framer-motion"
 
 import PreviewCard from "@/components/core/map/preview-card"
-import { useMapStore } from "@/components/providers/map-store-provider"
+import { useMapStore } from "@/libs/stores/map-store"
 
 export interface PositionPreviewTypes {}
 
 const PositionPreview: React.FC<PositionPreviewTypes> = () => {
-  const { activePosition } = useMapStore((state) => state)
+  const activePosition = useMapStore((state) => state.activePosition);
+
   return (
     <AnimatePresence>
       {activePosition && (

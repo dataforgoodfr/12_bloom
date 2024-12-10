@@ -1,4 +1,4 @@
-export function convertDurationInHours(durationPattern: string): string {
+export function convertDurationInSeconds(durationPattern: string): number {
   const matches = durationPattern.match(
     /P(?:(\d+)Y)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?/
   )
@@ -16,18 +16,22 @@ export function convertDurationInHours(durationPattern: string): string {
     seconds = "0",
   ] = matches
 
-  const totalHours =
-    parseInt(years) * 365 * 24 + // converting years to hours (approximate)
-    parseInt(days) * 24 +
-    parseInt(hours) +
-    parseInt(minutes) / 60 +
-    parseFloat(seconds) / 3600
+  const totalSeconds =
+    parseInt(years) * 365 * 24 * 60 * 60 + // converting years to hours (approximate)
+    parseInt(days) * 24 * 60 * 60 +
+    parseInt(hours) * 60 * 60 +
+    parseInt(minutes) * 60 +
+    parseFloat(seconds)
 
-  return Math.round(totalHours).toLocaleString("fr-FR")
+  return Math.floor(totalSeconds)
 }
 
-function padTwoDigits(num: number) {
-  return num.toString().padStart(2, "0")
+function convertDurationInHours(durationPattern: string): number {
+  return Math.round(convertDurationInSeconds(durationPattern) / 3600)
+}
+
+export function convertDurationInHoursStr(durationPattern: string): string {
+  return convertDurationInHours(durationPattern).toLocaleString("fr-FR")
 }
 
 export function getDateRange(days: number) {
@@ -40,4 +44,11 @@ export function getDateRange(days: number) {
     startAt: start.toISOString(),
     endAt: today.toISOString(),
   }
+}
+
+export function formatDuration(tsInSeconds: number): string {
+  const hours = Math.floor(tsInSeconds / 3600)
+  const minutes = Math.floor((tsInSeconds - hours * 3600) / 60)
+  const seconds = tsInSeconds - hours * 3600 - minutes * 60
+  return `${hours}h ${minutes}m ${seconds}s`
 }

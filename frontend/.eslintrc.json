@@ -12,7 +12,8 @@
     "@next/next/no-page-custom-font": "off",
     "react/jsx-key": "off",
     "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "off"
+    "tailwindcss/classnames-order": "off",
+    "react-hooks/exhaustive-deps": "off"
   },
   "settings": {
     "tailwindcss": {

@@ -5,6 +5,8 @@ WORKDIR ${APP_DIR}
 
 # Install dependencies based on the preferred package manager
 COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* frontend/pnpm-lock.yaml* ./
+RUN mkdir -p ./app
+
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
