@@ -117,8 +117,9 @@ function SidebarExpander({ disabled = false, children, className, opened = false
   )
 }
 
-export default {
+const SidebarExpanderComponents = {
   Root: SidebarExpander,
   Header: SidebarExpanderHeader,
   Content: SidebarExpanderContent,
 }
+export default SidebarExpanderComponents;

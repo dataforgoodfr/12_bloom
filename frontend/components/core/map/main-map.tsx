@@ -103,11 +103,8 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   const [coordinates, setCoordinates] = useState<string>("-°N -°E")
   const [mapTransitioning, setMapTransitioning] = useState(false)
 
-  // Use a piece of state that changes when `activePosition` changes to force re-render
-  // const [layerKey, setLayerKey] = useState(0)
-
-  const VESSEL_COLOR = [16, 181, 16, 210]
-  const TRACKED_VESSEL_COLOR = [128, 16, 189, 210]
+  const VESSEL_COLOR = [94, 141, 185]
+  const TRACKED_VESSEL_COLOR = [30, 224, 171]
 
   const isVesselSelected = (vp: VesselPosition) => {
     let vesselSelected = vp.vessel.id === activePosition?.vessel.id

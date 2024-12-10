@@ -87,13 +87,13 @@ export default function TrackedVesselExcursion({
           <div className="flex gap-2">
             <button
               onClick={onToggleVisibility}
-              className={`transition-colors hover:text-color-1 hover:text-color-1/40 ${!isHidden ? 'text-color-1' : ''}`}
+              className={`transition-colors hover:text-color-1/40 ${!isHidden ? 'text-color-1' : ''}`}
             >
               <EyeIcon className="size-4" />
             </button>
             <button
               onClick={onFocusExcursion}
-              className={`transition-colors hover:text-color-1 hover:text-color-1/40`}
+              className={`transition-colors hover:text-color-1/40`}
             >
               <CrosshairIcon className="size-4" />
             </button>
