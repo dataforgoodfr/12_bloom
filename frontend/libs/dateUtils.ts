@@ -1,4 +1,4 @@
-export function convertDurationInHours(durationPattern: string): number {
+export function convertDurationInHours(durationPattern: string): string {
   const matches = durationPattern.match(
     /P(?:(\d+)Y)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?/
   )
@@ -23,7 +23,7 @@ export function convertDurationInHours(durationPattern: string): number {
     parseInt(minutes) / 60 +
     parseFloat(seconds) / 3600
 
-  return Math.round(totalHours)
+  return Math.round(totalHours).toLocaleString("fr-FR")
 }
 
 function padTwoDigits(num: number) {
