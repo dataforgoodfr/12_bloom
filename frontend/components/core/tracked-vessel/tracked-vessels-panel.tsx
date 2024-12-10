@@ -101,13 +101,12 @@ function TrackModeDatePicker({
         <Button
           variant={"outline"}
           className={cn(
-            "justify-start bg-white text-left font-normal !text-color-2 shadow-md hover:border-color-1 hover:bg-white",
+            "justify-center bg-white text-center font-normal !text-color-2 shadow-md hover:border-color-1 hover:bg-white",
             !date && "text-muted-foreground",
             className
           )}
           color="primary"
         >
-          <CalendarIcon className="mr-2 size-4" />
           {date ? (
             format(date, "dd/MM/yyyy")
           ) : (
