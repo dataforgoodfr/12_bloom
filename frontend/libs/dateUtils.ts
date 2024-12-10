@@ -1,4 +1,4 @@
-export function convertDurationInHours(durationPattern: string): number {
+export function convertDurationInSeconds(durationPattern: string): number {
   const matches = durationPattern.match(
     /P(?:(\d+)Y)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?/
   )
@@ -16,18 +16,18 @@ export function convertDurationInHours(durationPattern: string): number {
     seconds = "0",
   ] = matches
 
-  const totalHours =
-    parseInt(years) * 365 * 24 + // converting years to hours (approximate)
-    parseInt(days) * 24 +
-    parseInt(hours) +
-    parseInt(minutes) / 60 +
-    parseFloat(seconds) / 3600
+  const totalSeconds =
+    parseInt(years) * 365 * 24 * 60 * 60 + // converting years to hours (approximate)
+    parseInt(days) * 24 * 60 * 60 +
+    parseInt(hours) * 60 * 60 +
+    parseInt(minutes) * 60 +
+    parseFloat(seconds)
 
-  return Math.floor(totalHours)
+  return Math.floor(totalSeconds)
 }
 
-function padTwoDigits(num: number) {
-  return num.toString().padStart(2, "0")
+export function convertDurationInHours(durationPattern: string): number {
+  return convertDurationInSeconds(durationPattern) / 3600
 }
 
 export function getDateRange(days: number) {
@@ -40,4 +40,11 @@ export function getDateRange(days: number) {
     startAt: start.toISOString(),
     endAt: today.toISOString(),
   }
+}
+
+export function formatDuration(tsInSeconds: number): string {
+  const hours = Math.floor(tsInSeconds / 3600)
+  const minutes = Math.floor((tsInSeconds - hours * 3600) / 60)
+  const seconds = tsInSeconds - hours * 3600 - minutes * 60
+  return `${hours}h ${minutes}m ${seconds}s`
 }

@@ -1,12 +1,13 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CrosshairIcon, EyeIcon } from "lucide-react"
 
-import { VesselExcursion } from "@/types/vessel"
+import { VesselExcursion, ExcursionMetrics } from "@/types/vessel"
 import SidebarExpander from "@/components/ui/custom/sidebar-expander"
 
 import TrackedVesselMetric from "./tracked-vessel-metric"
 import { useTrackModeOptionsStore } from "@/libs/stores"
 import { useShallow } from "zustand/react/shallow"
+import { convertDurationInSeconds } from "@/libs/dateUtils"
 
 export interface TrackedVesselExcursionProps {
   index: number
@@ -27,10 +28,13 @@ export default function TrackedVesselExcursion({
     })
   }
 
-  const { excursionsIDsHidden, toggleExcursionVisibility, setFocusedExcursionID } = useTrackModeOptionsStore(useShallow((state) => ({
+  const [detailsOpened, setDetailsOpened] = useState(false)
+
+  const { excursionsIDsHidden, toggleExcursionVisibility, setFocusedExcursionID, focusedExcursionID } = useTrackModeOptionsStore(useShallow((state) => ({
     excursionsIDsHidden: state.excursionsIDsHidden,
     toggleExcursionVisibility: state.toggleExcursionVisibility,
     setFocusedExcursionID: state.setFocusedExcursionID,
+    focusedExcursionID: state.focusedExcursionID,
   })))
 
   const isHidden = useMemo(() => excursionsIDsHidden.includes(excursion.id), [excursionsIDsHidden, excursion.id])
@@ -42,6 +46,16 @@ export default function TrackedVesselExcursion({
   const onFocusExcursion = () => {
     setFocusedExcursionID(excursion.id)
   }
+
+  const isExcursionFocused = useMemo(() => {
+    return focusedExcursionID === excursion.id
+  }, [focusedExcursionID, excursion.id])
+
+  useEffect(() => {
+    if (isExcursionFocused) {
+      setDetailsOpened(true)
+    }
+  }, [isExcursionFocused])
 
   const title = useMemo(() => {
     let outputTitle = `Voyage ${index} | ${prettifyDate(excursion.departure_at)}`
@@ -55,11 +69,21 @@ export default function TrackedVesselExcursion({
     return outputTitle
   }, [index, excursion])
 
+  const metrics = useMemo(() => {
+    return {
+      totalTimeFishing: convertDurationInSeconds(excursion.excursion_duration),
+      mpa: convertDurationInSeconds(excursion.total_time_in_amp),
+      frenchTerritorialWaters: convertDurationInSeconds(excursion.total_time_in_territorial_waters),
+      zonesWithNoFishingRights: convertDurationInSeconds(excursion.total_time_in_zones_with_no_fishing_rights),
+      aisDefault: convertDurationInSeconds(excursion.total_time_default_ais),
+    } as ExcursionMetrics
+  }, [excursion])
+
   return (
     <div className={`flex gap-1 ${className}`}>
-      <SidebarExpander.Root className="w-full justify-between">
+      <SidebarExpander.Root className="w-full justify-between" opened={detailsOpened} onToggle={setDetailsOpened}>
         <SidebarExpander.Header className="flex items-center justify-between">
-          <h6 className="text-sm font-bold">{title}</h6>
+          <h6 className={`text-sm font-bold ${isExcursionFocused ? 'text-color-1' : ''}`}>{title}</h6>
           <div className="flex gap-2">
             <button
               onClick={onToggleVisibility}
@@ -78,13 +102,11 @@ export default function TrackedVesselExcursion({
 
         <SidebarExpander.Content>
           <div className="flex w-full flex-col">
-            <TrackedVesselMetric title="Total time fishing" value={1234} unit="time" />
-            <TrackedVesselMetric title="MPA" value={123438} baseValue={2345} unit="time" >
-              <p>Details</p>
-            </TrackedVesselMetric>
-            <TrackedVesselMetric title="French Territorial Waters" value={123438} baseValue={123439} unit="time" />
-            <TrackedVesselMetric title="Zones with no fishing rights" value={1} baseValue={100} unit="time" />
-            <TrackedVesselMetric title="AIS default" value={37.2} baseValue={100} unit="time" />
+            <TrackedVesselMetric title="Total time fishing" value={metrics.totalTimeFishing} unit="time" />
+            <TrackedVesselMetric title="MPA" value={metrics.mpa} baseValue={metrics.totalTimeFishing} unit="time" />
+            <TrackedVesselMetric title="French Territorial Waters" value={metrics.frenchTerritorialWaters} baseValue={metrics.totalTimeFishing} unit="time" />
+            <TrackedVesselMetric title="Zones with no fishing rights" value={metrics.zonesWithNoFishingRights} baseValue={metrics.totalTimeFishing} unit="time" />
+            <TrackedVesselMetric title="AIS default" value={metrics.aisDefault} baseValue={metrics.totalTimeFishing} unit="time" />
           </div>
         </SidebarExpander.Content>
       </SidebarExpander.Root>

@@ -45,7 +45,6 @@ const svgVariants = {
 }
 
 export default function LeftPanel() {
-  const [isOpen, setIsOpen] = useState(false)
   const containerControls = useAnimationControls()
   const svgControls = useAnimationControls()
 
@@ -53,18 +52,20 @@ export default function LeftPanel() {
     vesselsLoading: state.vesselsLoading,
   })))
 
-  const { mode: mapMode } = useMapStore(useShallow((state) => ({
+  const { mode: mapMode, leftPanelOpened, setLeftPanelOpened } = useMapStore(useShallow((state) => ({
     mode: state.mode,
+    leftPanelOpened: state.leftPanelOpened,
+    setLeftPanelOpened: state.setLeftPanelOpened,
   })))
 
   useEffect(() => {
-    const control = isOpen ? "open" : "close"
+    const control = leftPanelOpened ? "open" : "close"
     containerControls.start(control)
     svgControls.start(control)
-  }, [containerControls, isOpen, svgControls])
+  }, [containerControls, leftPanelOpened, svgControls])
 
   const handleOpenClose = () => {
-    setIsOpen(!isOpen)
+    setLeftPanelOpened(!leftPanelOpened)
   }
 
   return (
@@ -100,21 +101,21 @@ export default function LeftPanel() {
         {mapMode === "position" && (
           <>
             <div className="flex flex-col gap-3 p-5">
-              <NavigationLink href="/dashboard" name="Dashboard" wide={isOpen}>
+              <NavigationLink href="/dashboard" name="Dashboard" wide={leftPanelOpened}>
                 <ChartBarIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
             </NavigationLink>
           </div>
           <div className="flex flex-col gap-3 bg-color-3 p-5">
-              {vesselsLoading ? <Spinner /> : <VesselFinderDemo wideMode={isOpen} />}
+              {vesselsLoading ? <Spinner /> : <VesselFinderDemo wideMode={leftPanelOpened} />}
             </div>
           </>
         )}
         <div
-          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 ${isOpen ? "cursor-default" : "cursor-pointer"}`}
-          onClick={() => !isOpen && setIsOpen(true)}
+          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
+          onClick={() => !leftPanelOpened && setLeftPanelOpened(true)}
         >
           <TrackedVesselsPanel
-            wideMode={isOpen}
+            wideMode={leftPanelOpened}
           />
         </div>
       </motion.nav>

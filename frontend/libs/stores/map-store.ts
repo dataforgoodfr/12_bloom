@@ -3,22 +3,13 @@ import { create } from "zustand"
 
 import { VesselExcursion, VesselPosition } from "@/types/vessel"
 
-interface ViewState {
-  longitude: number
-  latitude: number
-  zoom: number
-  pitch?: number
-  bearing?: number
-  transitionDuration?: number
-  transitionInterpolator?: any
-}
-
 interface IMapState {
   viewState: MapViewState
   latestPositions: VesselPosition[]
   mode: "position" | "track"
   displayedZones: string[]
   activePosition: VesselPosition | null
+  leftPanelOpened: boolean
 }
 
 interface IMapActions {
@@ -29,6 +20,7 @@ interface IMapActions {
   setMode: (mode: "position" | "track") => void
   setDisplayedZones: (zones: string[]) => void
   setActivePosition: (activePosition: VesselPosition | null) => void
+  setLeftPanelOpened: (leftPanelOpened: boolean) => void
 }
 
 type IMapStore = IMapState & IMapActions
@@ -44,7 +36,8 @@ const defaultInitState: IMapState = {
   latestPositions: [],
   mode: "position",
   displayedZones: [],
-  activePosition: null
+  activePosition: null,
+  leftPanelOpened: false,
 }
 
 export const useMapStore = create<IMapStore>()((set) => ({
@@ -91,5 +84,11 @@ export const useMapStore = create<IMapStore>()((set) => ({
       ...state,
       displayedZones,
     }))
-  }
+  },
+  setLeftPanelOpened: (leftPanelOpened: boolean) => {
+    set((state) => ({
+      ...state,
+      leftPanelOpened,
+    }))
+  },
 }))

@@ -65,6 +65,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     displayedZones,
     setActivePosition,
     setViewState,
+    setLeftPanelOpened,
   } = useMapStore(
     useShallow((state) => ({
       mode: state.mode,
@@ -73,6 +74,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       displayedZones: state.displayedZones,
       setViewState: state.setViewState,
       setActivePosition: state.setActivePosition,
+      setLeftPanelOpened: state.setLeftPanelOpened,
     }))
   )
 
@@ -93,12 +95,6 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
 
   const VESSEL_COLOR = [16, 181, 16, 210]
   const TRACKED_VESSEL_COLOR = [128, 16, 189, 210]
-
-  function getColorFromValue(value: number): [number, number, number] {
-    const scale = chroma.scale(["yellow", "red", "black"]).domain([0, 15])
-    const color = scale(value).rgb()
-    return [Math.round(color[0]), Math.round(color[1]), Math.round(color[2])]
-  }
 
   const isVesselSelected = (vp: VesselPosition) => {
     let vesselSelected = vp.vessel.id === activePosition?.vessel.id
@@ -228,12 +224,19 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
         },
         properties: {
           vessel_id: vesselId,
+          excursion_id: segment.excursion_id,
           speed: segment.average_speed,
           navigational_status: "unknown",
         },
       } as Feature<Geometry, VesselExcursionSegmentGeo>
     })
     return { type: "FeatureCollection", features: segmentsGeo ?? [] }
+  }
+
+  function onSegmentClick({ object }: PickingInfo) {
+    const segment = object as Feature<Geometry, VesselExcursionSegmentGeo>
+    setFocusedExcursionID(segment.properties.excursion_id)
+    setLeftPanelOpened(true)
   }
 
   function excursionToSegmentsLayer(excursion: VesselExcursion) {
@@ -248,7 +251,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
         const color = getSegmentsColor(feature)
         return new Uint8ClampedArray(color)
       },
-      pickable: false,
+      pickable: true,
       stroked: false,
       filled: true,
       getLineWidth: 1,
@@ -258,6 +261,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       lineWidthScale: 2,
       getPointRadius: 4,
       getTextSize: 12,
+      onClick: onSegmentClick,
     })
   }
 
@@ -269,12 +273,11 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
         layers.push(excursionToSegmentsLayer(excursion))
       })
 
-      console.log("Layers", layers)
       setSegmentsLayer(layers)
     } else {
       setSegmentsLayer([])
     }
-  }, [mapMode, trackedAndShownExcursions])
+  }, [mapMode, trackedAndShownExcursions, viewState])
 
   const onMapHover = ({ coordinate }: PickingInfo) => {
     coordinate &&
@@ -349,10 +352,6 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       }
     }
   }, [focusedExcursionID])
-
-  useEffect(() => {
-    setFocusedExcursionID(null)
-  }, [viewState.longitude, viewState.latitude])
 
   const getObjectType = (
     object: VesselPosition | ZoneWithGeometry | undefined

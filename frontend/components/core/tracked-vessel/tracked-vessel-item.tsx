@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
-import { EyeIcon, XIcon } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { EyeIcon, LoaderIcon, XIcon } from "lucide-react"
 
 import { Vessel } from "@/types/vessel"
 import SidebarExpander from "@/components/ui/custom/sidebar-expander"
@@ -8,6 +8,7 @@ import { useMapStore } from "@/libs/stores/map-store"
 import TrackedVesselDetails from "./tracked-vessel-details"
 import { useShallow } from "zustand/react/shallow"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useLoaderStore } from "@/libs/stores/loader-store"
 import { getVesselColorBg } from "@/libs/colors"
 
 export interface TrackedVesselItemProps {
@@ -25,11 +26,31 @@ export default function TrackedVesselItem({
     mode: state.mode,
   })))
 
-  const { removeTrackedVessel, vesselsIDsHidden, toggleVesselVisibility } = useTrackModeOptionsStore(useShallow((state) => ({
+  const { removeTrackedVessel, vesselsIDsHidden, toggleVesselVisibility, focusedExcursionID, excursions } = useTrackModeOptionsStore(useShallow((state) => ({
+    excursions: state.excursions,
     removeTrackedVessel: state.removeTrackedVessel,
     vesselsIDsHidden: state.vesselsIDsHidden,
     toggleVesselVisibility: state.toggleVesselVisibility,
+    focusedExcursionID: state.focusedExcursionID,
   })))
+
+  const { excursionsLoading } = useLoaderStore(useShallow((state) => ({
+    excursionsLoading: state.excursionsLoading,
+  })))
+
+  const isVesselExcursionFocused = useMemo(() => {
+    if (!excursions[vessel.id]) return false
+
+    return excursions[vessel.id].some(excursion => focusedExcursionID === excursion.id)
+  }, [focusedExcursionID, excursions])
+
+  const [detailsOpened, setDetailsOpened] = useState(false)
+
+  useEffect(() => {
+    if (isVesselExcursionFocused) {
+      setDetailsOpened(true)
+    }
+  }, [isVesselExcursionFocused])
 
   const isHidden = useMemo(() => vesselsIDsHidden.includes(vessel.id), [vesselsIDsHidden, vessel.id])
 
@@ -47,7 +68,7 @@ export default function TrackedVesselItem({
   return (
     <div className="flex gap-1">
       <div className={`flex w-full flex-col gap-2 py-2 ${className}`}>
-        <SidebarExpander.Root disabled={!isTrackMode}>
+        <SidebarExpander.Root disabled={!isTrackMode || excursionsLoading} opened={isTrackMode && detailsOpened} onToggle={setDetailsOpened}>
           <SidebarExpander.Header className="flex items-center justify-between">
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -57,6 +78,9 @@ export default function TrackedVesselItem({
                   ></div>
                 )}
                 <h6 className="text-sm font-bold">{vessel.ship_name}</h6>
+                {excursionsLoading && (
+                  <LoaderIcon className="size-4 animate-spin" />
+                )}
               </div>
               <div>
                 <p className="text-sm text-color-4">

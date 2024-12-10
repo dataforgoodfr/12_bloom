@@ -58,13 +58,10 @@ export interface VesselPositionCoordinates {
 
 export type VesselExcursionSegmentGeo = {
   vessel_id: number
+  excursion_id: number
   speed: number
   heading?: number
   navigational_status: string
-  geometry: {
-    type: string
-    coordinates: number[][]
-  }
 }
 
 export type VesselExcursionSegmentsGeo = {
@@ -91,21 +88,31 @@ export type VesselExcursion = {
     type: 'Point'
     coordinates: number[]
   } | null
-  excursion_duration: number
+  excursion_duration: string
   total_time_at_sea: string
   total_time_in_amp: string
   total_time_in_territorial_waters: string
-  total_time_in_costal_waters: string
+  total_time_in_zones_with_no_fishing_rights: string
+
   total_time_fishing: string
   total_time_fishing_in_amp: string
   total_time_fishing_in_territorial_waters: string
-  total_time_fishing_in_costal_waters: string
-  total_time_extincting_amp: string
+  total_time_fishing_in_zones_with_no_fishing_rights: string
+
+  total_time_default_ais: string
 
   created_at: string
   updated_at: String
 
   segments?: VesselExcursionSegment[]
+}
+
+export interface ExcursionMetrics {
+  totalTimeFishing: number
+  mpa: number
+  frenchTerritorialWaters: number
+  zonesWithNoFishingRights: number
+  aisDefault: number
 }
 
 export type VesselExcursionSegment = {

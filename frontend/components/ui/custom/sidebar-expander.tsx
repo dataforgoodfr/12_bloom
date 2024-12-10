@@ -35,16 +35,25 @@ export interface SidebarExpanderProps {
   disabled?: boolean
   children: React.ReactNode
   className?: string
+  opened?: boolean
+  onToggle?: (opened: boolean) => void
 }
 
-function SidebarExpander({ disabled = false, children, className }: SidebarExpanderProps) {
-  const [showContent, setShowContent] = useState(false)
+function SidebarExpander({ disabled = false, children, className, opened = false, onToggle }: SidebarExpanderProps) {
+  const [showContent, setShowContent] = useState(opened)
   const svgControls = useAnimationControls()
 
   useEffect(() => {
     const control = showContent ? "open" : "close"
+    if (onToggle) {
+      onToggle(showContent)
+    }
     svgControls.start(control)
-  }, [showContent, svgControls])
+  }, [showContent, svgControls, onToggle])
+
+  useEffect(() => {
+    setShowContent(opened)
+  }, [opened])
 
   const svgVariants = {
     close: {
