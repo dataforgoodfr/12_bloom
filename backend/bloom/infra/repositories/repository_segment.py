@@ -292,15 +292,17 @@ class SegmentRepository:
             values(last_vessel_segment=False))
             session.execute(upd1)
         session.flush()
-        last_segments = session.execute(text("""SELECT DISTINCT ON (vessel_id) s.id FROM fct_segment s
-                                                JOIN fct_excursion e ON e.id = s.excursion_id
-                                                WHERE vessel_id in :vessel_ids 
-                                                ORDER BY vessel_id, timestamp_start DESC"""),
-                                        {"vessel_ids": tuple(vessel_ids)}).all()
-        ids = [r[0] for r in last_segments]
-        upd2 = update(sql_model.Segment).where(sql_model.Segment.id.in_(ids)).values(
-            last_vessel_segment=True)
-        session.execute(upd2)
+        ids=[]
+        if(vessel_ids):
+            last_segments = session.execute(text("""SELECT DISTINCT ON (vessel_id) s.id FROM fct_segment s
+                                                    JOIN fct_excursion e ON e.id = s.excursion_id
+                                                    WHERE vessel_id in :vessel_ids 
+                                                    ORDER BY vessel_id, timestamp_start DESC"""),
+                                            {"vessel_ids": tuple(vessel_ids)}).all()
+            ids = [r[0] for r in last_segments]
+            upd2 = update(sql_model.Segment).where(sql_model.Segment.id.in_(ids)).values(
+                last_vessel_segment=True)
+            session.execute(upd2)
         return len(ids)
 
     @staticmethod
