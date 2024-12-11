@@ -30,7 +30,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <>
-      <html lang="en" className="light" suppressHydrationWarning>
+      <html lang="en" className="light" data-theme="light" suppressHydrationWarning>
         <head>
           <meta charSet="UTF-8" />
           <meta
