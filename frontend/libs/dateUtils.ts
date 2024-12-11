@@ -26,12 +26,23 @@ export function convertDurationInSeconds(durationPattern: string): number {
   return Math.floor(totalSeconds)
 }
 
-function convertDurationInHours(durationPattern: string): number {
-  return Math.round(convertDurationInSeconds(durationPattern) / 3600)
-}
+export function convertDurationToString(durationPattern: string): string {
+  const totalSeconds = convertDurationInSeconds(durationPattern)
+  const totalHours = totalSeconds / 3600
 
-export function convertDurationInHoursStr(durationPattern: string): string {
-  return convertDurationInHours(durationPattern).toLocaleString("fr-FR")
+  const years = Math.floor(totalHours / (24 * 365))
+  const remainingHoursAfterYears = totalHours % (24 * 365)
+  const days = Math.floor(remainingHoursAfterYears / 24)
+  const hours = Math.floor(remainingHoursAfterYears % 24)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+
+  const parts = []
+  if (years > 0) parts.push(`${years}y`)
+  if (days > 0) parts.push(`${days}d`)
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0) parts.push(`${minutes}m`)
+
+  return parts.length > 0 ? parts.join(" ") : "0h"
 }
 
 export function getDateRange(days: number) {
