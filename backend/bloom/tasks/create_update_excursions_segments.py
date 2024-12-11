@@ -354,8 +354,8 @@ def run():
                     vessel_country_iso3=vessel_attributes.country_iso3,
                     vessel_imo=vessel_attributes.imo,
                     type = types, 
-                    duration_total = duration_total_seconds,
-                    duration_fishing = duration_total_seconds if segment.type == 'FISHING' else None,
+                    duration_total = segment.segment_duration,
+                    duration_fishing = segment.segment_duration if segment.type == 'FISHING' else None,
                     zone_name = zone.name,
                     zone_sub_category=zone.sub_category
                 ) 
