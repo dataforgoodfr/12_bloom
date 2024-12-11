@@ -101,7 +101,7 @@ export default function LeftPanel() {
                 variants={svgVariants}
                 initial="close"
               >
-                <ChevronRightIcon className="size-8" />
+                <ChevronRightIcon className="size-8 text-neutral-200" />
               </motion.div>
             </button>
           </div>
@@ -114,7 +114,7 @@ export default function LeftPanel() {
                 name="Dashboard"
                 wide={leftPanelOpened}
               >
-                <ChartBarIcon className="w-8 min-w-8 stroke-inherit stroke-[0.75]" />
+                <ChartBarIcon className="w-8 min-w-8 stroke-neutral-200 stroke-1 hover:stroke-[1.25]" />
               </NavigationLink>
             </div>
             <div className="flex flex-col gap-3 bg-color-3 p-5">

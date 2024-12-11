@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover"
 import { format } from "date-fns"
 import {
-  CalendarIcon,
   ChevronRight,
   MinusIcon,
   PenIcon,
@@ -12,20 +11,18 @@ import {
   XIcon,
 } from "lucide-react"
 import { DayPicker, getDefaultClassNames, Matcher } from "react-day-picker"
+import { useShallow } from "zustand/react/shallow"
 
 import { Vessel } from "@/types/vessel"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useVesselsStore } from "@/libs/stores/vessels-store"
 import { cn } from "@/libs/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Popover } from "@/components/ui/popover"
 
-import { useVesselsStore } from "@/libs/stores/vessels-store"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useShallow } from "zustand/react/shallow"
-
 import TrackedVesselItem from "./tracked-vessel-item"
-import Spinner from "@/components/ui/custom/spinner"
 
 function NoVesselsPlaceholder() {
   return (
@@ -119,7 +116,6 @@ function TrackModeDatePicker({
           mode="single"
           selected={date}
           onSelect={setDate}
-
           classNames={{
             root: `${defaultClassNames.root} bg-white rounded-md`,
             selected: `bg-color-1 rounded-md`,
@@ -150,24 +146,27 @@ function TrackModeDatePicker({
 }
 
 function TrackModeHeader() {
-  const {
-    setMode: setMapMode
-  } = useMapStore(useShallow((state) => ({
-    setMode: state.setMode,
-  })))
+  const { setMode: setMapMode } = useMapStore(
+    useShallow((state) => ({
+      setMode: state.setMode,
+    }))
+  )
 
-  const { startDate, endDate, setStartDate, setEndDate } = useTrackModeOptionsStore(useShallow((state) => ({
-    startDate: state.startDate,
-    endDate: state.endDate,
-    setStartDate: state.setStartDate,
-    setEndDate: state.setEndDate,
-  })))
+  const { startDate, endDate, setStartDate, setEndDate } =
+    useTrackModeOptionsStore(
+      useShallow((state) => ({
+        startDate: state.startDate,
+        endDate: state.endDate,
+        setStartDate: state.setStartDate,
+        setEndDate: state.setEndDate,
+      }))
+    )
 
-  const [startDateSelected, setStartDateSelected] = useState(startDate);
-  const [endDateSelected, setEndDateSelected] = useState(endDate);
+  const [startDateSelected, setStartDateSelected] = useState(startDate)
+  const [endDateSelected, setEndDateSelected] = useState(endDate)
 
-  const today = new Date();
-  const minDate = startDate ? startDate : today;
+  const today = new Date()
+  const minDate = startDate ? startDate : today
 
   const onSetStartDate = (date: Date | undefined) => {
     setStartDateSelected(date)
@@ -230,25 +229,30 @@ export default function TrackedVesselsPanel({
     mode: mapMode,
     setMode: setMapMode,
     setActivePosition: setActivePosition,
-  } = useMapStore(useShallow((state) => ({
-    mode: state.mode,
-    setMode: state.setMode,
-    setActivePosition: state.setActivePosition,
-  })))
+  } = useMapStore(
+    useShallow((state) => ({
+      mode: state.mode,
+      setMode: state.setMode,
+      setActivePosition: state.setActivePosition,
+    }))
+  )
 
-  const { trackedVesselIDs, setTrackedVesselIDs } = useTrackModeOptionsStore(useShallow((state) => ({
-    trackedVesselIDs: state.trackedVesselIDs,
-    setTrackedVesselIDs: state.setTrackedVesselIDs,
-  })))
+  const { trackedVesselIDs, setTrackedVesselIDs } = useTrackModeOptionsStore(
+    useShallow((state) => ({
+      trackedVesselIDs: state.trackedVesselIDs,
+      setTrackedVesselIDs: state.setTrackedVesselIDs,
+    }))
+  )
 
-  const { vessels: allVessels } = useVesselsStore(useShallow((state) => ({
-    vessels: state.vessels,
-  })))
+  const { vessels: allVessels } = useVesselsStore(
+    useShallow((state) => ({
+      vessels: state.vessels,
+    }))
+  )
 
   const trackedVesselsDetails = useMemo(() => {
     return allVessels.filter((vessel) => trackedVesselIDs.includes(vessel.id))
   }, [allVessels, trackedVesselIDs])
-
 
   const hasTrackedVessels = useMemo(() => {
     return trackedVesselIDs.length > 0
@@ -261,15 +265,15 @@ export default function TrackedVesselsPanel({
 
   const vesselsSelectedCount = trackedVesselIDs.length
 
-  const [animateBadge, setAnimateBadge] = useState(false);
+  const [animateBadge, setAnimateBadge] = useState(false)
 
   useEffect(() => {
     if (vesselsSelectedCount > 0) {
-      setAnimateBadge(true);
-      const timer = setTimeout(() => setAnimateBadge(false), 300);
-      return () => clearTimeout(timer);
+      setAnimateBadge(true)
+      const timer = setTimeout(() => setAnimateBadge(false), 300)
+      return () => clearTimeout(timer)
     }
-  }, [vesselsSelectedCount]);
+  }, [vesselsSelectedCount])
 
   const WideModeTab = () => {
     return (
@@ -306,17 +310,15 @@ export default function TrackedVesselsPanel({
   return (
     <>
       <div>
-        <h5
-          className="flex gap-1 text-sm font-bold uppercase leading-6"
-        >
+        <h5 className="flex gap-1 text-sm font-bold uppercase leading-6">
           {!wideMode && (
             <div className="relative">
-              <ShipIcon className="w-8 min-w-8" />
+              <ShipIcon className="w-8 min-w-8 stroke-neutral-200 hover:stroke-neutral-100" />
               {vesselsSelectedCount > 0 && (
                 <Badge
                   variant="outline"
                   className={cn(
-                    "absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 flex justify-center items-center size-5 bg-color-1 text-color-3 border-none",
+                    "absolute right-0 top-0 flex size-5 -translate-y-1/2 translate-x-1/2 items-center justify-center border-none bg-color-1 text-color-3",
                     animateBadge && "animate-grow-shrink"
                   )}
                 >
@@ -326,7 +328,7 @@ export default function TrackedVesselsPanel({
             </div>
           )}
           {mapMode === "position" && wideMode && (
-            <span>{`Selected vessel (${trackedVesselIDs.length})`}</span>
+            <span className="text-card">{`Selected vessel (${trackedVesselIDs.length})`}</span>
           )}
         </h5>
       </div>
