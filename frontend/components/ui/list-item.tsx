@@ -26,7 +26,7 @@ export default function ListItem({ item, enableViewDetails }: Props) {
 
   return (
     <div
-      className={`flex min-h-12 gap-8 ${showViewDetailsButton ? "p-0" : "p-2"}`}
+      className={`flex min-h-12 gap-4 ${showViewDetailsButton ? "p-0" : "p-2"}`}
     >
       <div className="flex-1">
         <div className="text-md text-white">{title}</div>
@@ -37,7 +37,7 @@ export default function ListItem({ item, enableViewDetails }: Props) {
           {countryLabel}
         </div>
       )}
-      <div className="flex w-10 items-center justify-end text-sm text-white">
+      <div className="flex w-32 items-center justify-end text-sm text-white">
         {value}
       </div>
       {showViewDetailsButton && (
