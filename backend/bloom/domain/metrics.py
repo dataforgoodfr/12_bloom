@@ -16,10 +16,10 @@ class Metrics(BaseModel) :
     ship_name: str
     vessel_country_iso3: str 
     vessel_imo: int
-    duration_total : float
+    duration_total : timedelta
     duration_fishing: Optional[timedelta] = None
     zone_name : str
-    zone_sub_category : Union[timedelta, None]
+    zone_sub_category : Optional[str] = None
 
 class TotalTimeActivityTypeEnum(str, Enum):
     total_time_at_sea: str = "Total Time at Sea"
