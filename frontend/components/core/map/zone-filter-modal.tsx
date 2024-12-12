@@ -1,6 +1,8 @@
 import Image from "next/image"
+import { LayersIcon } from "lucide-react"
 
 import { ZoneCategory } from "@/types/zone"
+import { cn } from "@/libs/utils"
 import Spinner from "@/components/ui/custom/spinner"
 import {
   Dialog,
@@ -12,8 +14,6 @@ import {
 import IconButton from "@/components/ui/icon-button"
 
 import { FilterButton } from "./filter-button"
-import { cn } from "@/libs/utils"
-import { LayersIcon } from "lucide-react"
 
 interface ZoneFilterModalProps {
   activeZones: string[]
@@ -59,18 +59,22 @@ export default function ZoneFilterModal({
         <IconButton
           disabled={isLoading}
           description="Configure layers display settings"
-          className="dark:text-white"
         >
           {isLoading ? (
-            <Spinner />
+            <Spinner className="text-black dark:text-white" />
           ) : (
             <LayersIcon className="size-5 text-black dark:text-white" />
           )}
         </IconButton>
       </DialogTrigger>
-      <DialogContent className={cn("flex w-64 flex-col gap-6 bg-white", className)}>
+      <DialogContent
+        className={cn(
+          "flex w-64 flex-col gap-6 bg-white text-background",
+          className
+        )}
+      >
         <DialogHeader className="flex flex-row items-center justify-between space-y-0">
-          <DialogTitle className="flex items-center gap-2 text-xl text-black">
+          <DialogTitle className="flex items-center gap-2 text-xl text-primary-foreground">
             <LayersIcon className="size-5" />
             Zones
           </DialogTitle>
