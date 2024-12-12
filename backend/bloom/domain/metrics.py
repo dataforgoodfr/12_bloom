@@ -59,7 +59,15 @@ class ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(BaseModel):
     activity: str
     total_activity_time: timedelta
 
-
-
 class TotalTimeActivityTypeRequest(BaseModel):
     type: TotalTimeActivityTypeEnum
+
+
+class VesselTimeInZone(BaseModel):
+    vessel_id: Optional[int] = None
+    zone_id: Optional[int] = None
+    zone_name: Optional[str] = None
+    zone_category: Optional[str] = None
+    zone_sub_category: Optional[str] = None
+    duration_total: Optional[timedelta] = None
+    duration_fishing: Optional[timedelta] = None
