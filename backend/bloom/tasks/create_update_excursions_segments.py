@@ -361,10 +361,11 @@ def run():
                     zone_name = zone.name,
                     zone_sub_category=zone.sub_category
                 ) 
-            if segment_in_zone:
-                segments.append(segment)
 
                 new_metricss.append(new_metrics) 
+
+            if segment_in_zone:
+                segments.append(segment)
 
             # Mise à jour de l'excursion avec le temps passé dans chaque type de zone
             excursion = excursions.get(segment.excursion_id,
