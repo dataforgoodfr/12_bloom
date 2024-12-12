@@ -181,23 +181,34 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
         vp?.position?.coordinates[1],
       ],
       getAngle: (vp: VesselPosition) =>
-        vp.heading ? Math.round(vp.heading) : 0,
-      getIcon: () => "default",
-      iconAtlas: "../../../img/map-vessel.png",
+        vp.heading ? 365 - Math.round(vp.heading) : 0,
+      getIcon: (vp : VesselPosition) =>  vp.heading ? "withHeading" : "noHeading",
+      iconAtlas: "../../../img/icon_atlas.png",
       iconMapping: {
-        default: {
+        withHeading: {
           x: 0,
           y: 0,
-          width: 35,
-          height: 27,
+          width: 23,
+          height: 28,
+          anchorY: 14,
+          mask: true,
+        },
+        noHeading: {
+          x: 26,
+          y: 0,
+          width: 28,
+          height: 28,
+          anchorX: 14,
+          anchorY: 14,
           mask: true,
         },
       },
       getSize: (vp: VesselPosition) => {
         const length = vp.vessel.length || 0
-        if (length > 80) return 30 // Large vessels
-        if (length > 40) return 20 // Small vessels
-        return 14 // Medium vessels (default)
+        const type = vp.heading ? "arrow" : "ellipse"
+        if (length > 80) return type == "arrow" ? 18 : 14 // Large vessels
+        if (length > 40) return type == "arrow" ? 16 : 12 // Medium vessels
+        return type == "arrow" ? 14 : 10 // Small vessels (default)
       },
       getColor: (vp: VesselPosition) => {
         return new Uint8ClampedArray(getVesselColor(vp))
