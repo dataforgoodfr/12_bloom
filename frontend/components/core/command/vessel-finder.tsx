@@ -111,7 +111,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
 
   return (
     <Command
-      className={`border-[0.5px] border-solid ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"}`}
+      className={`relative overflow-visible border-[0.5px] border-solid ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"}`}
       onClick={() => {
         if (!wideMode) {
           setWideMode(true)
@@ -129,6 +129,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
         placeholder="Type MMSI, IMO or vessel name to search..."
       />
       <CommandList
+        className="absolute left-0 top-[calc(100%+1px)] z-[100] w-full rounded-b-md border-[0.5px] border-solid bg-background shadow-md"
         hidden={!open}
         onMouseDown={(e) => {
           e.preventDefault()
