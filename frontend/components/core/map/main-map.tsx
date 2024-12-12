@@ -1,33 +1,37 @@
-"use client"
+"use client";
 
-import "maplibre-gl/dist/maplibre-gl.css"
 
-import { useEffect, useMemo, useState } from "react"
-import type { PickingInfo } from "@deck.gl/core"
-import { GeoJsonLayer } from "@deck.gl/layers"
-import DeckGL from "@deck.gl/react"
-import chroma from "chroma-js"
-import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
-import type { Feature, Geometry } from "geojson"
-import { renderToString } from "react-dom/server"
-import { Map as MapGL } from "react-map-gl/maplibre"
-import { useShallow } from "zustand/react/shallow"
 
-import {
-  VesselExcursion,
-  VesselExcursionSegment,
-  VesselExcursionSegmentGeo,
-  VesselExcursionSegmentsGeo,
-  VesselPosition,
-  VesselPositions,
-} from "@/types/vessel"
-import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
-import { getVesselColorRGB } from "@/libs/colors"
-import { useLoaderStore } from "@/libs/stores/loader-store"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import MapTooltip from "@/components/ui/tooltip-map-template"
-import ZoneMapTooltip from "@/components/ui/zone-map-tooltip"
+
+import "maplibre-gl/dist/maplibre-gl.css";
+
+
+
+import { useEffect, useMemo, useState } from "react";
+import type { PickingInfo } from "@deck.gl/core";
+import { GeoJsonLayer } from "@deck.gl/layers";
+import DeckGL from "@deck.gl/react";
+import chroma from "chroma-js";
+import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl";
+import type { Feature, Geometry } from "geojson";
+import { renderToString } from "react-dom/server";
+import { Map as MapGL } from "react-map-gl/maplibre";
+import { useShallow } from "zustand/react/shallow";
+
+
+
+import { VesselExcursion, VesselExcursionSegment, VesselExcursionSegmentGeo, VesselExcursionSegmentsGeo, VesselPosition, VesselPositions } from "@/types/vessel";
+import { ZoneCategory, ZoneWithGeometry } from "@/types/zone";
+import { getVesselColorRGB } from "@/libs/colors";
+import { useLoaderStore } from "@/libs/stores/loader-store";
+import { useMapStore } from "@/libs/stores/map-store";
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store";
+import MapTooltip from "@/components/ui/tooltip-map-template";
+import ZoneMapTooltip from "@/components/ui/zone-map-tooltip";
+
+
+
+
 
 type CoreMapProps = {
   vesselsPositions: VesselPositions
@@ -46,9 +50,9 @@ const getOpacityFromTimestamp = (timestamp: string) => {
     (now.getTime() - positionTime.getTime()) / (1000 * 60 * 60)
 
   if (diffInHours <= 0.75) return 255 // 100% opacity
-  if (diffInHours <= 3) return 179 // 70% opacity
-  if (diffInHours <= 5) return 140 // 55% opacity
-  return 102 // 40% opacity
+  if (diffInHours <= 3) return 255 // 70% opacity
+  if (diffInHours <= 5) return 255 // 55% opacity
+  return 255 // 40% opacity
 }
 
 export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
@@ -103,8 +107,8 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
   const [coordinates, setCoordinates] = useState<string>("-°N -°E")
   const [mapTransitioning, setMapTransitioning] = useState(false)
 
-  const VESSEL_COLOR = [94, 141, 185]
-  const TRACKED_VESSEL_COLOR = [30, 224, 171]
+  const VESSEL_COLOR = [30, 224, 171]
+  const TRACKED_VESSEL_COLOR = [30, 224, 171, 0]
 
   const isVesselSelected = (vp: VesselPosition) => {
     let vesselSelected = vp.vessel.id === activePosition?.vessel.id
@@ -151,17 +155,18 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
 
   const getVesselColor = (vp: VesselPosition) => {
     let colorRgb = VESSEL_COLOR
+    let opacity = getOpacityFromTimestamp(vp.timestamp)
 
     if (isVesselSelected(vp)) {
       colorRgb = TRACKED_VESSEL_COLOR
+      opacity = 0
+
     }
 
     if (mapMode === "track") {
       const listIndex = trackedVesselIDs.indexOf(vp.vessel.id)
       colorRgb = getVesselColorRGB(listIndex)
     }
-
-    const opacity = getOpacityFromTimestamp(vp.timestamp)
 
     return [colorRgb[0], colorRgb[1], colorRgb[2], opacity]
   }
@@ -195,9 +200,9 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       },
       getSize: (vp: VesselPosition) => {
         const length = vp.vessel.length || 0
-        if (length > 80) return 30 // Large vessels
-        if (length > 40) return 20 // Small vessels
-        return 14 // Medium vessels (default)
+        if (length > 80) return 18 // Large vessels
+        if (length > 40) return 14 // Small vessels
+        return 10 // Medium vessels (default)
       },
       getColor: (vp: VesselPosition) => {
         return new Uint8ClampedArray(getVesselColor(vp))

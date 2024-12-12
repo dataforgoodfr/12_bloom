@@ -72,6 +72,43 @@ class SegmentRepository:
                 ) for record in result]
         else:
             return []
+        
+    def get_all_vessels_positions_at(self, session: Session, date: datetime) -> List[Segment]:
+        stmt = (
+            select(
+                sql_model.Vessel,
+                sql_model.Segment.excursion_id,
+                sql_model.Segment.end_position,
+                sql_model.Segment.timestamp_end,
+                sql_model.Segment.heading_at_end,
+                sql_model.Segment.speed_at_end,
+                sql_model.Excursion.arrival_port_id,
+            )
+            .join(
+                sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+            )
+            .join(
+                sql_model.Segment,
+                sql_model.Segment.excursion_id == sql_model.Excursion.id,
+            )
+            .filter(
+                sql_model.Segment.timestamp_start <= date,
+                sql_model.Segment.timestamp_end >= date,
+            )
+        )
+        result = session.execute(stmt)
+        if result is not None :
+            return [VesselLastPosition(
+                    vessel=VesselRepository.map_to_domain(record[0]),
+                    excursion_id=record[1],
+                    position=to_shape(record[2]),
+                    timestamp=record[3],
+                    heading=record[4],
+                    speed=record[5],
+                    arrival=record[6],
+                ) for record in result]
+        else:
+            return []
 
     def get_vessel_last_position(self, session: Session,vessel_id:int) -> List[Segment]:
         stmt = select(

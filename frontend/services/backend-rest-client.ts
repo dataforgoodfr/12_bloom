@@ -43,8 +43,15 @@ export function getVesselsTrackedCount() {
   return axios.get<number>(url)
 }
 
+// export function getVesselsLatestPositions() {
+//   const url = `${BASE_URL}/vessels/all/positions/last`
+//   console.log(`GET ${url}`)
+//   return axios.get<VesselPositions>(url)
+// }
+
 export function getVesselsLatestPositions() {
-  const url = `${BASE_URL}/vessels/all/positions/last`
+  const date = "2024-12-03 15:50:00"
+  const url = `${BASE_URL}/vessels/all/positions/at?timestamp=${date}`
   console.log(`GET ${url}`)
   return axios.get<VesselPositions>(url)
 }

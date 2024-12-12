@@ -76,6 +76,8 @@ export default function MapPage() {
     refreshInterval: 900000, // 15 minutes in milliseconds
   })
 
+  
+
   const { startDate, endDate, trackedVesselIDs, setVesselExcursions } = useTrackModeOptionsStore(useShallow((state) => ({
     startDate: state.startDate,
     endDate: state.endDate,
