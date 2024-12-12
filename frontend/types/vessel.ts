@@ -108,7 +108,7 @@ export type VesselExcursion = {
 }
 
 export interface ExcursionMetrics {
-  totalTimeFishing: number
+  totalTimeAtSea: number
   mpa: number
   frenchTerritorialWaters: number
   zonesWithNoFishingRights: number
