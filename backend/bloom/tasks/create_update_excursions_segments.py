@@ -356,6 +356,8 @@ def run():
                     type = types, 
                     duration_total = segment.segment_duration,
                     duration_fishing = segment.segment_duration if segment.type == 'FISHING' else None,
+                    zone_id=zone.id,
+                    zone_category=zone.category,
                     zone_name = zone.name,
                     zone_sub_category=zone.sub_category
                 ) 
