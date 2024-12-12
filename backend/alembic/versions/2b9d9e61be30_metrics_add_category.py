@@ -33,7 +33,8 @@ def upgrade() -> None:
                zone_category = (select category
                               from dim_zone dz
                               where name = fm.zone_name and
-                              (sub_category = fm.zone_sub_category))""")
+                              (sub_category = fm.zone_sub_category))
+                where zone_id is null or zone_category is null""")
     pass
 
 
