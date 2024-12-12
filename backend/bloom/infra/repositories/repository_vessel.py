@@ -2,10 +2,14 @@ from contextlib import AbstractContextManager
 from typing import Any, Generator, Union
 
 from bloom.domain.vessel import Vessel
+from bloom.domain.metrics import VesselTimeInZone
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
-from sqlalchemy import func, select, update, and_
+from sqlalchemy import func, select, update, and_, asc, desc, literal_column
 from sqlalchemy.orm import Session
+from bloom.routers.requests import (DatetimeRangeRequest,
+                                    OrderByRequest,
+                                    OrderByEnum)
 
 
 class VesselRepository:
@@ -69,6 +73,67 @@ class VesselRepository:
         if not e:
             return []
         return [VesselRepository.map_to_domain(vessel) for vessel in e]
+
+    
+    def get_vessel_times_in_zones(  self,
+                                    session: Session,
+                                    vessel_id: int,
+                                    datetime_range: DatetimeRangeRequest,
+                                    order: OrderByRequest,
+                                    category: str = None,
+                                    sub_cateogry: str = None,
+                                  )-> list[VesselTimeInZone]:
+        """
+        Renvoie le temps passés par zones pour un bateau sur une période donnée
+        Paramètres:
+        - vessel_id
+        - start_at/end_at
+        - category
+        - sub_category
+        Valeurs renvoyées:
+        - zone_name: nome de la zone
+        - zone_category: categorie de la zone
+        - zone_sub_category: sous-categorie de la zone
+        - duration_total: durée total dans la zone
+        - duration_fishing: durée à pêcher
+        """
+        stmt = (select(sql_model.Metrics.vessel_id,
+                           sql_model.Metrics.zone_id,
+                           sql_model.Metrics.zone_name,
+                           sql_model.Metrics.zone_category,
+                           sql_model.Metrics.zone_sub_category,
+                        func.sum(sql_model.Metrics.duration_total).label("duration_total"),
+                        func.sum(sql_model.Metrics.duration_fishing).label("duration_fishing"),
+                        )
+                        .select_from(sql_model.Metrics)
+                        .where(sql_model.Metrics.vessel_id==vessel_id)
+                        .where(sql_model.Metrics.timestamp.between(datetime_range.start_at,datetime_range.end_at))
+                ).group_by(sql_model.Metrics.vessel_id,
+                           sql_model.Metrics.zone_id,
+                           sql_model.Metrics.zone_name,
+                           sql_model.Metrics.zone_category,
+                           sql_model.Metrics.zone_sub_category
+                           )
+        
+        stmt =  stmt.order_by(asc(literal_column("duration_total")))\
+                if  order.order == OrderByEnum.ascending \
+                else stmt.order_by(desc(literal_column("duration_total")))
+        if(category):
+            stmt=stmt.where(sql_model.Metrics.zone_category==category)
+        if(sub_cateogry):
+            stmt=stmt.where(sql_model.Metrics.zone_sub_category==sub_cateogry)
+        
+        result = [VesselTimeInZone(
+            vessel_id=row[0],
+            zone_id=row[1],
+            zone_name=row[2],
+            zone_category=row[3],
+            zone_sub_category=row[4],
+            duration_total=row[5],
+            duration_fishing=row[6],
+        ) for row in session.execute(stmt).all()]
+        
+        return result
 
     def batch_create_vessel(self, session: Session, vessels: list[Vessel]) -> list[Vessel]:
         orm_list = [VesselRepository.map_to_sql(port) for port in vessels]
