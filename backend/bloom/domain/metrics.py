@@ -19,6 +19,8 @@ class Metrics(BaseModel) :
     duration_total : timedelta
     duration_fishing: Optional[timedelta] = None
     zone_name : str
+    zone_id : Optional[int] = None
+    zone_category : Optional[str] = None
     zone_sub_category : Optional[str] = None
 
 class TotalTimeActivityTypeEnum(str, Enum):

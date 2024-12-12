@@ -65,6 +65,8 @@ class MetricsRepository:
             duration_total=metrics.duration_total,
             duration_fishing=metrics.duration_fishing,
             zone_name=metrics.zone_name,
+            zone_id=metrics.zone_id,
+            zone_category=metrics.zone_category,
             zone_sub_category=metrics.zone_sub_category,
         )            
 
@@ -82,6 +84,8 @@ class MetricsRepository:
                 duration_total=metrics.duration_total,
                 duration_fishing=metrics.duration_fishing,
                 zone_name=metrics.zone_name,
+                zone_id=metrics.zone_id,
+                zone_category=metrics.zone_category,
                 zone_sub_category=metrics.zone_sub_category,
             )            
 
