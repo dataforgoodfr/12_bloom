@@ -100,7 +100,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
       }))
     )
 
-  const [coordinates, setCoordinates] = useState<string>("-°N -°E")
+  const [coordinates, setCoordinates] = useState<string>("-°N; -°E")
   const [mapTransitioning, setMapTransitioning] = useState(false)
 
   const VESSEL_COLOR = [94, 141, 185]
@@ -306,7 +306,7 @@ export default function CoreMap({ vesselsPositions, zones }: CoreMapProps) {
     coordinate &&
       setCoordinates(
         coordinate[1].toFixed(3).toString() +
-          "°N " +
+          "°N; " +
           coordinate[0].toFixed(3) +
           "°E"
       )
