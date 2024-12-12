@@ -309,28 +309,26 @@ export default function TrackedVesselsPanel({
 
   return (
     <>
-      <div>
-        <h5 className="flex gap-1 text-sm font-bold uppercase leading-6">
-          {!wideMode && (
-            <div className="relative">
-              <ShipIcon className="w-8 min-w-8 stroke-neutral-200 hover:stroke-neutral-100" />
-              {vesselsSelectedCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "absolute right-0 top-0 flex size-5 -translate-y-1/2 translate-x-1/2 items-center justify-center border-none bg-color-1 text-color-3",
-                    animateBadge && "animate-grow-shrink"
-                  )}
-                >
-                  {vesselsSelectedCount}
-                </Badge>
-              )}
-            </div>
-          )}
-          {mapMode === "position" && wideMode && (
-            <span className="text-card">{`Selected vessel (${trackedVesselIDs.length})`}</span>
-          )}
-        </h5>
+      <div className="flex items-center justify-center text-sm font-bold uppercase">
+        {!wideMode && (
+          <div className="relative flex size-8 items-center justify-center">
+            <ShipIcon className="size-7 text-neutral-200 hover:text-primary" />
+            {vesselsSelectedCount > 0 && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "absolute right-0 top-0 flex size-5 -translate-y-1/2 translate-x-1/2 items-center justify-center border-none bg-color-1 text-color-3",
+                  animateBadge && "animate-grow-shrink"
+                )}
+              >
+                {vesselsSelectedCount}
+              </Badge>
+            )}
+          </div>
+        )}
+        {mapMode === "position" && wideMode && (
+          <span className="w-full text-start text-card">{`Selected vessel (${trackedVesselIDs.length})`}</span>
+        )}
       </div>
 
       {wideMode && <WideModeTab />}

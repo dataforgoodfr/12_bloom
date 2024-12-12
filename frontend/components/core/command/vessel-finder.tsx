@@ -1,13 +1,16 @@
 "use client"
 
-import { useShallow } from "zustand/react/shallow"
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 import { FlyToInterpolator } from "deck.gl"
+import { useShallow } from "zustand/react/shallow"
 
-import { Vessel, VesselPosition } from "@/types/vessel"
+import { VesselPosition } from "@/types/vessel"
+import { useMapStore } from "@/libs/stores/map-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useVesselsStore } from "@/libs/stores/vessels-store"
 import {
-  CommandDialog,
+  Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -15,19 +18,18 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useVesselsStore } from "@/libs/stores/vessels-store"
 
 type Props = {
   wideMode: boolean
+  setWideMode: (wideMode: boolean) => void
 }
 
 const SEPARATOR = "___"
 
-export function VesselFinderDemo({ wideMode }: Props) {
+export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState<string>("")
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { addTrackedVessel, trackedVesselIDs } = useTrackModeOptionsStore(
     useShallow((state) => ({
@@ -36,19 +38,15 @@ export function VesselFinderDemo({ wideMode }: Props) {
     }))
   )
 
-  const {
-    setActivePosition,
-    viewState,
-    latestPositions,
-    setViewState,
-  } = useMapStore(
-    useShallow((state) => ({
-      viewState: state.viewState,
-      latestPositions: state.latestPositions,
-      setActivePosition: state.setActivePosition,
-      setViewState: state.setViewState,
-    }))
-  )
+  const { setActivePosition, viewState, latestPositions, setViewState } =
+    useMapStore(
+      useShallow((state) => ({
+        viewState: state.viewState,
+        latestPositions: state.latestPositions,
+        setActivePosition: state.setActivePosition,
+        setViewState: state.setViewState,
+      }))
+    )
 
   const { vessels: allVessels } = useVesselsStore(
     useShallow((state) => ({
@@ -56,8 +54,37 @@ export function VesselFinderDemo({ wideMode }: Props) {
     }))
   )
 
+  const simpleVessels = useMemo(() => {
+    return allVessels.map((vessel) => ({
+      id: vessel.id,
+      title: vessel.ship_name,
+      subtitle: `MMSI ${vessel.mmsi} | IMO ${vessel.imo}`,
+      value: `${vessel.ship_name}${SEPARATOR}${vessel.mmsi}${SEPARATOR}${vessel.imo}${SEPARATOR}${vessel.id}`,
+    }))
+  }, [allVessels])
+
+  const filteredItems = useMemo(
+    () =>
+      simpleVessels.filter(
+        (vessel) =>
+          vessel.value.toLowerCase().includes(search.toLowerCase()) &&
+          !trackedVesselIDs.includes(vessel.id)
+      ),
+    [simpleVessels, search, trackedVesselIDs]
+  )
+
+  useEffect(() => {
+    if (!wideMode && open) {
+      setOpen(false)
+    }
+  }, [wideMode])
+
+  const displayedItems = filteredItems.slice(0, 50)
+
   const onSelectVessel = async (vesselIdentifier: string) => {
+    setOpen(false)
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
+
     const response = await getVesselFirstExcursionSegments(vesselId)
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
       addTrackedVessel(vesselId)
@@ -83,67 +110,53 @@ export function VesselFinderDemo({ wideMode }: Props) {
   }
 
   return (
-    <>
-      <button
-        type="button"
-        className="dark:highlight-white/5 flex items-center rounded-md bg-color-3 py-1.5 pl-2 pr-3 text-sm leading-6 text-slate-400 shadow-sm ring-1 ring-color-2 hover:bg-slate-700 hover:ring-slate-300"
+    <Command
+      className={`border-[0.5px] border-solid ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"}`}
+      onClick={() => {
+        if (!wideMode) {
+          setWideMode(true)
+          setOpen(true)
+          inputRef.current?.focus()
+        }
+      }}
+    >
+      <CommandInput
+        ref={inputRef}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
         onClick={() => setOpen(true)}
+        onValueChange={(value) => setSearch(value)}
+        placeholder="Type MMSI, IMO or vessel name to search..."
+      />
+      <CommandList
+        hidden={!open}
+        onMouseDown={(e) => {
+          e.preventDefault()
+        }}
       >
-        <svg
-          width="24"
-          height="24"
-          fill="none"
-          aria-hidden="true"
-          className="mr-3 flex-none"
-        >
-          <path
-            d="m19 19-3.5-3.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          ></path>
-          <circle
-            cx="11"
-            cy="11"
-            r="6"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          ></circle>
-        </svg>
-        {wideMode && <>Find vessels...</>}
-      </button>
-
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder="Type MMSI, IMO or vessel name to search..."
-          value={search}
-          onValueChange={setSearch}
-        />
-        <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Vessels">
-            {allVessels.map((vessel: Vessel) => {
-              return (
-                <CommandItem
-                  key={`${vessel.id}`}
-                  onSelect={(value) => onSelectVessel(value)}
-                  value={`${vessel.ship_name}${SEPARATOR}${vessel.mmsi}${SEPARATOR}${vessel.imo}${SEPARATOR}${vessel.id}`} // so we can search by name, mmsi, imo
-                >
-                  <span>{vessel.ship_name}</span>
-                  <span className="ml-2 text-xxxs">
-                    {" "}
-                    MMSI {vessel.mmsi} | IMO {vessel.imo}
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Vessels">
+          {displayedItems.map((vessel) => {
+            return (
+              <CommandItem
+                className="border-none"
+                key={`${vessel.id}`}
+                onSelect={(value) => onSelectVessel(value)}
+                value={vessel.value}
+              >
+                <div className="flex flex-wrap items-baseline gap-1">
+                  <span>{vessel.title}</span>
+                  <span>-</span>
+                  <span className="text-xxs text-neutral-300">
+                    {vessel.subtitle}
                   </span>
-                </CommandItem>
-              )
-            })}
-          </CommandGroup>
-          <CommandSeparator />
-        </CommandList>
-      </CommandDialog>
-    </>
+                </div>
+              </CommandItem>
+            )
+          })}
+        </CommandGroup>
+        <CommandSeparator />
+      </CommandList>
+    </Command>
   )
 }

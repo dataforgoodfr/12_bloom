@@ -17,9 +17,9 @@ export function FilterButton({
     <Button
       variant="outline"
       size="sm"
-      className={`h-7 w-fit justify-start font-normal ${
+      className={`h-7 w-fit justify-start font-normal hover:text-primary-foreground/90 ${
         isActive
-          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          ? "bg-primary hover:bg-primary/90"
           : "bg-muted hover:bg-muted/50"
       }`}
       onClick={() => onToggle(value)}

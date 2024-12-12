@@ -21,7 +21,7 @@ export default function KPICard({
   loading,
 }: Props) {
   return (
-    <div className="flex w-full flex-col gap-y-2 rounded bg-primary p-4">
+    <div className="flex w-full flex-col gap-y-2 rounded bg-primary p-4 text-background">
       <div className="block text-lg font-bold uppercase">{title}</div>
       <div className="flex flex-row items-end justify-end">
         <div className="h-[40px] min-w-[50px] text-4xl font-bold uppercase">

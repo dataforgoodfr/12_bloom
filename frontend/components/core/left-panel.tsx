@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import Image from "next/image"
 import TrawlWatchLogo from "@/public/trawlwatch.svg"
 import { ChartBarIcon } from "@heroicons/react/24/outline"
@@ -114,7 +114,7 @@ export default function LeftPanel() {
                 name="Dashboard"
                 wide={leftPanelOpened}
               >
-                <ChartBarIcon className="w-8 min-w-8 stroke-neutral-200 stroke-1 hover:stroke-[1.25]" />
+                <ChartBarIcon className="size-8 stroke-[0.75] hover:text-primary" />
               </NavigationLink>
             </div>
             <div className="flex flex-col gap-3 bg-color-3 p-5">
@@ -123,7 +123,10 @@ export default function LeftPanel() {
                   <Spinner className="text-white" />
                 </div>
               ) : (
-                <VesselFinderDemo wideMode={leftPanelOpened} />
+                <VesselFinderDemo
+                  wideMode={leftPanelOpened}
+                  setWideMode={setLeftPanelOpened}
+                />
               )}
             </div>
           </>
