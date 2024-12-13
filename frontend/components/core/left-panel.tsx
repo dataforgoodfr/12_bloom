@@ -58,11 +58,13 @@ export default function LeftPanel() {
     mode: mapMode,
     leftPanelOpened,
     setLeftPanelOpened,
+    setActivePosition,
   } = useMapStore(
     useShallow((state) => ({
       mode: state.mode,
       leftPanelOpened: state.leftPanelOpened,
       setLeftPanelOpened: state.setLeftPanelOpened,
+      setActivePosition: state.setActivePosition,
     }))
   )
 
@@ -71,6 +73,12 @@ export default function LeftPanel() {
     containerControls.start(control)
     svgControls.start(control)
   }, [containerControls, leftPanelOpened, svgControls])
+
+  useEffect(() => {
+    if (leftPanelOpened) {
+      setActivePosition(null)
+    }
+  }, [leftPanelOpened])
 
   const handleOpenClose = () => {
     setLeftPanelOpened(!leftPanelOpened)

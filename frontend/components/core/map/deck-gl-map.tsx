@@ -8,7 +8,6 @@ import { GeoJsonLayer } from "@deck.gl/layers"
 import DeckGL from "@deck.gl/react"
 import { IconLayer, Layer, MapViewState, PolygonLayer } from "deck.gl"
 import type { Feature, Geometry } from "geojson"
-import { renderToString } from "react-dom/server"
 import { Map as MapGL } from "react-map-gl/maplibre"
 import { useShallow } from "zustand/react/shallow"
 
@@ -25,8 +24,8 @@ import { getVesselColorRGB } from "@/libs/colors"
 import { useLoaderStore } from "@/libs/stores/loader-store"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
-import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
+
+import { getPickObjectType } from "./utils"
 
 type DeckGLMapProps = {
   vesselsPositions: VesselPositions
@@ -142,8 +141,9 @@ export default function DeckGLMap({
     return trackedAndShownExcursions
   }, [trackedAndShownVessels, excursions, excursionsIDsHidden])
 
-  const onMapClick = ({ layer }: PickingInfo) => {
-    if (layer?.id !== "vessels-latest-positions") {
+  const onMapClick = (info: PickingInfo) => {
+    const objectType = getPickObjectType(info)
+    if (objectType !== "vessel" && objectType !== "excursion") {
       setActivePosition(null)
       setFocusedExcursionID(null)
     }
@@ -301,13 +301,10 @@ export default function DeckGLMap({
   }
 
   function onSegmentClick({ object }: PickingInfo) {
-    console.log("onSegmentClick", object)
     const segment = object as Feature<Geometry, VesselExcursionSegmentGeo>
     if (segment.properties.excursion_id !== focusedExcursionID) {
-      console.log("setFocusedExcursionID", segment.properties.excursion_id)
       setFocusedExcursionID(segment.properties.excursion_id)
     } else {
-      console.log("focusOnExcursion", segment.properties.excursion_id)
       focusOnExcursion(segment.properties.excursion_id)
     }
     setLeftPanelOpened(true)
@@ -434,33 +431,6 @@ export default function DeckGLMap({
       focusOnExcursion(focusedExcursionID)
     }
   }, [focusedExcursionID])
-
-  // useEffect(() => {
-  //   if (!mapTransitioning) {
-  //     setFocusedExcursionID(null)
-  //   }
-  // }, [viewState.latitude, viewState.longitude])
-
-  const getObjectType = (
-    object: VesselPosition | ZoneWithGeometry | GeoJsonLayer | undefined
-  ) => {
-    if (!object) return null
-
-    // @ts-ignore
-    if (object?.properties?.excursion_id) {
-      return "excursion"
-    }
-
-    if ("vessel" in object) {
-      return "vessel"
-    }
-
-    if ("geometry" in object) {
-      return "zone"
-    }
-
-    return null
-  }
 
   const isAMPDisplayed = displayedZones.includes(ZoneCategory.AMP)
   const isTerritorialDisplayed = displayedZones.includes(
@@ -637,36 +607,6 @@ export default function DeckGLMap({
     ]
   )
 
-  const getTooltip = ({
-    object,
-  }: Partial<
-    PickingInfo<VesselPosition | ZoneWithGeometry | GeoJsonLayer>
-  >) => {
-    const objectType = getObjectType(object)
-    const style = {
-      backgroundColor: "#fff",
-      fontSize: "0.8em",
-      borderRadius: "10px",
-      overflow: "hidden",
-      padding: "0px",
-    }
-    let element: React.ReactNode
-    if (objectType === "vessel") {
-      const vesselInfo = object as VesselPosition
-      element = <MapVesselTooltip vesselInfo={vesselInfo} />
-    } else if (objectType === "zone") {
-      const zoneInfo = object as ZoneWithGeometry
-      element = <MapZoneTooltip zoneInfo={zoneInfo} />
-    } else {
-      return null
-    }
-
-    return {
-      html: renderToString(element),
-      style,
-    }
-  }
-
   return (
     <DeckGL
       viewState={viewState}
@@ -682,12 +622,6 @@ export default function DeckGLMap({
       }}
       onHover={onMapHover}
       onClick={onMapClick}
-      getTooltip={({
-        object,
-      }: PickingInfo<VesselPosition | ZoneWithGeometry>) => {
-        if (!object) return null
-        return getTooltip({ object })
-      }}
     >
       <MapGL
         mapStyle={`https://api.maptiler.com/maps/e9b57486-1b91-47e1-a763-6df391697483/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_TO}`}
@@ -696,3 +630,4 @@ export default function DeckGLMap({
     </DeckGL>
   )
 }
+

@@ -15,7 +15,6 @@ import { ZoneWithGeometry } from "@/types/zone"
 import LeftPanel from "@/components/core/left-panel"
 import MapControls from "@/components/core/map-controls"
 import Map from "@/components/core/map/main-map"
-import PositionPreview from "@/components/core/map/position-preview"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useVesselsStore } from "@/libs/stores/vessels-store"
 import { useLoaderStore } from "@/libs/stores/loader-store"
@@ -115,7 +114,6 @@ export default function MapPage() {
         zones={zones}
       />
       <MapControls zoneLoading={isLoadingZones} />
-      <PositionPreview />
     </>
   )
 }

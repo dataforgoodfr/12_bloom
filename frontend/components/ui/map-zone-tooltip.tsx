@@ -1,15 +1,19 @@
 
 import { ZoneWithGeometry } from "@/types/zone"
 
+import Tooltip from "@/components/ui/custom/tooltip"
+
 export interface MapZoneTooltipProps {
+  top: number
+  left: number
   zoneInfo: ZoneWithGeometry
 }
 
-const MapZoneTooltip = ({ zoneInfo }: MapZoneTooltipProps) => {
+const MapZoneTooltip = ({ top, left, zoneInfo }: MapZoneTooltipProps) => {
   const { name, category, sub_category } = zoneInfo
 
   return (
-    <>
+    <Tooltip top={top} left={left}>
       <div className="max-w-[288px] rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-800">
         <div className="bg-slate-700 p-5">
           <h5 className="mb-1 text-xl font-bold tracking-tight text-gray-100 dark:text-white">
@@ -20,7 +24,7 @@ const MapZoneTooltip = ({ zoneInfo }: MapZoneTooltipProps) => {
           </p>
         </div>
       </div>
-    </>
+    </Tooltip>
   )
 }
 
