@@ -190,3 +190,29 @@ async def get_vessel_excursion_segment(request: Request, # used by @cache
         result = segment_repository.get_vessel_excursion_segment_by_id(session,vessel_id,excursions_id,segment_id)
         json_data = json.loads(result.model_dump_json() if result else "{}")
     return json_data
+
+@router.get("/vessels/{vessel_id}/times-in-zones")
+@cache
+async def get_vessel_excursion_segment(request: Request, # used by @cache
+                                       vessel_id: int,
+                                        order: OrderByRequest = Depends(),
+                                        datetime_range: DatetimeRangeRequest = Depends(),
+                                        category: Optional[str] = None,
+                                        sub_category: Optional[str] = None,
+                                       nocache:bool=False, # used by @cache
+                                       key: str = Depends(X_API_KEY_HEADER)):
+    check_apikey(key)
+    use_cases = UseCases()
+    vessel_repository = use_cases.vessel_repository()
+    db = use_cases.db()
+    json_data={}
+    with db.session() as session:
+        result = vessel_repository.get_vessel_times_in_zones(session,
+                                                            vessel_id=vessel_id,
+                                                            datetime_range=datetime_range,
+                                                            order=order,
+                                                            category=category,
+                                                            sub_cateogry=sub_category)
+        result=[json.loads(domain.model_dump_json()) for domain in result]
+        #json_data = json.loads(result.model_dump_json() if result else "{}")
+    return result

@@ -85,12 +85,14 @@ export default function LeftPanel() {
         className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow-lg"
       >
         <div className="flex w-full flex-row place-items-center justify-between p-5">
-          <Image
-            src={TrawlWatchLogo}
-            alt="Trawlwatch logo"
-            height={80}
-            width={80}
-          />
+          <a href="/dashboard">
+            <Image
+              src={TrawlWatchLogo}
+              alt="Trawlwatch logo"
+              height={80}
+              width={80}
+            />
+          </a>
           <div className="justify-right absolute right-0 top-0 flex h-16 translate-x-3/4 items-center rounded-lg bg-color-3 px-1">
             <button
               className="ml-3 flex rounded-full p-1"

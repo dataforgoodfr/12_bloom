@@ -39,7 +39,7 @@ export interface SidebarExpanderProps {
   onToggle?: (opened: boolean) => void
 }
 
-function SidebarExpander({ disabled = false, children, className, opened = false, onToggle }: SidebarExpanderProps) {
+function SidebarExpander({ disabled = false, children, className = "", opened = false, onToggle }: SidebarExpanderProps) {
   const [showContent, setShowContent] = useState(opened)
   const svgControls = useAnimationControls()
 
@@ -93,7 +93,7 @@ function SidebarExpander({ disabled = false, children, className, opened = false
   return (
     <div className={`flex gap-1 ${className}`}>
       {!disabled && (
-        <div className="mt-1 flex items-start">
+        <div className="mt-2 flex items-start">
           <button
             className="flex rounded-full mt-1"
             onClick={() => setShowContent(!showContent)}

@@ -1,16 +1,14 @@
-import Image from "next/image"
-
 import { VesselPosition } from "@/types/vessel"
 
-export interface MapTooltipTypes {
+export interface MapVesselTooltipProps {
   vesselInfo: VesselPosition
   orientation?: "landscape" | "portrait"
 }
 
-const MapTooltip = ({
+const MapVesselTooltip = ({
   vesselInfo,
   orientation = "portrait",
-}: MapTooltipTypes) => {
+}: MapVesselTooltipProps) => {
   const {
     vessel: { mmsi, ship_name, imo, length },
     timestamp,
@@ -60,4 +58,4 @@ const MapTooltip = ({
   )
 }
 
-export default MapTooltip
+export default MapVesselTooltip
