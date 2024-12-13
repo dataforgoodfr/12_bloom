@@ -41,14 +41,14 @@ export default function TrackedVesselDetails({
     excursions: VesselExcursion[]
   ): ExcursionMetrics => {
     const metrics: ExcursionMetrics = {
-      totalTimeFishing: 0,
+      totalTimeAtSea: 0,
       mpa: 0,
       frenchTerritorialWaters: 0,
       zonesWithNoFishingRights: 0,
       aisDefault: 0,
     }
     for (const excursion of excursions) {
-      metrics.totalTimeFishing += convertDurationInSeconds(
+      metrics.totalTimeAtSea += convertDurationInSeconds(
         excursion.excursion_duration
       )
       metrics.mpa += convertDurationInSeconds(excursion.total_time_in_amp)
@@ -76,32 +76,32 @@ export default function TrackedVesselDetails({
   return (
     <div className={`flex w-full flex-col gap-2 ${className}`}>
       <TrackedVesselMetric
-        title="Total time fishing"
-        value={excursionsMetrics.totalTimeFishing}
+        title="Total time at sea"
+        value={excursionsMetrics.totalTimeAtSea}
         unit="time"
       />
       <TrackedVesselMetric
         title="MPA"
         value={excursionsMetrics.mpa}
-        baseValue={excursionsMetrics.totalTimeFishing}
+        baseValue={excursionsMetrics.totalTimeAtSea}
         unit="time"
       />
       <TrackedVesselMetric
         title="French Territorial Waters"
         value={excursionsMetrics.frenchTerritorialWaters}
-        baseValue={excursionsMetrics.totalTimeFishing}
+        baseValue={excursionsMetrics.totalTimeAtSea}
         unit="time"
       />
       <TrackedVesselMetric
         title="Zones with no fishing rights"
         value={excursionsMetrics.zonesWithNoFishingRights}
-        baseValue={excursionsMetrics.totalTimeFishing}
+        baseValue={excursionsMetrics.totalTimeAtSea}
         unit="time"
       />
       <TrackedVesselMetric
         title="AIS default"
         value={excursionsMetrics.aisDefault}
-        baseValue={excursionsMetrics.totalTimeFishing}
+        baseValue={excursionsMetrics.totalTimeAtSea}
         unit="time"
       />
       {vesselExcursions.map((excursion, index) => (
