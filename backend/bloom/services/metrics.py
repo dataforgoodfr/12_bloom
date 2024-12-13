@@ -16,12 +16,14 @@ from bloom.infra.repositories.repository_vessel import VesselRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
 
-from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
-                                 ResponseMetricsZoneVisitedSchema,
-                                 ResponseMetricsVesselInMpasSchema,
-                                 ResponseMetricsZoneVisitingTimeByVesselSchema,
-                                 ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
-                                 ResponseMetricsVesselVisitingTimeByZoneSchema)
+from bloom.domain.metrics import (
+    ResponseMetricsVesselInActivitySchema,
+    ResponseMetricsZoneVisitedSchema,
+    ResponseMetricsVesselInZonesSchema,
+    ResponseMetricsZoneVisitingTimeByVesselSchema,
+    ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
+    ResponseMetricsVesselVisitingTimeByZoneSchema,
+)
 
 class MetricsService():
     def __init__(
@@ -74,17 +76,20 @@ class MetricsService():
             )\
             for item in payload]
 
-    def get_vessels_in_mpas(self,
-                            datetime_range: DatetimeRangeRequest,
-                            pagination: PageParams,
-                            order: OrderByRequest):
+    def get_vessels_activity_in_zones(
+        self,
+        datetime_range: DatetimeRangeRequest,
+        pagination: PageParams,
+        order: OrderByRequest,
+        category: Optional[str] = None,
+    ):
         payload=[]
         with self.session_factory() as session:
             stmt = (
                 select(
                     sql_model.Vessel,
                     func.sum(sql_model.Metrics.duration_total).label(
-                        "total_time_in_mpas"
+                        "total_time_in_zones"
                     ),
                 )
                 .select_from(sql_model.Metrics)
@@ -97,22 +102,71 @@ class MetricsService():
                         datetime_range.start_at, datetime_range.end_at
                     )
                 )
-                .where(sql_model.Metrics.zone_category == "amp")
                 .group_by(sql_model.Vessel)
             )
             stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+            if category:
+                stmt = stmt.where(sql_model.Zone.category == category)
             stmt = (
-                stmt.order_by(asc("total_time_in_mpas"))
+                stmt.order_by(asc("total_time_in_zones"))
                 if order.order == OrderByEnum.ascending
-                else stmt.order_by(desc("total_time_in_mpas"))
+                else stmt.order_by(desc("total_time_in_zones"))
             )
             stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
             payload=session.execute(stmt).all()
 
         return [
-            ResponseMetricsVesselInMpasSchema(
+            ResponseMetricsVesselInZonesSchema(
                 vessel=VesselRepository.map_to_domain(item[0]).model_dump(),
-                total_time_in_mpas=item[1],
+                total_time_in_zones=item[1],
+            )
+            for item in payload
+        ]
+
+    def get_zones_visited(
+        self,
+        datetime_range: DatetimeRangeRequest,
+        pagination: PageParams,
+        order: OrderByRequest,
+        category: Optional[str] = None,
+    ):
+        payload = []
+        with self.session_factory() as session:
+            stmt = (
+                select(
+                    sql_model.Zone,
+                    func.sum(sql_model.Metrics.duration_total).label(
+                        "visiting_duration"
+                    ),
+                )
+                .select_from(sql_model.Metrics)
+                .join(
+                    sql_model.Zone,
+                    sql_model.Zone.id == sql_model.Metrics.zone_id,
+                )
+                .where(
+                    sql_model.Metrics.timestamp.between(
+                        datetime_range.start_at, datetime_range.end_at
+                    )
+                )
+                .where(sql_model.Metrics.zone_category == category)
+                .group_by(sql_model.Zone)
+            )
+            stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+            if category:
+                stmt = stmt.where(sql_model.Zone.category == category)
+            stmt = (
+                stmt.order_by(asc("visiting_duration"))
+                if order.order == OrderByEnum.ascending
+                else stmt.order_by(desc("visiting_duration"))
+            )
+            stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            payload = session.execute(stmt).all()
+
+        return [
+            ResponseMetricsZoneVisitedSchema(
+                zone=ZoneRepository.map_to_domain(item[0]).model_dump(),
+                visiting_duration=item[1],
             )
             for item in payload
         ]
