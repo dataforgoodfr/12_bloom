@@ -82,7 +82,7 @@ export default function LeftPanel() {
         variants={containerVariants}
         animate={containerControls}
         initial="close"
-        className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow shadow-color-2"
+        className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow-lg"
       >
         <div className="flex w-full flex-row place-items-center justify-between p-5">
           <a href="/dashboard">
@@ -116,7 +116,7 @@ export default function LeftPanel() {
                 name="Dashboard"
                 wide={leftPanelOpened}
               >
-                <ChartBarIcon className="size-8 stroke-[0.75] hover:text-primary" />
+                <ChartBarIcon className="size-8 stroke-[0.75] hover:text-primary text-color-panel" />
               </NavigationLink>
             </div>
             <div className="flex flex-col gap-3 bg-color-3 p-5">
@@ -134,7 +134,7 @@ export default function LeftPanel() {
           </>
         )}
         <div
-          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
+          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 rounded-br-lg ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
           onClick={() => !leftPanelOpened && setLeftPanelOpened(true)}
         >
           <TrackedVesselsPanel wideMode={leftPanelOpened} />

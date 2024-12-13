@@ -188,23 +188,58 @@ export default function DeckGLMap({
         vp?.position?.coordinates[1],
       ],
       getAngle: (vp: VesselPosition) =>
-        vp.heading ? Math.round(vp.heading) : 0,
-      getIcon: () => "default",
-      iconAtlas: "../../../img/map-vessel.png",
+        vp.heading ? 365 - Math.round(vp.heading) : 0,
+      getIcon: (vp : VesselPosition) => {
+        if (vp.heading) {
+          return vp.vessel.id === activePosition?.vessel.id ? "selectedWithHeading" : "withHeading"
+        } else {
+          return vp.vessel.id === activePosition?.vessel.id ? "selectedNoHeading" : "noHeading"
+        }
+      },
+      iconAtlas: "../../../img/vessel_atlas.png",
       iconMapping: {
-        default: {
+        noHeading: {
           x: 0,
           y: 0,
-          width: 35,
-          height: 27,
+          width: 32,
+          height: 32,
+          anchorY: 16,
+          mask: true,
+        },
+        selectedNoHeading: {
+          x: 32,
+          y: 0,
+          width: 32,
+          height: 32,
+          anchorX: 16,
+          anchorY: 16,
+          mask: true,
+        },
+        selectedWithHeading: {
+          x: 64,
+          y: 0,
+          width: 32,
+          height: 32,
+          anchorX: 16,
+          anchorY: 16,
+          mask: true,
+        },
+        withHeading: {
+          x: 96,
+          y: 0,
+          width: 32,
+          height: 32,
+          anchorX: 16,
+          anchorY: 16,
           mask: true,
         },
       },
       getSize: (vp: VesselPosition) => {
         const length = vp.vessel.length || 0
-        if (length > 80) return 30 // Large vessels
-        if (length > 40) return 20 // Small vessels
-        return 14 // Medium vessels (default)
+        const type = vp.heading ? "arrow" : "ellipse"
+        if (length > 80) return type == "arrow" ? 48 : 20 // Large vessels
+        if (length > 40) return type == "arrow" ? 38 : 16 // Medium vessels
+        return type == "arrow" ? 32 : 14 // Small vessels (default)
       },
       getColor: (vp: VesselPosition) => {
         return new Uint8ClampedArray(getVesselColor(vp))

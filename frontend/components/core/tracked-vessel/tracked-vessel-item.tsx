@@ -105,7 +105,7 @@ export default function TrackedVesselItem({
               </div>
               <div>
                 <p className="text-sm text-color-4">
-                  IMO {vessel.imo} / MMSI {vessel.mmsi} / {vessel.length}m
+                  IMO {vessel.imo} / MMSI {vessel.mmsi} / {vessel.length} m
                 </p>
               </div>
             </div>

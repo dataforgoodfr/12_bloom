@@ -1,16 +1,15 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { useShallow } from "zustand/react/shallow"
+import { useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { ExcursionMetrics, Vessel, VesselExcursion } from "@/types/vessel";
+import { convertDurationInSeconds, formatDuration } from "@/libs/dateUtils";
+import { useLoaderStore } from "@/libs/stores/loader-store";
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store";
+import Spinner from "@/components/ui/custom/spinner";
+import TrackedVesselExcursion from "./tracked-vessel-excursion";
+import TrackedVesselMetric from "./tracked-vessel-metric";
 
-import { Vessel, VesselExcursion, ExcursionMetrics } from "@/types/vessel"
-import { convertDurationInSeconds, formatDuration } from "@/libs/dateUtils"
-import { useLoaderStore } from "@/libs/stores/loader-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import Spinner from "@/components/ui/custom/spinner"
-
-import TrackedVesselExcursion from "./tracked-vessel-excursion"
-import TrackedVesselMetric from "./tracked-vessel-metric"
 
 export interface TrackedVesselDetailsProps {
   vessel: Vessel

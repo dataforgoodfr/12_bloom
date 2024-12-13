@@ -25,13 +25,13 @@ function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
 const MemoizedDeckGLMap = React.memo(DeckGLMap);
 
 export default function MainMap({ vesselsPositions, zones }: MainMapProps) {
-  const [coordinates, setCoordinates] = useState<string>("")
+  const [coordinates, setCoordinates] = useState<string>("-°N; -°E")
 
   const onMapHover = useCallback(({ coordinate }: PickingInfo) => {
     coordinate &&
       setCoordinates(
         coordinate[1].toFixed(3).toString() +
-          "°N " +
+          "°N; " +
           coordinate[0].toFixed(3) +
           "°E"
       )

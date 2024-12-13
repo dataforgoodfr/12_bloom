@@ -85,7 +85,6 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
     setOpen(false)
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
 
-    const response = await getVesselFirstExcursionSegments(vesselId)
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
       addTrackedVessel(vesselId)
     }
@@ -111,7 +110,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
 
   return (
     <Command
-      className={`relative overflow-visible border-[0.5px] border-solid ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"}`}
+      className={`relative overflow-visible border-[0.5px] border-color-panel border-solid ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"} ${open ? "rounded-t-lg rounded-b-none" : "rounded-lg"}`}
       onClick={() => {
         if (!wideMode) {
           setWideMode(true)
@@ -129,7 +128,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
         placeholder="Type MMSI, IMO or vessel name to search..."
       />
       <CommandList
-        className="absolute left-0 top-[calc(100%+1px)] z-[100] w-full rounded-b-md border-[0.5px] border-solid bg-background shadow-md"
+        className="absolute -left-[.5px] top-[calc(100%)] z-[100] w-full rounded-bl-md  bg-background shadow-md border-[.5px] border-color-panel"
         hidden={!open}
         onMouseDown={(e) => {
           e.preventDefault()

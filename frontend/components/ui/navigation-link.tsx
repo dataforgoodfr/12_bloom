@@ -20,7 +20,7 @@ const NavigationLink = ({
   return (
     <Link
       href={href}
-      className="flex cursor-pointer place-items-center gap-3 p-1 text-neutral-200 hover:text-primary"
+      className="flex cursor-pointer place-items-center gap-3 p-1 text-color-panel hover:text-primary"
       onClick={onClick}
     >
       {children}
