@@ -85,7 +85,6 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
     setOpen(false)
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
 
-    const response = await getVesselFirstExcursionSegments(vesselId)
     if (vesselId && !trackedVesselIDs.includes(vesselId)) {
       addTrackedVessel(vesselId)
     }
