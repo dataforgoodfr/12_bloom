@@ -17,7 +17,7 @@ export type Vessel = {
 
 export type VesselMetrics = {
   vessel: VesselDetails
-  total_time_at_sea: string
+  total_time_in_mpas: string
 }
 
 export type VesselDetails = {

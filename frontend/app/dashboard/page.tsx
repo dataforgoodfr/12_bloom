@@ -1,11 +1,17 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { useDashboardData } from "@/services/dashboard.service"
+import { useMemo, useState } from "react";
+import { useDashboardData } from "@/services/dashboard.service";
 
-import { getDateRange } from "@/libs/dateUtils"
-import DashboardHeader from "@/components/dashboard/dashboard-header"
-import DashboardOverview from "@/components/dashboard/dashboard-overview"
+
+
+import { getDateRange } from "@/libs/dateUtils";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import DashboardOverview from "@/components/dashboard/dashboard-overview";
+
+
+
+
 
 export default function DashboardPage() {
   const [selectedDays, setSelectedDays] = useState(7)
@@ -14,7 +20,7 @@ export default function DashboardPage() {
   }, [selectedDays])
 
   const {
-    topVesselsInActivity,
+    topVesselsInMpas,
     topAmpsVisited,
     totalVesselsInActivity,
     totalAmpsVisited,
@@ -31,7 +37,7 @@ export default function DashboardPage() {
 
         <div className="size-full">
           <DashboardOverview
-            topVesselsInActivity={topVesselsInActivity}
+            topVesselsInMpas={topVesselsInMpas}
             topAmpsVisited={topAmpsVisited}
             totalVesselsActive={totalVesselsInActivity}
             totalAmpsVisited={totalAmpsVisited}
@@ -39,7 +45,7 @@ export default function DashboardPage() {
             onDateRangeChange={(value) => {
               setSelectedDays(Number(value))
             }}
-            topVesselsInActivityLoading={isLoading.topVesselsInActivity}
+            topVesselsInMpasLoading={isLoading.topVesselsInMpas}
             topAmpsVisitedLoading={isLoading.topAmpsVisited}
             totalVesselsActiveLoading={isLoading.totalVesselsInActivity}
             totalAmpsVisitedLoading={isLoading.totalAmpsVisited}

@@ -83,12 +83,12 @@ export async function getVesselFirstExcursionSegments(vesselId: number) {
   }
 }
 
-export function getTopVesselsInActivity(
+export function getTopVesselsInMpas(
   startAt: string,
   endAt: string,
   topVesselsLimit: number
 ) {
-  const url = `${BASE_URL}/metrics/vessels-in-activity?start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC`
+  const url = `${BASE_URL}/metrics/vessels/activity-in-mpas?start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC`
   console.log(`GET ${url}`)
   return axios.get<VesselMetrics[]>(url)
 }
