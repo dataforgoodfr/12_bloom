@@ -95,7 +95,7 @@ function SidebarExpander({ disabled = false, children, className = "", opened = 
       {!disabled && (
         <div className="mt-2 flex items-start">
           <button
-            className="flex rounded-full mt-1"
+            className="flex rounded-full"
             onClick={() => setShowContent(!showContent)}
           >
             <motion.div
