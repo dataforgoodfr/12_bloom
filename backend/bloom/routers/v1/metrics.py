@@ -123,3 +123,23 @@ async def read_metrics_all_vessels_visiting_time_by_zone(request: Request,
                                                 category=category,
                                                 sub_category=sub_category)
     return jsonable_encoder(payload)
+
+
+@router.get("/metrics/vessels/activity-in-mpas")
+# @cache
+async def read_metrics_all_vessels_visiting_time_in_mpas(
+    request: Request,
+    datetime_range: DatetimeRangeRequest = Depends(),
+    pagination: PageParams = Depends(),
+    order: OrderByRequest = Depends(),
+    key: str = Depends(X_API_KEY_HEADER),
+):
+    check_apikey(key)
+    use_cases = UseCases()
+    MetricsService = use_cases.metrics_service()
+    payload = MetricsService.get_vessels_in_mpas(
+        datetime_range=datetime_range,
+        pagination=pagination,
+        order=order
+    )
+    return jsonable_encoder(payload)

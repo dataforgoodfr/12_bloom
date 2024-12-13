@@ -18,6 +18,7 @@ from bloom.domain.metrics import TotalTimeActivityTypeRequest
 
 from bloom.domain.metrics import (ResponseMetricsVesselInActivitySchema,
                                  ResponseMetricsZoneVisitedSchema,
+                                 ResponseMetricsVesselInMpasSchema,
                                  ResponseMetricsZoneVisitingTimeByVesselSchema,
                                  ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
                                  ResponseMetricsVesselVisitingTimeByZoneSchema)
@@ -72,7 +73,50 @@ class MetricsService():
             total_time_at_sea=item[1]
             )\
             for item in payload]
-    
+
+    def get_vessels_in_mpas(self,
+                            datetime_range: DatetimeRangeRequest,
+                            pagination: PageParams,
+                            order: OrderByRequest):
+        payload=[]
+        with self.session_factory() as session:
+            stmt = (
+                select(
+                    sql_model.Vessel,
+                    func.sum(sql_model.Metrics.duration_total).label(
+                        "total_time_in_mpas"
+                    ),
+                )
+                .select_from(sql_model.Metrics)
+                .join(
+                    sql_model.Vessel,
+                    sql_model.Vessel.id == sql_model.Metrics.vessel_id,
+                )
+                .where(
+                    sql_model.Metrics.timestamp.between(
+                        datetime_range.start_at, datetime_range.end_at
+                    )
+                )
+                .where(sql_model.Metrics.zone_category == "amp")
+                .group_by(sql_model.Vessel)
+            )
+            stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
+            stmt = (
+                stmt.order_by(asc("total_time_in_mpas"))
+                if order.order == OrderByEnum.ascending
+                else stmt.order_by(desc("total_time_in_mpas"))
+            )
+            stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
+            payload=session.execute(stmt).all()
+
+        return [
+            ResponseMetricsVesselInMpasSchema(
+                vessel=VesselRepository.map_to_domain(item[0]).model_dump(),
+                total_time_in_mpas=item[1],
+            )
+            for item in payload
+        ]
+
     def getVesselsAtSea(self,
                         datetime_range: DatetimeRangeRequest,
                         ):
@@ -95,7 +139,6 @@ class MetricsService():
             )
         return session.execute(stmt).scalar()
 
-    
     def getZoneVisited(self,
                         datetime_range: DatetimeRangeRequest,
                         pagination: PageParams,
@@ -137,7 +180,7 @@ class MetricsService():
             visiting_duration=item[1]
             )\
             for item in payload]
-    
+
     def getZoneVisitingTimeByVessel(self,
                                     zone_id: int,
                                     datetime_range: DatetimeRangeRequest,
@@ -145,7 +188,7 @@ class MetricsService():
                                     pagination: PageParams,):
         payload=[]
         with self.session_factory() as session:
-            
+
             stmt=select(
                 sql_model.Zone,
                 sql_model.Vessel,
@@ -166,7 +209,7 @@ class MetricsService():
                     )
                 )\
             .group_by(sql_model.Zone.id,sql_model.Vessel.id)
-            
+
             stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
                     if  order.order == OrderByEnum.ascending \
                     else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
@@ -185,7 +228,7 @@ class MetricsService():
             zone_visiting_time_by_vessel=item[2]
             )\
             for item in payload]
-    
+
     def getVesselVisitingTimeByZone(self,
                                     order: OrderByRequest,
                                     datetime_range: DatetimeRangeRequest,
@@ -226,13 +269,11 @@ class MetricsService():
             stmt = stmt.limit(pagination.limit) if pagination.limit != None else stmt
             if vessel_id is not None:
                 stmt=stmt.where(sql_model.Vessel.id==vessel_id)
-            
-            
+
         return [ResponseMetricsVesselVisitingTimeByZoneSchema(
                     vessel=VesselListView(**VesselRepository.map_to_domain(model[0]).model_dump()),
                     zone=ZoneListView(**ZoneRepository.map_to_domain(model[1]).model_dump()),
                     vessel_visiting_time_by_zone=model[2]) for model in session.execute(stmt).all()]
-
 
     def getVesselVisitsByActivityType(self,
                                         vessel_id: int,
@@ -261,10 +302,9 @@ class MetricsService():
                     literal_column('0 seconds'),
                 ))
             payload=session.execute(stmt.limit(1)).scalar_one_or_none()
-            
+
         return [ ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(
                 vessel_id=item.id,
                 activity=item.activity,
                 total_activity_time=item.total_activity_time,
                     ) for item in payload]
-    
