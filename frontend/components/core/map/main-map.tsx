@@ -32,6 +32,7 @@ const MemoizedDeckGLMap = React.memo(DeckGLMap);
 export default function MainMap({ zones }: MainMapProps) {
   const { activePosition, setActivePosition } = useMapStore(
     useShallow((state) => ({
+      viewState: state.viewState,
       activePosition: state.activePosition,
       setActivePosition: state.setActivePosition,
     }))
@@ -69,9 +70,12 @@ export default function MainMap({ zones }: MainMapProps) {
 
   useEffect(() => {
     if (activePosition && hoverInfo) {
+      const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 110
+      const left = hoverInfo.x > -1 ? hoverInfo.x : screen.width / 2 + 10
+
       setTooltipPosition({
-        top: hoverInfo.y,
-        left: hoverInfo.x,
+        top,
+        left,
       })
     }
   }, [activePosition])
