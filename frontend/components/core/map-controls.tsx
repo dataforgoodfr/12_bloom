@@ -1,13 +1,15 @@
 "use client"
 
 import React from "react"
-import { Layers, Minus, Plus, SlidersHorizontal } from "lucide-react"
+import { EyeIcon, Layers, Minus, Plus, SlidersHorizontal } from "lucide-react"
 import { useShallow } from "zustand/react/shallow"
 
 import { useMapStore } from "@/libs/stores/map-store"
 import IconButton from "@/components/ui/icon-button"
 
 import ZoneFilterModal from "./map/zone-filter-modal"
+import { TrackModeOptionsModal } from "./map/track-mode-options-modal"
+
 
 interface MapControlsProps {
   zoneLoading: boolean
@@ -30,7 +32,7 @@ const MapControls = ({ zoneLoading }: MapControlsProps) => {
     setZoom(viewState.zoom + 1)
   }
   return (
-    <div className="absolute right-0 top-0 m-8 flex flex-col items-center space-y-5">
+    <div className="absolute right-0 top-0 m-8 flex flex-col items-end space-y-5">
       <IconButton description="Zoom In" onClick={() => handleZoomOut()}>
         <Plus className="size-5 text-black dark:text-white" />
       </IconButton>
@@ -45,6 +47,7 @@ const MapControls = ({ zoneLoading }: MapControlsProps) => {
         setActiveZones={setDisplayedZones}
         isLoading={zoneLoading}
       />
+      <TrackModeOptionsModal />
     </div>
   )
 }
