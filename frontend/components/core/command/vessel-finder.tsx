@@ -85,9 +85,6 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
     setOpen(false)
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
 
-    if (vesselId && !trackedVesselIDs.includes(vesselId)) {
-      addTrackedVessel(vesselId)
-    }
     if (vesselId) {
       const selectedVesselLatestPosition = latestPositions.find(
         (position) => position.vessel.id === vesselId
