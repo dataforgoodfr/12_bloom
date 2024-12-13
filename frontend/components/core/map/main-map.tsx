@@ -16,7 +16,6 @@ import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 import { getPickObjectType } from "./utils"
 
 type MainMapProps = {
-  vesselsPositions: VesselPositions
   zones: ZoneWithGeometry[]
 }
 
@@ -30,8 +29,7 @@ function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
 
 const MemoizedDeckGLMap = React.memo(DeckGLMap);
 
-export default function MainMap({ vesselsPositions, zones }: MainMapProps) {
-
+export default function MainMap({ zones }: MainMapProps) {
   const { activePosition, setActivePosition } = useMapStore(
     useShallow((state) => ({
       activePosition: state.activePosition,
@@ -115,7 +113,6 @@ export default function MainMap({ vesselsPositions, zones }: MainMapProps) {
   return (
     <div className="relative size-full">
       <MemoizedDeckGLMap
-        vesselsPositions={vesselsPositions}
         zones={zones}
         onHover={onMapHover}
       />
