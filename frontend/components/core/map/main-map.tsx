@@ -10,7 +10,6 @@ import DeckGLMap from "./deck-gl-map"
 import React from "react"
 
 type MainMapProps = {
-  vesselsPositions: VesselPositions
   zones: ZoneWithGeometry[]
 }
 
@@ -24,7 +23,7 @@ function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
 
 const MemoizedDeckGLMap = React.memo(DeckGLMap);
 
-export default function MainMap({ vesselsPositions, zones }: MainMapProps) {
+export default function MainMap({ zones }: MainMapProps) {
   const [coordinates, setCoordinates] = useState<string>("-°N; -°E")
 
   const onMapHover = useCallback(({ coordinate }: PickingInfo) => {
@@ -40,7 +39,6 @@ export default function MainMap({ vesselsPositions, zones }: MainMapProps) {
   return (
     <div className="relative size-full">
       <MemoizedDeckGLMap
-        vesselsPositions={vesselsPositions}
         zones={zones}
         onHover={onMapHover}
       />

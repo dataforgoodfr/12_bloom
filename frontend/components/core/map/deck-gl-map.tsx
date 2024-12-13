@@ -18,7 +18,6 @@ import {
   VesselExcursionSegmentGeo,
   VesselExcursionSegmentsGeo,
   VesselPosition,
-  VesselPositions,
 } from "@/types/vessel"
 import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
 import { getVesselColorRGB } from "@/libs/colors"
@@ -29,7 +28,6 @@ import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 
 type DeckGLMapProps = {
-  vesselsPositions: VesselPositions
   zones: ZoneWithGeometry[]
   onHover?: (info: PickingInfo) => void
 }
@@ -52,7 +50,6 @@ const getOpacityFromTimestamp = (timestamp: string) => {
 }
 
 export default function DeckGLMap({
-  vesselsPositions,
   zones,
   onHover,
 }: DeckGLMapProps) {
@@ -79,6 +76,7 @@ export default function DeckGLMap({
     viewState,
     activePosition,
     displayedZones,
+    latestPositions: vesselsPositions,
     setActivePosition,
     setViewState,
     setLeftPanelOpened,
@@ -88,6 +86,7 @@ export default function DeckGLMap({
       viewState: state.viewState,
       activePosition: state.activePosition,
       displayedZones: state.displayedZones,
+      latestPositions: state.latestPositions,
       setViewState: state.setViewState,
       setActivePosition: state.setActivePosition,
       setLeftPanelOpened: state.setLeftPanelOpened,

@@ -38,8 +38,9 @@ export default function MapPage() {
     setExcursionsLoading: state.setExcursionsLoading,
   })))
 
-  const { mode: mapMode } = useMapStore(useShallow((state) => ({
-    mode: state.mode
+  const { mode: mapMode, setLatestPositions } = useMapStore(useShallow((state) => ({
+    mode: state.mode,
+    setLatestPositions: state.setLatestPositions,
   })))
 
   const { data: vessels = [], isLoading: isLoadingVessels } = useSWR<Vessel[]>(
@@ -76,6 +77,10 @@ export default function MapPage() {
     refreshInterval: 900000, // 15 minutes in milliseconds
   })
 
+  useEffect(() => {
+    setLatestPositions(latestPositions)
+  }, [latestPositions])
+
   const { startDate, endDate, trackedVesselIDs, setVesselExcursions } = useTrackModeOptionsStore(useShallow((state) => ({
     startDate: state.startDate,
     endDate: state.endDate,
@@ -111,7 +116,6 @@ export default function MapPage() {
     <>
       <LeftPanel/>
       <Map
-        vesselsPositions={latestPositions}
         zones={zones}
       />
       <MapControls zoneLoading={isLoadingZones} />
