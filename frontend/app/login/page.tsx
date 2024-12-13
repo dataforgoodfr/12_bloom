@@ -5,9 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 export default function Login() {
   const router = useRouter()
@@ -51,7 +49,7 @@ export default function Login() {
         </div>
         <form
           onSubmit={handleSubmit}
-          className="flex size-full  flex-col items-center justify-between space-y-4 p-8"
+          className="flex size-full flex-col items-center justify-between space-y-4 p-8 text-background"
         >
           <div className="mb-6 space-y-2 text-center">
             <h1 className="text-2xl font-bold">Welcome to TrawlWatch</h1>

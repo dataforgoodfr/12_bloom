@@ -1,11 +1,11 @@
 
 import { ZoneWithGeometry } from "@/types/zone"
 
-export interface ZoneMapTooltipProps {
+export interface MapZoneTooltipProps {
   zoneInfo: ZoneWithGeometry
 }
 
-const ZoneMapTooltip = ({ zoneInfo }: ZoneMapTooltipProps) => {
+const MapZoneTooltip = ({ zoneInfo }: MapZoneTooltipProps) => {
   const { name, category, sub_category } = zoneInfo
 
   return (
@@ -24,4 +24,4 @@ const ZoneMapTooltip = ({ zoneInfo }: ZoneMapTooltipProps) => {
   )
 }
 
-export default ZoneMapTooltip
+export default MapZoneTooltip
