@@ -87,7 +87,7 @@ class MetricsService():
         with self.session_factory() as session:
             stmt = (
                 select(
-                    sql_model.Vessel,
+                   sql_model.Vessel,
                     func.sum(sql_model.Metrics.duration_total).label(
                         "total_time_in_zones"
                     ),
@@ -95,14 +95,17 @@ class MetricsService():
                 .select_from(sql_model.Metrics)
                 .join(
                     sql_model.Vessel,
-                    sql_model.Vessel.id == sql_model.Metrics.vessel_id,
+                    sql_model.Metrics.vessel_id == sql_model.Vessel.id,
+                    isouter=True,
                 )
                 .where(
                     sql_model.Metrics.timestamp.between(
                         datetime_range.start_at, datetime_range.end_at
                     )
                 )
-                .group_by(sql_model.Vessel)
+                .group_by(
+                    sql_model.Vessel
+                )
             )
             stmt = stmt.offset(pagination.offset) if pagination.offset != None else stmt
             if category:
