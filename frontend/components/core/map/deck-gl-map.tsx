@@ -610,7 +610,7 @@ export default function DeckGLMap({
     <DeckGL
       viewState={viewState}
       controller={{
-        dragRotate: false,
+        dragRotate: true,
         touchRotate: false,
         keyboard: false,
       }}
