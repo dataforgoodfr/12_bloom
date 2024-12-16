@@ -14,6 +14,7 @@ import { useShallow } from "zustand/react/shallow"
 import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 import { getPickObjectType } from "./utils"
+import ContextMenu from "./context-menu"
 
 type MainMapProps = {
   zones: ZoneWithGeometry[]
@@ -53,7 +54,15 @@ export default function MainMap({ zones }: MainMapProps) {
     left: number
   } | null>(null)
 
+
+  const [contextMenuPosition, setContextMenuPosition] = useState<{
+    top: number
+    left: number
+  } | null>(null)
+
   const [hoverInfo, setHoverInfo] = useState<PickingInfo | null>(null)
+  const [contextMenu, setContextMenu] = useState<boolean>(false)
+  const [previousCoordinates, setPreviousCoordinates] = useState<string>("-°N; -°E")
 
   const isVesselTracked = (vesselId: number) => {
     return trackedVesselIDs.includes(vesselId)
@@ -62,7 +71,7 @@ export default function MainMap({ zones }: MainMapProps) {
   const coordinates = useMemo(() => {
     if (!hoverInfo) return "-°N; -°E"
     const coordinate = hoverInfo.coordinate
-    if (!coordinate) return "-°N; -°E"
+    if (!coordinate) return previousCoordinates
     const latitude = coordinate[1].toFixed(3)
     const longitude = coordinate[0].toFixed(3)
     return `${latitude}°N; ${longitude}°E`
@@ -114,12 +123,22 @@ export default function MainMap({ zones }: MainMapProps) {
     return element;
   }, [hoverInfo, activePosition]);
 
+  const onMapRightClick = (evt: any) => {
+    const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 110
+    const left = hoverInfo.x > -1 ? hoverInfo.x : screen.width / 2 + 10
+    evt.preventDefault()
+    setContextMenuPosition({ top: top, left: left})
+    setContextMenu(true)
+  }
+
   return (
-    <div className="relative size-full">
+    <div className="relative size-full"
+      onContextMenu={evt => onMapRightClick(evt)}>
       <MemoizedDeckGLMap
         zones={zones}
         onHover={onMapHover}
       />
+      <ContextMenu open={contextMenu} tooltipPosition={contextMenuPosition} setOpen={setContextMenu} coordinates={previousCoordinates} />
       <CoordonatesIndicator coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip
