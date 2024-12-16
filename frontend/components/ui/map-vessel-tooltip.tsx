@@ -3,6 +3,7 @@ import Image from "next/image"
 import { VesselPosition } from "@/types/vessel"
 import { Button } from "@/components/ui/button"
 import Tooltip from "@/components/ui/custom/tooltip"
+const getCountryISO2 = require("country-iso-3-to-2")
 
 export interface MapVesselTooltipProps {
   top: number
@@ -24,7 +25,7 @@ const MapVesselTooltip = ({
   onSelect,
 }: MapVesselTooltipProps) => {
   const {
-    vessel: { mmsi, ship_name, imo, length },
+    vessel: { mmsi, ship_name, imo, length, type, country_iso3 },
     timestamp,
   } = vesselInfo
 
@@ -54,11 +55,11 @@ const MapVesselTooltip = ({
           />
           <Image
             className="absolute bottom-[-11px] left-5 z-0 rounded-sm shadow-md"
-            src="/flags/fr.svg"
+            src={`https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/${getCountryISO2(country_iso3)}.svg`.toLowerCase()}
             alt="country flag"
-            width={36}
-            height={24}
-          />
+            width={40}
+            height={40}
+            />
         </div>
       </div>
       <div className="flex flex-col gap-8 rounded-b-lg bg-white p-5">
@@ -73,10 +74,10 @@ const MapVesselTooltip = ({
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">
             <p className="text-background">
-              <span className="font-bold">Vessel type</span> Fishing Vessel
+              <span className="font-bold">Type:</span> {type}
             </p>
             <p className="text-background">
-              <span className="font-bold">Vessel size:</span> {length} meters
+              <span className="font-bold">Length:</span> {length} m
             </p>
           </div>
           <div className="flex flex-col">
