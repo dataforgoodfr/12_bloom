@@ -125,7 +125,7 @@ async def read_metrics_all_vessels_visiting_time_by_zone(request: Request,
     return jsonable_encoder(payload)
 
 
-@router.get("/metrics/vessels-activity/{category}")
+@router.get("/metrics/vessels-activity")
 # @cache
 async def read_metrics_all_vessels_visiting_time_in_zones(
     request: Request,
@@ -147,7 +147,7 @@ async def read_metrics_all_vessels_visiting_time_in_zones(
     return jsonable_encoder(payload)
 
 
-@router.get("/metrics/zones-visited/{category}")
+@router.get("/metrics/zones-visited")
 # @cache
 async def read_metrics_all_zones_visited(
     request: Request,
