@@ -15,7 +15,6 @@ import { ZoneWithGeometry } from "@/types/zone"
 import LeftPanel from "@/components/core/left-panel"
 import MapControls from "@/components/core/map-controls"
 import Map from "@/components/core/map/main-map"
-import PositionPreview from "@/components/core/map/position-preview"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useVesselsStore } from "@/libs/stores/vessels-store"
 import { useLoaderStore } from "@/libs/stores/loader-store"
@@ -38,8 +37,9 @@ export default function MapPage() {
     setExcursionsLoading: state.setExcursionsLoading,
   })))
 
-  const { mode: mapMode } = useMapStore(useShallow((state) => ({
-    mode: state.mode
+  const { mode: mapMode, setLatestPositions } = useMapStore(useShallow((state) => ({
+    mode: state.mode,
+    setLatestPositions: state.setLatestPositions,
   })))
 
   const { data: vessels = [], isLoading: isLoadingVessels } = useSWR<Vessel[]>(
@@ -76,6 +76,10 @@ export default function MapPage() {
     refreshInterval: 900000, // 15 minutes in milliseconds
   })
 
+  useEffect(() => {
+    setLatestPositions(latestPositions)
+  }, [latestPositions])
+
   const { startDate, endDate, trackedVesselIDs, setVesselExcursions } = useTrackModeOptionsStore(useShallow((state) => ({
     startDate: state.startDate,
     endDate: state.endDate,
@@ -111,11 +115,9 @@ export default function MapPage() {
     <>
       <LeftPanel/>
       <Map
-        vesselsPositions={latestPositions}
         zones={zones}
       />
       <MapControls zoneLoading={isLoadingZones} />
-      <PositionPreview />
     </>
   )
 }

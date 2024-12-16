@@ -85,9 +85,6 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
     setOpen(false)
     const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
 
-    if (vesselId && !trackedVesselIDs.includes(vesselId)) {
-      addTrackedVessel(vesselId)
-    }
     if (vesselId) {
       const selectedVesselLatestPosition = latestPositions.find(
         (position) => position.vessel.id === vesselId
@@ -99,7 +96,6 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
           longitude: selectedVesselLatestPosition.position.coordinates[0],
           latitude: selectedVesselLatestPosition.position.coordinates[1],
           zoom: 7,
-          pitch: 40,
           transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
           transitionDuration: "auto",
         })
@@ -110,7 +106,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
 
   return (
     <Command
-      className={`relative overflow-visible border-[0.5px] border-color-panel border-solid ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"} ${open ? "rounded-t-lg rounded-b-none" : "rounded-lg"}`}
+      className={`relative overflow-visible border-[0.5px] border-solid border-color-panel ${!wideMode ? "cursor-pointer hover:border-primary hover:text-primary" : "cursor-default"} ${open ? "rounded-b-none rounded-t-lg" : "rounded-lg"}`}
       onClick={() => {
         if (!wideMode) {
           setWideMode(true)
@@ -128,7 +124,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
         placeholder="Type MMSI, IMO or vessel name to search..."
       />
       <CommandList
-        className="absolute -left-[.5px] top-[calc(100%)] z-[100] w-full rounded-bl-md  bg-background shadow-md border-[.5px] border-color-panel"
+        className="absolute -left-[.5px] top-[calc(100%)] z-[100] w-full rounded-bl-md border-[.5px] border-color-panel bg-background shadow-md"
         hidden={!open}
         onMouseDown={(e) => {
           e.preventDefault()
