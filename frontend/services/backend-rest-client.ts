@@ -88,7 +88,7 @@ export function getTopVesselsInMpas(
   endAt: string,
   topVesselsLimit: number
 ) {
-  const url = `${BASE_URL}/metrics/vessels/activity-in-mpas?start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC`
+  const url = `${BASE_URL}/metrics/vessels-activity?category=amp&start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC`
   console.log(`GET ${url}`)
   return axios.get<VesselMetrics[]>(url)
 }
@@ -99,7 +99,7 @@ export function getTopZonesVisited(
   topZonesLimit: number,
   category?: string
 ) {
-  const url = `${BASE_URL}/metrics/zone-visited?${
+  const url = `${BASE_URL}/metrics/zones-visited?${
     category ? `category=${category}&` : ""
   }start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
   console.log(`GET ${url}`)
