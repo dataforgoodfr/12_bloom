@@ -11,7 +11,7 @@ export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
         id: `${vessel.id}`,
         title: vessel.ship_name,
         description: `IMO ${vessel.imo} / MMSI ${vessel.mmsi} / ${vessel.length} m`,
-        value: convertDurationToString(vesselMetrics.total_time_in_mpas),
+        value: convertDurationToString(vesselMetrics.total_time_in_zones),
         type: "vessel",
         countryIso3: vessel.country_iso3,
       }
