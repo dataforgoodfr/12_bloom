@@ -74,6 +74,7 @@ export default function MainMap({ zones }: MainMapProps) {
     if (!coordinate) return previousCoordinates
     const latitude = coordinate[1].toFixed(3)
     const longitude = coordinate[0].toFixed(3)
+    setPreviousCoordinates(`${latitude}°N; ${longitude}°E`)
     return `${latitude}°N; ${longitude}°E`
   }, [hoverInfo])
 
@@ -88,6 +89,7 @@ export default function MainMap({ zones }: MainMapProps) {
       })
     }
   }, [activePosition])
+
 
   const onMapHover = useCallback((hoverInfo: PickingInfo) => {
     setHoverInfo(hoverInfo)
