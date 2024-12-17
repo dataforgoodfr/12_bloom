@@ -153,7 +153,7 @@ export default function MainMap({ zones }: MainMapProps) {
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      <MapLegend className="absolute bottom-10 right-0 rounded-bl-lg rounded-tl-lg shadow-lg" />
+      <MapLegend className="absolute bottom-10 right-0 rounded-l-lg shadow-lg" />
       <CoordonatesIndicator coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip
