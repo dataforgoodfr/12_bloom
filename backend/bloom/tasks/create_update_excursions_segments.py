@@ -159,8 +159,7 @@ def run():
                 df_start.sort_index(inplace=True)
                 df_start.reset_index(drop=True, inplace=True)
                 # checks if the excursion of the last segment is closed or not
-                if vessel_last_segment["arrival_port_id"].iloc[0] and vessel_last_segment["arrival_port_id"].iloc[
-                    0] >= 0:
+                if vessel_last_segment["arrival_port_id"].iloc[0] >= 0:
                     open_ongoing_excursion = False
                 else:
                     open_ongoing_excursion = True
