@@ -13,7 +13,7 @@ import { useMapStore } from "@/libs/stores/map-store"
 import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
-import Spinner from "../ui/custom/spinner"
+import Spinner from "../../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 
 const containerVariants = {
@@ -93,7 +93,7 @@ export default function LeftPanel() {
         className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow-lg"
       >
         <div className="flex w-full flex-row place-items-center justify-between p-5">
-          <a href="/dashboard">
+          <a href="/dashboard" className="flex items-center gap-3">
             <Image
               src={TrawlWatchLogo}
               alt="Trawlwatch logo"

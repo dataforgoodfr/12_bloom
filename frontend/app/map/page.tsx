@@ -15,7 +15,7 @@ import { useLoaderStore } from "@/libs/stores/loader-store"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
 import { useVesselsStore } from "@/libs/stores/vessels-store"
-import LeftPanel from "@/components/core/left-panel"
+import LeftPanel from "@/components/core/left-panel/main"
 import MapControls from "@/components/core/map-controls"
 import Map from "@/components/core/map/main-map"
 
