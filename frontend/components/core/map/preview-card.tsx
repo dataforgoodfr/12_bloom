@@ -2,32 +2,33 @@ import Image from "next/image"
 import Link from "next/link"
 import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 import { XIcon } from "lucide-react"
+import { useShallow } from "zustand/react/shallow"
 
 import { VesselPosition } from "@/types/vessel"
-import { Button } from "@/components/ui/button"
-import IconButton from "@/components/ui/icon-button"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useShallow } from "zustand/react/shallow"
+import { Button } from "@/components/ui/button"
+import IconButton from "@/components/ui/icon-button"
 
 export interface PreviewCardTypes {
   vesselInfo: VesselPosition
 }
 
 const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
-  const { setActivePosition } = useMapStore(useShallow((state) => ({
-    setActivePosition: state.setActivePosition,
-  })))
+  const { setActivePosition } = useMapStore(
+    useShallow((state) => ({
+      setActivePosition: state.setActivePosition,
+    }))
+  )
 
-  const {
-    addTrackedVessel,
-    trackedVesselIDs,
-    removeTrackedVessel,
-  } = useTrackModeOptionsStore(useShallow((state) => ({
-    addTrackedVessel: state.addTrackedVessel,
-    trackedVesselIDs: state.trackedVesselIDs,
-    removeTrackedVessel: state.removeTrackedVessel,
-  })))
+  const { addTrackedVessel, trackedVesselIDs, removeTrackedVessel } =
+    useTrackModeOptionsStore(
+      useShallow((state) => ({
+        addTrackedVessel: state.addTrackedVessel,
+        trackedVesselIDs: state.trackedVesselIDs,
+        removeTrackedVessel: state.removeTrackedVessel,
+      }))
+    )
 
   const {
     vessel: { id: vesselId, mmsi, ship_name, imo, length },

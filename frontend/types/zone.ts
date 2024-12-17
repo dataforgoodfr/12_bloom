@@ -21,6 +21,10 @@ export interface ZoneDetails {
   category: string
   sub_category: string
   name: string
+  centroid: {
+    type: "Point"
+    coordinates: number[]
+  }
 }
 
 export interface ZoneMetrics {

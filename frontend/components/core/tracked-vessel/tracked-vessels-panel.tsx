@@ -56,7 +56,7 @@ function VesselsActions({
       </Button>
       <Button onClick={onViewTracks} disabled={disabledViewTracks}>
         Show tracks
-        <ChevronRight className="size-4"/>
+        <ChevronRight className="size-4" />
       </Button>
     </div>
   )
@@ -312,7 +312,10 @@ export default function TrackedVesselsPanel({
       <div className="flex items-center justify-center text-sm font-bold uppercase">
         {!wideMode && (
           <div className="relative flex size-8 items-center justify-center">
-            <ShipIcon className="size-8 text-neutral-200 hover:text-primary" strokeWidth={1} />
+            <ShipIcon
+              className="size-8 text-neutral-200 hover:text-primary"
+              strokeWidth={1}
+            />
             {vesselsSelectedCount > 0 && (
               <Badge
                 variant="outline"
@@ -327,7 +330,7 @@ export default function TrackedVesselsPanel({
           </div>
         )}
         {mapMode === "position" && wideMode && (
-          <div className="flex items-center gap-3 justify-start w-full">
+          <div className="flex w-full items-center justify-start gap-3">
             <ShipIcon className="size-8 text-neutral-200" strokeWidth={1} />
             <span className="text-start text-card">{`Selected vessels (${trackedVesselIDs.length})`}</span>
           </div>

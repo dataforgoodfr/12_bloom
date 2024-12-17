@@ -1,18 +1,17 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import type { PickingInfo } from "@deck.gl/core"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores"
+import { useShallow } from "zustand/react/shallow"
 
 import { VesselPosition, VesselPositions } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
-
-import DeckGLMap from "./deck-gl-map"
-import React from "react"
-import { useShallow } from "zustand/react/shallow"
+import { useTrackModeOptionsStore } from "@/libs/stores"
+import { useMapStore } from "@/libs/stores/map-store"
 import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
+
+import DeckGLMap from "./deck-gl-map"
 import { getPickObjectType } from "./utils"
 
 type MainMapProps = {
@@ -27,7 +26,7 @@ function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
   )
 }
 
-const MemoizedDeckGLMap = React.memo(DeckGLMap);
+const MemoizedDeckGLMap = React.memo(DeckGLMap)
 
 export default function MainMap({ zones }: MainMapProps) {
   const { activePosition, setActivePosition } = useMapStore(
@@ -38,15 +37,14 @@ export default function MainMap({ zones }: MainMapProps) {
     }))
   )
 
-  const {
-    addTrackedVessel,
-    trackedVesselIDs,
-    removeTrackedVessel,
-  } = useTrackModeOptionsStore(useShallow((state) => ({
-    addTrackedVessel: state.addTrackedVessel,
-    trackedVesselIDs: state.trackedVesselIDs,
-    removeTrackedVessel: state.removeTrackedVessel,
-  })))
+  const { addTrackedVessel, trackedVesselIDs, removeTrackedVessel } =
+    useTrackModeOptionsStore(
+      useShallow((state) => ({
+        addTrackedVessel: state.addTrackedVessel,
+        trackedVesselIDs: state.trackedVesselIDs,
+        removeTrackedVessel: state.removeTrackedVessel,
+      }))
+    )
 
   const [tooltipPosition, setTooltipPosition] = useState<{
     top: number
@@ -93,33 +91,30 @@ export default function MainMap({ zones }: MainMapProps) {
   }
 
   const hoverTooltip = useMemo(() => {
-    if (!hoverInfo) return;
+    if (!hoverInfo) return
 
-    const { object, x, y } = hoverInfo;
+    const { object, x, y } = hoverInfo
     const objectType = getPickObjectType(hoverInfo)
 
-    let element: React.ReactNode = null;
+    let element: React.ReactNode = null
 
     if (objectType === "vessel") {
       const vesselInfo = object as VesselPosition
       const vesselId = vesselInfo.vessel.id
       if (activePosition?.vessel.id !== vesselId) {
-        element = <MapVesselTooltip vesselInfo={vesselInfo} top={y} left={x}/>
+        element = <MapVesselTooltip vesselInfo={vesselInfo} top={y} left={x} />
       }
     } else if (objectType === "zone") {
       const zoneInfo = object as ZoneWithGeometry
-      element = <MapZoneTooltip zoneInfo={zoneInfo} top={y} left={x}/>
+      element = <MapZoneTooltip zoneInfo={zoneInfo} top={y} left={x} />
     }
 
-    return element;
-  }, [hoverInfo, activePosition]);
+    return element
+  }, [hoverInfo, activePosition])
 
   return (
     <div className="relative size-full">
-      <MemoizedDeckGLMap
-        zones={zones}
-        onHover={onMapHover}
-      />
+      <MemoizedDeckGLMap zones={zones} onHover={onMapHover} />
       <CoordonatesIndicator coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip
