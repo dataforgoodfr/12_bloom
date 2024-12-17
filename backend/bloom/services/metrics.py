@@ -95,8 +95,11 @@ class MetricsService():
                 .select_from(sql_model.Metrics)
                 .join(
                     sql_model.Vessel,
-                    sql_model.Metrics.vessel_id == sql_model.Vessel.id,
-                    isouter=True,
+                    sql_model.Metrics.vessel_id == sql_model.Vessel.id
+                )
+                .join(
+                    sql_model.Zone,
+                    sql_model.Metrics.zone_id == sql_model.Zone.id
                 )
                 .where(
                     sql_model.Metrics.timestamp.between(
