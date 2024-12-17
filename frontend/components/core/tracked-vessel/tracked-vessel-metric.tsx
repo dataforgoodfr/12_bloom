@@ -7,16 +7,17 @@ export interface TrackedVesselMetricProps {
   value: number
   unit?: 'time'
   baseValue?: number
+  className?: string
   children?: React.ReactNode
 }
 
-export default function TrackedVesselMetric({ title, value, baseValue, children, unit }: TrackedVesselMetricProps) {
+export default function TrackedVesselMetric({ title, value, baseValue, children, unit, className }: TrackedVesselMetricProps) {
   return (
     <SidebarExpander.Root className="w-full justify-between" disabled={!children}>
       <SidebarExpander.Header>
         <TrackedVesselMetricHeader title={title} value={value} baseValue={baseValue} unit={unit} />
       </SidebarExpander.Header>
-      <SidebarExpander.Content>
+      <SidebarExpander.Content className={className}>
         {children}
       </SidebarExpander.Content>
     </SidebarExpander.Root>

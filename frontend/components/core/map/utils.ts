@@ -1,6 +1,8 @@
 import type { PickingInfo } from "@deck.gl/core"
 
-export const getPickObjectType = (info: PickingInfo): "vessel" | "excursion" | "zone" | null => {
+export const getPickObjectType = (
+  info: PickingInfo
+): "vessel" | "excursion" | "zone" | null => {
   const { object } = info
   if (!object) return null
 

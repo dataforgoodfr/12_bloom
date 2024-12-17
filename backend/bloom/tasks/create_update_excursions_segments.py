@@ -132,7 +132,10 @@ def run():
             df_end.sort_values("timestamp_end", inplace=True)
             df_end.reset_index(drop=True, inplace=True)
             # get every end entry but the last one ; each one of them will be the start point of a segment
-            df_start = df_end.iloc[0:-1, :].copy()
+            if len(df_end)>1:
+                df_start = df_end.iloc[0:-1, :].copy()
+            else:
+                df_start=df_end.copy()
             for col in df_start.columns:
                 df_start.rename(columns={col: col.replace("end", "start")}, inplace=True)
             vessel_last_segment = pd.DataFrame()
@@ -156,8 +159,7 @@ def run():
                 df_start.sort_index(inplace=True)
                 df_start.reset_index(drop=True, inplace=True)
                 # checks if the excursion of the last segment is closed or not
-                if vessel_last_segment["arrival_port_id"].iloc[0] and vessel_last_segment["arrival_port_id"].iloc[
-                    0] >= 0:
+                if vessel_last_segment["arrival_port_id"].iloc[0] >= 0:
                     open_ongoing_excursion = False
                 else:
                     open_ongoing_excursion = True

@@ -3,8 +3,10 @@ import axios, { InternalAxiosRequestConfig } from "axios"
 
 import {
   Vessel,
+  VesselDetails,
   VesselExcursion,
   VesselExcursionSegment,
+  VesselExcursionTimeByZone,
   VesselMetrics,
   VesselPositions,
 } from "@/types/vessel"
@@ -49,13 +51,17 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
-export function getVesselExcursions(vesselId: number, startDate?: Date, endDate?: Date) {
+export function getVesselExcursions(
+  vesselId: number,
+  startDate?: Date,
+  endDate?: Date
+) {
   let queryParams: string[] = []
   if (startDate) {
-    queryParams.push(`start_at=${startDate.toISOString()}`);
+    queryParams.push(`start_at=${startDate.toISOString()}`)
   }
   if (endDate) {
-    queryParams.push(`end_at=${endDate.toISOString()}`);
+    queryParams.push(`end_at=${endDate.toISOString()}`)
   }
   const url = `${BASE_URL}/vessels/${vesselId}/excursions${queryParams.length > 0 ? `?${queryParams.join("&")}` : ""}`
   console.log(`GET ${url}`)
@@ -163,4 +169,30 @@ export async function getZones() {
   return {
     data: responses.flatMap((response) => response.data),
   }
+}
+
+export async function getVesselTimeByZone({
+  vesselId,
+  category,
+  startAt,
+  endAt,
+}: {
+  vesselId: number
+  category?: string
+  startAt?: Date
+  endAt?: Date
+}): Promise<VesselExcursionTimeByZone[]> {
+  const queryParams = [`vessel_id=${vesselId}`]
+  if (category) {
+    queryParams.push(`category=${category}`)
+  }
+  if (startAt) {
+    queryParams.push(`start_at=${startAt.toISOString()}`)
+  }
+  if (endAt) {
+    queryParams.push(`end_at=${endAt.toISOString()}`)
+  }
+  const url = `${BASE_URL}/metrics/vessels/time-by-zone?${queryParams.join("&")}`
+  const response = await axios.get<VesselExcursionTimeByZone[]>(url)
+  return response.data
 }

@@ -1,4 +1,5 @@
 import type {Feature, Geometry} from 'geojson';
+import { ZoneDetails } from './zone';
 
 export type Vessel = {
   id: number
@@ -73,6 +74,12 @@ export type VesselExcursionSegments = {
   segments: VesselExcursionSegment[]
 }
 
+export type VesselExcursionTimeByZone = {
+  zone: ZoneDetails;
+  vessel: VesselDetails;
+  vessel_visiting_time_by_zone: string;
+}
+
 export type VesselExcursion = {
   id: number
   vessel_id: number
@@ -105,6 +112,7 @@ export type VesselExcursion = {
   updated_at: String
 
   segments?: VesselExcursionSegment[]
+  timeByMPAZone?: VesselExcursionTimeByZone[]
 }
 
 export interface ExcursionMetrics {
