@@ -50,7 +50,7 @@ const defaultInitState: ITrackModeOptions = {
   vesselsIDsHidden: [],
   excursionsIDsHidden: [],
   focusedExcursionID: null,
-  showPositions: true,
+  showPositions: false,
   segmentMode: "vessel",
 }
 
