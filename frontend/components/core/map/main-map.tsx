@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useState } from "react"
-import Image from "next/image"
 import type { PickingInfo } from "@deck.gl/core"
 import { useShallow } from "zustand/react/shallow"
 
