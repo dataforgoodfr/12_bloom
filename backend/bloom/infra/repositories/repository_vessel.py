@@ -107,6 +107,7 @@ class VesselRepository:
                         )
                         .select_from(sql_model.Metrics)
                         .where(sql_model.Metrics.vessel_id==vessel_id)
+                        .where(sql_model.Zone.enable == True)\
                         .where(sql_model.Metrics.timestamp.between(datetime_range.start_at,datetime_range.end_at))
                 ).group_by(sql_model.Metrics.vessel_id,
                            sql_model.Metrics.zone_id,

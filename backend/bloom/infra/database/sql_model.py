@@ -116,6 +116,7 @@ class Zone(Base):
     centroid = Column("centroid", Geometry(geometry_type="POINT", srid=settings.srid))
     json_data = Column("json_data", JSONB)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    enable = Column("enable",Boolean(), server_default=True)
 
 
 class WhiteZone(Base):
@@ -278,5 +279,6 @@ class Metrics(Base):
     zone_id= Column("zone_id", Integer, ForeignKey("dim_zone.id"))
     zone_category= Column("zone_category", String, ForeignKey("dim_zone.category"))
     zone_sub_category= Column("zone_sub_category", String, ForeignKey("dim_zone.sub_category"))
+    zone_enable = Column("enable",Boolean(), server_default=True)
 
 
