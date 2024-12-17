@@ -51,6 +51,30 @@ export function getVesselsLatestPositions() {
   return axios.get<VesselPositions>(url)
 }
 
+export function getVesselClasses() {
+  const url = `${BASE_URL}/vessels/classes`
+  console.log(`GET ${url}`)
+  return axios.get<string[]>(url, {
+    headers: { "Cache-Control": CACHE_CONTROL_HEADER },
+  })
+}
+
+export function getVesselTypes() {
+  const url = `${BASE_URL}/vessels/types`
+  console.log(`GET ${url}`)
+  return axios.get<string[]>(url, {
+    headers: { "Cache-Control": CACHE_CONTROL_HEADER },
+  })
+}
+
+export function getCountries() {
+  const url = `${BASE_URL}/vessels/countries`
+  console.log(`GET ${url}`)
+  return axios.get<string[]>(url, {
+    headers: { "Cache-Control": CACHE_CONTROL_HEADER },
+  })
+}
+
 export function getVesselExcursions(
   vesselId: number,
   startDate?: Date,
