@@ -1,20 +1,24 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import type { PickingInfo } from "@deck.gl/core"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores"
-
-import { VesselPosition, VesselPositions } from "@/types/vessel"
-import { ZoneWithGeometry } from "@/types/zone"
-
-import DeckGLMap from "./deck-gl-map"
-import React from "react"
 import { useShallow } from "zustand/react/shallow"
+
+import { VesselPosition } from "@/types/vessel"
+import { ZoneWithGeometry } from "@/types/zone"
+import { useTrackModeOptionsStore } from "@/libs/stores"
+import { useMapStore } from "@/libs/stores/map-store"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
+
+import DeckGLMap from "./deck-gl-map"
 import { getPickObjectType } from "./utils"
-import ContextMenu from "./context-menu"
 
 type MainMapProps = {
   zones: ZoneWithGeometry[]
@@ -28,7 +32,7 @@ function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
   )
 }
 
-const MemoizedDeckGLMap = React.memo(DeckGLMap);
+const MemoizedDeckGLMap = React.memo(DeckGLMap)
 
 export default function MainMap({ zones }: MainMapProps) {
   const { activePosition, setActivePosition } = useMapStore(
@@ -39,30 +43,27 @@ export default function MainMap({ zones }: MainMapProps) {
     }))
   )
 
-  const {
-    addTrackedVessel,
-    trackedVesselIDs,
-    removeTrackedVessel,
-  } = useTrackModeOptionsStore(useShallow((state) => ({
-    addTrackedVessel: state.addTrackedVessel,
-    trackedVesselIDs: state.trackedVesselIDs,
-    removeTrackedVessel: state.removeTrackedVessel,
-  })))
+  const { addTrackedVessel, trackedVesselIDs, removeTrackedVessel } =
+    useTrackModeOptionsStore(
+      useShallow((state) => ({
+        addTrackedVessel: state.addTrackedVessel,
+        trackedVesselIDs: state.trackedVesselIDs,
+        removeTrackedVessel: state.removeTrackedVessel,
+      }))
+    )
 
   const [tooltipPosition, setTooltipPosition] = useState<{
     top: number
     left: number
   } | null>(null)
 
-
-  const [contextMenuPosition, setContextMenuPosition] = useState<{
-    top: number
-    left: number
-  } | null>(null)
-
   const [hoverInfo, setHoverInfo] = useState<PickingInfo | null>(null)
-  const [contextMenu, setContextMenu] = useState<boolean>(false)
-  const [previousCoordinates, setPreviousCoordinates] = useState<string>("-°N; -°E")
+  const [previousCoordinates, setPreviousCoordinates] =
+    useState<string>("-°N; -°E")
+
+  const copyText = useCallback((text: string) => {
+    navigator.clipboard.writeText(text)
+  }, [])
 
   const isVesselTracked = (vesselId: number) => {
     return trackedVesselIDs.includes(vesselId)
@@ -90,7 +91,6 @@ export default function MainMap({ zones }: MainMapProps) {
     }
   }, [activePosition])
 
-
   const onMapHover = useCallback((hoverInfo: PickingInfo) => {
     setHoverInfo(hoverInfo)
   }, [])
@@ -104,43 +104,42 @@ export default function MainMap({ zones }: MainMapProps) {
   }
 
   const hoverTooltip = useMemo(() => {
-    if (!hoverInfo) return;
+    if (!hoverInfo) return
 
-    const { object, x, y } = hoverInfo;
+    const { object, x, y } = hoverInfo
     const objectType = getPickObjectType(hoverInfo)
 
-    let element: React.ReactNode = null;
+    let element: React.ReactNode = null
 
     if (objectType === "vessel") {
       const vesselInfo = object as VesselPosition
       const vesselId = vesselInfo.vessel.id
       if (activePosition?.vessel.id !== vesselId) {
-        element = <MapVesselTooltip vesselInfo={vesselInfo} top={y} left={x}/>
+        element = <MapVesselTooltip vesselInfo={vesselInfo} top={y} left={x} />
       }
     } else if (objectType === "zone") {
       const zoneInfo = object as ZoneWithGeometry
-      element = <MapZoneTooltip zoneInfo={zoneInfo} top={y} left={x}/>
+      element = <MapZoneTooltip zoneInfo={zoneInfo} top={y} left={x} />
     }
 
-    return element;
-  }, [hoverInfo, activePosition]);
-
-  const onMapRightClick = (evt: any) => {
-    const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 110
-    const left = hoverInfo.x > -1 ? hoverInfo.x : screen.width / 2 + 10
-    evt.preventDefault()
-    setContextMenuPosition({ top: top, left: left})
-    setContextMenu(true)
-  }
+    return element
+  }, [hoverInfo, activePosition])
 
   return (
-    <div className="relative size-full"
-      onContextMenu={evt => onMapRightClick(evt)}>
-      <MemoizedDeckGLMap
-        zones={zones}
-        onHover={onMapHover}
-      />
-      <ContextMenu open={contextMenu} tooltipPosition={contextMenuPosition} setOpen={setContextMenu} coordinates={previousCoordinates} />
+    <div className="relative size-full">
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <MemoizedDeckGLMap zones={zones} onHover={onMapHover} />
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            className="bg-background"
+            onClick={() => copyText(coordinates)}
+          >
+            Copy coordinates
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       <CoordonatesIndicator coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip
