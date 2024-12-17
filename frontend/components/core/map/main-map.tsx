@@ -4,10 +4,16 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import type { PickingInfo } from "@deck.gl/core"
 import { useShallow } from "zustand/react/shallow"
 
-import { VesselPosition, VesselPositions } from "@/types/vessel"
+import { VesselPosition } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
 import { useTrackModeOptionsStore } from "@/libs/stores"
 import { useMapStore } from "@/libs/stores/map-store"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 
@@ -52,6 +58,12 @@ export default function MainMap({ zones }: MainMapProps) {
   } | null>(null)
 
   const [hoverInfo, setHoverInfo] = useState<PickingInfo | null>(null)
+  const [previousCoordinates, setPreviousCoordinates] =
+    useState<string>("-°N; -°E")
+
+  const copyText = useCallback((text: string) => {
+    navigator.clipboard.writeText(text)
+  }, [])
 
   const isVesselTracked = (vesselId: number) => {
     return trackedVesselIDs.includes(vesselId)
@@ -60,9 +72,10 @@ export default function MainMap({ zones }: MainMapProps) {
   const coordinates = useMemo(() => {
     if (!hoverInfo) return "-°N; -°E"
     const coordinate = hoverInfo.coordinate
-    if (!coordinate) return "-°N; -°E"
+    if (!coordinate) return previousCoordinates
     const latitude = coordinate[1].toFixed(3)
     const longitude = coordinate[0].toFixed(3)
+    setPreviousCoordinates(`${latitude}°N; ${longitude}°E`)
     return `${latitude}°N; ${longitude}°E`
   }, [hoverInfo])
 
@@ -114,7 +127,19 @@ export default function MainMap({ zones }: MainMapProps) {
 
   return (
     <div className="relative size-full">
-      <MemoizedDeckGLMap zones={zones} onHover={onMapHover} />
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <MemoizedDeckGLMap zones={zones} onHover={onMapHover} />
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            className="bg-background"
+            onClick={() => copyText(coordinates)}
+          >
+            Copy coordinates
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       <CoordonatesIndicator coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip

@@ -611,7 +611,7 @@ export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
     <DeckGL
       viewState={viewState}
       controller={{
-        dragRotate: false,
+        dragRotate: true,
         touchRotate: false,
         keyboard: false,
       }}
