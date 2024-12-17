@@ -4,7 +4,7 @@ ARG APP_DIR=/app
 WORKDIR ${APP_DIR}
 
 # Install dependencies based on the preferred package manager
-COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* frontend/pnpm-lock.yaml* ./
+COPY frontend/. .
 RUN mkdir -p ./app
 
 RUN \
@@ -15,7 +15,6 @@ RUN \
   else echo "Warning: Lockfile not found. It is recommended to commit lockfiles to version control." && yarn install; \
   fi
 
-COPY frontend/. .
 #COPY frontend/app frontend/components frontend/config frontend/lib frontend/styles frontend/types .
 #COPY frontend/public public
 #COPY frontend/next.config.mjs .
