@@ -1,20 +1,21 @@
 "use client"
 
-import React from "react"
-import { EyeIcon, Layers, Minus, Plus, SlidersHorizontal } from "lucide-react"
+import { Minus, Plus } from "lucide-react"
 import { useShallow } from "zustand/react/shallow"
 
 import { useMapStore } from "@/libs/stores/map-store"
 import IconButton from "@/components/ui/icon-button"
 
 import { TrackModeOptionsModal } from "./map/track-mode-options-modal"
+import VesselFilterModal from "./map/vessel-filter-modal"
 import ZoneFilterModal from "./map/zone-filter-modal"
 
 interface MapControlsProps {
   zoneLoading: boolean
+  vesselLoading: boolean
 }
 
-const MapControls = ({ zoneLoading }: MapControlsProps) => {
+const MapControls = ({ zoneLoading, vesselLoading }: MapControlsProps) => {
   const { viewState, setZoom, displayedZones, setDisplayedZones } = useMapStore(
     useShallow((state) => ({
       viewState: state.viewState,
@@ -38,9 +39,7 @@ const MapControls = ({ zoneLoading }: MapControlsProps) => {
       <IconButton description="Zoom Out" onClick={() => handleZoomIn()}>
         <Minus className="size-5 text-black dark:text-white" />
       </IconButton>
-      <IconButton description="Set filters">
-        <SlidersHorizontal className="size-5 text-black dark:text-white" />
-      </IconButton>
+      <VesselFilterModal isLoading={vesselLoading} />
       <ZoneFilterModal
         activeZones={displayedZones}
         setActiveZones={setDisplayedZones}

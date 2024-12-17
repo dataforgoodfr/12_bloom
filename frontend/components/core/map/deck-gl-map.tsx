@@ -23,6 +23,7 @@ import { getVesselColorRGB } from "@/libs/colors"
 import { useLoaderStore } from "@/libs/stores/loader-store"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useVesselsStore } from "@/libs/stores/vessels-store"
 
 import { getPickObjectType } from "./utils"
 
@@ -86,6 +87,14 @@ export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
       setViewState: state.setViewState,
       setActivePosition: state.setActivePosition,
       setLeftPanelOpened: state.setLeftPanelOpened,
+    }))
+  )
+
+  const { typeFilter, classFilter, countryFilter } = useVesselsStore(
+    useShallow((state) => ({
+      typeFilter: state.typeFilter,
+      classFilter: state.classFilter,
+      countryFilter: state.countryFilter,
     }))
   )
 
@@ -176,6 +185,23 @@ export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
         trackedVesselIDs.includes(vp.vessel.id)
       )
     }
+
+    if (mapMode === "position") {
+      // Apply filters
+      displayedPositions = displayedPositions.filter((vp) => {
+        const { type, length_class, country_iso3 } = vp.vessel
+        const matchesType =
+          typeFilter.length === 0 || (type && typeFilter.includes(type))
+        const matchesClass =
+          classFilter.length === 0 ||
+          (length_class && classFilter.includes(length_class))
+        const matchesCountry =
+          countryFilter.length === 0 ||
+          (country_iso3 && countryFilter.includes(country_iso3))
+        return matchesType && matchesClass && matchesCountry
+      })
+    }
+
     return new IconLayer<VesselPosition>({
       id: `vessels-latest-positions`,
       data: displayedPositions,

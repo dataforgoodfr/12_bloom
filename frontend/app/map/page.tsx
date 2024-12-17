@@ -1,11 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect } from "react"
 import {
   getVesselExcursions,
-  getVessels,
   getVesselSegments,
-  getVesselsLatestPositions,
   getVesselTimeByZone,
 } from "@/services/backend-rest-client"
 import useSWR from "swr"
@@ -22,9 +20,7 @@ import MapControls from "@/components/core/map-controls"
 import Map from "@/components/core/map/main-map"
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, {
-    cache: "force-cache",
-  })
+  const response = await fetch(url)
   return response.json()
 }
 
@@ -144,7 +140,10 @@ export default function MapPage() {
     <>
       <LeftPanel />
       <Map zones={zones} />
-      <MapControls zoneLoading={isLoadingZones} />
+      <MapControls
+        zoneLoading={isLoadingZones}
+        vesselLoading={isLoadingVessels}
+      />
     </>
   )
 }

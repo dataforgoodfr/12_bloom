@@ -124,7 +124,7 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
         placeholder="Type MMSI, IMO or vessel name to search..."
       />
       <CommandList
-        className="absolute -left-[.5px] top-[calc(100%)] z-[100] w-full rounded-bl-md border-[.5px] border-color-panel bg-background shadow-md"
+        className="absolute  left-[-.5px] top-[calc(100%)] z-[100] w-[calc(100%+1px)] rounded-bl-md border-[.5px] border-color-panel bg-background shadow-md"
         hidden={!open}
         onMouseDown={(e) => {
           e.preventDefault()
