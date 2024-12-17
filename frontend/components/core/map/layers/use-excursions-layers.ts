@@ -354,12 +354,12 @@ export const useExcursionsLayers = () => {
       layers = trackedAndShownExcursions.map((excursion) => {
         return excursionToSegmentsLayer(excursion)
       })
-    } else {
-      layers = [positionsLayer]
-    }
 
-    if (showPositions) {
-      layers.push(positionsLayer)
+      if (showPositions) {
+        layers.push(positionsLayer)
+      }
+    } else {
+      layers = []
     }
 
     return layers

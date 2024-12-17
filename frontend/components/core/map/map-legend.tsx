@@ -8,9 +8,8 @@ export interface MapLegendProps {
 }
 
 export default function MapLegend({ className }: MapLegendProps) {
-  const { showPositions, segmentMode } = useTrackModeOptionsStore(
+  const { segmentMode } = useTrackModeOptionsStore(
     useShallow((state) => ({
-      showPositions: state.showPositions,
       segmentMode: state.segmentMode,
     }))
   )
