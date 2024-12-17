@@ -13,7 +13,7 @@ import { useMapStore } from "@/libs/stores/map-store"
 import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
-import Spinner from "../ui/custom/spinner"
+import Spinner from "../../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 
 const containerVariants = {
@@ -147,6 +147,7 @@ export default function LeftPanel() {
         >
           <TrackedVesselsPanel wideMode={leftPanelOpened} />
         </div>
+        {leftPanelOpened && <LeftPanelFooter />}
       </motion.nav>
     </>
   )
