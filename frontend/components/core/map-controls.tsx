@@ -7,9 +7,8 @@ import { useShallow } from "zustand/react/shallow"
 import { useMapStore } from "@/libs/stores/map-store"
 import IconButton from "@/components/ui/icon-button"
 
-import ZoneFilterModal from "./map/zone-filter-modal"
 import { TrackModeOptionsModal } from "./map/track-mode-options-modal"
-
+import ZoneFilterModal from "./map/zone-filter-modal"
 
 interface MapControlsProps {
   zoneLoading: boolean

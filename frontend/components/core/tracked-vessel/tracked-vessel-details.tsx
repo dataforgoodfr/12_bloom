@@ -1,15 +1,16 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
-import { useShallow } from "zustand/react/shallow";
-import { ExcursionMetrics, Vessel, VesselExcursion } from "@/types/vessel";
-import { convertDurationInSeconds, formatDuration } from "@/libs/dateUtils";
-import { useLoaderStore } from "@/libs/stores/loader-store";
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store";
-import Spinner from "@/components/ui/custom/spinner";
-import TrackedVesselExcursion from "./tracked-vessel-excursion";
-import TrackedVesselMetric from "./tracked-vessel-metric";
+import { useMemo } from "react"
+import { useShallow } from "zustand/react/shallow"
 
+import { ExcursionMetrics, Vessel, VesselExcursion } from "@/types/vessel"
+import { convertDurationInSeconds, formatDuration } from "@/libs/dateUtils"
+import { useLoaderStore } from "@/libs/stores/loader-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import Spinner from "@/components/ui/custom/spinner"
+
+import TrackedVesselExcursion from "./tracked-vessel-excursion"
+import TrackedVesselMetric from "./tracked-vessel-metric"
 
 export interface TrackedVesselDetailsProps {
   vessel: Vessel
@@ -70,6 +71,16 @@ export default function TrackedVesselDetails({
 
   if (excursionsLoading) {
     return <Spinner />
+  }
+
+  if (vesselExcursions.length === 0) {
+    return (
+      <div className="align-center flex w-full text-color-4">
+        <span className="bold text-sm">
+          No excursions found in this time interval
+        </span>
+      </div>
+    )
   }
 
   return (

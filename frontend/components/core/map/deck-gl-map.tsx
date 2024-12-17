@@ -48,10 +48,7 @@ const getOpacityFromTimestamp = (timestamp: string) => {
   return 102 // 40% opacity
 }
 
-export default function DeckGLMap({
-  zones,
-  onHover,
-}: DeckGLMapProps) {
+export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
   const {
     trackedVesselIDs,
     vesselsIDsHidden,
@@ -188,11 +185,15 @@ export default function DeckGLMap({
       ],
       getAngle: (vp: VesselPosition) =>
         vp.heading ? 365 - Math.round(vp.heading) : 0,
-      getIcon: (vp : VesselPosition) => {
+      getIcon: (vp: VesselPosition) => {
         if (vp.heading) {
-          return vp.vessel.id === activePosition?.vessel.id ? "selectedWithHeading" : "withHeading"
+          return vp.vessel.id === activePosition?.vessel.id
+            ? "selectedWithHeading"
+            : "withHeading"
         } else {
-          return vp.vessel.id === activePosition?.vessel.id ? "selectedNoHeading" : "noHeading"
+          return vp.vessel.id === activePosition?.vessel.id
+            ? "selectedNoHeading"
+            : "noHeading"
         }
       },
       iconAtlas: "../../../img/vessel_atlas.png",
@@ -629,4 +630,3 @@ export default function DeckGLMap({
     </DeckGL>
   )
 }
-

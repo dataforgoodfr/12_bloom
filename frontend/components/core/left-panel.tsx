@@ -124,7 +124,7 @@ export default function LeftPanel() {
                 name="Dashboard"
                 wide={leftPanelOpened}
               >
-                <ChartBarIcon className="size-8 stroke-[0.75] hover:text-primary text-color-panel" />
+                <ChartBarIcon className="size-8 stroke-[0.75] text-color-panel hover:text-primary" />
               </NavigationLink>
             </div>
             <div className="flex flex-col gap-3 bg-color-3 p-5">
@@ -142,7 +142,7 @@ export default function LeftPanel() {
           </>
         )}
         <div
-          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 rounded-br-lg ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
+          className={`flex flex-col gap-3 overflow-auto rounded-br-lg bg-color-2 p-5 ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
           onClick={() => !leftPanelOpened && setLeftPanelOpened(true)}
         >
           <TrackedVesselsPanel wideMode={leftPanelOpened} />

@@ -1,9 +1,9 @@
+import { useMemo, useRef } from "react"
 import Image from "next/image"
 import { XIcon } from "lucide-react"
 
 import { VesselPosition } from "@/types/vessel"
 import { Button } from "@/components/ui/button"
-import { useMemo, useRef } from "react"
 
 export interface TooltipProps {
   top: number
@@ -25,7 +25,6 @@ const Tooltip = ({
   children,
 }: TooltipProps) => {
   const tooltipRef = useRef<HTMLDivElement>(null)
-
 
   const topScreenSafe = useMemo(() => {
     const screenHeight = window.innerHeight
@@ -52,7 +51,16 @@ const Tooltip = ({
   }, [left, tooltipRef.current?.clientWidth])
 
   return (
-    <div className="absolute z-10" style ={{ top: topScreenSafe, left: leftScreenSafe, width: width, height: height }} ref={tooltipRef}>
+    <div
+      className="absolute z-10"
+      style={{
+        top: topScreenSafe,
+        left: leftScreenSafe,
+        width: width,
+        height: height,
+      }}
+      ref={tooltipRef}
+    >
       <div className="flex size-full flex-col rounded-lg bg-white shadow">
         {isFrozen && (
           <div className="absolute right-2 top-2 z-20 text-background">
