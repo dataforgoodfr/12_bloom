@@ -3,6 +3,7 @@ import Image from "next/image"
 import { VesselPosition } from "@/types/vessel"
 import { Button } from "@/components/ui/button"
 import Tooltip from "@/components/ui/custom/tooltip"
+
 const getCountryISO2 = require("country-iso-3-to-2")
 
 export interface MapVesselTooltipProps {
@@ -39,11 +40,18 @@ const MapVesselTooltip = ({
       second: "2-digit",
       hour12: false,
       timeZoneName: "short",
+      timeZone: "UTC",
     })
     .replace(",", " -")
 
   return (
-    <Tooltip top={top} left={left} width={288} isFrozen={isFrozen} onClose={onClose}>
+    <Tooltip
+      top={top}
+      left={left}
+      width={288}
+      isFrozen={isFrozen}
+      onClose={onClose}
+    >
       <div className="flex flex-col">
         <div className="relative">
           <Image
@@ -59,7 +67,7 @@ const MapVesselTooltip = ({
             alt="country flag"
             width={40}
             height={40}
-            />
+          />
         </div>
       </div>
       <div className="flex flex-col gap-8 rounded-b-lg bg-white p-5">

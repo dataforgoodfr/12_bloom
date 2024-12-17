@@ -53,6 +53,15 @@ export interface VesselPosition {
   vessel: Vessel
 }
 
+export interface SegmentVesselPosition {
+  type: "segmentPosition"
+  vessel_id: number
+  timestamp: string
+  position: number[]
+  heading?: number
+  speed?: number
+}
+
 export interface VesselPositionCoordinates {
   coordinates: number[]
   type: string
@@ -63,6 +72,7 @@ export type VesselExcursionSegmentGeo = {
   excursion_id: number
   speed: number
   navigational_status: string
+  type: VesselExcursionSegment["type"]
 }
 
 export type VesselExcursionSegmentsGeo = {
@@ -139,7 +149,7 @@ export type VesselExcursionSegment = {
   speed_at_end: number
   heading_at_start: number
   heading_at_end: number
-  type: string
+  type: "AT_SEA" | "FISHING" | "DEFAULT_AIS"
   in_amp_zone: boolean
   in_territorial_waters: boolean
   in_costal_waters: boolean

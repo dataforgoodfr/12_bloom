@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from "react"
+import { PathStyleExtension } from "@deck.gl/extensions"
 import { GeoJsonLayer, IconLayer, Layer, PickingInfo } from "deck.gl"
 import type { Feature, Geometry } from "geojson"
 import { useShallow } from "zustand/react/shallow"
 
 import {
+  SegmentVesselPosition,
   VesselExcursion,
   VesselExcursionSegment,
   VesselExcursionSegmentGeo,
@@ -15,12 +17,6 @@ import {
   useMapStore,
   useTrackModeOptionsStore,
 } from "@/libs/stores"
-
-interface SegmentVesselPosition {
-  vessel_id: number
-  position: number[]
-  heading?: number
-}
 
 export const useExcursionsLayers = () => {
   const {
@@ -94,16 +90,31 @@ export const useExcursionsLayers = () => {
 
   function getColorFromSpeed(speed?: number) {
     const highSpeed = 20
-    const lowSpeed = 0
+    const highSpeedColor = [239, 68, 68]
 
-    if (speed === undefined) return [128, 128, 128, 255] // Gray for undefined speed
+    const lowSpeed = 0
+    const lowSpeedColor = [234, 179, 8]
+
+    const grayColor = [128, 128, 128, 255]
+
+    if (speed === undefined) return grayColor // Gray for undefined speed
+
     const ratio = Math.min(
       Math.max((speed - lowSpeed) / (highSpeed - lowSpeed), 0),
       1
     )
-    const red = 255
-    const green = Math.round(255 * (1 - ratio)) // Decreases with speed
-    const blue = 0
+    const red = Math.round(
+      lowSpeedColor[0] +
+        Math.min(Math.max(ratio, 0), 1) * (highSpeedColor[0] - lowSpeedColor[0])
+    )
+    const green = Math.round(
+      lowSpeedColor[1] +
+        Math.min(Math.max(ratio, 0), 1) * (highSpeedColor[1] - lowSpeedColor[1])
+    )
+    const blue = Math.round(
+      lowSpeedColor[2] +
+        Math.min(Math.max(ratio, 0), 1) * (highSpeedColor[2] - lowSpeedColor[2])
+    )
     return [red, green, blue, 255]
   }
 
@@ -122,6 +133,9 @@ export const useExcursionsLayers = () => {
   function getSegmentWidth(
     feature: Feature<Geometry, VesselExcursionSegmentGeo>
   ) {
+    if (feature.properties.type === "FISHING") {
+      return 4
+    }
     return focusedExcursionID === feature.properties.excursion_id ? 3 : 1
   }
 
@@ -145,6 +159,7 @@ export const useExcursionsLayers = () => {
           excursion_id: segment.excursion_id,
           speed: segment.average_speed,
           navigational_status: "unknown",
+          type: segment.type,
         },
       } as Feature<Geometry, VesselExcursionSegmentGeo>
     })
@@ -235,6 +250,13 @@ export const useExcursionsLayers = () => {
     }
   }, [focusedExcursionID])
 
+  function getDashArray(feature: Feature<Geometry, VesselExcursionSegmentGeo>) {
+    if (feature.properties.type === "DEFAULT_AIS") {
+      return [3, 4]
+    }
+    return [0, 0]
+  }
+
   function excursionToSegmentsLayer(excursion: VesselExcursion) {
     const segmentsGeo = toSegmentsGeo(excursion.vessel_id, excursion.segments)
     return new GeoJsonLayer<VesselExcursionSegmentGeo>({
@@ -258,6 +280,10 @@ export const useExcursionsLayers = () => {
       getPointRadius: 4,
       getTextSize: 12,
       onClick: onSegmentClick,
+
+      // @ts-ignore
+      getDashArray,
+      extensions: [new PathStyleExtension({ dash: true })],
     })
   }
 
@@ -268,9 +294,12 @@ export const useExcursionsLayers = () => {
 
       excursion.segments.forEach((segment) => {
         positions.push({
+          type: "segmentPosition",
+          timestamp: segment.timestamp_start,
           vessel_id: excursion.vessel_id,
           position: segment.start_position.coordinates,
           heading: segment.heading_at_start,
+          speed: segment.speed_at_start,
         })
       })
     })
@@ -301,19 +330,22 @@ export const useExcursionsLayers = () => {
           mask: true,
         },
       },
+      pickable: true,
       getIcon: (d: SegmentVesselPosition) => {
         if (d.heading) {
           return "withHeading"
         }
         return "noHeading"
       },
-      getColor: (d: SegmentVesselPosition) =>
-        getVesselColorRGB(trackedVesselIDs.indexOf(d.vessel_id)),
-      getSize: 38,
+      getColor: (d: SegmentVesselPosition) => {
+        const color = getVesselColorRGB(trackedVesselIDs.indexOf(d.vessel_id))
+        return new Uint8ClampedArray(color)
+      },
+      getSize: 20,
       getAngle: (d: SegmentVesselPosition) =>
         d.heading ? 365 - Math.round(d.heading) : 0,
     })
-  }, [trackedAndShownExcursions, trackedVesselIDs, viewState])
+  }, [trackedAndShownExcursions, trackedVesselIDs, viewState, showPositions])
 
   const excursionsLayers = useMemo(() => {
     let layers: Layer[] = []
