@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import Image from "next/image"
 import type { PickingInfo } from "@deck.gl/core"
 import { useShallow } from "zustand/react/shallow"
 
@@ -18,6 +19,7 @@ import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 
 import DeckGLMap from "./deck-gl-map"
+import PartnerCredits from "./partner-credits"
 import { getPickObjectType } from "./utils"
 
 type MainMapProps = {
@@ -127,6 +129,7 @@ export default function MainMap({ zones }: MainMapProps) {
 
   return (
     <div className="relative size-full">
+      <PartnerCredits />
       <ContextMenu>
         <ContextMenuTrigger>
           <MemoizedDeckGLMap zones={zones} onHover={onMapHover} />
