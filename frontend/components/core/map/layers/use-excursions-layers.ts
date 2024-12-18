@@ -92,10 +92,10 @@ export const useExcursionsLayers = () => {
 
   function getColorFromSpeed(speed?: number) {
     const highSpeed = 20
-    const highSpeedColor = [239, 68, 68]
+    const highSpeedColor = [234, 179, 8]
 
     const lowSpeed = 0
-    const lowSpeedColor = [234, 179, 8]
+    const lowSpeedColor = [239, 68, 68]
 
     const grayColor = [128, 128, 128, 255]
 

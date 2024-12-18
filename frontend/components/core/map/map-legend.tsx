@@ -45,7 +45,7 @@ export default function MapLegend({ className }: MapLegendProps) {
         <div className="flex flex-col gap-2">
           <h6 className="text-sm font-bold text-white">Speed (knots)</h6>
           <div className="flex h-16 items-center gap-2 pl-4">
-            <div className="h-full w-2 rounded-full bg-gradient-to-b from-yellow-500 to-red-500"></div>
+            <div className="h-full w-2 rounded-full bg-gradient-to-b from-red-500 to-yellow-500"></div>
             <div className="flex h-full flex-col justify-between gap-1">
               <span className="text-xs text-white">0</span>
               <span className="text-xs text-white">10</span>
