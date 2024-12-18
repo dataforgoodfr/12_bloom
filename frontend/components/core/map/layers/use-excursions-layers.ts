@@ -18,6 +18,8 @@ import {
   useTrackModeOptionsStore,
 } from "@/libs/stores"
 
+import { getDeckGLIconMapping, VesselIconName } from "../utils"
+
 export const useExcursionsLayers = () => {
   const {
     trackedVesselIDs,
@@ -287,7 +289,51 @@ export const useExcursionsLayers = () => {
     })
   }
 
-  const positionsLayer = useMemo(() => {
+  const getPositionsLayer = ({
+    id,
+    positions,
+    outlined,
+    color,
+  }: {
+    id: string
+    positions: SegmentVesselPosition[]
+    outlined: boolean
+    color?: number[]
+  }) => {
+    return new IconLayer({
+      id,
+      data: positions,
+      getPosition: (d: SegmentVesselPosition) => [
+        d?.position[0],
+        d?.position[1],
+      ],
+      iconAtlas: "../../../img/vessel_atlas.png",
+      iconMapping: getDeckGLIconMapping(),
+      pickable: true,
+      getIcon: (d: SegmentVesselPosition) => {
+        let iconName = d.heading ? "withHeading" : "noHeading"
+        if (outlined) {
+          iconName += "Outline"
+        }
+        return iconName as VesselIconName
+      },
+      getColor: (d: SegmentVesselPosition) => {
+        if (color) {
+          return new Uint8ClampedArray(color)
+        }
+
+        const vesselColor = getVesselColorRGB(
+          trackedVesselIDs.indexOf(d.vessel_id)
+        )
+        return new Uint8ClampedArray(vesselColor)
+      },
+      getSize: 20,
+      getAngle: (d: SegmentVesselPosition) =>
+        d.heading ? 365 - Math.round(d.heading) : 0,
+    })
+  }
+
+  const positionsLayers = useMemo(() => {
     const positions: SegmentVesselPosition[] = []
     trackedAndShownExcursions.forEach((excursion) => {
       if (!excursion.segments) return
@@ -303,48 +349,19 @@ export const useExcursionsLayers = () => {
         })
       })
     })
-    return new IconLayer({
-      id: "excursions-vessel-positions",
-      data: positions,
-      getPosition: (d: SegmentVesselPosition) => [
-        d?.position[0],
-        d?.position[1],
-      ],
-      iconAtlas: "../../../img/vessel_atlas.png",
-      iconMapping: {
-        noHeading: {
-          x: 0,
-          y: 0,
-          width: 32,
-          height: 32,
-          anchorY: 16,
-          mask: true,
-        },
-        withHeading: {
-          x: 96,
-          y: 0,
-          width: 32,
-          height: 32,
-          anchorX: 16,
-          anchorY: 16,
-          mask: true,
-        },
-      },
-      pickable: true,
-      getIcon: (d: SegmentVesselPosition) => {
-        if (d.heading) {
-          return "withHeading"
-        }
-        return "noHeading"
-      },
-      getColor: (d: SegmentVesselPosition) => {
-        const color = getVesselColorRGB(trackedVesselIDs.indexOf(d.vessel_id))
-        return new Uint8ClampedArray(color)
-      },
-      getSize: 20,
-      getAngle: (d: SegmentVesselPosition) =>
-        d.heading ? 365 - Math.round(d.heading) : 0,
-    })
+    return [
+      getPositionsLayer({
+        id: "excursions-vessel-positions",
+        positions,
+        outlined: false,
+      }),
+      getPositionsLayer({
+        id: "excursions-vessel-positions-outlined",
+        positions,
+        outlined: true,
+        color: [255, 255, 255, 255],
+      }),
+    ]
   }, [trackedAndShownExcursions, trackedVesselIDs, viewState, showPositions])
 
   const excursionsLayers = useMemo(() => {
@@ -356,7 +373,7 @@ export const useExcursionsLayers = () => {
       })
 
       if (showPositions) {
-        layers.push(positionsLayer)
+        layers.push(...positionsLayers)
       }
     } else {
       layers = []

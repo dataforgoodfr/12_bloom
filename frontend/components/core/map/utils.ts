@@ -1,4 +1,6 @@
+import vesselAtlas from "@/public/img/vessel_atlas.json"
 import type { PickingInfo } from "@deck.gl/core"
+import { IconMapping } from "@deck.gl/layers/src/icon-layer/icon-manager"
 
 export const getPickObjectType = (
   info: PickingInfo
@@ -29,4 +31,34 @@ export const getPickObjectType = (
   }
 
   return null
+}
+
+export type VesselIconName =
+  | "noHeading"
+  | "noHeadingOutline"
+  | "withHeading"
+  | "withHeadingOutline"
+  | "selectionHalo"
+
+export const getDeckGLIconMapping = (): IconMapping => {
+  const filenameIconMapping: { [key: string]: VesselIconName } = {
+    "vessel-no-heading.png": "noHeading",
+    "vessel-no-heading-outline.png": "noHeadingOutline",
+    "vessel.png": "withHeading",
+    "vessel-outline.png": "withHeadingOutline",
+    "selection-halo.png": "selectionHalo",
+  }
+  const iconMapping: IconMapping = {}
+  vesselAtlas.frames.forEach((frame) => {
+    iconMapping[filenameIconMapping[frame.filename]] = {
+      x: frame.frame.x,
+      y: frame.frame.y,
+      width: frame.frame.w,
+      height: frame.frame.h,
+      anchorX: frame.frame.w / 2,
+      anchorY: frame.frame.h / 2,
+      mask: true,
+    }
+  })
+  return iconMapping
 }
