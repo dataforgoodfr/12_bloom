@@ -119,6 +119,7 @@ class MetricsService():
                             )
                         )
                     )\
+                .where(sql_model.Zone.enable == True)\
                 .group_by(sql_model.Zone.id)
             if (category):
                 stmt = stmt.where(sql_model.Zone.category == category)
@@ -165,6 +166,7 @@ class MetricsService():
                         )
                     )
                 )\
+            .where(sql_model.Zone.enable == True)\
             .group_by(sql_model.Zone.id,sql_model.Vessel.id)
             
             stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
@@ -213,6 +215,7 @@ class MetricsService():
                             )
                         )
                     )\
+                .where(sql_model.Zone.enable == True)\
                 .group_by(sql_model.Vessel,
                         sql_model.Zone,)
             if category:

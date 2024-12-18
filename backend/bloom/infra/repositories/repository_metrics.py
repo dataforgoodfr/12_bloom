@@ -68,6 +68,7 @@ class MetricsRepository:
             zone_id=metrics.zone_id,
             zone_category=metrics.zone_category,
             zone_sub_category=metrics.zone_sub_category,
+            zone_enable=metrics.zone_enable,
         )            
 
 
@@ -87,6 +88,7 @@ class MetricsRepository:
                 zone_id=metrics.zone_id,
                 zone_category=metrics.zone_category,
                 zone_sub_category=metrics.zone_sub_category,
+                zone_enable=metrics.zone_enable,
             )            
 
 

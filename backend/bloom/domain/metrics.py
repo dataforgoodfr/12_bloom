@@ -22,6 +22,7 @@ class Metrics(BaseModel) :
     zone_id : Optional[int] = None
     zone_category : Optional[str] = None
     zone_sub_category : Optional[str] = None
+    zone_enable: Optional[bool] = None
 
 class TotalTimeActivityTypeEnum(str, Enum):
     total_time_at_sea: str = "Total Time at Sea"
