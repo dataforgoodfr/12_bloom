@@ -1,6 +1,7 @@
 import { TOTAL_AMPS } from "@/constants/totals.constants"
 import axios, { InternalAxiosRequestConfig } from "axios"
 
+import { Port } from "@/types/port"
 import {
   Vessel,
   VesselDetails,
@@ -219,4 +220,10 @@ export async function getVesselTimeByZone({
   const url = `${BASE_URL}/metrics/vessels/time-by-zone?${queryParams.join("&")}`
   const response = await axios.get<VesselExcursionTimeByZone[]>(url)
   return response.data
+}
+
+export function getPorts() {
+  const url = `${BASE_URL}/ports`
+  console.log(`GET ${url}`)
+  return axios.get<Port[]>(url)
 }

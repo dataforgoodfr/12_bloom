@@ -9,21 +9,24 @@ import { Layer, MapViewState } from "deck.gl"
 import { Map as MapGL } from "react-map-gl/maplibre"
 import { useShallow } from "zustand/react/shallow"
 
+import { Port } from "@/types/port"
 import { ZoneWithGeometry } from "@/types/zone"
 import { useMapStore } from "@/libs/stores/map-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
 
 import { useExcursionsLayers } from "./layers/use-excursions-layers"
+import { usePortsLayers } from "./layers/use-ports-layers"
 import { useVesselsLayers } from "./layers/use-vessels-layers"
 import { useZonesLayer } from "./layers/use-zones-layer"
 import { getPickObjectType } from "./utils"
 
 type DeckGLMapProps = {
   zones: ZoneWithGeometry[]
+  ports: Port[]
   onHover?: (info: PickingInfo) => void
 }
 
-export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
+export default function DeckGLMap({ zones, ports, onHover }: DeckGLMapProps) {
   const { setFocusedExcursionID } = useTrackModeOptionsStore(
     useShallow((state) => ({
       setFocusedExcursionID: state.setFocusedExcursionID,
@@ -41,6 +44,7 @@ export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
   const zonesLayer = useZonesLayer({ zones })
   const vesselsLayers = useVesselsLayers()
   const excursionsLayers = useExcursionsLayers()
+  const portsLayers = usePortsLayers()
 
   const onMapClick = (info: PickingInfo) => {
     const objectType = getPickObjectType(info)
@@ -56,10 +60,10 @@ export default function DeckGLMap({ zones, onHover }: DeckGLMapProps) {
 
   const layers = useMemo(
     () =>
-      [zonesLayer, excursionsLayers, vesselsLayers]
+      [zonesLayer, portsLayers, excursionsLayers, vesselsLayers]
         .flat()
         .filter(Boolean) as Layer[],
-    [vesselsLayers, zonesLayer, excursionsLayers]
+    [vesselsLayers, zonesLayer, excursionsLayers, portsLayers]
   )
 
   return (

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import type { PickingInfo } from "@deck.gl/core"
 import { useShallow } from "zustand/react/shallow"
 
+import { Port } from "@/types/port"
 import { SegmentVesselPosition, VesselPosition } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
 import { useTrackModeOptionsStore } from "@/libs/stores"
@@ -14,6 +15,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+import MapPortTooltip from "@/components/ui/map-port-tooltip"
 import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 import SegmentPositionTooltip from "@/components/ui/segment-position-tooltip"
@@ -25,6 +27,7 @@ import { getPickObjectType } from "./utils"
 
 type MainMapProps = {
   zones: ZoneWithGeometry[]
+  ports: Port[]
 }
 
 function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
@@ -37,7 +40,7 @@ function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
 
 const MemoizedDeckGLMap = React.memo(DeckGLMap)
 
-export default function MainMap({ zones }: MainMapProps) {
+export default function MainMap({ zones, ports }: MainMapProps) {
   const { activePosition, setActivePosition } = useMapStore(
     useShallow((state) => ({
       viewState: state.viewState,
@@ -132,6 +135,9 @@ export default function MainMap({ zones }: MainMapProps) {
           left={x}
         />
       )
+    } else if (objectType === "port") {
+      const portInfo = object as Port
+      element = <MapPortTooltip portInfo={portInfo} top={y} left={x} />
     }
 
     return element
@@ -142,7 +148,7 @@ export default function MainMap({ zones }: MainMapProps) {
       <PartnerCredits />
       <ContextMenu>
         <ContextMenuTrigger>
-          <MemoizedDeckGLMap zones={zones} onHover={onMapHover} />
+          <MemoizedDeckGLMap zones={zones} ports={ports} onHover={onMapHover} />
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem

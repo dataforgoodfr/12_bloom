@@ -9,10 +9,12 @@ import {
 import useSWR from "swr"
 import { useShallow } from "zustand/react/shallow"
 
+import { Port } from "@/types/port"
 import { Vessel, VesselPosition } from "@/types/vessel"
 import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
 import { useLoaderStore } from "@/libs/stores/loader-store"
 import { useMapStore } from "@/libs/stores/map-store"
+import { usePortsStore } from "@/libs/stores/port-store"
 import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
 import { useVesselsStore } from "@/libs/stores/vessels-store"
 import LeftPanel from "@/components/core/left-panel/main"
@@ -32,12 +34,14 @@ export default function MapPage() {
     setPositionsLoading,
     setVesselsLoading,
     setExcursionsLoading,
+    setPortsLoading,
   } = useLoaderStore(
     useShallow((state) => ({
       setZonesLoading: state.setZonesLoading,
       setPositionsLoading: state.setPositionsLoading,
       setVesselsLoading: state.setVesselsLoading,
       setExcursionsLoading: state.setExcursionsLoading,
+      setPortsLoading: state.setPortsLoading,
     }))
   )
 
@@ -48,6 +52,8 @@ export default function MapPage() {
     }))
   )
 
+  const setPorts = usePortsStore((state) => state.setPorts)
+
   const { data: vessels = [], isLoading: isLoadingVessels } = useSWR<Vessel[]>(
     "/api/vessels",
     fetcher,
@@ -57,6 +63,22 @@ export default function MapPage() {
       keepPreviousData: true,
     }
   )
+
+  const { data: ports = [], isLoading: isLoadingPorts } = useSWR<Port[]>(
+    "/api/ports",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      keepPreviousData: true,
+    }
+  )
+
+  useEffect(() => {
+    if (!isLoadingPorts) {
+      setPorts(ports)
+    }
+  }, [ports, isLoadingPorts])
 
   useEffect(() => {
     if (!isLoadingVessels) {
@@ -98,9 +120,19 @@ export default function MapPage() {
 
   useEffect(() => {
     setZonesLoading(isLoadingZones)
+  }, [isLoadingZones])
+
+  useEffect(() => {
     setPositionsLoading(isLoadingPositions)
+  }, [isLoadingPositions])
+
+  useEffect(() => {
     setVesselsLoading(isLoadingVessels)
-  }, [isLoadingZones, isLoadingPositions, isLoadingVessels])
+  }, [isLoadingVessels])
+
+  useEffect(() => {
+    setPortsLoading(isLoadingPorts)
+  }, [isLoadingPorts])
 
   useEffect(() => {
     const resetExcursions = async () => {
@@ -139,7 +171,7 @@ export default function MapPage() {
   return (
     <>
       <LeftPanel />
-      <Map zones={zones} />
+      <Map zones={zones} ports={ports} />
       <MapControls
         zoneLoading={isLoadingZones}
         vesselLoading={isLoadingVessels}
