@@ -28,6 +28,7 @@ class ZoneSummary(BaseModel):
     sub_category: Union[str, None] = None
     name: str
     created_at: Union[datetime, None] = None
+    enable: Union[bool, None] = None
 
     
 class ZoneListView(Zone):
