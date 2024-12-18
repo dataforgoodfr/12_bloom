@@ -300,6 +300,16 @@ export const useExcursionsLayers = () => {
     outlined: boolean
     color?: number[]
   }) => {
+    const getPositionVesselSize = () => {
+      const zoom = viewState.zoom
+      if (zoom > 12) return 50
+      if (zoom > 10) return 40
+      if (zoom > 8) return 30
+      if (zoom > 6) return 20
+      return 10
+    }
+
+    const vesselSize = getPositionVesselSize()
     return new IconLayer({
       id,
       data: positions,
@@ -327,7 +337,7 @@ export const useExcursionsLayers = () => {
         )
         return new Uint8ClampedArray(vesselColor)
       },
-      getSize: 20,
+      getSize: () => vesselSize,
       getAngle: (d: SegmentVesselPosition) =>
         d.heading ? 365 - Math.round(d.heading) : 0,
     })
