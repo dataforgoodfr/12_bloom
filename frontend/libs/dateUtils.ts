@@ -1,4 +1,6 @@
-export function convertDurationInSeconds(durationPattern: string): number {
+export function convertDurationInSeconds(durationPattern?: string): number {
+  if (!durationPattern) return 0
+
   const matches = durationPattern.match(
     /P(?:(\d+)Y)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?/
   )

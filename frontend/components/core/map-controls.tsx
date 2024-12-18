@@ -16,8 +16,15 @@ interface MapControlsProps {
 }
 
 const MapControls = ({ zoneLoading, vesselLoading }: MapControlsProps) => {
-  const { viewState, setZoom, displayedZones, setDisplayedZones } = useMapStore(
+  const {
+    viewState,
+    setZoom,
+    displayedZones,
+    setDisplayedZones,
+    mode: mapMode,
+  } = useMapStore(
     useShallow((state) => ({
+      mode: state.mode,
       viewState: state.viewState,
       setZoom: state.setZoom,
       displayedZones: state.displayedZones,
@@ -39,13 +46,15 @@ const MapControls = ({ zoneLoading, vesselLoading }: MapControlsProps) => {
       <IconButton description="Zoom Out" onClick={() => handleZoomIn()}>
         <Minus className="size-5 text-black dark:text-white" />
       </IconButton>
-      <VesselFilterModal isLoading={vesselLoading} />
+      {mapMode === "position" && (
+        <VesselFilterModal isLoading={vesselLoading} />
+      )}
       <ZoneFilterModal
         activeZones={displayedZones}
         setActiveZones={setDisplayedZones}
         isLoading={zoneLoading}
       />
-      <TrackModeOptionsModal />
+      {mapMode === "track" && <TrackModeOptionsModal />}
     </div>
   )
 }

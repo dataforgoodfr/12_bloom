@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import type { PickingInfo } from "@deck.gl/core"
 import { useShallow } from "zustand/react/shallow"
 
-import { VesselPosition } from "@/types/vessel"
+import { SegmentVesselPosition, VesselPosition } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
 import { useTrackModeOptionsStore } from "@/libs/stores"
 import { useMapStore } from "@/libs/stores/map-store"
@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/context-menu"
 import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
+import SegmentPositionTooltip from "@/components/ui/segment-position-tooltip"
 
 import DeckGLMap from "./deck-gl-map"
+import MapLegend from "./map-legend"
 import PartnerCredits from "./partner-credits"
 import { getPickObjectType } from "./utils"
 
@@ -121,6 +123,15 @@ export default function MainMap({ zones }: MainMapProps) {
     } else if (objectType === "zone") {
       const zoneInfo = object as ZoneWithGeometry
       element = <MapZoneTooltip zoneInfo={zoneInfo} top={y} left={x} />
+    } else if (objectType === "segmentPosition") {
+      const segmentPositionInfo = object as SegmentVesselPosition
+      element = (
+        <SegmentPositionTooltip
+          segmentPositionInfo={segmentPositionInfo}
+          top={y}
+          left={x}
+        />
+      )
     }
 
     return element
@@ -142,6 +153,7 @@ export default function MainMap({ zones }: MainMapProps) {
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
+      <MapLegend className="absolute bottom-10 right-0 rounded-l-lg shadow-lg" />
       <CoordonatesIndicator coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip
