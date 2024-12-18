@@ -2,7 +2,7 @@ import type { PickingInfo } from "@deck.gl/core"
 
 export const getPickObjectType = (
   info: PickingInfo
-): "vessel" | "excursion" | "zone" | "segmentPosition" | null => {
+): "vessel" | "excursion" | "zone" | "segmentPosition" | "port" | null => {
   const { object } = info
 
   if (!object) return null
@@ -18,6 +18,10 @@ export const getPickObjectType = (
 
   if ("vessel" in object) {
     return "vessel"
+  }
+
+  if ("locode" in object && "url" in object) {
+    return "port"
   }
 
   if ("geometry" in object) {
