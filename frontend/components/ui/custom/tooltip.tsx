@@ -1,8 +1,6 @@
-import { useMemo, useRef } from "react"
-import Image from "next/image"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { XIcon } from "lucide-react"
 
-import { VesselPosition } from "@/types/vessel"
 import { Button } from "@/components/ui/button"
 
 export interface TooltipProps {
@@ -25,17 +23,20 @@ const Tooltip = ({
   children,
 }: TooltipProps) => {
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
 
   const topScreenSafe = useMemo(() => {
     const screenHeight = window.innerHeight
     const verticalOffset = 10
     const tooltipHeight = tooltipRef.current?.clientHeight ?? 0
 
-    if (top + tooltipHeight + verticalOffset > screenHeight) {
-      return top - tooltipHeight - verticalOffset
+    let topScreenSafe = top + verticalOffset
+
+    if (topScreenSafe + tooltipHeight > screenHeight) {
+      topScreenSafe = top - tooltipHeight - verticalOffset
     }
 
-    return top + verticalOffset
+    return Math.max(topScreenSafe, 0)
   }, [top, tooltipRef.current?.clientHeight])
 
   const leftScreenSafe = useMemo(() => {
@@ -43,12 +44,20 @@ const Tooltip = ({
     const horizontalOffset = 10
     const tooltipWidth = tooltipRef.current?.clientWidth ?? 0
 
-    if (left + tooltipWidth + horizontalOffset > screenWidth) {
-      return left - tooltipWidth - horizontalOffset
+    let leftScreenSafe = left + horizontalOffset
+
+    if (leftScreenSafe + tooltipWidth > screenWidth) {
+      leftScreenSafe = left - tooltipWidth - horizontalOffset
     }
 
-    return left + horizontalOffset
+    return Math.max(leftScreenSafe, 0)
   }, [left, tooltipRef.current?.clientWidth])
+
+  useEffect(() => {
+    if (!isVisible && tooltipRef.current?.clientWidth) {
+      setIsVisible(true)
+    }
+  }, [tooltipRef.current?.clientWidth])
 
   return (
     <div
@@ -58,6 +67,7 @@ const Tooltip = ({
         left: leftScreenSafe,
         width: width,
         height: height,
+        visibility: isVisible ? "visible" : "hidden",
       }}
       ref={tooltipRef}
     >

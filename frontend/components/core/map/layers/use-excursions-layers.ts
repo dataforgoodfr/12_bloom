@@ -92,10 +92,10 @@ export const useExcursionsLayers = () => {
 
   function getColorFromSpeed(speed?: number) {
     const highSpeed = 20
-    const highSpeedColor = [239, 68, 68]
+    const highSpeedColor = [234, 179, 8]
 
     const lowSpeed = 0
-    const lowSpeedColor = [234, 179, 8]
+    const lowSpeedColor = [239, 68, 68]
 
     const grayColor = [128, 128, 128, 255]
 
@@ -300,6 +300,16 @@ export const useExcursionsLayers = () => {
     outlined: boolean
     color?: number[]
   }) => {
+    const getPositionVesselSize = () => {
+      const zoom = viewState.zoom
+      if (zoom > 12) return 50
+      if (zoom > 10) return 40
+      if (zoom > 8) return 30
+      if (zoom > 6) return 20
+      return 10
+    }
+
+    const vesselSize = getPositionVesselSize()
     return new IconLayer({
       id,
       data: positions,
@@ -327,13 +337,15 @@ export const useExcursionsLayers = () => {
         )
         return new Uint8ClampedArray(vesselColor)
       },
-      getSize: 20,
+      getSize: () => vesselSize,
       getAngle: (d: SegmentVesselPosition) =>
         d.heading ? 365 - Math.round(d.heading) : 0,
     })
   }
 
   const positionsLayers = useMemo(() => {
+    if (!showPositions) return []
+
     const positions: SegmentVesselPosition[] = []
     trackedAndShownExcursions.forEach((excursion) => {
       if (!excursion.segments) return
@@ -364,29 +376,23 @@ export const useExcursionsLayers = () => {
     ]
   }, [trackedAndShownExcursions, trackedVesselIDs, viewState, showPositions])
 
+  const segmentsLayers = useMemo(() => {
+    return trackedAndShownExcursions.map((excursion) => {
+      return excursionToSegmentsLayer(excursion)
+    })
+  }, [viewState, trackedAndShownExcursions, focusedExcursionID])
+
   const excursionsLayers = useMemo(() => {
     let layers: Layer[] = []
 
     if (mapMode === "track") {
-      layers = trackedAndShownExcursions.map((excursion) => {
-        return excursionToSegmentsLayer(excursion)
-      })
-
-      if (showPositions) {
-        layers.push(...positionsLayers)
-      }
+      layers = [...segmentsLayers, ...positionsLayers]
     } else {
       layers = []
     }
 
     return layers
-  }, [
-    mapMode,
-    trackedAndShownExcursions,
-    segmentMode,
-    showPositions,
-    viewState,
-  ])
+  }, [mapMode, segmentsLayers, positionsLayers])
 
   if (excursionsLoading) return []
 

@@ -24,8 +24,9 @@ export const useVesselsLayers = () => {
     }))
   )
 
-  const { trackedVesselIDs } = useTrackModeOptionsStore(
+  const { trackedVesselIDs, vesselsIDsHidden } = useTrackModeOptionsStore(
     useShallow((state) => ({
+      vesselsIDsHidden: state.vesselsIDsHidden,
       trackedVesselIDs: state.trackedVesselIDs,
     }))
   )
@@ -186,8 +187,10 @@ export const useVesselsLayers = () => {
   const vesselsLayer = useMemo(() => {
     let displayedPositions: VesselPosition[] = []
     if (mapMode === "track") {
-      displayedPositions = vesselsPositions.filter((vp) =>
-        trackedVesselIDs.includes(vp.vessel.id)
+      displayedPositions = vesselsPositions.filter(
+        (vp) =>
+          trackedVesselIDs.includes(vp.vessel.id) &&
+          !vesselsIDsHidden.includes(vp.vessel.id)
       )
     }
 

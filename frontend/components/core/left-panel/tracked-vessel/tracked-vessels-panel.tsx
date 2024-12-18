@@ -8,6 +8,7 @@ import {
   MinusIcon,
   PenIcon,
   Ship as ShipIcon,
+  TrashIcon,
   XIcon,
 } from "lucide-react"
 import { DayPicker, getDefaultClassNames, Matcher } from "react-day-picker"
@@ -79,6 +80,7 @@ function TrackModeDatePicker({
 }) {
   const defaultClassNames = getDefaultClassNames()
   const disabledMatchers: Matcher[] = []
+  const [isOpen, setIsOpen] = useState(false)
 
   if (minDate) {
     disabledMatchers.push({ before: minDate })
@@ -88,12 +90,17 @@ function TrackModeDatePicker({
     disabledMatchers.push({ after: maxDate })
   }
 
+  const onSelect = (date: Date | undefined) => {
+    setIsOpen(false)
+    setDate(date)
+  }
+
   const onClear = () => {
     setDate(undefined)
   }
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -115,7 +122,7 @@ function TrackModeDatePicker({
         <DayPicker
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={onSelect}
           classNames={{
             root: `${defaultClassNames.root} bg-white rounded-md`,
             selected: `bg-color-1 rounded-md`,
@@ -307,6 +314,10 @@ export default function TrackedVesselsPanel({
     )
   }
 
+  const onClearTrackedVessels = () => {
+    setTrackedVesselIDs([])
+  }
+
   return (
     <>
       <div className="flex items-center justify-center text-sm font-bold uppercase">
@@ -330,9 +341,19 @@ export default function TrackedVesselsPanel({
           </div>
         )}
         {mapMode === "position" && wideMode && (
-          <div className="flex w-full items-center justify-start gap-3">
-            <ShipIcon className="size-8 text-neutral-200" strokeWidth={1} />
-            <span className="text-start text-card">{`Selected vessels (${trackedVesselIDs.length})`}</span>
+          <div className="between flex w-full items-center">
+            <div className="flex w-full items-center justify-start gap-3">
+              <ShipIcon className="size-8 text-neutral-200" strokeWidth={1} />
+              <span className="text-start text-card">{`Selected vessels (${trackedVesselIDs.length})`}</span>
+            </div>
+            <Button
+              variant="outline"
+              className="flex h-7 items-center gap-2 bg-color-2"
+              onClick={onClearTrackedVessels}
+            >
+              <TrashIcon className="size-4" />
+              Clear
+            </Button>
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ import { SegmentVesselPosition, VesselPosition } from "@/types/vessel"
 import { ZoneWithGeometry } from "@/types/zone"
 import { useTrackModeOptionsStore } from "@/libs/stores"
 import { useMapStore } from "@/libs/stores/map-store"
+import { cn } from "@/libs/utils"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,6 +21,7 @@ import MapVesselTooltip from "@/components/ui/map-vessel-tooltip"
 import MapZoneTooltip from "@/components/ui/map-zone-tooltip"
 import SegmentPositionTooltip from "@/components/ui/segment-position-tooltip"
 
+import BottomRightCorner from "./bottom-right-corner"
 import DeckGLMap from "./deck-gl-map"
 import MapLegend from "./map-legend"
 import PartnerCredits from "./partner-credits"
@@ -30,9 +32,20 @@ type MainMapProps = {
   ports: Port[]
 }
 
-function CoordonatesIndicator({ coordinates }: { coordinates: string }) {
+function CoordonatesIndicator({
+  coordinates,
+  className,
+}: {
+  coordinates: string
+  className: string
+}) {
   return (
-    <div className="absolute bottom-0 right-0 w-fit bg-color-3 px-4 py-2 text-xs text-color-4">
+    <div
+      className={cn(
+        "w-fit bg-color-3 px-4 py-2 text-xs text-color-4",
+        className
+      )}
+    >
       {coordinates}
     </div>
   )
@@ -87,7 +100,7 @@ export default function MainMap({ zones, ports }: MainMapProps) {
 
   useEffect(() => {
     if (activePosition && hoverInfo) {
-      const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 110
+      const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 210
       const left = hoverInfo.x > -1 ? hoverInfo.x : screen.width / 2 + 10
 
       setTooltipPosition({
@@ -159,8 +172,7 @@ export default function MainMap({ zones, ports }: MainMapProps) {
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      <MapLegend className="absolute bottom-10 right-0 rounded-l-lg shadow-lg" />
-      <CoordonatesIndicator coordinates={coordinates} />
+      <BottomRightCorner coordinates={coordinates} />
       {tooltipPosition && activePosition && (
         <MapVesselTooltip
           top={tooltipPosition.top}
