@@ -20,6 +20,7 @@ class Zone(BaseModel):
     geometry: Union[Geometry, None] = None
     centroid: Union[Point, None] = None
     json_data: Union[dict, None] = None
+    enable: Union[bool, None] = None
 
 class ZoneSummary(BaseModel):
     id: Union[int, None] = None
