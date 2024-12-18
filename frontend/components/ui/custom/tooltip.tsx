@@ -1,8 +1,6 @@
-import { useMemo, useRef } from "react"
-import Image from "next/image"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { XIcon } from "lucide-react"
 
-import { VesselPosition } from "@/types/vessel"
 import { Button } from "@/components/ui/button"
 
 export interface TooltipProps {
@@ -25,6 +23,7 @@ const Tooltip = ({
   children,
 }: TooltipProps) => {
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
 
   const topScreenSafe = useMemo(() => {
     const screenHeight = window.innerHeight
@@ -50,6 +49,12 @@ const Tooltip = ({
     return left + horizontalOffset
   }, [left, tooltipRef.current?.clientWidth])
 
+  useEffect(() => {
+    if (!isVisible && tooltipRef.current?.clientWidth) {
+      setIsVisible(true)
+    }
+  }, [tooltipRef.current?.clientWidth])
+
   return (
     <div
       className="absolute z-10"
@@ -58,6 +63,7 @@ const Tooltip = ({
         left: leftScreenSafe,
         width: width,
         height: height,
+        visibility: isVisible ? "visible" : "hidden",
       }}
       ref={tooltipRef}
     >
