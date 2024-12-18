@@ -30,11 +30,13 @@ const Tooltip = ({
     const verticalOffset = 10
     const tooltipHeight = tooltipRef.current?.clientHeight ?? 0
 
-    if (top + tooltipHeight + verticalOffset > screenHeight) {
-      return top - tooltipHeight - verticalOffset
+    let topScreenSafe = top + verticalOffset
+
+    if (topScreenSafe + tooltipHeight > screenHeight) {
+      topScreenSafe = top - tooltipHeight - verticalOffset
     }
 
-    return top + verticalOffset
+    return Math.max(topScreenSafe, 0)
   }, [top, tooltipRef.current?.clientHeight])
 
   const leftScreenSafe = useMemo(() => {
@@ -42,11 +44,13 @@ const Tooltip = ({
     const horizontalOffset = 10
     const tooltipWidth = tooltipRef.current?.clientWidth ?? 0
 
-    if (left + tooltipWidth + horizontalOffset > screenWidth) {
-      return left - tooltipWidth - horizontalOffset
+    let leftScreenSafe = left + horizontalOffset
+
+    if (leftScreenSafe + tooltipWidth > screenWidth) {
+      leftScreenSafe = left - tooltipWidth - horizontalOffset
     }
 
-    return left + horizontalOffset
+    return Math.max(leftScreenSafe, 0)
   }, [left, tooltipRef.current?.clientWidth])
 
   useEffect(() => {

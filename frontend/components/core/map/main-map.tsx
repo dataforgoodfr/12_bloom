@@ -100,7 +100,7 @@ export default function MainMap({ zones, ports }: MainMapProps) {
 
   useEffect(() => {
     if (activePosition && hoverInfo) {
-      const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 110
+      const top = hoverInfo.y > -1 ? hoverInfo.y : screen.height / 2 - 210
       const left = hoverInfo.x > -1 ? hoverInfo.x : screen.width / 2 + 10
 
       setTooltipPosition({
