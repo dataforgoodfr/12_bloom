@@ -1,6 +1,17 @@
 import vesselAtlas from "@/public/img/vessel_atlas.json"
 import type { PickingInfo } from "@deck.gl/core"
-import { IconMapping } from "@deck.gl/layers/src/icon-layer/icon-manager"
+
+type IconMapping = {
+  [key: string]: {
+    x: number
+    y: number
+    width: number
+    height: number
+    anchorX: number
+    anchorY: number
+    mask: boolean
+  }
+}
 
 export const getPickObjectType = (
   info: PickingInfo
