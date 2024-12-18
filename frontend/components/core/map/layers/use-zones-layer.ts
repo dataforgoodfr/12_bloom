@@ -22,14 +22,8 @@ export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
     }))
   )
 
-  const isZoneTypeDisplayed = useCallback(
-    (zoneType: ZoneCategory) => {
-      return displayedZones.includes(zoneType)
-    },
-    [displayedZones]
-  )
+  const isAmpDisplayed = displayedZones.includes(ZoneCategory.AMP)
 
-  const isAMPDisplayed = displayedZones.includes(ZoneCategory.AMP)
   const isTerritorialDisplayed = displayedZones.includes(
     ZoneCategory.TERRITORIAL_SEAS
   )
@@ -38,22 +32,22 @@ export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
   )
 
   const ampMultiZones = useMemo(() => {
-    const filteredZones = isZoneTypeDisplayed(ZoneCategory.AMP)
+    const filteredZones = isAmpDisplayed
       ? zones
           .filter((z) => z.category === ZoneCategory.AMP)
           .filter((z) => z.geometry.type === "MultiPolygon")
       : []
     return filteredZones
-  }, [zones, isZoneTypeDisplayed])
+  }, [zones, isAmpDisplayed])
 
   const ampSingleZones = useMemo(() => {
-    const filteredZones = isZoneTypeDisplayed(ZoneCategory.AMP)
+    const filteredZones = isAmpDisplayed
       ? zones
           .filter((z) => z.category === ZoneCategory.AMP)
           .filter((z) => z.geometry.type === "Polygon")
       : []
     return filteredZones
-  }, [zones, isZoneTypeDisplayed])
+  }, [zones, isAmpDisplayed])
 
   const territorialZones = useMemo(
     () =>
@@ -95,9 +89,9 @@ export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
         filled: true,
         wireframe: false,
         extruded: false,
-        visible: isAMPDisplayed,
+        visible: isAmpDisplayed,
       }),
-    [ampMultiZones, isAMPDisplayed]
+    [ampMultiZones, isAmpDisplayed]
   )
 
   const ampSingleZonesLayer = useMemo(
@@ -116,9 +110,9 @@ export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
           depthTest: false,
           blendFunc: [770, 771],
         },
-        visible: isAMPDisplayed,
+        visible: isAmpDisplayed,
       }),
-    [ampSingleZones, isAMPDisplayed]
+    [ampSingleZones, isAmpDisplayed]
   )
 
   const territorialZonesLayer = useMemo(
