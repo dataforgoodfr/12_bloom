@@ -46,7 +46,9 @@ const MapControls = ({ zoneLoading, vesselLoading }: MapControlsProps) => {
       <IconButton description="Zoom Out" onClick={() => handleZoomIn()}>
         <Minus className="size-5 text-black dark:text-white" />
       </IconButton>
-      <VesselFilterModal isLoading={vesselLoading} />
+      {mapMode === "position" && (
+        <VesselFilterModal isLoading={vesselLoading} />
+      )}
       <ZoneFilterModal
         activeZones={displayedZones}
         setActiveZones={setDisplayedZones}
