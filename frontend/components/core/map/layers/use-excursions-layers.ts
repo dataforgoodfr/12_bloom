@@ -344,6 +344,8 @@ export const useExcursionsLayers = () => {
   }
 
   const positionsLayers = useMemo(() => {
+    if (!showPositions) return []
+
     const positions: SegmentVesselPosition[] = []
     trackedAndShownExcursions.forEach((excursion) => {
       if (!excursion.segments) return
@@ -374,29 +376,23 @@ export const useExcursionsLayers = () => {
     ]
   }, [trackedAndShownExcursions, trackedVesselIDs, viewState, showPositions])
 
+  const segmentsLayers = useMemo(() => {
+    return trackedAndShownExcursions.map((excursion) => {
+      return excursionToSegmentsLayer(excursion)
+    })
+  }, [viewState, trackedAndShownExcursions, focusedExcursionID])
+
   const excursionsLayers = useMemo(() => {
     let layers: Layer[] = []
 
     if (mapMode === "track") {
-      layers = trackedAndShownExcursions.map((excursion) => {
-        return excursionToSegmentsLayer(excursion)
-      })
-
-      if (showPositions) {
-        layers.push(...positionsLayers)
-      }
+      layers = [...segmentsLayers, ...positionsLayers]
     } else {
       layers = []
     }
 
     return layers
-  }, [
-    mapMode,
-    trackedAndShownExcursions,
-    segmentMode,
-    showPositions,
-    viewState,
-  ])
+  }, [mapMode, segmentsLayers, positionsLayers])
 
   if (excursionsLoading) return []
 

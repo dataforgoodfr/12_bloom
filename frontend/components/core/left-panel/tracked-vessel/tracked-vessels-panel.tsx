@@ -313,6 +313,10 @@ export default function TrackedVesselsPanel({
     )
   }
 
+  const onClearTrackedVessels = () => {
+    setTrackedVesselIDs([])
+  }
+
   return (
     <>
       <div className="flex items-center justify-center text-sm font-bold uppercase">
@@ -336,9 +340,18 @@ export default function TrackedVesselsPanel({
           </div>
         )}
         {mapMode === "position" && wideMode && (
-          <div className="flex w-full items-center justify-start gap-3">
-            <ShipIcon className="size-8 text-neutral-200" strokeWidth={1} />
-            <span className="text-start text-card">{`Selected vessels (${trackedVesselIDs.length})`}</span>
+          <div className="between flex w-full items-center">
+            <div className="flex w-full items-center justify-start gap-3">
+              <ShipIcon className="size-8 text-neutral-200" strokeWidth={1} />
+              <span className="text-start text-card">{`Selected vessels (${trackedVesselIDs.length})`}</span>
+            </div>
+            <Button
+              variant="outline"
+              className="h-6"
+              onClick={onClearTrackedVessels}
+            >
+              Clear
+            </Button>
           </div>
         )}
       </div>
