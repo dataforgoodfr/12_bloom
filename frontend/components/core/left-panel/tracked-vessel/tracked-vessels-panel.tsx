@@ -79,6 +79,7 @@ function TrackModeDatePicker({
 }) {
   const defaultClassNames = getDefaultClassNames()
   const disabledMatchers: Matcher[] = []
+  const [isOpen, setIsOpen] = useState(false)
 
   if (minDate) {
     disabledMatchers.push({ before: minDate })
@@ -88,12 +89,17 @@ function TrackModeDatePicker({
     disabledMatchers.push({ after: maxDate })
   }
 
+  const onSelect = (date: Date | undefined) => {
+    setIsOpen(false)
+    setDate(date)
+  }
+
   const onClear = () => {
     setDate(undefined)
   }
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -115,7 +121,7 @@ function TrackModeDatePicker({
         <DayPicker
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={onSelect}
           classNames={{
             root: `${defaultClassNames.root} bg-white rounded-md`,
             selected: `bg-color-1 rounded-md`,
