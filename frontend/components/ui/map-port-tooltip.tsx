@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import Link from "next/link"
 import { getCountryNameFromIso3 } from "@/utils/vessel.utils"
 
@@ -13,6 +14,9 @@ export interface MapPortTooltipProps {
 
 const MapPortTooltip = ({ top, left, portInfo }: MapPortTooltipProps) => {
   const { name, locode, country_iso3 } = portInfo
+  const countryName = useMemo(() => {
+    return getCountryNameFromIso3(country_iso3)
+  }, [country_iso3])
 
   return (
     <Tooltip top={top} left={left}>
@@ -21,7 +25,7 @@ const MapPortTooltip = ({ top, left, portInfo }: MapPortTooltipProps) => {
           Click to view on VesselFinder.com
         </p>
         <h5 className="mb-1 text-xl font-bold tracking-tight text-gray-100 dark:text-white">
-          {name} - {getCountryNameFromIso3(country_iso3)}
+          {name} {countryName ? `- ${countryName}` : ""}
         </h5>
         <p className="font-normal text-gray-200 dark:text-gray-400">{locode}</p>
       </div>
