@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { IconLayer, PickingInfo } from "deck.gl"
 import { useShallow } from "zustand/react/shallow"
 
@@ -10,6 +10,8 @@ import {
   useTrackModeOptionsStore,
   useVesselsStore,
 } from "@/libs/stores"
+
+import { getDeckGLIconMapping, VesselIconName } from "../utils"
 
 export const useVesselsLayers = () => {
   const VESSEL_COLOR = [94, 141, 185]
@@ -94,6 +96,93 @@ export const useVesselsLayers = () => {
     return [colorRgb[0], colorRgb[1], colorRgb[2], opacity]
   }
 
+  const deckGLIconMapping = useMemo(() => {
+    return getDeckGLIconMapping()
+  }, [])
+
+  const getVesselLayer = ({
+    id,
+    outlined,
+    positions,
+    color,
+  }: {
+    id: string
+    outlined: boolean
+    positions: VesselPosition[]
+    color?: number[]
+  }) => {
+    return new IconLayer<VesselPosition>({
+      id,
+      data: positions,
+      getPosition: (vp: VesselPosition) => [
+        vp?.position?.coordinates[0],
+        vp?.position?.coordinates[1],
+      ],
+      getAngle: (vp: VesselPosition) => {
+        return vp.heading ? 365 - Math.round(vp.heading) : 0
+      },
+      getIcon: (vp: VesselPosition): VesselIconName => {
+        let iconName = vp.heading ? "withHeading" : "noHeading"
+        if (outlined) {
+          iconName += "Outline"
+        }
+        return iconName as VesselIconName
+      },
+      iconAtlas: "../../../img/vessel_atlas.png",
+      iconMapping: deckGLIconMapping,
+      getSize: (vp: VesselPosition) => {
+        const length = vp.vessel.length || 0
+        const type = vp.heading ? "arrow" : "ellipse"
+        if (length > 80) return type == "arrow" ? 48 : 20 // Large vessels
+        if (length > 40) return type == "arrow" ? 38 : 16 // Medium vessels
+        return type == "arrow" ? 32 : 14 // Small vessels (default)
+      },
+      getColor: (vp: VesselPosition) => {
+        if (!color) {
+          return new Uint8ClampedArray(getVesselColor(vp))
+        }
+
+        if (color.length === 4) {
+          return new Uint8ClampedArray(color)
+        }
+
+        if (color.length === 3) {
+          const opacity = getVesselOpacityFromTimestamp(vp.timestamp)
+          return new Uint8ClampedArray([...color, opacity])
+        }
+
+        return new Uint8ClampedArray(getVesselColor(vp))
+      },
+      pickable: true,
+      onClick: onVesselClick,
+      updateTriggers: {
+        getColor: [activePosition?.vessel.id, trackedVesselIDs],
+      },
+    })
+  }
+
+  const getVesselSelectedLayer = () => {
+    const selectedVessel = vesselsPositions.find(
+      (vp) => vp.vessel.id === activePosition?.vessel.id
+    )
+
+    return new IconLayer<VesselPosition>({
+      id: `vessels-selected-position`,
+      data: [selectedVessel],
+      getPosition: (vp: VesselPosition) => [
+        vp?.position?.coordinates[0],
+        vp?.position?.coordinates[1],
+      ],
+      iconAtlas: "../../../img/vessel_atlas.png",
+      iconMapping: deckGLIconMapping,
+      getIcon: (vp: VesselPosition) => "selectionHalo",
+      getSize: (vp: VesselPosition) => 50,
+      getColor: (vp: VesselPosition) => {
+        return new Uint8ClampedArray(getVesselColor(vp))
+      },
+    })
+  }
+
   const vesselsLayer = useMemo(() => {
     let displayedPositions: VesselPosition[] = []
     if (mapMode === "track") {
@@ -119,82 +208,25 @@ export const useVesselsLayers = () => {
       })
     }
 
-    return new IconLayer<VesselPosition>({
-      id: `vessels-latest-positions`,
-      data: displayedPositions,
-      getPosition: (vp: VesselPosition) => [
-        vp?.position?.coordinates[0],
-        vp?.position?.coordinates[1],
-      ],
-      getAngle: (vp: VesselPosition) => {
-        return vp.heading ? 365 - Math.round(vp.heading) : 0
-      },
-      getIcon: (vp: VesselPosition) => {
-        if (vp.heading) {
-          return vp.vessel.id === activePosition?.vessel.id
-            ? "selectedWithHeading"
-            : "withHeading"
-        } else {
-          return vp.vessel.id === activePosition?.vessel.id
-            ? "selectedNoHeading"
-            : "noHeading"
-        }
-      },
-      iconAtlas: "../../../img/vessel_atlas.png",
-      iconMapping: {
-        noHeading: {
-          x: 0,
-          y: 0,
-          width: 32,
-          height: 32,
-          anchorY: 16,
-          mask: true,
-        },
-        selectedNoHeading: {
-          x: 32,
-          y: 0,
-          width: 32,
-          height: 32,
-          anchorX: 16,
-          anchorY: 16,
-          mask: true,
-        },
-        selectedWithHeading: {
-          x: 64,
-          y: 0,
-          width: 32,
-          height: 32,
-          anchorX: 16,
-          anchorY: 16,
-          mask: true,
-        },
-        withHeading: {
-          x: 96,
-          y: 0,
-          width: 32,
-          height: 32,
-          anchorX: 16,
-          anchorY: 16,
-          mask: true,
-        },
-      },
-      getSize: (vp: VesselPosition) => {
-        const length = vp.vessel.length || 0
-        const type = vp.heading ? "arrow" : "ellipse"
-        if (length > 80) return type == "arrow" ? 48 : 20 // Large vessels
-        if (length > 40) return type == "arrow" ? 38 : 16 // Medium vessels
-        return type == "arrow" ? 32 : 14 // Small vessels (default)
-      },
-      getColor: (vp: VesselPosition) => {
-        return new Uint8ClampedArray(getVesselColor(vp))
-      },
+    const layers = [
+      getVesselLayer({
+        id: "vessels-latest-positions",
+        outlined: false,
+        positions: displayedPositions,
+      }),
+      getVesselLayer({
+        id: "vessels-latest-positions-outlined",
+        outlined: true,
+        positions: displayedPositions,
+        color: [255, 255, 255],
+      }),
+    ]
+    if (activePosition) {
+      const selectedLayer = getVesselSelectedLayer()
+      layers.push(selectedLayer)
+    }
 
-      pickable: true,
-      onClick: onVesselClick,
-      updateTriggers: {
-        getColor: [activePosition?.vessel.id, trackedVesselIDs],
-      },
-    })
+    return layers
   }, [
     mapMode,
     vesselsPositions,
@@ -205,5 +237,5 @@ export const useVesselsLayers = () => {
 
   if (vesselsLoading || positionsLoading) return []
 
-  return [vesselsLayer]
+  return vesselsLayer
 }
