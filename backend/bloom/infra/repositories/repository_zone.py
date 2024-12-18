@@ -55,6 +55,7 @@ class ZoneRepository:
             sql_model.Zone.sub_category,
             sql_model.Zone.name,
             sql_model.Zone.created_at,
+            sql_model.Zone.enable,
         ).all()
         if not q:
             return []
