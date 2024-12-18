@@ -8,6 +8,7 @@ import {
   MinusIcon,
   PenIcon,
   Ship as ShipIcon,
+  TrashIcon,
   XIcon,
 } from "lucide-react"
 import { DayPicker, getDefaultClassNames, Matcher } from "react-day-picker"
@@ -347,9 +348,10 @@ export default function TrackedVesselsPanel({
             </div>
             <Button
               variant="outline"
-              className="h-6"
+              className="flex h-7 items-center gap-2 bg-color-2"
               onClick={onClearTrackedVessels}
             >
+              <TrashIcon className="size-4" />
               Clear
             </Button>
           </div>
