@@ -20,7 +20,7 @@ export function FilterButton({
       className={cn(
         "h-8",
         isActive
-          ? "bg-primary text-white hover:bg-primary/90"
+          ? "bg-primary text-black hover:bg-primary/90"
           : "bg-gray-100 text-black hover:bg-gray-200 hover:text-black",
         className
       )}
