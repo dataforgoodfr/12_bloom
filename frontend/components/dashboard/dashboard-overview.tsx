@@ -1,16 +1,21 @@
-"use client"
+"use client";
 
-import { TOTAL_AMPS, TOTAL_VESSELS } from "@/constants/totals.constants"
+import { TOTAL_AMPS, TOTAL_VESSELS } from "@/constants/totals.constants";
 
-import { Item } from "@/types/item"
-import ListCard from "@/components/ui/list-card"
-import KPICard from "@/components/dashboard/kpi-card"
 
-import { DateRangeSelector } from "../ui/date-range-selector"
+
+import { Item } from "@/types/item";
+import ListCard from "@/components/ui/list-card";
+import KPICard from "@/components/dashboard/kpi-card";
+
+
+
+import { DateRangeSelector } from "../ui/date-range-selector";
+
 
 type Props = {
-  topVesselsInActivity: Item[]
-  topVesselsInActivityLoading: boolean
+  topVesselsInMpas: Item[]
+  topVesselsInMpasLoading: boolean
   topAmpsVisited: Item[]
   topAmpsVisitedLoading: boolean
   totalVesselsActive: number
@@ -23,8 +28,8 @@ type Props = {
 }
 
 export default function DashboardOverview({
-  topVesselsInActivity,
-  topVesselsInActivityLoading,
+  topVesselsInMpas,
+  topVesselsInMpasLoading,
   topAmpsVisited,
   topAmpsVisitedLoading,
   totalVesselsActive,
@@ -74,9 +79,9 @@ export default function DashboardOverview({
             <ListCard
               key="top-vessels-in-activity"
               title="Top Vessels visiting MPAs"
-              items={topVesselsInActivity ?? []}
+              items={topVesselsInMpas ?? []}
               enableViewDetails
-              loading={topVesselsInActivityLoading}
+              loading={topVesselsInMpasLoading}
               titleClassName="absolute -top-8 xl:-top-10"
             />
           </div>
