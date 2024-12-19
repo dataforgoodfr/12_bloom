@@ -371,7 +371,7 @@ export const useExcursionsLayers = () => {
         id: "excursions-vessel-positions-outlined",
         positions,
         outlined: true,
-        color: [255, 255, 255, 255],
+        color: [20, 40, 58, 255],
       }),
     ]
   }, [trackedAndShownExcursions, trackedVesselIDs, viewState, showPositions])

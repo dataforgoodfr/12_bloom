@@ -177,7 +177,7 @@ export const useVesselsLayers = () => {
       iconAtlas: "../../../img/vessel_atlas.png",
       iconMapping: deckGLIconMapping,
       getIcon: (vp: VesselPosition) => "selectionHalo",
-      getSize: (vp: VesselPosition) => 50,
+      getSize: (vp: VesselPosition) => 40,
       getColor: (vp: VesselPosition) => {
         return new Uint8ClampedArray(getVesselColor(vp))
       },
@@ -221,7 +221,7 @@ export const useVesselsLayers = () => {
         id: "vessels-latest-positions-outlined",
         outlined: true,
         positions: displayedPositions,
-        color: [255, 255, 255],
+        color: [20, 40, 58],
       }),
     ]
     if (activePosition) {
