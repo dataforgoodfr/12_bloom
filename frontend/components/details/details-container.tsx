@@ -12,6 +12,7 @@ type Props = {
   defaultDateRange: string
   isLoading: boolean
   type: "vessel" | "zone"
+  children: React.ReactNode
 }
 
 export default function DetailsContainer({
@@ -20,6 +21,7 @@ export default function DetailsContainer({
   defaultDateRange,
   isLoading,
   type,
+  children,
 }: Props) {
   if (!details) {
     return null
@@ -37,18 +39,10 @@ export default function DetailsContainer({
           </div>
         </div>
         <div className="grid min-h-0 w-full flex-1 grid-cols-2 gap-8 xl:gap-16">
-          <Card className="relative h-full overflow-hidden">
-            <Image
-              src={
-                type === "zone"
-                  ? "/img/placeholder-zone.png"
-                  : "/img/scrombus.jpg"
-              }
-              alt={type === "zone" ? "Zone map image" : "Vessel image"}
-              className="object-cover"
-              fill
-            />
-          </Card>
+          {/* Left part */}
+          <Card className="relative h-full overflow-hidden">{children}</Card>
+
+          {/* Right part */}
           <div className="relative flex h-full min-h-0 flex-1 flex-col">
             <div className="absolute right-0 top-0 z-10">
               <DateRangeSelector

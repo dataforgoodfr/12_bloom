@@ -196,6 +196,16 @@ export async function getZones() {
   }
 }
 
+export async function getZoneWithGeometry(zoneId: string) {
+  const url = `${BASE_URL}/zones/${zoneId}`
+  console.log(`GET ${url}`)
+
+  const response = await axios.get<ZoneWithGeometry>(url, {
+    headers: { "Cache-Control": CACHE_CONTROL_HEADER },
+  })
+  return response.data
+}
+
 export async function getVesselTimeByZone({
   vesselId,
   category,
