@@ -15,6 +15,7 @@ import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
 import Spinner from "../../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
+import PartnerCredits from "../map/partner-credits"
 
 const containerVariants = {
   close: {
@@ -92,7 +93,7 @@ export default function LeftPanel() {
         initial="close"
         className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow-lg"
       >
-        <div className="flex w-full flex-row place-items-center justify-between p-5">
+        <div className="flex w-full flex-row place-items-center p-5 gap-5">
           <a href="/dashboard" className="flex items-center gap-3">
             <Image
               src={TrawlWatchLogo}
@@ -101,6 +102,7 @@ export default function LeftPanel() {
               width={80}
             />
           </a>
+          <PartnerCredits wide={leftPanelOpened} />
           <div className="justify-right absolute right-0 top-0 flex h-16 translate-x-3/4 items-center rounded-lg bg-color-3 px-1">
             <button
               className="ml-3 flex rounded-full p-1"

@@ -1,15 +1,31 @@
-import Image from "next/image"
+import Image from "next/image";
 
-export default function PartnerCredits() {
+
+
+
+
+interface Props {
+  wide: boolean
+}
+
+export default function PartnerCredits({
+  wide = false,
+}: Props) {
   return (
-    <div className="fixed bottom-2 left-2 z-50 flex justify-around gap-4 rounded-full bg-color-2/30 p-5 hover:bg-color-2/50">
-      <Image src="/img/bloom-logo.png" alt="Logo" width={50} height={50} />
-      <Image
-        src="/img/data-for-good-logo.png"
-        alt="Logo"
-        width={50}
-        height={50}
-      />
+    <div className={`text-xs font-bold z-50 flex justify-around items-center gap-2 ${wide ? "block" : "hidden"}`}>
+      <p>by</p>
+      <a href="https://bloomassociation.org" target="_blank">
+        <Image src="/img/bloom-logo.png" alt="Logo" width={60} height={50} />
+      </a>
+      <p className="text-base">&</p>
+      <a href="https://dataforgood.fr/" target="_blank">
+        <Image
+          src="/img/data-for-good-logo.png"
+          alt="Logo"
+          width={90}
+          height={50}
+          />
+      </a>
     </div>
   )
 }

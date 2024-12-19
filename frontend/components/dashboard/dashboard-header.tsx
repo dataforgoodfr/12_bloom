@@ -8,6 +8,7 @@ import TrawlWatchLogo from "@/public/trawlwatch.svg"
 import { LogOut, Map } from "lucide-react"
 
 import { Button } from "../ui/button"
+import PartnerCredits from "../core/map/partner-credits"
 
 export default function DashboardHeader() {
   const router = useRouter()
@@ -27,7 +28,7 @@ export default function DashboardHeader() {
 
   return (
     <div className="flex w-full">
-      <div className="w-full">
+      <div className="w-full flex items-center gap-5">
         <Link href="/dashboard">
           <Image
             src={TrawlWatchLogo}
@@ -37,6 +38,7 @@ export default function DashboardHeader() {
             className="cursor-pointer"
           />
         </Link>
+        <PartnerCredits wide={true} />
       </div>
 
       <Link href="/map">

@@ -158,7 +158,6 @@ export default function MainMap({ zones, ports }: MainMapProps) {
 
   return (
     <div className="relative size-full">
-      <PartnerCredits />
       <ContextMenu>
         <ContextMenuTrigger>
           <MemoizedDeckGLMap zones={zones} ports={ports} onHover={onMapHover} />
