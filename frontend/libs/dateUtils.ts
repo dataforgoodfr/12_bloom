@@ -53,6 +53,8 @@ export function getDateRange(days: number) {
   start.setDate(today.getDate() - days)
   start.setHours(0, 0, 0, 0)
 
+  today.setHours(23, 59, 59, 999)
+
   return {
     startAt: start.toISOString(),
     endAt: today.toISOString(),

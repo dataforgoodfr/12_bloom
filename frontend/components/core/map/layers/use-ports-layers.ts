@@ -1,5 +1,4 @@
 import { useMemo } from "react"
-import PortIcon from "@/public/icons/port.svg"
 import { IconLayer } from "deck.gl"
 import { useShallow } from "zustand/react/shallow"
 
@@ -26,14 +25,14 @@ export const usePortsLayers = () => {
       getPosition: (port: Port) => [port.longitude, port.latitude],
       getIcon: (d: Port) => ({
         url: "/icons/port.svg",
-        width: 34,
-        height: 34,
+        width: 256,
+        height: 256,
       }),
       onClick: (info) => {
         window.open(info.object.url, "_blank")
       },
       pickable: true,
-      sizeScale: 5000,
+      sizeScale: 8000,
       sizeUnits: "meters",
       sizeMinPixels: 2,
       sizeMaxPixels: 34,
