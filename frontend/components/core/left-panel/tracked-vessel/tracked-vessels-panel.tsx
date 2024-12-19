@@ -258,7 +258,9 @@ export default function TrackedVesselsPanel({
   )
 
   const trackedVesselsDetails = useMemo(() => {
-    return allVessels.filter((vessel) => trackedVesselIDs.includes(vessel.id))
+    return trackedVesselIDs
+      .map((id) => allVessels.find((vessel) => vessel.id === id))
+      .filter((vessel) => vessel !== undefined) as Vessel[]
   }, [allVessels, trackedVesselIDs])
 
   const hasTrackedVessels = useMemo(() => {
