@@ -146,7 +146,10 @@ export const useExcursionsLayers = () => {
     segments: VesselExcursionSegment[] | undefined
   ): VesselExcursionSegmentsGeo {
     if (!segments) return { type: "FeatureCollection", features: [] }
-    const segmentsGeo = segments?.map((segment: VesselExcursionSegment) => {
+    const filteredSegments = segments?.filter((segment: VesselExcursionSegment) => {
+     if (new Date(segment.timestamp_end) > new Date ("2024-12-01T00:00:00Z") && new Date(segment.timestamp_start) < new Date ("2024-12-31T00:00:00Z")) return segment
+    })
+    const segmentsGeo = filteredSegments?.map((segment: VesselExcursionSegment) => {
       return {
         type: "Feature",
         geometry: {

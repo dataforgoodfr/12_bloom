@@ -44,7 +44,7 @@ export default function DeckGLMap({ zones, ports, onHover }: DeckGLMapProps) {
   const zonesLayer = useZonesLayer({ zones })
   const vesselsLayers = useVesselsLayers()
   const excursionsLayers = useExcursionsLayers()
-  const portsLayers = usePortsLayers()
+  // const portsLayers = usePortsLayers()
 
   const onMapClick = (info: PickingInfo) => {
     const objectType = getPickObjectType(info)
@@ -60,10 +60,10 @@ export default function DeckGLMap({ zones, ports, onHover }: DeckGLMapProps) {
 
   const layers = useMemo(
     () =>
-      [zonesLayer, portsLayers, excursionsLayers, vesselsLayers]
+      [zonesLayer, excursionsLayers, vesselsLayers]
         .flat()
         .filter(Boolean) as Layer[],
-    [vesselsLayers, zonesLayer, excursionsLayers, portsLayers]
+    [vesselsLayers, zonesLayer, excursionsLayers]
   )
 
   return (
