@@ -157,7 +157,7 @@ export default function TrackedVesselExcursion({
         <SidebarExpander.Content>
           <div className="flex w-full flex-col">
             <TrackedVesselMetric
-              title="Total time fishing"
+              title="Total time at sea"
               value={metrics.totalTimeAtSea}
               unit="time"
             />
