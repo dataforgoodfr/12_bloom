@@ -25,8 +25,8 @@ export const usePortsLayers = () => {
       getPosition: (port: Port) => [port.longitude, port.latitude],
       getIcon: (d: Port) => ({
         url: "/icons/port.svg",
-        width: 70,
-        height: 70,
+        width: 256,
+        height: 256,
       }),
       onClick: (info) => {
         window.open(info.object.url, "_blank")

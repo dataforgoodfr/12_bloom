@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Image from "next/image"
 import { getTimeByZone } from "@/services/backend-rest-client"
 import { getCountryNameFromIso3 } from "@/utils/vessel.utils"
 import useSWR from "swr"
@@ -65,7 +66,14 @@ export default function VesselDetailsPage({
         }}
         defaultDateRange={"7"}
         isLoading={isLoading}
-      />
+      >
+        <Image
+          src="/img/scrombus.jpg"
+          alt="Vessel image"
+          className="object-cover"
+          fill
+        />
+      </DetailsContainer>
     </div>
   )
 }

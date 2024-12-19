@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useMemo } from "react"
 import { GeoJsonLayer, Layer, PolygonLayer } from "deck.gl"
 import { useShallow } from "zustand/react/shallow"
 
@@ -7,9 +7,13 @@ import { useLoaderStore, useMapStore } from "@/libs/stores"
 
 export interface ZonesLayerProps {
   zones: ZoneWithGeometry[]
+  filtersDisabled?: boolean
 }
 
-export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
+export const useZonesLayer = ({
+  zones,
+  filtersDisabled = false,
+}: ZonesLayerProps): Layer[] => {
   const { zonesLoading } = useLoaderStore(
     useShallow((state) => ({
       zonesLoading: state.zonesLoading,
@@ -22,14 +26,22 @@ export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
     }))
   )
 
-  const isAmpDisplayed = displayedZones.includes(ZoneCategory.AMP)
+  const isAmpDisplayed = filtersDisabled
+    ? true
+    : displayedZones.includes(ZoneCategory.AMP)
 
-  const isTerritorialDisplayed = displayedZones.includes(
-    ZoneCategory.TERRITORIAL_SEAS
-  )
-  const isFishingDisplayed = displayedZones.includes(
-    ZoneCategory.FISHING_COASTAL_WATERS
-  )
+  const isTerritorialDisplayed = filtersDisabled
+    ? true
+    : displayedZones.includes(ZoneCategory.TERRITORIAL_SEAS)
+
+  const isFishingDisplayed = filtersDisabled
+    ? true
+    : displayedZones.includes(ZoneCategory.FISHING_COASTAL_WATERS)
+
+  console.log("zones", zones)
+  console.log("isAmpDisplayed", isAmpDisplayed)
+  console.log("isTerritorialDisplayed", isTerritorialDisplayed)
+  console.log("isFishingDisplayed", isFishingDisplayed)
 
   const ampMultiZones = useMemo(() => {
     const filteredZones = isAmpDisplayed
@@ -170,6 +182,8 @@ export const useZonesLayer = ({ zones }: ZonesLayerProps): Layer[] => {
       }),
     [fishingZones, isFishingDisplayed]
   )
+
+  console.log("zonesLoading", zonesLoading)
 
   if (zonesLoading) return []
 
