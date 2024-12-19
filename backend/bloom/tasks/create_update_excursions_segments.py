@@ -132,10 +132,10 @@ def run():
             df_end.sort_values("timestamp_end", inplace=True)
             df_end.reset_index(drop=True, inplace=True)
             # get every end entry but the last one ; each one of them will be the start point of a segment
-            if len(df_end)>1:
-                df_start = df_end.iloc[0:-1, :].copy()
-            else:
-                df_start=df_end.copy()
+            # if len(df_end)>1:
+            df_start = df_end.iloc[0:-1, :].copy()
+            # else:
+            #     df_start=df_end.copy()
             for col in df_start.columns:
                 df_start.rename(columns={col: col.replace("end", "start")}, inplace=True)
             vessel_last_segment = pd.DataFrame()
