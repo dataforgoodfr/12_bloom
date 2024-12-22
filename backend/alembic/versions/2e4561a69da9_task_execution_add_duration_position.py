@@ -1,7 +1,7 @@
 """task_execution_add_duration_position
 
 Revision ID: 2e4561a69da9
-Revises: 5801cb8f1af5
+Revises: 5bfe00a08853
 Create Date: 2024-12-21 22:04:04.659923
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '2e4561a69da9'
-down_revision = '5801cb8f1af5'
+down_revision = '5bfe00a08853'
 branch_labels = None
 depends_on = None
 
