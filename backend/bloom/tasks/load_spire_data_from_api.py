@@ -21,11 +21,15 @@ def run(dump_path: str) -> None:
 
     orm_data = []
     try:
+        process_start=datetime.now(timezone.utc)
+        current_datetime=None
+        position_count= None
         with db.session() as session:
             vessels: list[Vessel] = vessel_repository.get_vessels_list(session)
             if len(vessels) > 0:
                 raw_vessels = spire_traffic_usecase.get_raw_vessels_from_spire(vessels)
                 current_datetime=datetime.now(timezone.utc)
+                position_count=len(raw_vessels)
                 if dump_path is not None:
                     try:
                         now =current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
@@ -44,6 +48,18 @@ def run(dump_path: str) -> None:
                                                               "load_spire_data_from_api",
                                                               current_datetime)
                 session.commit()
+                if current_datetime != None:
+                    TaskExecutionRepository.set_duration(session,
+                                                        "load_spire_data_from_api",
+                                                        current_datetime,
+                                                        datetime.now(timezone.utc)-process_start)
+                if position_count != None:
+                    TaskExecutionRepository.set_position_count(session,
+                                                    "load_spire_data_from_api",
+                                                    current_datetime,
+                                                    position_count)
+                session.commit()
+            
     except ValidationError as e:
         logger.error("Erreur de validation des données JSON")
         logger.error(e.errors())

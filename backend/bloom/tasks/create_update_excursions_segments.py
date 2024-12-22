@@ -107,13 +107,17 @@ def run():
     nb_created_excursion = 0
     nb_closed_excursion = 0
 
+    process_start = datetime.now(timezone.utc)
+    point_in_time = None
+    position_count = None
     with db.session() as session:
         point_in_time = TaskExecutionRepository.get_point_in_time(
             session, "create_update_excursions_segments",
         )
         logger.info(f"Lecture des nouvelles positions depuis le {point_in_time}")
         batch = vessel_position_repository.get_positions_with_vessel_created_updated_after(session, point_in_time)
-        logger.info(f"{len(batch)} nouvelles positions")
+        position_count=len(batch)
+        logger.info(f"{position_count} nouvelles positions")
         last_segment = segment_repository.get_last_vessel_id_segments(session)
         last_segment["longitude"] = None
         last_segment["latitude"] = None
@@ -471,7 +475,17 @@ def run():
         logger.info(f"{nb_last} derniers segments mis à jour")
         now = datetime.now(timezone.utc)
         TaskExecutionRepository.set_point_in_time(session, "create_update_excursions_segments", now)
-
+        session.commit()
+        if point_in_time:
+            TaskExecutionRepository.set_duration(session,
+                                                 "create_update_excursions_segments",
+                                                 now,
+                                                 datetime.now(timezone.utc)-process_start)
+        if now != None:
+            TaskExecutionRepository.set_position_count(session,
+                                             "create_update_excursions_segments",
+                                             now,
+                                             position_count)
         session.commit()
 
 

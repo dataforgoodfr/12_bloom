@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from bloom.infra.database import sql_model
 from sqlalchemy import select
@@ -18,11 +18,26 @@ class TaskExecutionRepository:
             return datetime.fromtimestamp(0, timezone.utc)
         else:
             return e.point_in_time
+        
+    def set_duration(session: Session, task_name: str, pit: datetime,duration:timedelta)->None:
+        stmt = (update(sql_model.TaskExecution)
+                .where(sql_model.TaskExecution.task_name==task_name)
+                .where(sql_model.TaskExecution.point_in_time==pit)
+                .values(duration=duration)
+        )
+        session.execute(stmt)
+    def set_position_count(session: Session, task_name: str, pit: datetime,count:int)->None:
+        stmt = (update(sql_model.TaskExecution)
+                .where(sql_model.TaskExecution.task_name==task_name)
+                .where(sql_model.TaskExecution.point_in_time==pit)
+                .values(position_count=count)
+        )
+        session.execute(stmt)
+
 
     def set_point_in_time(session: Session, task_name: str, pit: datetime) -> None:
         stmt= ( update(sql_model.TaskExecution)
                 .where(sql_model.TaskExecution.task_name==task_name)
-                .where(sql_model.TaskExecution.active==True)
                 .values(active=False)
             )
         session.execute(stmt)
