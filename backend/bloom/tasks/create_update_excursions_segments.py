@@ -124,91 +124,143 @@ def run():
         for vessel_id in batch["vessel_id"].unique():
             df_end = batch.loc[batch["vessel_id"] == vessel_id].copy()
             df_end.rename(columns={"timestamp": "timestamp_end",
-                                   "heading": "heading_at_end",
-                                   "speed": "speed_at_end",
-                                   "longitude": "end_longitude",
-                                   "latitude": "end_latitude"
-                                   }, inplace=True)
+                        "heading": "heading_at_end",
+                        "speed": "speed_at_end",
+                        "longitude": "end_longitude",
+                        "latitude": "end_latitude"
+                        }, inplace=True)
             df_end.sort_values("timestamp_end", inplace=True)
             df_end.reset_index(drop=True, inplace=True)
             # get every end entry but the last one ; each one of them will be the start point of a segment
             if len(df_end)>1:
                 df_start = df_end.iloc[0:-1, :].copy()
-            else:
-                df_start=df_end.copy()
-            for col in df_start.columns:
-                df_start.rename(columns={col: col.replace("end", "start")}, inplace=True)
-            vessel_last_segment = pd.DataFrame()
-            if last_segment.shape[0] > 0:
-                vessel_last_segment = last_segment.loc[
-                    last_segment["vessel_id"] == vessel_id, ["mmsi", "timestamp_end", "heading_at_end", "speed_at_end",
-                                                             "end_position", "excursion_id", "arrival_port_id"]]
-                vessel_last_segment["start_latitude"] = vessel_last_segment["end_position"].apply(lambda x: x.y)
-                vessel_last_segment["start_longitude"] = vessel_last_segment["end_position"].apply(lambda x: x.x)
-                vessel_last_segment.drop("end_position", inplace=True, axis=1)
-                vessel_last_segment.rename(columns={"timestamp_end": "timestamp_start",
-                                                    "heading_at_end": "heading_at_start",
-                                                    "speed_at_end": "speed_at_start",
-                                                    }, inplace=True)
+                for col in df_start.columns:
+                    df_start.rename(columns={col: col.replace("end", "start")}, inplace=True)
+                vessel_last_segment = pd.DataFrame()
+                if last_segment.shape[0] > 0:
+                    vessel_last_segment = last_segment.loc[
+                        last_segment["vessel_id"] == vessel_id, ["mmsi", "timestamp_end", "heading_at_end", "speed_at_end",
+                                                                    "end_position", "excursion_id", "arrival_port_id"]]
+                    vessel_last_segment["start_latitude"] = vessel_last_segment["end_position"].apply(lambda x: x.y)
+                    vessel_last_segment["start_longitude"] = vessel_last_segment["end_position"].apply(lambda x: x.x)
+                    vessel_last_segment.drop("end_position", inplace=True, axis=1)
+                    vessel_last_segment.rename(columns={"timestamp_end": "timestamp_start",
+                                                        "heading_at_end": "heading_at_start",
+                                                        "speed_at_end": "speed_at_start",
+                                                        }, inplace=True)
+                if vessel_last_segment.shape[0] > 0:
+                    # if there's a last segment for this vessel, then it's not the first time a position for this vessel is received
+                    is_new_vessel = False
+                    # and it becomes the start point of the first new segment
+                    df_start.loc[-1] = vessel_last_segment.iloc[0]
+                    df_start.sort_index(inplace=True)
+                    df_start.reset_index(drop=True, inplace=True)
+                    # checks if the excursion of the last segment is closed or not
+                    if vessel_last_segment["arrival_port_id"].iloc[0] >= 0:
+                        open_ongoing_excursion = False
+                    else:
+                        open_ongoing_excursion = True
+                        ongoing_excursion_id = int(vessel_last_segment["excursion_id"].iloc[0])
 
-            if vessel_last_segment.shape[0] > 0:
-                # if there's a last segment for this vessel, then it's not the first time a position for this vessel is received
-                is_new_vessel = False
-                # and it becomes the start point of the first new segment
-                df_start.loc[-1] = vessel_last_segment.iloc[0]
-                df_start.sort_index(inplace=True)
-                df_start.reset_index(drop=True, inplace=True)
-                # checks if the excursion of the last segment is closed or not
-                if vessel_last_segment["arrival_port_id"].iloc[0] >= 0:
-                    open_ongoing_excursion = False
                 else:
-                    open_ongoing_excursion = True
-                    ongoing_excursion_id = int(vessel_last_segment["excursion_id"].iloc[0])
+                    # if there's no last segment for this vessel, then it's the first time a position for this vessel is received
+                    is_new_vessel = True
+                    # so we duplicate the starting point to have the first segment while setting it up 1s behind in time (so timestamp_start != timestamp_end)
+                    df_start.loc[-1] = df_start.loc[0]
+                    df_start["timestamp_start"].iloc[-1] += timedelta(0, -1)
+                    df_start.sort_index(inplace=True)
+                    df_start.reset_index(drop=True, inplace=True)
+                    open_ongoing_excursion = False
+                # concat start and end point together
+                df = pd.concat([df_start, df_end], axis=1)
+                # removing segment with same timestamp_start and timestamp_end (no update)
+                df = df[df["timestamp_start"] != df["timestamp_end"]].copy()
+                # reseting index
+                df.reset_index(inplace=True, drop=True)
+                if (df.shape[0] > 0):
+                    # calculate distance
+                    def get_distance_in_miles(x) -> float:
+                        p1 = (x.start_latitude, x.start_longitude)
+                        p2 = (x.end_latitude, x.end_longitude)
+                        return distance.distance(p1, p2).miles
 
+                    df["distance"] = df.apply(get_distance_in_miles, axis=1)
+                    print(df)
             else:
-                # if there's no last segment for this vessel, then it's the first time a position for this vessel is received
-                is_new_vessel = True
-                # so we duplicate the starting point to have the first segment while setting it up 1s behind in time (so timestamp_start != timestamp_end)
-                df_start.loc[-1] = df_start.loc[0]
-                df_start["timestamp_start"].iloc[-1] += timedelta(0, -1)
-                df_start.sort_index(inplace=True)
-                df_start.reset_index(drop=True, inplace=True)
-                open_ongoing_excursion = False
+                #df_start=df_end.copy()
+                vessel_last_segment = pd.DataFrame()
+                if last_segment.shape[0] > 0:
+                    vessel_last_segment = last_segment.loc[
+                        last_segment["vessel_id"] == vessel_id, ["mmsi", "timestamp_end", "heading_at_end", "speed_at_end",
+                                                                    "end_position", "excursion_id", "arrival_port_id"]]
+                    vessel_last_segment["start_latitude"] = vessel_last_segment["end_position"].apply(lambda x: x.y)
+                    vessel_last_segment["start_longitude"] = vessel_last_segment["end_position"].apply(lambda x: x.x)
+                    vessel_last_segment.drop("end_position", inplace=True, axis=1)
+                    vessel_last_segment.rename(columns={"timestamp_end": "timestamp_start",
+                                                        "heading_at_end": "heading_at_start",
+                                                        "speed_at_end": "speed_at_start",
+                                                        }, inplace=True)
+                if vessel_last_segment.shape[0] > 0:
+                    # if there's a last segment for this vessel, then it's not the first time a position for this vessel is received
+                    is_new_vessel = False
+                    df_start= vessel_last_segment
+                    df_start.reset_index(drop=True, inplace=True)
+                    # checks if the excursion of the last segment is closed or not
+                    if vessel_last_segment["arrival_port_id"].iloc[0] >= 0:
+                        open_ongoing_excursion = False
+                    else:
+                        open_ongoing_excursion = True
+                        ongoing_excursion_id = int(vessel_last_segment["excursion_id"].iloc[0])
 
-            # concat start and end point together
-            df = pd.concat([df_start, df_end], axis=1)
+                else:
+                    # if there's no last segment for this vessel, then it's the first time a position for this vessel is received
+                    is_new_vessel = True
+                    # so we duplicate the starting point to have the first segment while setting it up 1s behind in time (so timestamp_start != timestamp_end)
+                    df_start = df_end.copy()
+                    for col in df_start.columns:
+                        df_start.rename(columns={col: col.replace("end", "start")}, inplace=True)                    
+                    df_start["timestamp_start"] += timedelta(0, -1)
+                    df_start.sort_index(inplace=True)
+                    df_start.reset_index(drop=True, inplace=True)
+                    open_ongoing_excursion = False
+                # concat start and end point together
+                df = pd.concat([df_start, df_end], axis=1)
+                # removing segment with same timestamp_start and timestamp_end (no update)
+                df = df[df["timestamp_start"] != df["timestamp_end"]].copy()
+                # reseting index
+                df.reset_index(inplace=True, drop=True)
+                #print(df)
 
-            # removing segment with same timestamp_start and timestamp_end (no update)
-            df = df[df["timestamp_start"] != df["timestamp_end"]].copy()
-            # reseting index
-            df.reset_index(inplace=True, drop=True)
-            if (df.shape[0] > 0):
-                # calculate distance
-                def get_distance_in_miles(x) -> float:
-                    p1 = (x.start_latitude, x.start_longitude)
-                    p2 = (x.end_latitude, x.end_longitude)
-                    return distance.distance(p1, p2).miles
+                if (df.shape[0] > 0):
+                    # calculate distance
+                    def get_distance_in_miles(x) -> float:
+                        p1 = (x.start_latitude, x.start_longitude)
+                        p2 = (x.end_latitude, x.end_longitude)
+                        return distance.distance(p1, p2).miles
 
-                df["distance"] = df.apply(get_distance_in_miles, axis=1)
+                    df["distance"] = df.apply(get_distance_in_miles, axis=1)
 
-                # calculate duration in seconds
-                def get_duration(x) -> float:
-                    return (x.timestamp_end - x.timestamp_start).total_seconds()
+                    # calculate duration in seconds
+                    def get_duration(x) -> float:
+                        return (x.timestamp_end - x.timestamp_start).total_seconds()
 
-                df["segment_duration"] = df.apply(get_duration, axis=1)
+                    df["segment_duration"] = df.apply(get_duration, axis=1)
 
-                # set default type as AT_SEA
-                df["type"] = "AT_SEA"
+                    # set default type as AT_SEA
+                    df["type"] = "AT_SEA"
 
-                # set type as default_ais for segment with duration > 35 min
-                df.loc[df["segment_duration"] >= 2100, "type"] = "DEFAULT_AIS"
+                    # set type as default_ais for segment with duration > 35 min
+                    df.loc[df["segment_duration"] >= 2100, "type"] = "DEFAULT_AIS"
 
-                # calculate average speed in knot
-                df["average_speed"] = df["distance"] / (df["segment_duration"] / 3600)
+                    # calculate average speed in knot
+                    df["average_speed"] = df["distance"] / (df["segment_duration"] / 3600)
 
-                # set last_vessel_segment
-                df["last_vessel_segment"] = 0
-                df["last_vessel_segment"].iloc[-1] = 1
+                    # set last_vessel_segment
+                    df["last_vessel_segment"] = 0
+                    if len(df) >1 :
+                        df["last_vessel_segment"].iloc[-1] = 1
+                    else : 
+                        df["last_vessel_segment"] = 1
 
                 # check if segment ends in a port (only for segment with average_speed < maximal_speed_to_check_if_in_port or with type 'DEFAULT_AIS')
                 def get_port(x, session):
