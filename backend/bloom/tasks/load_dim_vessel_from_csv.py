@@ -34,7 +34,6 @@ def map_to_domain(row: pd.Series) -> Vessel:
 
 def run(csv_file_name: str) -> None:
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
 
     inserted_ports = []
@@ -43,11 +42,12 @@ def run(csv_file_name: str) -> None:
         df = pd.read_csv(csv_file_name, sep=",")
         vessels = df.apply(map_to_domain, axis=1)
         with db.session() as session:
+            vessel_repository = use_cases.vessel_repository(session)
             ports_inserts = []
             ports_updates = []
             # Pour chaque enregistrement du fichier CSV
             for vessel in vessels:
-                if vessel.id and vessel_repository.get_vessel_by_id(session, vessel.id):
+                if vessel.id and vessel_repository.get_by_id(vessel.id):
                     # si la valeur du champ id n'est pas vide:
                     #     rechercher l'enregistrement correspondant dans la table dim_vessel
                     #     mettre à jour l'enregistrement à partir des données CSV.
@@ -57,20 +57,20 @@ def run(csv_file_name: str) -> None:
                     #     insérer les données CSV dans la table dim_vessel;
                     ports_inserts.append(vessel)
             # Insertions / MAJ en batch
-            inserted_ports = vessel_repository.batch_create_vessel(session, ports_inserts)
-            vessel_repository.batch_update_vessel(session, ports_updates)
+            inserted_ports = vessel_repository.add(ports_inserts)
+            vessel_repository.List(ports_updates)
 
             # En fin de traitement:
             # les enregistrements de la table dim_vessel pourtant un MMSI absent du fichier CSV sont mis à jour
             # avec la valeur tracking_activated=FALSE
             csv_mmsi = list(df['mmsi'])
             deleted_ports = list(
-                filter(lambda v: v.mmsi not in csv_mmsi, vessel_repository.get_all_vessels_list(session)))
-            vessel_repository.set_tracking(session, [v.id for v in deleted_ports], False,
+                filter(lambda v: v.mmsi not in csv_mmsi, vessel_repository.list()))
+            vessel_repository.set_tracking([v.id for v in deleted_ports], False,
                                            "Suppression logique suite import nouveau fichier CSV")
             # le traitement vérifie qu'il n'existe qu'un seul enregistrement à l'état tracking_activated==True
             # pour chaque valeur distincte de MMSI.
-            integrity_errors = vessel_repository.check_mmsi_integrity(session)
+            integrity_errors = vessel_repository.check_mmsi_integrity()
             if not integrity_errors:
                 session.commit()
             else:

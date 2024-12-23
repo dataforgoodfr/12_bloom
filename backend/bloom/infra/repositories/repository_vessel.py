@@ -16,16 +16,60 @@ from abc import ABC, abstractmethod
 
 from bloom.domain.vessel import Vessel
 from bloom.infra.database import sql_model
-
-
+from dependency_injector.providers import Callable
 
 
 class VesselRepositoryBase(GenericRepository[Vessel], ABC):
-    pass
+    @abstractmethod
+    def set_tracking(self, vessel_ids: list[int], tracking_activated: bool,
+                     tracking_status: str) -> None:
+        raise NotImplementedError()
+    def check_mmsi_integrity(self) -> list[(int, int)]:
+        raise NotImplementedError()
 
 class VesselRepository(GenericSqlRepository[Vessel,sql_model.Vessel],VesselRepositoryBase):
-    def __init__(self, session: Session) -> None:
-        super().__init__(session, sql_model.Vessel)
+    def __init__(self,session:Session) -> None:
+        super().__init__(session=session,model_cls=sql_model.Vessel, schema_cls=Vessel)
+
+    def set_tracking(self, vessel_ids: list[int], tracking_activated: bool,
+                     tracking_status: str) -> None:
+        updates = [{"id": id, "tracking_activated": tracking_activated, "tracking_status": tracking_status} for id in
+                   vessel_ids]
+        self._session.execute(update(sql_model.Vessel), updates)
+        
+    def check_mmsi_integrity(self) -> list[(int, int)]:
+        # Recherche des valeurs distinctes de MMSI ayant un nombre de résultats actif > 1
+        stmt = select(sql_model.Vessel.mmsi, func.count(sql_model.Vessel.id).label("count")).group_by(
+            sql_model.Vessel.mmsi).having(
+            func.count(sql_model.Vessel.id) > 1).where(
+            sql_model.Vessel.tracking_activated == True)
+        return self._session.execute(stmt).all()
+    
+    def map_to_domain(self, model: sql_model.Vessel) -> Vessel:
+         return Vessel(
+            id=model.id,
+            mmsi=model.mmsi,
+            ship_name=model.ship_name,
+            width=model.width,
+            length=model.length,
+            country_iso3=model.country_iso3,
+            type=model.type,
+            imo=model.imo,
+            cfr=model.cfr,
+            external_marking=model.external_marking,
+            ircs=model.ircs,
+            tracking_activated=model.tracking_activated,
+            tracking_status=model.tracking_status,
+            home_port_id=model.home_port_id,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+            details=model.details,
+            check=model.check,
+            length_class=model.length_class,
+         )
+
+    def map_to_model(self, schema: Vessel) -> sql_model.Vessel:
+         return sql_model.Vessel(**schema.__dict__)
 
 
 """
@@ -183,27 +227,27 @@ class VesselRepository:
         return session.execute(stmt).all()
 
     @staticmethod
-    def map_to_domain(sql_vessel: sql_model.Vessel) -> Vessel:
+    def map_to_domain(model: sql_model.Vessel) -> Vessel:
         return Vessel(
-            id=sql_vessel.id,
-            mmsi=sql_vessel.mmsi,
-            ship_name=sql_vessel.ship_name,
-            width=sql_vessel.width,
-            length=sql_vessel.length,
-            country_iso3=sql_vessel.country_iso3,
-            type=sql_vessel.type,
-            imo=sql_vessel.imo,
-            cfr=sql_vessel.cfr,
-            external_marking=sql_vessel.external_marking,
-            ircs=sql_vessel.ircs,
-            tracking_activated=sql_vessel.tracking_activated,
-            tracking_status=sql_vessel.tracking_status,
-            home_port_id=sql_vessel.home_port_id,
-            created_at=sql_vessel.created_at,
-            updated_at=sql_vessel.updated_at,
-            details=sql_vessel.details,
-            check=sql_vessel.check,
-            length_class=sql_vessel.length_class,
+            id=model.id,
+            mmsi=model.mmsi,
+            ship_name=model.ship_name,
+            width=model.width,
+            length=model.length,
+            country_iso3=model.country_iso3,
+            type=model.type,
+            imo=model.imo,
+            cfr=model.cfr,
+            external_marking=model.external_marking,
+            ircs=model.ircs,
+            tracking_activated=model.tracking_activated,
+            tracking_status=model.tracking_status,
+            home_port_id=model.home_port_id,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+            details=model.details,
+            check=model.check,
+            length_class=model.length_class,
         )
 
     @staticmethod
