@@ -57,7 +57,7 @@ class GenericSqlRepository(GenericRepository[SCHEMA],Generic[SCHEMA,MODEL], ABC)
 
     def get_by_id(self, id: int) -> Optional[SCHEMA]:
         stmt = self._construct_get_stmt(id)
-        return self._session.execute(stmt).scalar_one_or_none()
+        return self.map_to_domain(self._session.execute(stmt).scalar_one_or_none())
 
     def _construct_list_stmt(self, **filters) -> ScalarSelect:
         stmt = select(self._model_cls)
@@ -75,7 +75,7 @@ class GenericSqlRepository(GenericRepository[SCHEMA],Generic[SCHEMA,MODEL], ABC)
 
     def list(self, **filters) -> List[SCHEMA]:
         stmt = self._construct_list_stmt(**filters)
-        return self._session.execute(stmt).scalars()
+        return [ self.map_to_domain(item) for item in self._session.execute(stmt).scalars()]
 
     def add(self, record: SCHEMA) -> SCHEMA:
         self._session.add(record)

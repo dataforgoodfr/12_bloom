@@ -12,7 +12,6 @@ from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
 from fastapi.encoders import jsonable_encoder
 router = APIRouter()
 
-
 @router.get("/vessels/trackedCount")
 async def list_vessel_tracked(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):

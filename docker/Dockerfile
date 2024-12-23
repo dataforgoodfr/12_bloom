@@ -23,9 +23,9 @@ COPY ./backend/ ${PROJECT_DIR}/backend
 COPY docker/rsyslog.conf /etc/rsyslog.conf
 
 # Install requirements package for python with poetry
-ARG POETRY_VERSION=1.8.2
-ENV POETRY_VERSION=${POETRY_VERSION}
-RUN pip install --upgrade pip && pip install --user "poetry==$POETRY_VERSION"
+#ARG POETRY_VERSION=1.8.2
+#ENV POETRY_VERSION=${POETRY_VERSION}
+#RUN pip install --upgrade pip && pip install --user "poetry==$POETRY_VERSION"
 ENV PATH="${PATH}:/root/.local/bin"
 COPY ./backend/pyproject.toml ./backend/alembic.ini ./backend/
 
@@ -37,7 +37,8 @@ ENV UV_PROJECT_ENVIRONMENT=${VIRTUAL_ENV}
 RUN \
     cd backend &&\
     uv venv ${VIRTUAL_ENV} &&\
-    echo ". ${VIRTUAL_ENV}/bin/activate" >> /root/.bashrc &&\
+    echo ". ${VIRTUAL_ENV}/bin/activate" >> ~/.bashrc &&\
+    . ${VIRTUAL_ENV}/bin/activate &&\
     uv sync
 
 # Launch cron services
