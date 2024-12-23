@@ -29,10 +29,10 @@ def find_positions_in_port_buffer(vessel_positions: List[tuple]) -> List[tuple]:
 
     # Get all ports from DataBase
     use_cases = UseCases()
-    port_repository = use_cases.port_repository()
     db = use_cases.db()
     with db.session() as session:
-        ports = port_repository.get_all_ports(session)
+        port_repository = use_cases.port_repository(session)
+        ports = port_repository.list()
         
     df_ports = pd.DataFrame(
         [[p.id, p.name, p.geometry_buffer] for p in ports],
