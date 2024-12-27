@@ -72,7 +72,7 @@ def run(batch_time):
         # Recherche de la date de l'enregistrement traité le plus récent.
         # Cette date est stockée comme date d'exécution du traitement ce qui permettra de repartir de cette date
         # à la prochaine execution pour traiter les enregistrements + récents
-        max_created = max(batch["position_timestamp"]) if len(batch) > 0 else batch_limit
+        max_created = max(batch["spire_update_statement"]) if len(batch) > 0 else batch_limit
         logger.info(f"Traitement des positions entre le {point_in_time} et le {max_created}")
         position_count=len(batch)
         logger.info(f"{position_count} nouvelles positions de Spire")
