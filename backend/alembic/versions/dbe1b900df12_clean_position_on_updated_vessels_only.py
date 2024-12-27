@@ -17,13 +17,13 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_index("spire_ais_data",
-                    "spire_ais_data_spire_update_statement_idx",
+    op.create_index("spire_ais_data_spire_update_statement_idx",
+                    "spire_ais_data",
                     ["spire_update_statement"])
     pass
 
 
 def downgrade() -> None:
-    op.drop_index("spire_ais_data",
-                  "spire_ais_data_spire_update_statement_idx")
+    op.drop_index("spire_ais_data_spire_update_statement_idx",
+                  "spire_ais_data")
     pass
