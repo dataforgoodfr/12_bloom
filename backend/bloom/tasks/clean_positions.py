@@ -164,7 +164,7 @@ def run(batch_time):
 
         # Step 9: insert to DataBase
         clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
-        print(f"Batch final:\n{clean_positions}")
+        #print(f"Batch final:\n{clean_positions}")
         vessel_position_repository.batch_create_vessel_position(session, clean_positions)
         TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
         logger.info(f"Ecriture de {len(clean_positions)} positions dans la table vessel_positions")
