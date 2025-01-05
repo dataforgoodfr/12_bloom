@@ -36,6 +36,8 @@ services:
     depends_on:
       bloom-init:
         condition: service_completed_successfully
+      bloom-redis:
+        condition: service_started
   bloom-redis:
     image: redis:7-alpine
     container_name: bloom_redis
@@ -82,7 +84,15 @@ services:
       interval: 15s
       timeout: 45s
       retries: 3
-      start_period: 0s
+      # Manage postgres Postgis initialization with double healthy status
+      # start_period : the grace period during which Compose will not consider
+      #                the health check failures (default 0s ).
+      #                However, if the health check succeeds, then the container
+      #                is marked healthy, and the grace period ends early.
+      # start_interval : the period between health checks during the grace
+      #                period (default 5s ). Only avialable for docker compose > v25
+      start_period: 60s
+      #start_interval: 5s
 
   bloom-frontend:
     container_name: bloom_frontend
