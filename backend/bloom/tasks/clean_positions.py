@@ -1,6 +1,6 @@
 import argparse
 import warnings
-from datetime import timedelta
+from datetime import datetime,timedelta, timezone
 from time import perf_counter
 
 import numpy as np
@@ -57,6 +57,9 @@ def run(batch_time):
     excursion_repository = use_cases.excursion_repository()
     segment_repository = use_cases.segment_repository()
     vessel_position_repository = use_cases.vessel_position_repository()
+    process_start=datetime.now(timezone.utc)
+    point_in_time=None
+    position_count=None
     with db.session() as session:
         point_in_time = TaskExecutionRepository.get_point_in_time(
             session, "clean_positions",
@@ -71,7 +74,8 @@ def run(batch_time):
         # à la prochaine execution pour traiter les enregistrements + récents
         max_created = max(batch["created_at"]) if len(batch) > 0 else batch_limit
         logger.info(f"Traitement des positions entre le {point_in_time} et le {max_created}")
-        logger.info(f"{len(batch)} nouvelles positions de Spire")
+        position_count=len(batch)
+        logger.info(f"{position_count} nouvelles positions de Spire")
         batch.dropna(
             subset=[
                 "position_latitude",
@@ -163,6 +167,17 @@ def run(batch_time):
         vessel_position_repository.batch_create_vessel_position(session, clean_positions)
         TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
         logger.info(f"Ecriture de {len(clean_positions)} positions dans la table vessel_positions")
+        session.commit()
+        if point_in_time:
+            TaskExecutionRepository.set_duration(session,
+                                             "clean_positions",
+                                             max_created,
+                                             datetime.now(timezone.utc)-process_start)
+        if position_count != None:
+            TaskExecutionRepository.set_position_count(session,
+                                             "clean_positions",
+                                             max_created,
+                                             position_count)
         session.commit()
 
 
