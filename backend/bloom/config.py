@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-
+from datetime import timedelta
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Any
 
@@ -17,6 +17,7 @@ from pydantic import (
 )
 
 class Settings(BaseSettings):
+
     model_config = SettingsConfigDict(
         # validate_assignment=True allows to update db_url value as soon as one of
         # postgres_user, postgres_password, postgres_hostname, postgres_port, postgres_db
@@ -50,6 +51,8 @@ class Settings(BaseSettings):
     redis_password: str = Field(default='bloom',min_length=1)
     redis_cache_expiration: int = Field(default=900)
     
+    api_pooling_period: timedelta = Field(default=timedelta(minutes=15))
+
     logging_level:str=Field(
                                 default="INFO",
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
@@ -64,7 +67,6 @@ class Settings(BaseSettings):
         if self.db_url != new_url:
            self.db_url = new_url
         return self
-
 
 settings = Settings(_env_file=os.getenv('BLOOM_CONFIG',
                                     Path(__file__).parent.parent.parent.joinpath('.env')),

@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 from bloom.infra.database import sql_model
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.sql.expression import update,asc,desc
+from sqlalchemy.sql.expression import update,asc,desc,delete
 from sqlalchemy.orm import Session
 
 
@@ -51,4 +51,22 @@ class TaskExecutionRepository:
                     point_in_time=pit,
                     delta=subquery_delta,
                     active=True)
+        session.execute(stmt)
+    
+    def remove_point_in_time(session: Session, task_name: str, pit: datetime) -> None:
+        stmt= (delete(sql_model.TaskExecution)
+               .where(sql_model.TaskExecution.task_name==task_name)
+               .where(sql_model.TaskExecution.point_in_time==pit)
+               )
+        session.execute(stmt)
+        subquery_last_pit=select(sql_model.TaskExecution.point_in_time)\
+                        .select_from(sql_model.TaskExecution)\
+                        .where(sql_model.TaskExecution.task_name==task_name)\
+                        .order_by(desc(sql_model.TaskExecution.point_in_time))\
+                        .limit(1).subquery()
+        stmt = (update(sql_model.TaskExecution)
+                .where(sql_model.TaskExecution.task_name==task_name)
+                .where(sql_model.TaskExecution.point_in_time==subquery_last_pit)
+                .values(active=True)
+                )
         session.execute(stmt)
