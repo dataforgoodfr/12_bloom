@@ -62,9 +62,9 @@ def run(dump_path: str) -> None:
                             )
                     # Vu que l'on a enregistré et commité en bdd une ligne pour signalter qu'une 
                     # instance load_spire_data_from_api était en cours
-                    # en cas d'erreur, on supprime la ligne en cours
+                    # en cas d'erreur ou d'interruption volontaire, on supprime la ligne en cours
                     # cela permettra aux autres instances de se lancer
-                    except Exception as e:
+                    except (KeyboardInterrupt,Exception) as e:
                         TaskExecutionRepository.remove_point_in_time(session,
                                                         "load_spire_data_from_api",
                                                         current_datetime)
