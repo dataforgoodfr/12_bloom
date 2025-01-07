@@ -10,6 +10,8 @@ interface ITrackModeOptions {
   vesselsIDsHidden: number[]
   excursionsIDsHidden: number[]
   focusedExcursionID: number | null
+  showPositions: boolean
+  segmentMode: "speed" | "vessel"
 }
 
 interface ITrackModeOptionsActions {
@@ -32,6 +34,10 @@ interface ITrackModeOptionsActions {
   setExcursionVisibility: (excursionID: number, visible: boolean) => void
   toggleExcursionVisibility: (excursionID: number) => void
   setFocusedExcursionID: (excursionID: number | null) => void
+
+  // Settings
+  setShowPositions: (showPositions: boolean) => void
+  setSegmentMode: (segmentMode: "speed" | "vessel") => void
 }
 
 type ITrackModeOptionsStore = ITrackModeOptions & ITrackModeOptionsActions
@@ -44,6 +50,8 @@ const defaultInitState: ITrackModeOptions = {
   vesselsIDsHidden: [],
   excursionsIDsHidden: [],
   focusedExcursionID: null,
+  showPositions: false,
+  segmentMode: "vessel",
 }
 
 export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
@@ -120,5 +128,10 @@ export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
       })),
     setFocusedExcursionID: (excursionID) =>
       set((state) => ({ ...state, focusedExcursionID: excursionID })),
+
+    setShowPositions: (showPositions) =>
+      set((state) => ({ ...state, showPositions })),
+    setSegmentMode: (segmentMode) =>
+      set((state) => ({ ...state, segmentMode })),
   })
 )

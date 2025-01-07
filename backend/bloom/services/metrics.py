@@ -24,6 +24,14 @@ from bloom.domain.metrics import (
     ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
     ResponseMetricsVesselVisitingTimeByZoneSchema,
 )
+from bloom.domain.metrics import (
+    ResponseMetricsVesselInActivitySchema,
+    ResponseMetricsZoneVisitedSchema,
+    ResponseMetricsVesselInZonesSchema,
+    ResponseMetricsZoneVisitingTimeByVesselSchema,
+    ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema,
+    ResponseMetricsVesselVisitingTimeByZoneSchema,
+)
 
 class MetricsService():
     def __init__(
@@ -95,8 +103,11 @@ class MetricsService():
                 .select_from(sql_model.Metrics)
                 .join(
                     sql_model.Vessel,
-                    sql_model.Metrics.vessel_id == sql_model.Vessel.id,
-                    isouter=True,
+                    sql_model.Metrics.vessel_id == sql_model.Vessel.id
+                )
+                .join(
+                    sql_model.Zone,
+                    sql_model.Metrics.zone_id == sql_model.Zone.id
                 )
                 .where(
                     sql_model.Metrics.timestamp.between(
@@ -196,6 +207,7 @@ class MetricsService():
             )
         return session.execute(stmt).scalar()
 
+
     def getZoneVisited(self,
                         datetime_range: DatetimeRangeRequest,
                         pagination: PageParams,
@@ -238,6 +250,7 @@ class MetricsService():
             )\
             for item in payload]
 
+
     def getZoneVisitingTimeByVessel(self,
                                     zone_id: int,
                                     datetime_range: DatetimeRangeRequest,
@@ -267,6 +280,7 @@ class MetricsService():
                 )\
             .group_by(sql_model.Zone.id,sql_model.Vessel.id)
 
+
             stmt =  stmt.order_by(func.sum(sql_model.Segment.segment_duration).asc())\
                     if  order.order == OrderByEnum.ascending \
                     else stmt.order_by(func.sum(sql_model.Segment.segment_duration).desc())
@@ -285,6 +299,7 @@ class MetricsService():
             zone_visiting_time_by_vessel=item[2]
             )\
             for item in payload]
+
 
     def getVesselVisitingTimeByZone(self,
                                     order: OrderByRequest,
@@ -327,6 +342,7 @@ class MetricsService():
             if vessel_id is not None:
                 stmt=stmt.where(sql_model.Vessel.id==vessel_id)
 
+
         return [ResponseMetricsVesselVisitingTimeByZoneSchema(
                     vessel=VesselListView(**VesselRepository.map_to_domain(model[0]).model_dump()),
                     zone=ZoneListView(**ZoneRepository.map_to_domain(model[1]).model_dump()),
@@ -360,8 +376,10 @@ class MetricsService():
                 ))
             payload=session.execute(stmt.limit(1)).scalar_one_or_none()
 
+
         return [ ResponseMetricsVesselTotalTimeActivityByActivityTypeSchema(
                 vessel_id=item.id,
                 activity=item.activity,
                 total_activity_time=item.total_activity_time,
                     ) for item in payload]
+

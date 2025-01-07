@@ -1,46 +1,58 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect } from "react"
 import {
   getVesselExcursions,
-  getVessels,
   getVesselSegments,
-  getVesselsLatestPositions,
+  getVesselTimeByZone,
 } from "@/services/backend-rest-client"
 import useSWR from "swr"
-import { useShallow } from 'zustand/react/shallow'
+import { useShallow } from "zustand/react/shallow"
 
+import { Port } from "@/types/port"
 import { Vessel, VesselPosition } from "@/types/vessel"
-import { ZoneWithGeometry } from "@/types/zone"
-import LeftPanel from "@/components/core/left-panel"
+import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
+import { useLoaderStore } from "@/libs/stores/loader-store"
+import { useMapStore } from "@/libs/stores/map-store"
+import { usePortsStore } from "@/libs/stores/port-store"
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
+import { useVesselsStore } from "@/libs/stores/vessels-store"
+import LeftPanel from "@/components/core/left-panel/main"
 import MapControls from "@/components/core/map-controls"
 import Map from "@/components/core/map/main-map"
-import PositionPreview from "@/components/core/map/position-preview"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useVesselsStore } from "@/libs/stores/vessels-store"
-import { useLoaderStore } from "@/libs/stores/loader-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url, {
-    cache: "force-cache",
-  })
+  const response = await fetch(url)
   return response.json()
 }
 
 export default function MapPage() {
   const setVessels = useVesselsStore((state) => state.setVessels)
 
-  const { setZonesLoading, setPositionsLoading, setVesselsLoading, setExcursionsLoading } = useLoaderStore(useShallow((state) => ({
-    setZonesLoading: state.setZonesLoading,
-    setPositionsLoading: state.setPositionsLoading,
-    setVesselsLoading: state.setVesselsLoading,
-    setExcursionsLoading: state.setExcursionsLoading,
-  })))
+  const {
+    setZonesLoading,
+    setPositionsLoading,
+    setVesselsLoading,
+    setExcursionsLoading,
+    setPortsLoading,
+  } = useLoaderStore(
+    useShallow((state) => ({
+      setZonesLoading: state.setZonesLoading,
+      setPositionsLoading: state.setPositionsLoading,
+      setVesselsLoading: state.setVesselsLoading,
+      setExcursionsLoading: state.setExcursionsLoading,
+      setPortsLoading: state.setPortsLoading,
+    }))
+  )
 
-  const { mode: mapMode } = useMapStore(useShallow((state) => ({
-    mode: state.mode
-  })))
+  const { mode: mapMode, setLatestPositions } = useMapStore(
+    useShallow((state) => ({
+      mode: state.mode,
+      setLatestPositions: state.setLatestPositions,
+    }))
+  )
+
+  const setPorts = usePortsStore((state) => state.setPorts)
 
   const { data: vessels = [], isLoading: isLoadingVessels } = useSWR<Vessel[]>(
     "/api/vessels",
@@ -52,11 +64,27 @@ export default function MapPage() {
     }
   )
 
+  const { data: ports = [], isLoading: isLoadingPorts } = useSWR<Port[]>(
+    "/api/ports",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      keepPreviousData: true,
+    }
+  )
+
+  useEffect(() => {
+    if (!isLoadingPorts) {
+      setPorts(ports)
+    }
+  }, [ports, isLoadingPorts])
+
   useEffect(() => {
     if (!isLoadingVessels) {
-      setVessels(vessels);
+      setVessels(vessels)
     }
-  }, [vessels, isLoadingVessels]);
+  }, [vessels, isLoadingVessels])
 
   const { data: zones = [], isLoading: isLoadingZones } = useSWR<
     ZoneWithGeometry[]
@@ -76,46 +104,78 @@ export default function MapPage() {
     refreshInterval: 900000, // 15 minutes in milliseconds
   })
 
-  const { startDate, endDate, trackedVesselIDs, setVesselExcursions } = useTrackModeOptionsStore(useShallow((state) => ({
-    startDate: state.startDate,
-    endDate: state.endDate,
-    trackedVesselIDs: state.trackedVesselIDs,
-    setVesselExcursions: state.setVesselExcursions,
-  })))
+  useEffect(() => {
+    setLatestPositions(latestPositions)
+  }, [latestPositions])
+
+  const { startDate, endDate, trackedVesselIDs, setVesselExcursions } =
+    useTrackModeOptionsStore(
+      useShallow((state) => ({
+        startDate: state.startDate,
+        endDate: state.endDate,
+        trackedVesselIDs: state.trackedVesselIDs,
+        setVesselExcursions: state.setVesselExcursions,
+      }))
+    )
 
   useEffect(() => {
     setZonesLoading(isLoadingZones)
+  }, [isLoadingZones])
+
+  useEffect(() => {
     setPositionsLoading(isLoadingPositions)
+  }, [isLoadingPositions])
+
+  useEffect(() => {
     setVesselsLoading(isLoadingVessels)
-  }, [isLoadingZones, isLoadingPositions, isLoadingVessels])
+  }, [isLoadingVessels])
+
+  useEffect(() => {
+    setPortsLoading(isLoadingPorts)
+  }, [isLoadingPorts])
 
   useEffect(() => {
     const resetExcursions = async () => {
-      setExcursionsLoading(true);
+      setExcursionsLoading(true)
       for (const vesselID of trackedVesselIDs) {
-        const vesselExcursions = await getVesselExcursions(vesselID, startDate, endDate);
+        const vesselExcursions = await getVesselExcursions(
+          vesselID,
+          startDate,
+          endDate
+        )
         for (const excursion of vesselExcursions.data) {
-          const segments = await getVesselSegments(vesselID, excursion.id);
-          excursion.segments = segments.data;
+          const segments = await getVesselSegments(vesselID, excursion.id)
+          excursion.segments = segments.data
+
+          const timeByMPAZone = await getVesselTimeByZone({
+            vesselId: vesselID,
+            category: ZoneCategory.AMP,
+            startAt: excursion.departure_at
+              ? new Date(excursion.departure_at)
+              : undefined,
+            endAt: excursion.arrival_at
+              ? new Date(excursion.arrival_at)
+              : undefined,
+          })
+          excursion.timeByMPAZone = timeByMPAZone
         }
-        setVesselExcursions(vesselID, vesselExcursions.data);
+        setVesselExcursions(vesselID, vesselExcursions.data)
       }
-      setExcursionsLoading(false);
+      setExcursionsLoading(false)
     }
     if (mapMode === "track") {
-      resetExcursions();
+      resetExcursions()
     }
   }, [startDate, endDate, mapMode, trackedVesselIDs])
 
   return (
     <>
-      <LeftPanel/>
-      <Map
-        vesselsPositions={latestPositions}
-        zones={zones}
+      <LeftPanel />
+      <Map zones={zones} ports={ports} />
+      <MapControls
+        zoneLoading={isLoadingZones}
+        vesselLoading={isLoadingVessels}
       />
-      <MapControls zoneLoading={isLoadingZones} />
-      <PositionPreview />
     </>
   )
 }

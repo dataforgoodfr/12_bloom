@@ -1,30 +1,32 @@
+import { cn } from "@/libs/utils"
 import { Button } from "@/components/ui/button"
 
 interface FilterButtonProps {
-  value: string
-  label: string
+  children: React.ReactNode
   isActive: boolean
-  onToggle: (value: string) => void
+  onClick: () => void
+  className?: string
 }
 
 export function FilterButton({
-  value,
-  label,
+  children,
   isActive,
-  onToggle,
+  onClick,
+  className,
 }: FilterButtonProps) {
   return (
     <Button
       variant="outline"
-      size="sm"
-      className={`h-7 w-fit justify-start font-normal hover:text-primary-foreground/90 ${
+      className={cn(
+        "h-8",
         isActive
-          ? "bg-primary hover:bg-primary/90"
-          : "bg-muted hover:bg-muted/50"
-      }`}
-      onClick={() => onToggle(value)}
+          ? "bg-primary text-black hover:bg-primary/90"
+          : "bg-gray-100 text-black hover:bg-gray-200 hover:text-black",
+        className
+      )}
+      onClick={onClick}
     >
-      {label}
+      {children}
     </Button>
   )
 }

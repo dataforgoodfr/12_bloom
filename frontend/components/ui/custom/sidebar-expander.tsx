@@ -6,7 +6,7 @@ function SidebarExpanderHeader({
   disabled = false,
   onClick,
   children,
-  className,
+  className = "",
 }: {
   disabled?: boolean
   onClick?: () => void
@@ -39,7 +39,13 @@ export interface SidebarExpanderProps {
   onToggle?: (opened: boolean) => void
 }
 
-function SidebarExpander({ disabled = false, children, className = "", opened = false, onToggle }: SidebarExpanderProps) {
+function SidebarExpander({
+  disabled = false,
+  children,
+  className = "",
+  opened = false,
+  onToggle,
+}: SidebarExpanderProps) {
   const [showContent, setShowContent] = useState(opened)
   const svgControls = useAnimationControls()
 
@@ -95,21 +101,20 @@ function SidebarExpander({ disabled = false, children, className = "", opened = 
       {!disabled && (
         <div className="mt-2 flex items-start">
           <button
-            className="flex rounded-full mt-1"
+            className="flex rounded-full"
             onClick={() => setShowContent(!showContent)}
           >
             <motion.div
               animate={svgControls}
               variants={svgVariants}
               initial="close"
-
             >
               <ChevronUpIcon className="size-5" />
             </motion.div>
           </button>
         </div>
       )}
-      <div className={`flex w-full flex-col gap-2 py-2`}>
+      <div className={`flex w-full flex-col gap-3 py-2`}>
         {headerWithProps}
         {showContent && content}
       </div>
@@ -122,4 +127,4 @@ const SidebarExpanderComponents = {
   Header: SidebarExpanderHeader,
   Content: SidebarExpanderContent,
 }
-export default SidebarExpanderComponents;
+export default SidebarExpanderComponents

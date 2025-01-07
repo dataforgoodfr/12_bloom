@@ -1,4 +1,6 @@
-export function convertDurationInSeconds(durationPattern: string): number {
+export function convertDurationInSeconds(durationPattern?: string): number {
+  if (!durationPattern) return 0
+
   const matches = durationPattern.match(
     /P(?:(\d+)Y)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?/
   )
@@ -50,6 +52,8 @@ export function getDateRange(days: number) {
   const start = new Date(today)
   start.setDate(today.getDate() - days)
   start.setHours(0, 0, 0, 0)
+
+  today.setHours(23, 59, 59, 999)
 
   return {
     startAt: start.toISOString(),

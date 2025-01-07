@@ -13,8 +13,9 @@ import { useMapStore } from "@/libs/stores/map-store"
 import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
-import Spinner from "../ui/custom/spinner"
+import Spinner from "../../ui/custom/spinner"
 import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
+import PartnerCredits from "../map/partner-credits"
 
 const containerVariants = {
   close: {
@@ -58,11 +59,13 @@ export default function LeftPanel() {
     mode: mapMode,
     leftPanelOpened,
     setLeftPanelOpened,
+    setActivePosition,
   } = useMapStore(
     useShallow((state) => ({
       mode: state.mode,
       leftPanelOpened: state.leftPanelOpened,
       setLeftPanelOpened: state.setLeftPanelOpened,
+      setActivePosition: state.setActivePosition,
     }))
   )
 
@@ -71,6 +74,12 @@ export default function LeftPanel() {
     containerControls.start(control)
     svgControls.start(control)
   }, [containerControls, leftPanelOpened, svgControls])
+
+  useEffect(() => {
+    if (leftPanelOpened) {
+      setActivePosition(null)
+    }
+  }, [leftPanelOpened])
 
   const handleOpenClose = () => {
     setLeftPanelOpened(!leftPanelOpened)
@@ -84,8 +93,8 @@ export default function LeftPanel() {
         initial="close"
         className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow-lg"
       >
-        <div className="flex w-full flex-row place-items-center justify-between p-5">
-          <a href="/dashboard">
+        <div className="flex w-full flex-row place-items-center p-5 gap-5">
+          <a href="/dashboard" className="flex items-center gap-3">
             <Image
               src={TrawlWatchLogo}
               alt="Trawlwatch logo"
@@ -93,6 +102,7 @@ export default function LeftPanel() {
               width={80}
             />
           </a>
+          <PartnerCredits wide={leftPanelOpened} />
           <div className="justify-right absolute right-0 top-0 flex h-16 translate-x-3/4 items-center rounded-lg bg-color-3 px-1">
             <button
               className="ml-3 flex rounded-full p-1"
@@ -116,7 +126,7 @@ export default function LeftPanel() {
                 name="Dashboard"
                 wide={leftPanelOpened}
               >
-                <ChartBarIcon className="size-8 stroke-[0.75] hover:text-primary text-color-panel" />
+                <ChartBarIcon className="size-8 stroke-[0.75] text-color-panel hover:text-primary" />
               </NavigationLink>
             </div>
             <div className="flex flex-col gap-3 bg-color-3 p-5">
@@ -134,7 +144,7 @@ export default function LeftPanel() {
           </>
         )}
         <div
-          className={`flex flex-col gap-3 overflow-auto bg-color-2 p-5 rounded-br-lg ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
+          className={`flex flex-col gap-3 overflow-auto rounded-br-lg bg-color-2 p-5 ${leftPanelOpened ? "cursor-default" : "cursor-pointer"}`}
           onClick={() => !leftPanelOpened && setLeftPanelOpened(true)}
         >
           <TrackedVesselsPanel wideMode={leftPanelOpened} />

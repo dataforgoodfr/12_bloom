@@ -1,4 +1,6 @@
-import type {Feature, Geometry} from 'geojson';
+import type { Feature, Geometry } from "geojson"
+
+import { ZoneDetails } from "./zone"
 
 export type Vessel = {
   id: number
@@ -51,6 +53,15 @@ export interface VesselPosition {
   vessel: Vessel
 }
 
+export interface SegmentVesselPosition {
+  type: "segmentPosition"
+  vessel_id: number
+  timestamp: string
+  position: number[]
+  heading?: number
+  speed?: number
+}
+
 export interface VesselPositionCoordinates {
   coordinates: number[]
   type: string
@@ -60,8 +71,8 @@ export type VesselExcursionSegmentGeo = {
   vessel_id: number
   excursion_id: number
   speed: number
-  heading?: number
   navigational_status: string
+  type: VesselExcursionSegment["type"]
 }
 
 export type VesselExcursionSegmentsGeo = {
@@ -73,19 +84,25 @@ export type VesselExcursionSegments = {
   segments: VesselExcursionSegment[]
 }
 
+export type VesselExcursionTimeByZone = {
+  zone: ZoneDetails
+  vessel: VesselDetails
+  vessel_visiting_time_by_zone: string
+}
+
 export type VesselExcursion = {
   id: number
   vessel_id: number
   departure_port_id: number
   departure_at: string
   departure_position: {
-    type: 'Point'
+    type: "Point"
     coordinates: number[]
   }
   arrival_port_id: number | null
   arrival_at: string | null
   arrival_position: {
-    type: 'Point'
+    type: "Point"
     coordinates: number[]
   } | null
   excursion_duration: string
@@ -105,6 +122,7 @@ export type VesselExcursion = {
   updated_at: String
 
   segments?: VesselExcursionSegment[]
+  timeByMPAZone?: VesselExcursionTimeByZone[]
 }
 
 export interface ExcursionMetrics {
@@ -131,7 +149,7 @@ export type VesselExcursionSegment = {
   speed_at_end: number
   heading_at_start: number
   heading_at_end: number
-  type: string
+  type: "AT_SEA" | "FISHING" | "DEFAULT_AIS"
   in_amp_zone: boolean
   in_territorial_waters: boolean
   in_costal_waters: boolean
