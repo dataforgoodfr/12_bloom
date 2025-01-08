@@ -115,7 +115,7 @@ def run():
             session, "create_update_excursions_segments",
         )
         logger.info(f"Lecture des nouvelles positions depuis le {point_in_time}")
-        batch = vessel_position_repository.get_positions_with_vessel_created_updated_after(session, point_in_time)
+        batch = vessel_position_repository.get_positions_with_vessel_updated_after(session, point_in_time)
         position_count=len(batch)
         logger.info(f"{position_count} nouvelles positions")
         last_segment = segment_repository.get_last_vessel_id_segments(session)
