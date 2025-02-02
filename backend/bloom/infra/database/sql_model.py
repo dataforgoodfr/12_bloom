@@ -281,4 +281,13 @@ class Metrics(Base):
     zone_sub_category= Column("zone_sub_category", String, ForeignKey("dim_zone.sub_category"))
     zone_enable = Column("enable",Boolean(), server_default="True")
 
-
+class LoggingEntry(Base):
+    __tablename__ = "fct_logging"
+    id = Column("id", Integer, Identity(), primary_key=True)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+    timestamp = Column("timestamp", DateTime(timezone=True), server_default=func.now())
+    level = Column("level", String, nullable=False,default="INFO")
+    service = Column("service", String, nullable=False)
+    category = Column("category", String, nullable=True,default=None)
+    sub_category = Column("sub_category", String, nullable=True,default=None)
+    json_data = Column("json_data", JSONB,nullable=True,default=None)
