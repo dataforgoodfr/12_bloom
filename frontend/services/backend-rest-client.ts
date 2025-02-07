@@ -50,7 +50,7 @@ export function getVesselsTrackedCount() {
 // }
 
 export function getVesselsLatestPositions() {
-  const date = "2024-12-03 15:50:00"
+  const date = "2025-01-08 12:00:00"
   const url = `${BASE_URL}/vessels/all/positions/at?timestamp=${date}`
   console.log(`GET ${url}`)
   return axios.get<VesselPositions>(url)

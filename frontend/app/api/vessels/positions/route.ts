@@ -4,6 +4,7 @@ import { getVesselsLatestPositions } from "@/services/backend-rest-client"
 export async function GET() {
   try {
     const response = await getVesselsLatestPositions()
+    console.log(response.data)
     return NextResponse.json(response?.data)
   } catch (error) {
     console.error(

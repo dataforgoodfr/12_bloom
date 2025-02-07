@@ -1,13 +1,13 @@
 from contextlib import AbstractContextManager
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, List, Union
 
 import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.functions import ST_Within
 from geoalchemy2.shape import from_shape, to_shape
-from shapely import wkb
-from sqlalchemy import and_, or_, select, update, text, join
+from shapely import Point, wkb
+from sqlalchemy import DateTime, and_, cast, extract, func, or_, select, update, text
 from sqlalchemy.orm import Session
 
 from bloom.logger import logger
@@ -72,43 +72,179 @@ class SegmentRepository:
                 ) for record in result]
         else:
             return []
-        
-    def get_all_vessels_positions_at(self, session: Session, date: datetime) -> List[Segment]:
-        stmt = (
+
+    # def get_all_vessels_positions_at(self, session: Session, date: datetime) -> List[any]:
+    #     subquery_0 = (
+    #         select(
+    #             sql_model.VesselPosition
+    #         )
+    #         .where(func.extract("epoch", sql_model.VesselPosition.timestamp - date)/3600 < 10)
+    #     ).subquery()
+
+    #     subquery = (
+    #         select(
+    #             subquery_0.c.vessel_id.label("sub_vessel_id"),
+    #             func.min(
+    #                 func.extract("epoch", subquery_0.c.timestamp - date)
+    #             ).label("min_time_diff"),
+    #         )
+    #         .group_by(subquery_0.c.vessel_id)
+    #         .subquery()
+    #     )
+
+    #     # Requête principale pour récupérer les positions correspondantes
+    #     stmt = (select(sql_model.Vessel,
+    #                   sql_model.VesselPosition)
+    #     .join(
+    #         subquery,
+    #         and_(
+    #             sql_model.VesselPosition.vessel_id == subquery.c.sub_vessel_id,
+    #             func.abs(func.extract("epoch", sql_model.VesselPosition.timestamp - date))
+    #             == subquery.c.min_time_diff,
+    #         ),
+    #     )
+    #     .join(sql_model.Vessel, sql_model.VesselPosition.vessel_id == sql_model.Vessel.id)
+    #     )
+
+    #     # Exécuter la requête
+    #     result = session.execute(stmt)
+    #     if result:
+    #         return [
+    #             VesselLastPosition(
+    #                 vessel=VesselRepository.map_to_domain(record[0]), # Remplissez ceci si vous avez besoin d'une entité Vessel
+    #                 excursion_id=None, # Pas mentionné dans la requête, donc laissé à None
+    #                 position=Point(record[1].longitude, record[1].latitude),
+    #                 timestamp=record[1].timestamp,
+    #                 heading=record[1].heading,
+    #                 speed=record[1].speed,
+    #                 arrival=None,  # Remplissez si pertinent
+    #             )
+    #             for record in result
+    #         ]
+    #     else:
+    #         return []
+
+    def get_all_vessels_positions_at(
+        self, session: Session, date: datetime
+    ) -> List[any]:
+        # subquery_0 = (
+        #     select(sql_model.VesselPosition).where(
+        #         func.extract("epoch", sql_model.VesselPosition.timestamp - date) / 3600
+        #         < 10
+        #     )
+        # ).subquery()
+
+        # subquery = (
+        #     select(
+        #         subquery_0.c.vessel_id.label("sub_vessel_id"),
+        #         func.min(func.extract("epoch", subquery_0.c.timestamp - date)).label(
+        #             "min_time_diff"
+        #         ),
+        #     )
+        #     .group_by(subquery_0.c.vessel_id)
+        #     .subquery()
+        # )
+
+        subquery = (
             select(
-                sql_model.Vessel,
-                sql_model.Segment.excursion_id,
-                sql_model.Segment.end_position,
-                sql_model.Segment.timestamp_end,
-                sql_model.Segment.heading_at_end,
-                sql_model.Segment.speed_at_end,
-                sql_model.Excursion.arrival_port_id,
+                func.max(sql_model.VesselPosition.id).label("sub_id"),
+                func.max(sql_model.VesselPosition.vessel_id).label("sub_vessel_id"),
+                func.min(
+                    func.abs(
+                        extract(
+                            "epoch",
+                            sql_model.VesselPosition.timestamp
+                            - func.cast(date, sql_model.VesselPosition.timestamp.type),
+                        )
+                        / 3600
+                    )
+                ).label("min_difftime"),
             )
-            .join(
-                sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
-            )
-            .join(
-                sql_model.Segment,
-                sql_model.Segment.excursion_id == sql_model.Excursion.id,
-            )
-            .filter(
-                sql_model.Segment.timestamp_start <= date,
-                sql_model.Segment.timestamp_end >= date,
-            )
+            .group_by(sql_model.VesselPosition.vessel_id)
+            .subquery()
         )
-        result = session.execute(stmt)
-        if result is not None :
-            return [VesselLastPosition(
-                    vessel=VesselRepository.map_to_domain(record[0]),
-                    excursion_id=record[1],
-                    position=to_shape(record[2]),
-                    timestamp=record[3],
-                    heading=record[4],
-                    speed=record[5],
-                    arrival=record[6],
-                ) for record in result]
+
+        # Requête principale
+        query = (
+            select(sql_model.Vessel, sql_model.VesselPosition)
+            .join(sql_model.Vessel, sql_model.VesselPosition.vessel_id == sql_model.Vessel.id)
+            .join(
+                subquery,
+                and_(
+                    sql_model.VesselPosition.vessel_id == subquery.c.sub_vessel_id,
+                    func.abs(
+                        extract(
+                            "epoch",
+                            sql_model.VesselPosition.timestamp
+                            - func.cast(
+                                date,
+                                sql_model.VesselPosition.timestamp.type,
+                            ),
+                        )
+                        / 3600
+                    )
+                    == subquery.c.min_difftime,
+                ),
+            )
+            .where(subquery.c.min_difftime <= 5)
+        )
+
+        # Exécuter la requête
+        result = session.execute(query)
+        if result:
+            return [
+                VesselLastPosition(
+                    vessel=VesselRepository.map_to_domain(
+                        record[0]
+                    ),  # Remplissez ceci si vous avez besoin d'une entité Vessel
+                    excursion_id=None,  # Pas mentionné dans la requête, donc laissé à None
+                    position=Point(record[1].longitude, record[1].latitude),
+                    timestamp=record[1].timestamp,
+                    heading=record[1].heading,
+                    speed=record[1].speed,
+                    arrival=None,  # Remplissez si pertinent
+                )
+                for record in result
+            ]
         else:
             return []
+
+    # def get_all_vessels_positions_at(self, session: Session, date: datetime) -> List[Segment]:
+    #     stmt = (
+    #         select(
+    #             sql_model.Vessel,
+    #             sql_model.Segment.excursion_id,
+    #             sql_model.Segment.end_position,
+    #             sql_model.Segment.timestamp_end,
+    #             sql_model.Segment.heading_at_end,
+    #             sql_model.Segment.speed_at_end,
+    #             sql_model.Excursion.arrival_port_id,
+    #         )
+    #         .join(
+    #             sql_model.Vessel, sql_model.Excursion.vessel_id == sql_model.Vessel.id
+    #         )
+    #         .join(
+    #             sql_model.Segment,
+    #             sql_model.Segment.excursion_id == sql_model.Excursion.id,
+    #         )
+    #         .filter(
+    #             sql_model.Segment.timestamp_start <= date,
+    #             sql_model.Segment.timestamp_end >= date,
+    #         )
+    #     )
+    #     result = session.execute(stmt)
+    #     if result is not None :
+    #         return [VesselLastPosition(
+    #                 vessel=VesselRepository.map_to_domain(record[0]),
+    #                 excursion_id=record[1],
+    #                 position=to_shape(record[2]),
+    #                 timestamp=record[3],
+    #                 heading=record[4],
+    #                 speed=record[5],
+    #                 arrival=record[6],
+    #             ) for record in result]
+    #     else:
+    #         return []
 
     def get_vessel_last_position(self, session: Session,vessel_id:int) -> List[Segment]:
         stmt = select(
@@ -200,7 +336,6 @@ class SegmentRepository:
         df["end_position"] = df["end_position"].astype(str).apply(wkb.loads)
         return df
 
-    
     def get_vessel_attribute_by_segment(self, session: Session, segment_id: int) -> str:
         stmt = select(
         sql_model.Vessel.country_iso3
@@ -213,11 +348,10 @@ class SegmentRepository:
     ).filter(
         sql_model.Segment.id == segment_id
     )
-        
+
         result = session.execute(stmt).scalar()
 
         return result
-    
 
     def get_vessel_attribute_by_segment_created_updated_after(self, session: Session, segment_id: int, created_updated_after: datetime) -> Vessel:
         stmt = (
@@ -254,8 +388,8 @@ class SegmentRepository:
             return None
         else:
             return VesselRepository.map_to_domain(vessel)
-        #df = pd.DataFrame(result, columns=["vessel_id", "vessel_mmsi", "ship_name", "vessel_country_iso3","vessel_imo"])
-        #return df
+        # df = pd.DataFrame(result, columns=["vessel_id", "vessel_mmsi", "ship_name", "vessel_country_iso3","vessel_imo"])
+        # return df
 
     def batch_create_segment(
             self, session: Session, segments: list[Segment]
@@ -271,7 +405,6 @@ class SegmentRepository:
         )
         result = session.execute(stmt).scalars()
         return [SegmentRepository.map_to_domain(orm) for orm in result]
-
 
     def find_segments_in_zones(self, session: Session) -> dict[
         Segment, list[Zone]]:
@@ -289,7 +422,6 @@ class SegmentRepository:
             if zone:
                 dict[segment].append(zone)
         return dict
-    
 
     def find_segments_in_zones_created_updated_after(self, session: Session, created_after: datetime) -> dict[
         Segment, list[Zone]]:
