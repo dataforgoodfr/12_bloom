@@ -35,7 +35,7 @@ async def get_port(port_id:int,
                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    port_repository = use_cases.port_repository()
     db = use_cases.db()
     with db.session() as session:
-        return port_repository.get_port_by_id(session,port_id)
+        port_repository = use_cases.port_repository(session)
+        return port_repository.get_by_id(port_id)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from redis import Redis
 from bloom.config import settings
 from bloom.container import UseCases
@@ -12,13 +12,11 @@ from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
 from fastapi.encoders import jsonable_encoder
 router = APIRouter()
 
-
 @router.get("/vessels/trackedCount")
 async def list_vessel_tracked(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
         return vessel_repository.get_vessel_tracked_count(session)

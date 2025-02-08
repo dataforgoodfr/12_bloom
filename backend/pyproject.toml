@@ -46,6 +46,8 @@ dependencies = [
     "fastapi[standard]>=0.115.0,<1.0.0",
     "uvicorn~=0.32",
     "redis~=5.0",
+    "pytest>=8.3.3",
+    "pytest-env>=1.1.5",
 ]
 name = "bloom"
 version = "0.1.0"
@@ -156,4 +158,15 @@ target-version = "py310"
 
 [tool.ruff.mccabe]
 max-complexity = 10
+
+
+[tool.pytest.ini_options]
+env = [
+    "POSTGRES_DRIVER=sqlite",
+    "POSTGRES_USER=",
+    "POSTGRES_PASSWORD=",
+    "POSTGRES_HOSTNAME=",
+    "POSTGRES_PORT=",
+    "POSTGRES_DB=:memory:",
+]
 

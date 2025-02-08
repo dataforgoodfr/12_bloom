@@ -36,7 +36,6 @@ class UseCases(containers.DeclarativeContainer):
 
     vessel_repository = providers.Factory(
         VesselRepository,
-        session_factory=db.provided.session,
     )
 
     alert_repository = providers.Factory(
