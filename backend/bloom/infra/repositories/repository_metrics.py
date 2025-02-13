@@ -45,10 +45,11 @@ class MetricsRepository:
   #      return df
 
     def batch_create_metrics(
-            self, session: Session, metricss: list[Metrics]
+            self, session: Session, metrics: list[Metrics]
     ) -> list[Metrics]:
-        orm_list = [MetricsRepository.map_to_orm(metrics) for metrics in metricss]
+        orm_list = [MetricsRepository.map_to_orm(metrics) for metrics in metrics]
         session.add_all(orm_list)
+        session.flush()
         return [MetricsRepository.map_to_domain(orm) for orm in orm_list]
 
 

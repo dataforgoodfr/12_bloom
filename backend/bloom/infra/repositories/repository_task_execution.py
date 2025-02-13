@@ -23,9 +23,10 @@ class TaskExecutionRepository:
         stmt = (update(sql_model.TaskExecution)
                 .where(sql_model.TaskExecution.task_name==task_name)
                 .where(sql_model.TaskExecution.point_in_time==pit)
-                .values(duration=duration)
+                .values(delta=duration)
         )
         session.execute(stmt)
+        
     def set_position_count(session: Session, task_name: str, pit: datetime,count:int)->None:
         stmt = (update(sql_model.TaskExecution)
                 .where(sql_model.TaskExecution.task_name==task_name)
