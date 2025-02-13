@@ -107,6 +107,8 @@ class PortRepository:
             .values(has_excursion= True)
         )
         session.execute(stmt)
+        session.flush()
+
 
     def has_excursion_for_port(self, session: Session, port_id: int) -> bool:
         stmt = select(sql_model.Excursion).where(

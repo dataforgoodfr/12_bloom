@@ -4,7 +4,7 @@ from typing import Any, List, Union
 import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, tuple_
 from sqlalchemy.orm import Session
 
 from bloom.config import settings
@@ -74,8 +74,39 @@ class VesselPositionRepository:
             )
             .where(
                 and_(
-                    sql_model.VesselPosition.created_at > created_updated_after, sql_model.VesselPosition.created_at <= created_updated_after + timedelta(days=1)
-                )
+                    sql_model.VesselPosition.created_at > created_updated_after)
+            )
+            .join(
+                sql_model.Vessel,
+                sql_model.VesselPosition.vessel_id == sql_model.Vessel.id,
+            )
+            .order_by(sql_model.VesselPosition.vessel_id.asc())
+        )
+
+        result = session.execute(stmt)
+        df = pd.DataFrame(result,
+                          columns=["id", "timestamp", "accuracy", "collection_type", "course", "heading", "position",
+                                   "longitude", "latitude", "rot", "speed", "created_at", "vessel_id", "mmsi"])
+        df["position"] = df["position"].apply(to_shape)
+        return df
+
+    def get_positions_with_vessel(self, session: Session) -> pd.DataFrame:
+        stmt = (
+            select(
+                sql_model.VesselPosition.id,
+                sql_model.VesselPosition.timestamp,
+                sql_model.VesselPosition.accuracy,
+                sql_model.VesselPosition.collection_type,
+                sql_model.VesselPosition.course,
+                sql_model.VesselPosition.heading,
+                sql_model.VesselPosition.position,
+                sql_model.VesselPosition.longitude,
+                sql_model.VesselPosition.latitude,
+                sql_model.VesselPosition.rot,
+                sql_model.VesselPosition.speed,
+                sql_model.VesselPosition.created_at,
+                sql_model.Vessel.id,
+                sql_model.Vessel.mmsi,
             )
             .join(
                 sql_model.Vessel,
