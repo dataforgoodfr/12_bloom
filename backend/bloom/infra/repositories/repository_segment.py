@@ -223,6 +223,7 @@ class SegmentRepository:
     ) -> list[Segment]:
         orm_list = [SegmentRepository.map_to_orm(segment) for segment in segments]
         session.add_all(orm_list)
+        session.flush()
         return [SegmentRepository.map_to_domain(orm) for orm in orm_list]
 
     def get_segments_created_updated_after(self, session: Session, created_updated_after: datetime) -> list[Segment]:
@@ -258,6 +259,35 @@ class SegmentRepository:
             ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry))
                                                                            ).order_by(
             sql_model.Segment.created_at.asc())
+        result = session.execute(stmt)
+        dict = {}
+        for (segment_orm, zone_orm) in result:
+            segment = SegmentRepository.map_to_domain(segment_orm)
+            dict.setdefault(segment, [])
+            zone = ZoneRepository.map_to_domain(zone_orm) if zone_orm else None
+            if zone:
+                dict[segment].append(zone)
+        return dict
+
+    def find_segments_in_zones_by_ids(self, session: Session, segments_ids: list[int]) -> dict[
+        Segment, list[Zone]]:
+
+        segments_ids_tuple = tuple(segments_ids)
+
+        stmt = (
+            select(sql_model.Segment, sql_model.Zone)
+            .where(sql_model.Segment.id.in_(segments_ids_tuple))
+            .outerjoin(
+                sql_model.Zone,
+                and_(
+                    ST_Within(
+                        sql_model.Segment.start_position, sql_model.Zone.geometry
+                    ),
+                    ST_Within(sql_model.Segment.end_position, sql_model.Zone.geometry),
+                ),
+            )
+            .order_by(sql_model.Segment.created_at.asc())
+        )
         result = session.execute(stmt)
         dict = {}
         for (segment_orm, zone_orm) in result:
