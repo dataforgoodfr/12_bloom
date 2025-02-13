@@ -181,7 +181,7 @@ class ExcursionRepository:
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
-            total_time_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
+            total_time_in_territorial_waters=excursion.total_time_in_territorial_waters,
             total_time_in_zones_with_no_fishing_rights=excursion.total_time_in_zones_with_no_fishing_rights,
             total_time_fishing=excursion.total_time_fishing,
             total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
@@ -199,15 +199,22 @@ class ExcursionRepository:
             vessel_id=excursion.vessel_id,
             departure_port_id=excursion.departure_port_id,
             departure_at=excursion.departure_at,
-            departure_position=from_shape(
-                excursion.departure_position) if excursion.departure_position is not None else None,
+            departure_position=(
+                from_shape(excursion.departure_position)
+                if excursion.departure_position is not None
+                else None
+            ),
             arrival_port_id=excursion.arrival_port_id,
             arrival_at=excursion.arrival_at,
-            arrival_position=from_shape(excursion.arrival_position) if excursion.arrival_position is not None else None,
+            arrival_position=(
+                from_shape(excursion.arrival_position)
+                if excursion.arrival_position is not None
+                else None
+            ),
             excursion_duration=excursion.excursion_duration,
             total_time_at_sea=excursion.total_time_at_sea,
             total_time_in_amp=excursion.total_time_in_amp,
-            total_time_in_territorial_waters=excursion.total_time_fishing_in_territorial_waters,
+            total_time_in_territorial_waters=excursion.total_time_in_territorial_waters,
             total_time_in_zones_with_no_fishing_rights=excursion.total_time_in_zones_with_no_fishing_rights,
             total_time_fishing=excursion.total_time_fishing,
             total_time_fishing_in_amp=excursion.total_time_fishing_in_amp,
@@ -215,5 +222,5 @@ class ExcursionRepository:
             total_time_fishing_in_zones_with_no_fishing_rights=excursion.total_time_fishing_in_zones_with_no_fishing_rights,
             total_time_default_ais=excursion.total_time_default_ais,
             created_at=excursion.created_at,
-            updated_at=excursion.updated_at
+            updated_at=excursion.updated_at,
         )
