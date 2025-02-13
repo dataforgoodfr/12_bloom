@@ -278,6 +278,5 @@ class Metrics(Base):
     zone_id= Column("zone_id", Integer, ForeignKey("dim_zone.id"))
     zone_category= Column("zone_category", String, ForeignKey("dim_zone.category"))
     zone_sub_category= Column("zone_sub_category", String, ForeignKey("dim_zone.sub_category"))
-    zone_enable = Column("zone_enable",Boolean(), server_default="True")
-
-
+    zone_enable = Column("zone_enable", Boolean(), server_default="True")
+    __mapper_args__ = {"eager_defaults": False}
