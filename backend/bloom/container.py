@@ -6,6 +6,7 @@ from bloom.infra.repositories.repository_port import PortRepository
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepository
 from bloom.infra.repositories.repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_vessel_mapping import VesselMappingRepository
 from bloom.infra.repositories.repository_vessel_position import VesselPositionRepository
 from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
@@ -36,6 +37,11 @@ class UseCases(containers.DeclarativeContainer):
 
     vessel_repository = providers.Factory(
         VesselRepository,
+        session_factory=db.provided.session,
+    )
+    
+    vessel_mapping_repository = providers.Factory(
+        VesselMappingRepository,
         session_factory=db.provided.session,
     )
 
