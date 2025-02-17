@@ -5,18 +5,19 @@ from bloom.infra.repositories.repository_excursion import ExcursionRepository
 from bloom.infra.repositories.repository_port import PortRepository
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepository
-from bloom.infra.repositories.repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_vessel import VesselSqlRepository, VesselFileRepository
 from bloom.infra.repositories.repository_vessel_position import VesselPositionRepository
 from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.infra.repositories.repository_metrics import MetricsRepository
+
+from bloom.infra import UnitOfWork
 
 from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.services.metrics import MetricsService
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from dependency_injector import containers, providers
 import redis
-
 
 class UseCases(containers.DeclarativeContainer):
     config = providers.Configuration()
@@ -35,10 +36,9 @@ class UseCases(containers.DeclarativeContainer):
     )
 
     vessel_repository = providers.Factory(
-        VesselRepository,
-        session_factory=db.provided.session,
-    )
-
+        settings.repositories.vessel_type,
+        filepath=settings.repositories.vessel_filepath)
+    
     alert_repository = providers.Factory(
         RepositoryAlert,
         session_factory=db.provided.session,
@@ -95,4 +95,10 @@ class UseCases(containers.DeclarativeContainer):
     metrics_repository = providers.Factory(
         MetricsRepository,
         session_factory=db.provided.session,
+    )
+
+    uow = providers.Factory(
+        UnitOfWork,
+        session_factory=db.provided.session,
+        vessel_repository_factory=vessel_repository.provider,
     )

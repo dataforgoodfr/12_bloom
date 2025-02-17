@@ -1,3 +1,4 @@
+import abc
 from contextlib import AbstractContextManager
 from typing import Any, Generator, Union
 
@@ -10,15 +11,134 @@ from sqlalchemy.orm import Session
 from bloom.routers.requests import (DatetimeRangeRequest,
                                     OrderByRequest,
                                     OrderByEnum)
+from bloom.infra.repositories import RepositoryInterface, SqlBaseRepositoryMixIn
+from typing import IO
+from bloom.config import settings
+from pathlib import Path
+from dataclasses import dataclass
 
+class VesselRepositoryInterface(RepositoryInterface[Vessel], abc.ABC):
+    @abc.abstractmethod
+    def get_vessel_tracked_count(self, session: Session) -> int:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_vessel_types(self, session: Session) -> list[str]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_vessel_countries(self, session: Session) -> list[str]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel, None]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_activated_vessel_by_mmsi(self, session: Session, mmsi: int) -> Union[Vessel, None]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_vessels_list(self, session: Session) -> list[Vessel]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_all_vessels_list(self) -> list[Vessel]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def get_vessel_times_in_zones(  self,
+                                    session: Session,
+                                    vessel_id: int,
+                                    datetime_range: DatetimeRangeRequest,
+                                    order: OrderByRequest,
+                                    category: str = None,
+                                    sub_cateogry: str = None,
+                                  )-> list[VesselTimeInZone]:
+        raise NotImplementedError()
 
-class VesselRepository:
+    def batch_create_vessel(self, session: Session, vessels: list[Vessel]) -> list[Vessel]:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def batch_update_vessel(self, session: Session, vessels: list[Vessel]) -> None:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def set_tracking(self, session: Session, vessel_ids: list[int], tracking_activated: bool,
+                     tracking_status: str) -> None:
+        raise NotImplementedError()
+    @abc.abstractmethod
+    def check_mmsi_integrity(self, session: Session) -> list[(int, int)]:
+        raise NotImplementedError()
+
+@dataclass
+class VesselFileRepository(VesselRepositoryInterface):
+    filepath:IO
     def __init__(
             self,
-            session_factory: Callable,
-    ) -> Callable[..., AbstractContextManager]:
-        self.session_factory = session_factory
+            *args, **kwargs # for compliance with other repo types with other args
+    ) -> None:
+        self.filepath = kwargs['filepath'] if 'filepath' in kwargs \
+            else settings.repositories.vessel_filepath
+        pass
+    def get(self, **filters):
+        raise NotImplementedError()
+    def add(self, entities):
+        raise NotImplementedError()
+    def delete(self, entities):
+        raise NotImplementedError()
+    def get_vessel_tracked_count(self, session: Session) -> int:
+        pass
+    def get_vessel_types(self, session: Session) -> list[str]:
+        pass
+    def get_vessel_countries(self, session: Session) -> list[str]:
+        pass
+    def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel, None]:
+        pass
+    def get_activated_vessel_by_mmsi(self, session: Session, mmsi: int) -> Union[Vessel, None]:
+        pass
+    def get_vessels_list(self, session: Session) -> list[Vessel]:
+        pass
+    def get_all_vessels_list(self) -> list[Vessel]:
+        return [
+            Vessel(id=1,
+                   mmsi=100,
+                   ship_name="vessel01",
+                   country_iso3="FR",
+                   type="bateau",
+                   imo=1234,
+                   cfr="cfr",
+                   external_marking="mark",
+                   ircs="ircs"),
+                   Vessel(id=2,
+                   mmsi=101,
+                   ship_name="vessel02",
+                   country_iso3="FR",
+                   type="bateau",
+                   imo=1235,
+                   cfr="cfr",
+                   external_marking="mark",
+                   ircs="ircs")]
+    def get_vessel_times_in_zones(  self,
+                                    session: Session,
+                                    vessel_id: int,
+                                    datetime_range: DatetimeRangeRequest,
+                                    order: OrderByRequest,
+                                    category: str = None,
+                                    sub_cateogry: str = None,
+                                  )-> list[VesselTimeInZone]:
+        raise NotImplementedError()
 
+    def batch_create_vessel(self, session: Session, vessels: list[Vessel]) -> list[Vessel]:
+        pass
+    def batch_update_vessel(self, session: Session, vessels: list[Vessel]) -> None:
+        pass
+    def set_tracking(self, session: Session, vessel_ids: list[int], tracking_activated: bool,
+                     tracking_status: str) -> None:
+        pass
+    def check_mmsi_integrity(self, session: Session) -> list[(int, int)]:
+        pass
+
+class VesselSqlRepository(VesselRepositoryInterface,SqlBaseRepositoryMixIn[Vessel,sql_model.Vessel]):
+    def __init__(self, *args, **kwargs):
+        session = kwargs['session'] if 'session' in kwargs \
+            else None
+        super().__init__(session, model_cls=sql_model.Vessel, domain_cls=Vessel)
+
+    def get(self, **filters):
+        return super().get(**filters)
 
     def get_vessel_tracked_count(self, session: Session) -> int:
         stmt = select(func.count(sql_model.Vessel.id)).select_from(sql_model.Vessel)\
@@ -51,7 +171,7 @@ class VesselRepository:
         if not vessel:
             return None
         else:
-            return VesselRepository.map_to_domain(vessel)
+            return VesselSqlRepository.map_to_domain(vessel)
 
     def get_vessels_list(self, session: Session) -> list[Vessel]:
         """
@@ -61,18 +181,18 @@ class VesselRepository:
         e = session.execute(stmt).scalars()
         if not e:
             return []
-        return [VesselRepository.map_to_domain(vessel) for vessel in e]
+        return [VesselSqlRepository.map_to_domain(vessel) for vessel in e]
 
-    def get_all_vessels_list(self, session: Session) -> list[Vessel]:
+    def get_all_vessels_list(self) -> list[Vessel]:
         """
         Liste l'ensemble des vessels actifs ou inactifs
         """
         stmt = select(sql_model.Vessel)
-        e = session.execute(stmt).scalars()
+        e = self._session.execute(stmt).scalars()
 
         if not e:
             return []
-        return [VesselRepository.map_to_domain(vessel) for vessel in e]
+        return [VesselSqlRepository.map_to_domain(vessel) for vessel in e]
 
     
     def get_vessel_times_in_zones(  self,
@@ -138,9 +258,9 @@ class VesselRepository:
         return result
 
     def batch_create_vessel(self, session: Session, vessels: list[Vessel]) -> list[Vessel]:
-        orm_list = [VesselRepository.map_to_sql(port) for port in vessels]
+        orm_list = [VesselSqlRepository.map_to_sql(port) for port in vessels]
         session.add_all(orm_list)
-        return [VesselRepository.map_to_domain(orm) for orm in orm_list]
+        return [VesselSqlRepository.map_to_domain(orm) for orm in orm_list]
 
     def batch_update_vessel(self, session: Session, vessels: list[Vessel]) -> None:
         updates = [{"id": v.id, "mmsi": v.mmsi, "ship_name": v.ship_name, "width": v.width, "length": v.length,

@@ -18,7 +18,7 @@ from bloom.domain.vessel_last_position import VesselLastPosition
 from bloom.domain.zone import Zone
 from bloom.infra.database import sql_model
 from bloom.infra.repositories.repository_zone import ZoneRepository
-from bloom.infra.repositories.repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_vessel import VesselSqlRepository
 
 
 class SegmentRepository:
@@ -62,7 +62,7 @@ class SegmentRepository:
         result = session.execute(stmt)
         if result is not None :
             return [VesselLastPosition(
-                    vessel=VesselRepository.map_to_domain(record[0]),
+                    vessel=VesselSqlRepository.map_to_domain(record[0]),
                     excursion_id=record[1],
                     position=to_shape(record[2]),
                     timestamp=record[3],
@@ -95,7 +95,7 @@ class SegmentRepository:
         result = session.execute(stmt).fetchone()
         if result is not None :
             return VesselLastPosition(
-                    vessel=VesselRepository.map_to_domain(result[0]),
+                    vessel=VesselSqlRepository.map_to_domain(result[0]),
                     excursion_id=result[1],
                     position=to_shape(result[2]),
                     timestamp=result[3],
@@ -216,7 +216,7 @@ class SegmentRepository:
         if not vessel:
             return None
         else:
-            return VesselRepository.map_to_domain(vessel)
+            return VesselSqlRepository.map_to_domain(vessel)
         #df = pd.DataFrame(result, columns=["vessel_id", "vessel_mmsi", "ship_name", "vessel_country_iso3","vessel_imo"])
         #return df
 

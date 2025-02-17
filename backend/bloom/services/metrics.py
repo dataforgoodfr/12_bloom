@@ -12,7 +12,7 @@ from fastapi.encoders import jsonable_encoder
 
 from bloom.domain.vessel import Vessel,VesselListView
 from bloom.domain.zone import Zone, ZoneListView
-from bloom.infra.repositories.repository_vessel import VesselRepository
+from bloom.infra.repositories.repository_vessel import VesselSqlRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.domain.metrics import TotalTimeActivityTypeRequest
 
@@ -68,7 +68,7 @@ class MetricsService():
             #  item[0] is Vessel
             #  item[1] is total_time_at_sea
         return  [ResponseMetricsVesselInActivitySchema(
-            vessel=VesselRepository.map_to_domain(item[0]).model_dump(),
+            vessel=VesselSqlRepository.map_to_domain(item[0]).model_dump(),
             total_time_at_sea=item[1]
             )\
             for item in payload]
@@ -183,7 +183,7 @@ class MetricsService():
             #  item[2] is visiting_duration
         return [ResponseMetricsZoneVisitingTimeByVesselSchema(
             zone=ZoneRepository.map_to_domain(item[0]).model_dump(),
-            vessel=VesselRepository.map_to_domain(item[1]).model_dump(),
+            vessel=VesselSqlRepository.map_to_domain(item[1]).model_dump(),
             zone_visiting_time_by_vessel=item[2]
             )\
             for item in payload]
@@ -232,7 +232,7 @@ class MetricsService():
             
             
         return [ResponseMetricsVesselVisitingTimeByZoneSchema(
-                    vessel=VesselListView(**VesselRepository.map_to_domain(model[0]).model_dump()),
+                    vessel=VesselListView(**VesselSqlRepository.map_to_domain(model[0]).model_dump()),
                     zone=ZoneListView(**ZoneRepository.map_to_domain(model[1]).model_dump()),
                     vessel_visiting_time_by_zone=model[2]) for model in session.execute(stmt).all()]
 

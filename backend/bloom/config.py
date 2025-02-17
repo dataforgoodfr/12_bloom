@@ -16,6 +16,13 @@ from pydantic import (
     model_validator
 )
 
+class Repositories(BaseModel):
+    vessel_type:str=Field(default='VesselSqlRepository')
+    vessel_filepath:Path=Field(default=Path(__file__).parent.joinpath('./tests/data/repositories/vessel.json'))
+    
+    zone_type:str=Field(default='ZoneSqlRepository')
+    zone_filepath:Path=Field(default=Path(__file__).parent.joinpath('./tests/data/repositories/zone.json'))
+
 class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
@@ -58,6 +65,8 @@ class Settings(BaseSettings):
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
                             )
     api_key:str = Field(min_length=4,default='bloom')
+
+    repositories:Repositories=Repositories()
 
     @model_validator(mode='after')
     def update_db_url(self)->dict:
