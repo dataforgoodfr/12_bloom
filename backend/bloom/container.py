@@ -17,6 +17,14 @@ from bloom.usecase.GenerateAlerts import GenerateAlerts
 from dependency_injector import containers, providers
 import redis
 
+from bloom.etl import Partition
+from datetime import datetime,timezone,timedelta
+from bloom.etl.create_update_excursions_segments_pipeline import (
+    CreateUpdateExcursionsSegmentsPipeline,
+    ExtractLastPipelineExecution,
+    ExtractNewVesselPositions
+)
+
 
 class UseCases(containers.DeclarativeContainer):
     config = providers.Configuration()
@@ -95,4 +103,17 @@ class UseCases(containers.DeclarativeContainer):
     metrics_repository = providers.Factory(
         MetricsRepository,
         session_factory=db.provided.session,
+    )
+
+    create_update_excursions_segments_pipeline=providers.Factory(
+        CreateUpdateExcursionsSegmentsPipeline,
+        id="CreateUpdateExcursionsSegmentsPipeline",
+        steps=[
+                ExtractLastPipelineExecution(id="ExtractLastPipelineExecution"),
+                ExtractNewVesselPositions(id="ExtractNewVesselPositions"),
+            ],
+        partition=Partition(
+            start_date=datetime(2024,1,1,1,1,1,1,tzinfo=timezone.utc),
+            interval=timedelta(minutes=15)
+            )
     )
