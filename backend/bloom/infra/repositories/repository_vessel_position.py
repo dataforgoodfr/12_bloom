@@ -27,6 +27,7 @@ class VesselPositionRepository:
         VesselPosition]:
         orm_list = [VesselPositionRepository.map_to_sql(vessel_position) for vessel_position in vessel_positions]
         session.add_all(orm_list)
+        session.flush()
         return [VesselPositionRepository.map_to_domain(orm) for orm in orm_list]
 
     def get_all_vessel_last_positions(self, session: Session) -> List[VesselPosition]:
