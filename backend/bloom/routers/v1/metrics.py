@@ -123,3 +123,44 @@ async def read_metrics_all_vessels_visiting_time_by_zone(request: Request,
                                                 category=category,
                                                 sub_category=sub_category)
     return jsonable_encoder(payload)
+
+
+@router.get("/metrics/vessels-activity")
+# @cache
+async def read_metrics_all_vessels_visiting_time_in_zones(
+    request: Request,
+    datetime_range: DatetimeRangeRequest = Depends(),
+    category: Optional[str] = None,
+    pagination: PageParams = Depends(),
+    order: OrderByRequest = Depends(),
+    key: str = Depends(X_API_KEY_HEADER),
+):
+    check_apikey(key)
+    use_cases = UseCases()
+    MetricsService = use_cases.metrics_service()
+    payload = MetricsService.get_vessels_activity_in_zones(
+        datetime_range=datetime_range,
+        pagination=pagination,
+        order=order,
+        category=category,
+    )
+    return jsonable_encoder(payload)
+
+
+@router.get("/metrics/zones-visited")
+# @cache
+async def read_metrics_all_zones_visited(
+    request: Request,
+    datetime_range: DatetimeRangeRequest = Depends(),
+    category: Optional[str] = None,
+    pagination: PageParams = Depends(),
+    order: OrderByRequest = Depends(),
+    key: str = Depends(X_API_KEY_HEADER),
+):
+    check_apikey(key)
+    use_cases = UseCases()
+    MetricsService = use_cases.metrics_service()
+    payload = MetricsService.get_zones_visited(
+        datetime_range=datetime_range, pagination=pagination, order=order, category=category
+    )
+    return jsonable_encoder(payload)
