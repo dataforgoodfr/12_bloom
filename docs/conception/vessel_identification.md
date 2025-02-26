@@ -9,6 +9,8 @@
 
 ## Problématique
 
+Une partie de la problématique est décrite [#330](https://github.com/dataforgoodfr/12_bloom/issues/330) et [#413](https://github.com/dataforgoodfr/12_bloom/issues/413)
+
 ## Proposition
 
 * Identifiant source d'un navire: combinaison mmsi,imo,callsign (et + si judicieux) issues de la position AIS de la source (Spire ou autre)
