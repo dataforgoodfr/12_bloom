@@ -1,5 +1,12 @@
 # Amélioration de l'identification des navires
 
+## Points à améliorer:
+
+* Cas du changement de pays d'un navire
+    * intégrer le pays dans les infos d'identification ?
+    * mise en place d'un SCD côté dim_vessel ?
+    * impact sur les demandes de validation manuelle et auto ?
+
 ## Problématique
 
 ## Proposition
