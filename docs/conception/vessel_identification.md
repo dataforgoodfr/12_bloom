@@ -23,7 +23,7 @@ graph TD;
     I000[New AIS position stg_vessel_ais_position]-->I001{If vessel_source exists in dim_vessel_source_mapping}
     I001-->|No|I002[Add new vessel_source in dim_vessel_source_mapping with **auto_mapping=null** and **validated_mapping=null**]
     I001-->|Yes|I003[**stg_vessel_ais_position.vessel_source_id= dim_vessel_source_mapping.id**]
-    I002-->ILOG001["Consignation de l'évènement *Ajout d'un nouveau navire source* pour noficiation aux administrateurs"]
+    I002-->ILOG001["Consignation de l'évènement *Ajout d'un nouveau navire source* pour notification aux administrateurs"]
     I002-->I003
     I003-->IEND[**PROCESS NEW AIS POSITION**<br>END]
     IEND-->I004["Poursuite du traitement et stockage de la nouvelle position"]
@@ -41,7 +41,7 @@ graph TD;
     I001-->|No|IEND
     I001-->|Yes|I002{"If a vessel in dim_vessel has informations (mmsi,imo,callsign, ...) with high similarity to the ship in dim_vessel_source_mapping"}
     I002-->|Yes|I003["Update<br>**dim_vessel_source_mapping.auto_mapping=dim_vessel.id**<br>**dim_vessel_source_mapping.updated_at=now()**"]
-    I003-->ILOG001["Consignation de l'évènement *Mise à jour de l'association automatique navire_source/navire* pour noficiation aux administrateurs"]
+    I003-->ILOG001["Consignation de l'évènement *Mise à jour de l'association automatique navire_source/navire* pour notification aux administrateurs"]
     I002-->|No|IEND
     I003-->IEND[**PROCESS IDENTIFICATION AUTOMATIQUE**<br>END]
 ```
@@ -65,13 +65,72 @@ graph TD;
     I001-->|Yes|I002{"Si fct_excursion.vessel_id != dim_vessel_source_mapping.validated_mapping et dim_vessel_source_mapping.validated_mapping != null"}
     I002-->|Yes|I003["Update<br>**fct_excursion.vessel_id = dim_vessel_source_mapping.validated_mapping**"]
     I002-->|No|I004{"Si fct_excursion.vessel_id != dim_vessel_source_mapping.auto_mapping et dim_vessel_source_mapping.auto_mapping != null"}
-    I004-->|Yes|I005["Update<br>**fct_excursion.vessel_id = dim_vessel_source_mapping.validated_mapping**"]
-    I003-->ILOG001["Consignation de l'évènement *Mise à jour des excursions suite mise à jour du mapping navire source/validated* pour noficiation aux administrateurs"]
-    I005-->ILOG002["Consignation de l'évènement *Mise à jour des excursions suite mise à jour du mapping navire source/auto* pour noficiation aux administrateurs"]
+    I004-->|Yes|I005["Update<br>**fct_excursion.vessel_id = dim_vessel_source_mapping.validated_mapping**<br>et**fct_metrics.vessel_id = dim_vessel_source_mapping.validated_mapping"]
+    I003-->ILOG001["Consignation de l'évènement *Mise à jour des excursions suite mise à jour du mapping navire source/validated* pour notification aux administrateurs"]
+    I005-->ILOG002["Consignation de l'évènement *Mise à jour des excursions suite mise à jour du mapping navire source/auto* pour notification aux administrateurs"]
     I004-->|No|IEND
     I003-->IEND[**PROCESS UPDATE VESSEL POSITION**<br>END]
     I005-->IEND
 ```
+
+### Etape 4: Remise en question des associations automatiques
+
+* Périodicité:
+
+A minima lors d'une modification de dim_vessel ou de l'algorithme d'association automatique
+
+* Description du process:
+```mermaid
+graph TD;
+    ISTART[START<br>**PROCESS UPDATE VESSEL MAPPING AUTO**]-->I000
+    I000[Pour tout navire de *dim_vessel_source_mapping* ]-->I001{If **updated_at** plus ancien que *UPDATE_AUTO_MAPPING_PERIOD*}
+    I001-->|No|IEND
+    I001-->|Yes|I002{"If a vessel in dim_vessel has informations (mmsi,imo,callsign, ...) with high similarity to the ship in dim_vessel_source_mapping"}
+    I002-->|No|IEND
+    I002-->|Yes|I003{"If found dim_vessel is différent from actual dim_vessel_source_mapping.auto_mapping"}
+    I003-->|No|IEND[**PROCESS UPDATE VESSEL MAPPING AUTO**<br>END]
+    I003-->|Yes|I004["Update<br>**dim_vessel_source_mapping.auto_mapping=dim_vessel.id**<br>**dim_vessel_source_mapping.updated_at=now()**"]
+    I004-->ILOG001["Consignation de l'évènement *Mise à jour de l'association automatique navire_source/navire* pour notification aux administrateurs"]
+    I004-->IEND
+```
+
+### Etape 5: Process de validation du mapping manuel par un·e administrateur·rice
+
+* Périodicité:
+
+A définir
+
+* Description du process:
+```mermaid
+graph TD;
+    ISTART[START<br>**PROCESS VESSEL MAPPING VALIDATION QUERY**]-->I000
+    I000[Pour tout navire de *dim_vessel_source_mapping*]-->I001{If dim_vessel_source_mapping.validated_mapping=null}
+    I001-->|No|IEND[**VESSEL MAPPING VALIDATION QUERY**<br>END]
+    I001-->|Yes|I002["Envoi d'une demande de validation aux admins"]
+    I002-->ILOG001["Consignation de l'évènement *Demande de validation mapping pour le navire+infos* pour notification aux administrateurs"]
+    I002-->IEND
+```
+
+
+```mermaid
+graph TD;
+    ISTART[START<br>**PROCESS VESSEL MAPPING VALIDATION RESPONSE**]-->I000
+    I000["Récéption d'une validation: navire source + infos dim_vessel (id ou mmsi ou imo ou callsign)"]-->I001{If valeur_reponse!=null}
+    I001-->|No|IEND[**VESSEL MAPPING VALIDATION RESPONSE**<br>END]
+    I001-->|Yes|I002["Recherche du dim_vessel validé dans dim_vessel à partir des infos de la réponse"]
+    I002-->I003{un navire dim_vessel est bien trouvé à partir des infos de la réponse}
+    I003-->|No|I004["Envoyer réponse données invalides"]
+    I004-->ILOG001["Consignation de l'évènement *Demande de validation mapping pour le navire invalide* pour notification aux administrateurs"]
+    I003-->|Yes|I005["Update<br>**fct_excursion.vessel_id = dim_vessel_source_mapping.validated_mapping**<br>et**fct_metrics.vessel_id = dim_vessel_source_mapping.validated_mapping"]
+    I005-->ILOG002["Consignation de l'évènement *Mise à jour des excursions suite mise à jour du mapping navire source/auto* pour notification aux administrateurs"]
+    I004-->IEND["**PROCESS VESSEL MAPPING VALIDATION RESPONSE**<br>END"]
+    I005-->I006["Envoyer réponse données valides et traitement données OK"]
+    I006-->IEND
+```
+
+
+
+
 
 
   
