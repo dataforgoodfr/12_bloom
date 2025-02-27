@@ -37,12 +37,13 @@ ATTENTION : les règles de pêche dans une zone sont dépendantes du pavillon du
 Pour l'instant, nous utilisons le `dim_vessel.country_iso3` mais il faudra réflechir à changer d'angle pour garder en mémoire à quels pays appartenait un navire et quand (proposition dans [#428](https://github.com/dataforgoodfr/12_bloom/pulls/428))
 
 ```mermaid
-graph LR;
+graph TD;
     ISTART[START<br>**PROCESS <br>BATCH VESSEL POSITIONS**]-->I000
-    I000[New vessel positions  <br>stg_vessel_positions]-->I002
-    I001[Add end position of  <br>last vessel segments]-->I002
+    I000[New vessel positions <br>stg_vessel_positions]-->I002
+    I001[Add end position of <br>last vessel segments]-->I002
     I002[Batch vessel positions]
-    I002-->I003[Group stg_vessel_positions  <br>by excursion id]
+    I002-->I016[Sort positions <br>by increasing timestamp <br>and vessel_id]
+    I016-->I003[Group stg_vessel_positions  <br>by excursion id]
     I003-->I004[For each group]
     I004-->I005{If size group > 1}
     I005-->|Yes|I006[Convert to segments]
