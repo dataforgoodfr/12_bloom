@@ -11,18 +11,6 @@
 
 ## Description du processus
 
-### Etape 0 : nettoyer les données AIS
-Ne traiter que les données Spire qui ont été mises à jour : spire_ais_data.position_update_timestamp > position_updates.point_in_time
-
-```mermaid
-graph LR;
-    ISTART[START<br>**PROCESS <br>NEW SPIRE AIS DATA**]-->I000
-    I000[New spire ais data <br>stg_spire_data]-->I001[Select essentiel info]
-    I001-->I002[Drop duplicates]
-    I002-->I003[Save positions]
-    I003-->I004[Update <br>position_updates]
-```
-
 ### Etape 1 : association des positions aux excursions
 Positions créées après task_executions.point_in_time
 
