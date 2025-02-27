@@ -33,6 +33,9 @@ graph LR;
 
 Propriétés d'un segment à calculer : distance, duration, average_speed, in_amp_zone, in_zone_with_no_fishing_rights, in_territorial_waters
 
+ATTENTION : les règles de pêche dans une zone sont dépendantes du pavillon du navire. Toutefois, un navire peut changer de pavillon. Ses droits de pêche par zone sont donc ancrés dans le temps. 
+Pour l'instant, nous utilisons le `dim_vessel.country_iso3` mais il faudra réflechir à changer d'angle pour garder en mémoire à quels pays appartenait un navire et quand (proposition dans [#428](https://github.com/dataforgoodfr/12_bloom/pulls/428))
+
 ```mermaid
 graph LR;
     ISTART[START<br>**PROCESS <br>BATCH VESSEL POSITIONS**]-->I000
