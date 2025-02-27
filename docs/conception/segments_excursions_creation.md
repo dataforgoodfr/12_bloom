@@ -50,5 +50,6 @@ graph LR;
     I009-->I013[Calculate metrics*]
     I013-->I010[Update last segments]
     I010-->I011[Update excursions]
+    I011-->I015[Update task_executions]
 ```
 *processus indépendant de la création des segments et des excursions
