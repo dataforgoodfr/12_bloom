@@ -1,5 +1,5 @@
 
-# Logique de traitement des nouvelles données AIS
+# Logique de traitement des nouvelles données AIS et création des positions
 
 ## Périodicité
 * À chaque call API (toutes les 15 min)
