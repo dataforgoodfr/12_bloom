@@ -9,21 +9,58 @@
     - par `vessel_id`
     - par batch temporel
 
-## Description du processus par vessel_id
+## Description du processus
 
-!!!!! EN COURS !!!!!
+### Etape 0 : nettoyer les données AIS
+Ne traiter que les données Spire qui ont été mises à jour : spire_ais_data.position_update_timestamp > position_updates.point_in_time
+
 ```mermaid
-graph TD;
-    ISTART[START<br>**PROCESS NEW VESSEL POSITION**]-->I000
-    I000[New vessel position stg_vessel_position]-->I001{If stg_vessel_position in port}
-    I001-->|Yes|I002{If last excursion is closed}
-    I002-->|Yes|I004[Ignore stg_vessel_position]
-    I002-->|No|I005[Update <br>last excursion]
-    I001-->|No|I006{If last excursion is closed}
-    I007[Associate excursion id to stg_vessel_position]
-    I005-->I007
-    I006-->|No|I007
-    I006-->|Yes|I008[Create new excursion]-->I007
-    I007-->I009[Add stg_vessel_position to batch stg_vessel_positions]
+graph LR;
+    ISTART[START<br>**PROCESS <br>NEW SPIRE AIS DATA**]-->I000
+    I000[New spire ais data <br>stg_spire_data]-->I001[Select essentiel info]
+    I001-->I002[Drop duplicates]
+    I002-->I003[Save positions]
+    I003-->I004[Update <br>position_updates]
 ```
 
+### Etape 1 : association des positions aux excursions
+Positions créées après task_executions.point_in_time
+
+```mermaid
+graph LR;
+    ISTART[START<br>**PROCESS <br>NEW VESSEL POSITION**]-->I000
+    I000[New vessel position  <br>stg_vessel_position]-->I001{If stg_vessel_position  <br>in port}
+    I001-->|Yes|I002{If last excursion  <br>is closed}
+    I002-->|Yes|I004[Update <br>last_vessel_position_in_port]
+    I002-->|No|I005[Update <br>last excursion]
+    I001-->|No|I006{If last excursion  <br>is closed}
+    I007[Associate excursion id <br>to stg_vessel_position]
+    I005-->I007
+    I006-->|No|I007
+    I006-->|Yes|I008[Create new excursion]-->I010[Associate  <br>excursion id <br> to last_vessel_position_in_port]-->I009[Add <br>last_vessel_position_in_port <br>to batch stg_vessel_positions]-->I007
+    I007-->I011[Add stg_vessel_position <br>to batch stg_vessel_positions]
+```
+
+### Etape 2 : création des segments et mise à jour des excursions
+
+Propriétés d'un segment à calculer : distance, duration, average_speed, in_amp_zone, in_zone_with_no_fishing_rights, in_territorial_waters
+
+```mermaid
+graph LR;
+    ISTART[START<br>**PROCESS <br>BATCH VESSEL POSITIONS**]-->I000
+    I000[New vessel positions  <br>stg_vessel_positions]-->I002
+    I001[Add end position of  <br>last vessel segments]-->I002
+    I002[Batch vessel positions]
+    I002-->I003[Group stg_vessel_positions  <br>by excursion id]
+    I003-->I004[For each group]
+    I004-->I005{If size group > 1}
+    I005-->|Yes|I006[Convert to segments]
+    I005-->|No|I007[Duplicate position  <br>with lag -1s]-->I006
+    I006-->I008[Concatenate segments]
+    I008-->I014[Compute segments <br>variables]
+    I014-->I009[Create segments and <br>segment-zone relations]
+    I009-->I013[Calculate metrics*]
+    I013-->I010[Update last segments]
+    I010-->I011[Update excursions]
+```
+*processus indépendant de la création des segments et des excursions
