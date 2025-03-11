@@ -183,12 +183,12 @@ def run():
                 df.reset_index(inplace=True, drop=True)
                 if (df.shape[0] > 0):
                     # calculate distance
-                    def get_distance_in_miles(x) -> float:
+                    def get_distance_in_nautical_miles(x) -> float:
                         p1 = (x.start_latitude, x.start_longitude)
                         p2 = (x.end_latitude, x.end_longitude)
-                        return distance.distance(p1, p2).miles
+                        return distance.distance(p1, p2).nautical
 
-                    df["distance"] = df.apply(get_distance_in_miles, axis=1)
+                    df["distance"] = df.apply(get_distance_in_nautical_miles, axis=1)
             else:
                 #df_start=df_end.copy()
                 vessel_last_segment = pd.DataFrame()
@@ -235,12 +235,12 @@ def run():
 
             if (df.shape[0] > 0):
                 # calculate distance
-                def get_distance_in_miles(x) -> float:
+                def get_distance_in_nautical_miles(x) -> float:
                     p1 = (x.start_latitude, x.start_longitude)
                     p2 = (x.end_latitude, x.end_longitude)
-                    return distance.distance(p1, p2).miles
+                    return distance.distance(p1, p2).nautical
 
-                df["distance"] = df.apply(get_distance_in_miles, axis=1)
+                df["distance"] = df.apply(get_distance_in_nautical_miles, axis=1)
 
                 # calculate duration in seconds
                 def get_duration(x) -> float:
