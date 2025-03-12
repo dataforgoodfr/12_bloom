@@ -38,11 +38,6 @@ export const useZonesLayer = ({
     ? true
     : displayedZones.includes(ZoneCategory.FISHING_COASTAL_WATERS)
 
-  console.log("zones", zones)
-  console.log("isAmpDisplayed", isAmpDisplayed)
-  console.log("isTerritorialDisplayed", isTerritorialDisplayed)
-  console.log("isFishingDisplayed", isFishingDisplayed)
-
   const ampMultiZones = useMemo(() => {
     const filteredZones = isAmpDisplayed
       ? zones

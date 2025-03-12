@@ -159,7 +159,6 @@ export async function getZoneDetails(
   const url = `${BASE_URL}/metrics/zones/${zoneId}/visiting-time-by-vessel?start_at=${startAt}&end_at=${endAt}&order=DESC&limit=10`
   console.log(`GET ${url}`)
   const response = await axios.get<ZoneVesselMetrics[]>(url)
-  console.log(response)
   return response
 }
 
