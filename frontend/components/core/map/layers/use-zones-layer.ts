@@ -165,19 +165,19 @@ export const useZonesLayer = ({
             ? d.geometry.coordinates[0]
             : d.geometry.coordinates
         },
-        getFillColor: [132, 0, 0, 25],
-        getLineColor: [0, 0, 0, 0],
-        getLineWidth: 0,
+        getFillColor: [132, 0, 0, 0],
+        getLineColor: [119, 249, 126, 255],
+        getLineWidth: 0.5,
         lineWidthUnits: "pixels",
         pickable: true,
-        stroked: false,
+        stroked: true,
         filled: true,
         wireframe: false,
         extruded: false,
-        parameters: {
-          depthTest: false,
-          blendFunc: [770, 771],
-        },
+        // parameters: {
+        //   depthTest: false,
+        //   blendFunc: [770, 771],
+        // },
         visible: isFishingDisplayed,
       }),
     [fishingZones, isFishingDisplayed]
