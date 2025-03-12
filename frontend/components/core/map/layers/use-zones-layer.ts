@@ -138,8 +138,8 @@ export const useZonesLayer = ({
             : d.geometry.coordinates
         },
         getFillColor: [0, 0, 0, 0],
-        getLineColor: [132, 0, 0, 255],
-        getLineWidth: 0.5,
+        getLineColor: [20, 81, 6, 255],
+        getLineWidth: 1,
         lineWidthUnits: "pixels",
         pickable: true,
         stroked: true,
