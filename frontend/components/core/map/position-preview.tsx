@@ -1,6 +1,6 @@
 "use client"
 
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, motion } from "motion/react"
 
 import { useMapStore } from "@/libs/stores/map-store"
 import PreviewCard from "@/components/core/map/preview-card"

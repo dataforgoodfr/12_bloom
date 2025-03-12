@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
-import { motion, useAnimationControls } from "framer-motion"
 import { ChevronUpIcon } from "lucide-react"
+import { motion, useAnimationControls } from "motion/react"
 
 function SidebarExpanderHeader({
   disabled = false,
