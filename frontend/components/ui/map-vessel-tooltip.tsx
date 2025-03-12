@@ -54,13 +54,13 @@ const MapVesselTooltip = ({
     >
       <div className="flex flex-col">
         <div className="relative">
-          <Image
+          {/* <Image
             className="rounded-t-lg"
             src="/img/scrombus.jpg"
             alt="default fishing vessel image"
             width={288}
             height={162}
-          />
+          /> */}
           <Image
             className="absolute bottom-[-11px] left-5 z-0 rounded-sm shadow-md"
             src={`https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.3.0/flags/4x3/${getCountryISO2(country_iso3)}.svg`.toLowerCase()}
@@ -70,7 +70,7 @@ const MapVesselTooltip = ({
           />
         </div>
       </div>
-      <div className="flex flex-col gap-8 rounded-b-lg bg-white p-5">
+      <div className="flex flex-col gap-8 rounded-lg bg-white p-5">
         <div className="flex flex-col">
           <h5 className="text-xl font-bold tracking-tight text-background dark:text-white">
             {ship_name}
