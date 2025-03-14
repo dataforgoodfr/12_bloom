@@ -1,5 +1,6 @@
 from contextlib import AbstractContextManager
 
+from bloom.infra.repositories import AbstractRepository
 from dependency_injector.providers import Callable
 from shapely import Point
 from sqlalchemy.sql import text
@@ -7,7 +8,7 @@ from sqlalchemy.sql import text
 from bloom.config import settings
 
 
-class RepositoryRaster:
+class RepositoryRaster(AbstractRepository):
     def __init__(
         self,
         session_factory: Callable,

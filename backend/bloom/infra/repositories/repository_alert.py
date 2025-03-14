@@ -2,13 +2,14 @@ from contextlib import AbstractContextManager
 from datetime import datetime
 
 import sqlalchemy
+from bloom.infra.repositories import AbstractRepository
 from dependency_injector.providers import Callable
 from sqlalchemy.sql import text
 
 from bloom.domain.alert import Alert
 
 
-class RepositoryAlert:
+class RepositoryAlert(AbstractRepository):
     def __init__(
         self,
         session_factory: Callable,

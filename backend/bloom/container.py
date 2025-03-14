@@ -11,6 +11,8 @@ from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.infra.repositories.repository_metrics import MetricsRepository
 
+from bloom.infra.unit_of_work import SQLAlchemyUnitOfWork
+
 from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.services.metrics import MetricsService
 from bloom.usecase.GenerateAlerts import GenerateAlerts
@@ -95,4 +97,9 @@ class UseCases(containers.DeclarativeContainer):
     metrics_repository = providers.Factory(
         MetricsRepository,
         session_factory=db.provided.session,
+    )
+
+    unit_of_work = providers.Factory(
+        SQLAlchemyUnitOfWork,
+        db
     )

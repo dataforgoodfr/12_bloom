@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, List, Union
 
 import pandas as pd
+from bloom.infra.repositories import AbstractRepository
 from dependency_injector.providers import Callable
 from geoalchemy2.functions import ST_Within
 from geoalchemy2.shape import from_shape, to_shape
@@ -21,7 +22,7 @@ from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.infra.repositories.repository_vessel import VesselRepository
 
 
-class SegmentRepository:
+class SegmentRepository(AbstractRepository):
     def __init__(
             self,
             session_factory: Callable,

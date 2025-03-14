@@ -1,3 +1,4 @@
+from bloom.infra.repositories import AbstractRepository
 from bloom.domain.vessel_voyage import VesselVoyage
 from bloom.infra.database import sql_model
 from sqlalchemy import select
@@ -5,7 +6,7 @@ from sqlalchemy.orm import Session
 from typing import Union
 
 
-class VesselVoyageRepository:
+class VesselVoyageRepository(AbstractRepository):
 
     @staticmethod
     def create_vessel_voyage(session: Session, data: VesselVoyage) -> VesselVoyage:

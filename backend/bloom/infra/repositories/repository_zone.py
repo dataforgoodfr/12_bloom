@@ -1,6 +1,7 @@
 from contextlib import AbstractContextManager
 from typing import Any, List, Union, Optional
 
+from bloom.infra.repositories import AbstractRepository
 from bloom.domain.zone import Zone, ZoneListView, ZoneSummary
 from bloom.domain.zone_category import ZoneCategory
 from bloom.infra.database import sql_model
@@ -11,7 +12,7 @@ from bloom.routers.requests import RangeHeader, PaginatedResult, NonPaginatedRes
 from sqlalchemy.sql.expression import ScalarSelect, and_, or_, func, text
 
 
-class ZoneRepository:
+class ZoneRepository(AbstractRepository):
     def __init__(
             self,
             session_factory: Callable,

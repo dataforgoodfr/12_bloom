@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Any, List, Union
 
+from bloom.infra.repositories import AbstractRepository
 from bloom.config import settings
 from bloom.domain.port import Port
 from bloom.infra.database import sql_model
@@ -14,7 +15,7 @@ from sqlalchemy.orm import Session
 from bloom.domain.excursion import Excursion
 
 
-class PortRepository:
+class PortRepository(AbstractRepository):
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 

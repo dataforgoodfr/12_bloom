@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
+from bloom.infra.repositories import AbstractRepository
 from bloom.infra.database import sql_model
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -7,7 +8,7 @@ from sqlalchemy.sql.expression import update,asc,desc,delete
 from sqlalchemy.orm import Session
 
 
-class TaskExecutionRepository:
+class TaskExecutionRepository(AbstractRepository):
     @staticmethod
     def get_point_in_time(session: Session, task_name: str) -> datetime:
         stmt = select(sql_model.TaskExecution)\

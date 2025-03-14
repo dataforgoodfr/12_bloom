@@ -2,6 +2,7 @@ from bloom.domain.metrics import Metrics
 from contextlib import AbstractContextManager
 from typing import Any, List, Union
 
+from bloom.infra.repositories import AbstractRepository
 import pandas as pd
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
@@ -13,7 +14,7 @@ from sqlalchemy import and_, or_, select, update, text, join
 
 
 
-class MetricsRepository:
+class MetricsRepository(AbstractRepository):
 
     def __init__(
             self,

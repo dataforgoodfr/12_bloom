@@ -1,4 +1,5 @@
 import pandas as pd
+from bloom.infra.repositories import AbstractRepository
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
@@ -8,7 +9,7 @@ from datetime import datetime
 from bloom.logger import logger
 
 
-class SpireAisDataRepository:
+class SpireAisDataRepository(AbstractRepository):
     ORDER_BY_VESSEL = "vessel"
     ORDER_BY_POSITION = "position"
     ORDER_BY_VOYAGE = "VOYAGE"

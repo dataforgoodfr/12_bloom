@@ -1,6 +1,7 @@
 from contextlib import AbstractContextManager
 from typing import Any, List, Union, Optional
 
+from bloom.infra.repositories import AbstractRepository
 import pandas as pd
 from bloom.routers.requests import DatetimeRangeRequest
 from dependency_injector.providers import Callable
@@ -19,7 +20,7 @@ from bloom.routers.requests import ( DatetimeRangeRequest,
                                         OrderByEnum)
 
 
-class ExcursionRepository:
+class ExcursionRepository(AbstractRepository):
     def __init__(
             self,
             session_factory: Callable,

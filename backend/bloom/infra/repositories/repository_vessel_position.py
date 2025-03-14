@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, List, Union
 
 import pandas as pd
+from bloom.infra.repositories import AbstractRepository
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy import select
@@ -14,7 +15,7 @@ from bloom.infra.database import sql_model
 from bloom.logger import logger
 
 
-class VesselPositionRepository:
+class VesselPositionRepository(AbstractRepository):
     def __init__(self, session_factory: Callable) -> None:
         self.session_factory = session_factory
 

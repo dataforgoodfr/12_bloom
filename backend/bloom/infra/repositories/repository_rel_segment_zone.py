@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 
+from bloom.infra.repositories import AbstractRepository
 from bloom.domain.rel_segment_zone import RelSegmentZone
 from bloom.infra.database import sql_model
 
 
-class RelSegmentZoneRepository:
+class RelSegmentZoneRepository(AbstractRepository):
 
     @staticmethod
     def batch_create_rel_segment_zone(session: Session, rels: list[RelSegmentZone]) -> list[RelSegmentZone]:

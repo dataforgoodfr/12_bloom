@@ -1,6 +1,7 @@
 from contextlib import AbstractContextManager
 from typing import Any, Generator, Union
 
+from bloom.infra.repositories import AbstractRepository
 from bloom.domain.vessel import Vessel
 from bloom.domain.metrics import VesselTimeInZone
 from bloom.infra.database import sql_model
@@ -12,10 +13,11 @@ from bloom.routers.requests import (DatetimeRangeRequest,
                                     OrderByEnum)
 
 
-class VesselRepository:
+class VesselRepository(AbstractRepository):
     def __init__(
             self,
             session_factory: Callable,
+            session:Session
     ) -> Callable[..., AbstractContextManager]:
         self.session_factory = session_factory
 
