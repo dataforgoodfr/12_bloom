@@ -4,7 +4,7 @@ from typing import Any, List, Union
 import pandas as pd
 from dependency_injector.providers import Callable
 from geoalchemy2.shape import from_shape, to_shape
-from sqlalchemy import and_, select, tuple_
+from sqlalchemy import and_, select, tuple_, func
 from sqlalchemy.orm import Session
 
 from bloom.config import settings
@@ -54,7 +54,8 @@ class VesselPositionRepository:
             return []
 
     def get_positions_with_vessel_created_updated_after(self, session: Session,
-                                                        created_updated_after: datetime) -> pd.DataFrame:
+                                                        created_updated_after: datetime,
+                                                        vessel_ids: List[int]) -> pd.DataFrame:
         stmt = (
             select(
                 sql_model.VesselPosition.id,
@@ -74,7 +75,9 @@ class VesselPositionRepository:
             )
             .where(
                 and_(
-                    sql_model.VesselPosition.created_at > created_updated_after)
+                    sql_model.VesselPosition.created_at > created_updated_after,
+                    sql_model.VesselPosition.vessel_id.in_(tuple(vessel_ids))
+                )
             )
             .join(
                 sql_model.Vessel,

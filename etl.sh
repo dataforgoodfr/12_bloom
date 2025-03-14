@@ -1,9 +1,8 @@
 #! /bin/sh
 
-source /home/bas/venv/bin/activate
-cd $APP_FOLDER
+cd /Users/marthevienne/12_bloom/backend
+source .venv/bin/activate
+sleep 90
 
-python bloom/tasks/load_spire_data_from_api.py && \
-flock bloom/tasks/clean_positions.py --command "
-    python bloom/tasks/clean_positions.py && 
-    python bloom/tasks/create_update_excursions_segments.py"
+python3 -m bloom.tasks.clean_positions 2>> logs.log && \
+python3 -m bloom.tasks.create_update_excursions_segments 2>> logs.log

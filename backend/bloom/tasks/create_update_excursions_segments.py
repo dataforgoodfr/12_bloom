@@ -171,8 +171,12 @@ def run():
         logger.info(
             f"Lecture des nouvelles positions depuis le {point_in_time}"
         )
+
+        vessel_ids = pd.read_csv("../data/vessel_ids_charles_vila.csv")
+
+        vessel_ids = vessel_ids["vessel_id"].to_list()
         batch = vessel_position_repository.get_positions_with_vessel_created_updated_after(
-            session, point_in_time
+            session, point_in_time, vessel_ids
         )
         position_count = len(batch)
         logger.info(f"{position_count} nouvelle(s) position(s)")
