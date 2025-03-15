@@ -20,6 +20,7 @@ from typing_extensions import Annotated, Literal, Optional
 from datetime import timedelta
 
 
+
 class Vessel(Base):
     __tablename__ = "dim_vessel"
     id = Column("id", Integer, primary_key=True)
@@ -43,6 +44,10 @@ class Vessel(Base):
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    scd_start = Column("scd_start",DateTime(timezone=True))
+    scd_end = Column("scd_end",DateTime(timezone=True))
+    scd_active = Column("scd_active",Boolean)
+    key = Column("key",String)
 
 
 class Alert(Base):
@@ -117,6 +122,10 @@ class Zone(Base):
     json_data = Column("json_data", JSONB)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     enable = Column("enable",Boolean(), server_default="True")
+    scd_start = Column("scd_start",DateTime(timezone=True))
+    scd_end = Column("scd_end",DateTime(timezone=True))
+    scd_active = Column("scd_active",Boolean)
+    key = Column("key",String)
 
 
 class WhiteZone(Base):
