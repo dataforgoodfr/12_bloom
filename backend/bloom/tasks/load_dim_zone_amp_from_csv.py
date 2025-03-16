@@ -8,6 +8,7 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.zone import Zone
 from bloom.logger import logger
+import numpy as np
 
 FIC_ZONE = ["french_metropolitan_mpas.csv","fishing_coastal_waters.csv", "territorial_seas.csv","clipped_territorial_seas.csv"]
 
@@ -25,7 +26,7 @@ def map_to_domain(row: pd.Series) -> Zone:
             pass
 
     return Zone(
-        key=f'{row["category"]}/{row["sub_category"]}/{row["name"]}' if 'key' not in row else row['key'],
+        key=f'{row["category"]}/{row["sub_category"] if not isna["sub_category"] else "" }/{row["name"]}' if 'key' not in row else row['key'],
         category=row["category"],
         sub_category=row["sub_category"] if not isna["sub_category"] else None,
         name=row["name"],
