@@ -3,6 +3,7 @@ from time import perf_counter
 
 import pandas as pd
 from shapely import wkb
+from datetime import datetime
 
 from bloom.config import settings
 from bloom.container import UseCases
@@ -25,12 +26,16 @@ def map_to_domain(row: pd.Series) -> Zone:
             pass
 
     return Zone(
+        key=f'{row["category"]}/{row["sub_category"]}/{row["name"]}' if 'key' not in row else row['key'],
         category=row["category"],
         sub_category=row["sub_category"] if not isna["sub_category"] else None,
         name=row["name"],
         geometry=row["geometry"],
         centroid=row["geometry"].centroid,
         json_data=json_data,
+        scd_start=datetime.fromisoformat(row["scd_start"]) if "scd_start" in row else settings.scd_past_limit,
+        scd_end=datetime.fromisoformat(row["scd_end"]) if "scd_end" in row else settings.scd_future_limit,
+        scd_active=row["scd_active"] if "scd_end" in row else True,
     )
 
 

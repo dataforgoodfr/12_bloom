@@ -1,15 +1,17 @@
 from contextlib import AbstractContextManager
-from typing import Any, Generator, Union
+from typing import Any, Generator, Union, Optional
+from datetime import datetime
 
 from bloom.domain.vessel import Vessel
 from bloom.domain.metrics import VesselTimeInZone
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
-from sqlalchemy import func, select, update, and_, asc, desc, literal_column
+from sqlalchemy import func, select, update, and_, asc, desc, literal_column, between
 from sqlalchemy.orm import Session
 from bloom.routers.requests import (DatetimeRangeRequest,
                                     OrderByRequest,
                                     OrderByEnum)
+from bloom.config import settings
 
 
 class VesselRepository:
@@ -20,54 +22,128 @@ class VesselRepository:
         self.session_factory = session_factory
 
 
-    def get_vessel_tracked_count(self, session: Session) -> int:
+    def get_vessel_tracked_count(self, session: Session,
+                                 scd_date:Optional[datetime]=None,
+                                 scd_enable:bool=True
+                                 ) -> int:
         stmt = select(func.count(sql_model.Vessel.id)).select_from(sql_model.Vessel)\
             .distinct().where(sql_model.Vessel.tracking_activated == True)
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         return session.execute(stmt).scalar()
 
-    def get_vessel_types(self, session: Session) -> list[str]:
+    def get_vessel_types(self,
+                         session: Session,
+                         scd_date:Optional[datetime]=None,
+                         scd_enable:bool=True
+                        ) -> list[str]:
         stmt = select(sql_model.Vessel.type).select_from(sql_model.Vessel).distinct()
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         return [i for i in session.execute(stmt).scalars()]
     
-    def get_vessel_length_classes(self, session: Session) -> list[str]:
+    def get_vessel_length_classes(self, session: Session,
+                         scd_date:Optional[datetime]=None,
+                         scd_enable:bool=True
+                         ) -> list[str]:
         stmt = select(sql_model.Vessel.length_class).select_from(sql_model.Vessel).distinct()
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         return [i for i in session.execute(stmt).scalars()]
     
-    def get_vessel_countries(self, session: Session) -> list[str]:
+    def get_vessel_countries(self, session: Session,
+                         scd_date:Optional[datetime]=None,
+                         scd_enable:bool=True
+                         ) -> list[str]:
         stmt = select(sql_model.Vessel.country_iso3).select_from(sql_model.Vessel).distinct()
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         return [i for i in session.execute(stmt).scalars()]
 
     def get_vessel_by_id(self, session: Session, vessel_id: int) -> Union[Vessel, None]:
         return session.get(sql_model.Vessel, vessel_id)
+    
+    def get_vessel_by_key(self, session: Session,
+                          key: str,
+                          scd_date:Optional[datetime]=None,
+                          scd_enable:bool=True
+                         ) -> Union[Vessel, list[Vessel],None]:
+        stmt=select(sql_model.Vessel).where(sql_model.Vessel.key == key)
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
+            return session.execute(stmt).scalar()
+        else:
+            return session.execute(stmt).scalars()
 
-    def get_activated_vessel_by_mmsi(self, session: Session, mmsi: int) -> Union[Vessel, None]:
+    def get_activated_vessel_by_mmsi(self, session: Session,
+                                     mmsi: int,
+                                     scd_date:Optional[datetime]=None,
+                                     scd_enable:bool=True
+                                     ) -> Union[Vessel, None]:
         stmt = select(sql_model.Vessel).where(
             and_(
                 sql_model.Vessel.tracking_activated == True,
                 sql_model.Vessel.mmsi == mmsi
             )
         )
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         vessel = session.execute(stmt).scalar()
         if not vessel:
             return None
         else:
             return VesselRepository.map_to_domain(vessel)
 
-    def get_vessels_list(self, session: Session) -> list[Vessel]:
+    def get_vessels_list(self, session: Session,
+                         scd_date:Optional[datetime]=None,
+                         scd_enable:bool=True
+                         ) -> list[Vessel]:
         """
         Liste l'ensemble des vessels actifs
         """
         stmt = select(sql_model.Vessel).where(sql_model.Vessel.tracking_activated == True)
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         e = session.execute(stmt).scalars()
         if not e:
             return []
         return [VesselRepository.map_to_domain(vessel) for vessel in e]
 
-    def get_all_vessels_list(self, session: Session) -> list[Vessel]:
+    def get_all_vessels_list(self,
+                             session: Session,
+                             scd_date:Optional[datetime]=None,
+                             scd_enable:bool=True
+                             ) -> list[Vessel]:
         """
         Liste l'ensemble des vessels actifs ou inactifs
         """
         stmt = select(sql_model.Vessel)
+        if scd_enable:
+            if scd_date:
+                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
+            else:
+                stmt=stmt.where(sql_model.Vessel.scd_active)
         e = session.execute(stmt).scalars()
 
         if not e:
@@ -137,8 +213,10 @@ class VesselRepository:
         
         return result
 
-    def batch_create_vessel(self, session: Session, vessels: list[Vessel]) -> list[Vessel]:
-        orm_list = [VesselRepository.map_to_sql(port) for port in vessels]
+    def batch_create_vessel(self, session: Session,
+                            vessels: list[Vessel]
+                            ) -> list[Vessel]:
+        orm_list = [VesselRepository.map_to_sql(vessel) for vessel in vessels]
         session.add_all(orm_list)
         return [VesselRepository.map_to_domain(orm) for orm in orm_list]
 
@@ -187,12 +265,16 @@ class VesselRepository:
             details=sql_vessel.details,
             check=sql_vessel.check,
             length_class=sql_vessel.length_class,
+            scd_start=sql_vessel.scd_start,
+            scd_end=sql_vessel.scd_end,
+            scd_active=sql_vessel.scd_active,
         )
 
     @staticmethod
     def map_to_sql(vessel: Vessel) -> sql_model.Vessel:
         return sql_model.Vessel(
             id=vessel.id,
+            key=vessel.key,
             mmsi=vessel.mmsi,
             ship_name=vessel.ship_name,
             width=vessel.width,
@@ -211,4 +293,7 @@ class VesselRepository:
             details=vessel.details,
             check=vessel.check,
             length_class=vessel.length_class,
+            scd_start=vessel.scd_start,
+            scd_end=vessel.scd_end,
+            scd_active=vessel.scd_active,
         )

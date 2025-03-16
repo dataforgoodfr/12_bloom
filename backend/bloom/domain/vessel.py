@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class Vessel(BaseModel):
     id: Union[int, None] = None
+    key: Union[str, None] = None
     mmsi: Union[int, None]
     ship_name: str
     width: Union[float, None] = None
@@ -24,6 +25,9 @@ class Vessel(BaseModel):
     details: Union[str, None] = None
     check: Union[str, None] = None
     length_class: Union[str, None] = None
+    scd_start: Union[datetime, None] = None
+    scd_end: Union[datetime, None] = None
+    scd_active: Union[bool, None] = None
 
 class VesselListView(Vessel):
     details:ClassVar[Union[str, None]] = None

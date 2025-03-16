@@ -24,6 +24,7 @@ from datetime import timedelta
 class Vessel(Base):
     __tablename__ = "dim_vessel"
     id = Column("id", Integer, primary_key=True)
+    key = Column("key",String,nullable=False)
     mmsi = Column("mmsi", Integer)
     ship_name = Column("ship_name", String, nullable=False)
     width = Column("width", Double)
@@ -47,7 +48,6 @@ class Vessel(Base):
     scd_start = Column("scd_start",DateTime(timezone=True))
     scd_end = Column("scd_end",DateTime(timezone=True))
     scd_active = Column("scd_active",Boolean)
-    key = Column("key",String)
 
 
 class Alert(Base):
@@ -114,6 +114,7 @@ class SpireAisData(Base):
 class Zone(Base):
     __tablename__ = "dim_zone"
     id = Column("id", Integer, primary_key=True)
+    key = Column("key", String, nullable=False)
     category = Column("category", String, nullable=False)
     sub_category = Column("sub_category", String)
     name = Column("name", String, nullable=False)
