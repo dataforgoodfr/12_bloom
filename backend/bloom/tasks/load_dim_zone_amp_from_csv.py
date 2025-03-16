@@ -4,7 +4,6 @@ from time import perf_counter
 import pandas as pd
 from shapely import wkb
 from datetime import datetime
-
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.zone import Zone
@@ -52,9 +51,10 @@ def run():
             total = 0
             df = pd.read_csv(file_name, sep=",")
             df["geometry"] = df["geometry"].apply(wkb.loads)
-            zones = df.apply(map_to_domain, axis=1)
-            zones = zone_repository.batch_create_zone(session, list(zones))
-            total = len(zones)
+            if not df.empty:
+                zones = df.apply(map_to_domain, axis=1)
+                zones = zone_repository.batch_create_zone(session, list(zones))
+                total = len(zones)
             logger.info(f"{total} zone(s) créés")
         session.commit()
 
