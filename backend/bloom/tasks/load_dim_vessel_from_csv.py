@@ -41,7 +41,6 @@ def map_to_domain(row: pd.Series) -> Vessel:
 
 def run(csv_file_name: str) -> None:
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
 
     inserted_ports = []
@@ -52,6 +51,12 @@ def run(csv_file_name: str) -> None:
         vessels = df.apply(map_to_domain, axis=1)
 
         with db.session() as session:
+            vessel_repository = use_cases.vessel_repository(session=session)
+            print("#######################################")
+            print(vessel_repository.findBy(scd_date=datetime(3850,1,1)))
+            print("#######################################")
+            print(vessel_repository.get_vessel_tracked_count(scd_date=datetime(3850,1,1)))
+            print("#######################################")
             # Pour chaque enregistrement du fichier CSV
             for vessel in vessels:
                 if vessel.id and vessel_repository.get_vessel_by_id(session, vessel.id):

@@ -12,28 +12,41 @@ from bloom.routers.requests import (DatetimeRangeRequest,
                                     OrderByRequest,
                                     OrderByEnum)
 from bloom.config import settings
+from bloom.infra.ports.repository import (
+                                            AbstractRepository,
+                                            AbstractScdRepositoryMixIn,
+                                            AbstractSqlAlchemyMixIn
+)
+from bloom.infra.ports.repository import (AbstractRepository,
+                                          construct_findBy_scd_statement
+)
 
 
-class VesselRepository:
-    def __init__(
-            self,
-            session_factory: Callable,
-    ) -> Callable[..., AbstractContextManager]:
-        self.session_factory = session_factory
+class VesselRepository(AbstractRepository[Vessel]):
+    session:Session
+    def __init__(self, session:Session):
+        self.session=session
 
+    def findBy(self,
+               offset=None,
+               limit=None,
+               scd_date:Optional[datetime]=None,
+               **filters):
+        stmt = construct_findBy_scd_statement(sql_model.Vessel,
+                                        offset=offset,
+                                        limit=limit,
+                                        scd_date=scd_date,
+                                        **filters)
+        return [v for v in self.session.execute(stmt).scalars()]
 
-    def get_vessel_tracked_count(self, session: Session,
+    def get_vessel_tracked_count(self,
                                  scd_date:Optional[datetime]=None,
                                  scd_enable:bool=True
                                  ) -> int:
-        stmt = select(func.count(sql_model.Vessel.id)).select_from(sql_model.Vessel)\
-            .distinct().where(sql_model.Vessel.tracking_activated == True)
-        if scd_enable:
-            if scd_date:
-                stmt=stmt.where(between(scd_date,sql_model.Vessel.scd_start,sql_model.Vessel.scd_end))
-            else:
-                stmt=stmt.where(sql_model.Vessel.scd_active)
-        return session.execute(stmt).scalar()
+        stmt = construct_findBy_scd_statement(sql_model.Vessel,
+                                              scd_date=scd_date,
+                                              tracking_activated=True)
+        return [v for v in self.session.execute(stmt).scalars()]
 
     def get_vessel_types(self,
                          session: Session,
