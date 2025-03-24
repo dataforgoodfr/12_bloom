@@ -67,7 +67,9 @@ class Settings(BaseSettings):
                                                       second=0,
                                                       microsecond=0,
                                                       tzinfo=timezone.utc))
-    scd_future_limit: datetime = Field(default=datetime(year=2999,
+    # scd_future_limit doit être < 2262
+    # Cf: https://numpy.org/doc/stable/reference/arrays.datetime.html#datetime-units
+    scd_future_limit: datetime = Field(default=datetime(year=2199,
                                                         month=12,
                                                         day=31,
                                                         hour=23,

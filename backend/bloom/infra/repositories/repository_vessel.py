@@ -6,23 +6,20 @@ from bloom.domain.vessel import Vessel
 from bloom.domain.metrics import VesselTimeInZone
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
-from sqlalchemy import func, select, update, and_, asc, desc, literal_column, between
+from sqlalchemy import (func, select, update, and_, asc, desc, literal_column,
+                        between, bindparam)
 from sqlalchemy.orm import Session
 from bloom.routers.requests import (DatetimeRangeRequest,
                                     OrderByRequest,
                                     OrderByEnum)
 from bloom.config import settings
-from bloom.infra.ports.repository import (
-                                            AbstractRepository,
-                                            AbstractScdRepositoryMixIn,
-                                            AbstractSqlAlchemyMixIn
+from bloom.infra.interfaces.repository import (construct_findBy_scd_statement
 )
-from bloom.infra.ports.repository import (AbstractRepository,
-                                          construct_findBy_scd_statement
+from bloom.infra.interfaces.vessel import (AbstractVesselRepository
 )
 
 
-class VesselRepository(AbstractRepository[Vessel]):
+class VesselRepository(AbstractVesselRepository[Vessel]):
     session:Session
     def __init__(self, session:Session):
         self.session=session
@@ -37,7 +34,7 @@ class VesselRepository(AbstractRepository[Vessel]):
                                         limit=limit,
                                         scd_date=scd_date,
                                         **filters)
-        return [v for v in self.session.execute(stmt).scalars()]
+        return [self.map_to_domain(v) for v in self.session.execute(stmt).scalars()]
 
     def get_vessel_tracked_count(self,
                                  scd_date:Optional[datetime]=None,
@@ -226,6 +223,7 @@ class VesselRepository(AbstractRepository[Vessel]):
         
         return result
 
+    
     def batch_create_vessel(self, session: Session,
                             vessels: list[Vessel]
                             ) -> list[Vessel]:
@@ -234,13 +232,12 @@ class VesselRepository(AbstractRepository[Vessel]):
         return [VesselRepository.map_to_domain(orm) for orm in orm_list]
 
     def batch_update_vessel(self, session: Session, vessels: list[Vessel]) -> None:
-        updates = [{"id": v.id, "mmsi": v.mmsi, "ship_name": v.ship_name, "width": v.width, "length": v.length,
-                    "country_iso3": v.country_iso3, "type": v.type, "imo": v.imo, "cfr": v.cfr,
-                    "external_marking": v.external_marking,
-                    "ircs": v.ircs, "tracking_activated": v.tracking_activated, "tracking_status": v.tracking_status,
-                    "home_port_id": v.home_port_id} for v in
-                   vessels]
-        session.execute(update(sql_model.Vessel), updates)
+        # exclude_keys enlève la colonne "created_at" censée déjà exister
+        # en base de données puisque c'est une update
+        # de plus created est souvent non présente ou null dans les fichiers CSV
+        updates = [exclude_keys(v.__dict__,["created_at"]) for v in vessels]
+        session.execute(update(sql_model.Vessel),
+                        updates)
 
     def set_tracking(self, session: Session, vessel_ids: list[int], tracking_activated: bool,
                      tracking_status: str) -> None:

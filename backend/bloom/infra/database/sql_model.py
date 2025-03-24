@@ -2,6 +2,7 @@ from bloom.config import settings
 from bloom.infra.database.database_manager import Base
 from geoalchemy2 import Geometry
 from sqlalchemy import (
+    ARRAY,
     Boolean,
     Column,
     DateTime,
@@ -49,6 +50,34 @@ class Vessel(Base):
     scd_end = Column("scd_end",DateTime(timezone=True))
     scd_active = Column("scd_active",Boolean)
 
+
+class VesselMapping(Base):
+    __tablename__ = "dim_vessel_mapping"
+    id = Column("id", Integer, primary_key=True)
+    imo = Column("imo", Integer)
+    mmsi = Column("mmsi", Integer)
+    name = Column("ship_name", String, nullable=False)
+    country = Column("country", String, nullable=False)
+    
+    same_imo=   Column("same_imo", ARRAY(Integer))
+    same_mmsi=  Column("same_mmsi", ARRAY(Integer))
+    same_name=  Column("same_name", ARRAY(Integer))
+    same_country=   Column("same_country", ARRAY(Integer))
+    
+    appearance_first= Column("appearance_first",DateTime(timezone=True))
+    appearance_last= Column("appearance_last",DateTime(timezone=True))
+    
+    mapping_auto= Column("mapping_auto", Integer, ForeignKey("dim_vessel.id"), nullable=True)
+    mapping_manual= Column("mapping_manual", Integer, ForeignKey("dim_vessel.id"), nullable=True)
+    vessel= Column("vessel", Integer, ForeignKey("dim_vessel.id"), nullable=True)
+
+    scd_start = Column("scd_start",DateTime(timezone=True))
+    scd_end = Column("scd_end",DateTime(timezone=True))
+    scd_active = Column("scd_active",Boolean)
+    created_at = Column(
+        "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
+    )
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 
 class Alert(Base):
     __tablename__ = "alert"

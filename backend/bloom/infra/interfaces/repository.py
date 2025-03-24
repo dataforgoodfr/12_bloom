@@ -15,6 +15,9 @@ class SCDDateOverlapError(SCDRepositoryError): ...
 class AbstractRepositoryClient():
     pass
 
+def exclude_keys(d:dict,keys:list[str]):
+    return {x: d[x] for x in d if x not in keys}
+
 def construct_findBy_statement(model_type,
                              offset=None,
                              limit=None,

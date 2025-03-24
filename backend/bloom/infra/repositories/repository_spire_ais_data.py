@@ -84,6 +84,15 @@ class SpireAisDataRepository:
         ],
                             )
 
+    def get_data_spire_updated_between(self, session: Session,spire_updated_after:datetime,
+                                       spire_updated_before:datetime)-> pd.DataFrame:
+        stmt = (select(sql_model.SpireAisData)
+                .where(sql_model.SpireAisData.spire_update_statement.between(spire_updated_after,spire_updated_before))
+                .order_by(sql_model.SpireAisData.spire_update_statement.asc())
+        )
+        data= pd.DataFrame([v.__dict__ for v in session.execute(stmt).scalars()])
+        return data
+
     def get_all_data_between_date(
             self, session: Session, created_updated_after: datetime, created_updated_before: datetime
     ) -> pd.DataFrame:
