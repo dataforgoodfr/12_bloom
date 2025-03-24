@@ -9,11 +9,15 @@ from bloom.infra.database.errors import DBException
 from bloom.logger import logger
 from pydantic import ValidationError
 
+from bloom.config import settings
+from datetime import datetime,timezone
+
 
 def map_to_domain(row: pd.Series) -> Vessel:
     isna = row.isna()
     return Vessel(
         id=int(row["id"]) if not isna["id"] else None,
+        key=str(row['imo']) if not isna["imo"] else str(row['cfr']),
         mmsi=int(row["mmsi"]) if not isna["mmsi"] else None,
         ship_name=row["ship_name"],
         width=int(row["width"]) if not isna["width"] else None,
@@ -29,36 +33,44 @@ def map_to_domain(row: pd.Series) -> Vessel:
         details=row["details"] if not isna["details"] else None,
         length_class=row["length_class"] if not isna["length_class"] else None,
         check=row["check"] if not isna["length_class"] else None,
+        scd_start=datetime.fromisoformat(row["scd_start"]) if "scd_start" in row else settings.scd_past_limit,
+        scd_end=datetime.fromisoformat(row["scd_end"]) if "scd_end" in row else settings.scd_future_limit,
+        scd_active=row["scd_active"] if "scd_end" in row else True,
     )
 
 
 def run(csv_file_name: str) -> None:
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
 
     inserted_ports = []
+    updated_vessels = []
     deleted_ports = []
     try:
         df = pd.read_csv(csv_file_name, sep=",")
         vessels = df.apply(map_to_domain, axis=1)
+
         with db.session() as session:
-            ports_inserts = []
-            ports_updates = []
+            vessel_repository = use_cases.vessel_repository(session=session)
+            print("#######################################")
+            print(vessel_repository.findBy(scd_date=datetime(3850,1,1)))
+            print("#######################################")
+            print(vessel_repository.get_vessel_tracked_count(scd_date=datetime(3850,1,1)))
+            print("#######################################")
             # Pour chaque enregistrement du fichier CSV
             for vessel in vessels:
                 if vessel.id and vessel_repository.get_vessel_by_id(session, vessel.id):
                     # si la valeur du champ id n'est pas vide:
                     #     rechercher l'enregistrement correspondant dans la table dim_vessel
                     #     mettre à jour l'enregistrement à partir des données CSV.
-                    ports_updates.append(vessel)
+                    updated_vessels.append(vessel)
                 else:
                     # sinon:
                     #     insérer les données CSV dans la table dim_vessel;
-                    ports_inserts.append(vessel)
+                    inserted_ports.append(vessel)
             # Insertions / MAJ en batch
-            inserted_ports = vessel_repository.batch_create_vessel(session, ports_inserts)
-            vessel_repository.batch_update_vessel(session, ports_updates)
+            inserted_vessels = vessel_repository.batch_create_vessel(session, inserted_ports)
+            vessel_repository.batch_update_vessel(session, updated_vessels)
 
             # En fin de traitement:
             # les enregistrements de la table dim_vessel pourtant un MMSI absent du fichier CSV sont mis à jour
@@ -83,7 +95,7 @@ def run(csv_file_name: str) -> None:
     except DBException:
         logger.error("Erreur d'insertion en base")
     logger.info(f"{len(inserted_ports)} bateau(x) créés")
-    logger.info(f"{len(ports_updates)} bateau(x) mise à jour ou inchangés")
+    logger.info(f"{len(updated_vessels)} bateau(x) mise à jour ou inchangés")
     logger.info(f"{len(deleted_ports)} bateau(x) désactivés")
 
 
