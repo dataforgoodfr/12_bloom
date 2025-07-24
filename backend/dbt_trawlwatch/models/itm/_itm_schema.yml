@@ -1,0 +1,9 @@
+version: 2
+
+models:
+
+    - name: itm_dim_vessels
+      description: "Intermediate model for vessels dimension."
+
+    - name: itm_vessel_positions
+      description: "Intermediate model for vessel positions."

@@ -1,0 +1,209 @@
+version: 2
+
+sources:
+  - name: spire
+    description: "Source data from Spire AIS"
+    schema: public
+    config: 
+      event_time: position_timestamp
+    tables:
+      - name: spire_ais_data
+        description: "RAW table with AIS data harvested from the Spire API"
+        meta:
+          event_time: position_timestamp
+        columns:
+
+          - name: id
+            description: "Unique identifier for each AIS message"
+            data_type: integer
+            tests:
+              - not_null
+              - unique
+
+          - name: spire_update_statement
+            description: "Update statement from Spire, containing the AIS message"
+            data_type: timestamp
+            tests:
+              - not_null
+
+          - name: vessel_ais_class
+            description: "Class of the vessel as per AIS classification"
+            data_type: varchar
+
+          - name: vessel_flag
+            description: "Flag of the vessel, indicating its country of registration"
+            data_type: varchar
+
+          - name: vessel_name
+            description: "Name of the vessel" 
+            data_type: varchar
+
+          - name: vessel_callsign
+            description: "Callsign of the vessel, used for radio communication"
+            data_type: varchar
+
+          - name: vessel_timestamp
+            description: "Timestamp of the AIS message"
+            data_type: timestamp
+            tests:
+              - not_null
+
+          - name: vessel_update_timestamp
+            description: "Timestamp of the last update to the vessel's AIS data"
+            data_type: timestamp
+
+          - name: vessel_ship_type
+            description: General vessel type (e.g., cargo, tanker).
+            data_type: varchar
+
+          - name: vessel_sub_ship_type
+            description: Specific vessel subtype.
+            data_type: varchar
+
+          - name: vessel_mmsi
+            description: MMSI (Maritime Mobile Service Identity) number.
+            data_type: integer
+            tests:
+              - not_null
+
+          - name: vessel_imo
+            description: IMO (International Maritime Organization) number.
+            data_type: integer
+
+          - name: vessel_width
+            description: Vessel width (in meters).
+            data_type: integer
+
+          - name: vessel_length
+            description: Vessel length (in meters).
+            data_type: integer
+
+          - name: position_accuracy
+            description: Positioning accuracy indicator.
+            data_type: varchar
+        
+          - name: position_collection_type
+            description: How the position was collected (e.g., satellite, terrestrial).
+            data_type: varchar
+
+          - name: position_course
+            description: Course over ground (degrees).
+            data_type: double precision
+
+          - name: position_heading
+            description: Vessel heading (degrees).
+            data_type: double precision
+
+          - name: position_latitude
+            description: Latitude coordinate.
+            data_type: double precision
+
+          - name: position_longitude
+            description: Longitude coordinate.
+            data_type: double precision
+
+          - name: position_maneuver
+            description: Current maneuver status.
+            data_type: varchar
+
+          - name: position_navigational_status
+            description: Navigational status (e.g., underway, at anchor).
+            data_type: varchar
+
+          - name: position_rot
+            description: Rate of turn (degrees/min).
+            data_type: double precision
+
+          - name: position_speed
+            description: Speed over ground (knots).
+            data_type: double precision
+
+          - name: position_timestamp
+            description: Timestamp when the position was recorded.
+            data_type: timestamptz
+
+          - name: position_update_timestamp
+            description: Timestamp of latest position update.
+            data_type: timestamptz
+
+          - name: voyage_destination
+            description: Reported destination.
+            data_type: varchar
+
+          - name: voyage_draught
+            description: Draught (depth below waterline) in meters.
+            data_type: double precision
+
+          - name: voyage_eta
+            description: Estimated time of arrival (ETA).
+            data_type: timestamp
+
+          - name: voyage_timestamp
+            description: Timestamp when voyage data was recorded.
+            data_type: timestamp
+
+          - name: voyage_update_timestamp
+            description: Timestamp of latest voyage update.
+            data_type: timestamp
+
+          - name: created_at
+            description: Record creation timestamp in the database.
+            data_type: timestamp
+            tests:
+              - not_null
+
+          - name: updated_at
+            description: Record update timestamp in the database.
+            data_type: timestamp
+  - name : zones
+    description: "Source for consolidated marine zones"
+    schema: public
+    tables:
+      - name: dim_zone
+        description: "Zone data for fishing areas"
+        columns:
+
+          - name: id
+            description: "Unique identifier for the zone"
+            data_type: integer
+            tests:
+              - not_null
+              - unique
+
+          - name: category
+            description: "Category of the zone (amp | Clipped territorial seas | Fishing coastal waters (6-12NM) | Territorial seas)"
+            data_type: varchar
+            tests:
+              - not_null
+
+          - name: sub_category
+            description: "Sub-category of the zone (concerns MPAs only)"
+            data_type: varchar
+
+          - name: geometry
+            description: "Geometric representation of the zone (GEOMETRY)"
+            data_type: geometry
+            tests:
+              - not_null
+
+          - name: centroid
+            description: "Centroid of the zone (POINT)"
+            data_type: geometry
+          
+          - name: json_data
+            description: "Additional zone information (JSONB)"
+            data_type: jsonb
+
+          - name: created_at
+            description: "Record creation timestamp in the database"
+            data_type: timestamp
+            tests:
+              - not_null
+
+          - name: updated_at
+            description: "Record update timestamp in the database"
+            data_type: timestamp
+          
+          - name: enable
+            description: "Enable or disable the zone"
+            data_type: boolean

@@ -1,10 +1,9 @@
 # APP BLOOM
-
+/.marthe/
 /data/
 !/data/README.md
 /secrets/
-
-
+.vscode
 # From https://github.com/github/gitignore/blob/main/Python.gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
