@@ -1,0 +1,373 @@
+version: 2
+
+seeds:
+  # Datastets natifs dans le projet
+  - name: ports
+    config: 
+      schema: seeds
+      tags: ['dim','port']
+      quote_columns: true
+      delimiter: ";"
+      column_types: 
+        url: text
+        country: text
+        port: text
+        locode: text
+        latitude: float
+        longitude: float
+        geometry_point: text
+    description: >
+      Table RAW de dimension des ports avec coordonnées géographiques et informations complémentaires chargée à partir d'un CSV.
+    columns:
+      - name: url
+        description: URL de la source des données.
+        tests:
+        - not_null
+  
+      - name: country
+        description: Nom du pays du port.
+        tests:
+        - not_null
+  
+      - name: port
+        description: Nom du port.
+        tests:
+        - not_null
+  
+      - name: locode
+        description: Code de localisation du port (UN/LOCODE).
+        tests:
+        - not_null
+  
+      - name: latitude
+        description: Latitude du port.
+        tests:
+        - not_null
+  
+      - name: longitude
+        description: Longitude du port.
+        tests:
+        - not_null
+  
+      - name: geometry_point
+        description: Représentation géométrique du port au format WKT.
+        tests:
+        - not_null
+
+  - name: updated_vessels_table
+    config:
+      schema: seeds
+      tags: ['dim','vessel']
+      quote_columns: true
+      delimiter: ","
+      column_types: 
+        id: text
+        mmsi: integer
+        ship_name: text
+        length: float
+        length_class: text
+        country_iso3: text
+        type: text
+        imo: text
+        cfr: text
+        ircs: text
+        external_marking: text
+        tracking_activated: boolean
+        tracking_status: text
+        check: text
+        details: text
+        width: float
+    description: >
+      Table RAW de dimension des navires, incluant des informations d'identification,
+      des caractéristiques physiques.
+    columns:
+      - name: id
+        description: Identifiant unique du navire.
+        tests:
+          - not_null
+      - name: mmsi
+        description: Numéro d'identification maritime du navire.
+        tests:
+          - not_null
+      - name: ship_name
+        description: Nom du navire.
+        tests:
+          - not_null
+      - name: length
+        description: Longueur du navire en mètres.
+        tests:
+          - not_null
+      - name: length_class
+        description: Classe de longueur du navire.
+      - name: country_iso3
+        description: Code ISO3 du pays d'immatriculation du navire.
+        tests:
+          - not_null
+      - name: type
+        description: Type de navire.
+      - name: imo
+        description: Numéro IMO (International Maritime Organization) du navire.
+      - name: cfr
+        description: Code de registre des navires (CFR).
+      - name: ircs
+        description: Code international de radiocommunication des navires (IRCS).
+      - name: external_marking
+        description: Marquage externe du navire.
+      - name: tracking_activated
+        description: Indique si le suivi du navire est activé.
+      - name: tracking_status
+        description: Statut du suivi du navire.
+      - name: check
+        description: Vérification ou validation associée au navire.
+      - name: details
+        description: Détails supplémentaires sur le navire.
+      - name: width
+        description: Largeur du navire en mètres.
+
+  # Datastets issus du S3 : ZONES
+  - name: french_metropolitan_mpas
+    config:
+      schema: seeds
+      tags: ['dim','zone','mpa']
+      quote_columns: true
+      delimiter: ","
+      column_types:
+        id: text
+        wdpaid: integer
+        name: text
+        sub_category: text
+        category: text
+        desig_type: text
+        iucn_cat: text
+        beneficiaries: text
+        parent_iso: text
+        iso3: text
+        geometry: text
+        source: text
+    description: >
+      Table des aires marines protégées (AMP) métropolitaines françaises, incluant
+      des informations sur leur désignation, leur catégorie, et leur géométrie.
+    columns:
+      - name: id
+        description: Identifiant unique de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: wdpaid
+        description: ID de l'aire marine protégée selon la base de données WDPA.
+        tests:
+          - not_null
+      - name: name
+        description: Nom de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: sub_category
+        description: Sous-catégorie de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: category
+        description: Catégorie de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: desig_type
+        description: Type de désignation de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: iucn_cat
+        description: Catégorie IUCN de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: beneficiaries
+        description: Bénéficiaires associés à l'aire marine protégée.
+      - name: parent_iso
+        description: Code ISO du pays parent de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: iso3
+        description: Code ISO3 de l'aire marine protégée.
+        tests:
+          - not_null
+      - name: geometry
+        description: Représentation géométrique de l'aire marine protégée au format WKT.
+        tests:
+          - not_null
+  - name: fishing_coastal_waters
+    config:
+      tags: ['dim','zone','coastal']
+      quote_columns: true
+      delimiter: ","
+      column_types:
+        id: text
+        name: text
+        category: text
+        sub_category: text
+        beneficiaries: text
+        geometry: text
+        source: text
+        reference: text
+        parent_iso: text
+        iso3: text
+    description: >
+      Table des zones de pêche côtière, incluant des informations sur leur nom, leur géométrie
+      leur catégorie, leur sous-catégorie, et les bénéficiaires de droits de pêche.
+    columns:
+      - name: id
+        description: Identifiant unique de la zone de pêche côtière.
+        tests:
+          - not_null
+      - name: name
+        description: Nom de la zone de pêche côtière.
+        tests:
+          - not_null
+      - name: category
+        description: Catégorie de la zone de pêche côtière.
+        tests:
+          - not_null
+      - name: sub_category
+        description: Sous-catégorie de la zone de pêche côtière.
+        tests:
+          - not_null
+      - name: beneficiaries
+        description: Bénéficiaires associés à la zone de pêche côtière.
+      - name: geometry
+        description: Représentation géométrique de la zone de pêche côtière au format WKT.
+        tests:
+          - not_null
+      - name: source
+        description: Source des données de la zone de pêche côtière.
+      - name: reference
+        description: Référence légale ou réglementaire associée à la zone de pêche côtière.
+      - name: parent_iso
+        description: Code ISO du pays parent de la zone de pêche côtière.
+        tests:
+          - not_null
+      - name: iso3
+        description: Code ISO3 de la zone de pêche côtière.
+        tests:
+          - not_null
+  - name: clipped_territorial_seas
+    config:
+      schema: seeds
+      tags: ['dim','zone','territorial']
+      quote_columns: true
+      delimiter: ","
+      column_types:
+        id: text
+        name: text
+        category: text
+        sub_category: text
+        beneficiaries: text
+        geometry: text
+        source: text
+        reference: text
+        parent_iso: text
+        iso3: text
+    description: >
+      Table des eaux territoriales françaises, incluant des informations sur leur nom, leur géométrie
+      leur catégorie, leur sous-catégorie, et les bénéficiaires de droits de pêche.
+    columns:
+      - name: id
+        description: Identifiant unique des eaux territoriales.
+        tests:
+          - not_null
+      - name: name
+        description: Nom des eaux territoriales.
+        tests:
+          - not_null
+      - name: category
+        description: Catégorie des eaux territoriales.
+        tests:
+          - not_null
+      - name: sub_category
+        description: Sous-catégorie des eaux territoriales.
+        tests:
+          - not_null
+      - name: beneficiaries
+        description: Bénéficiaires associés aux eaux territoriales.
+        tests:
+          - not_null
+      - name: geometry
+        description: Représentation géométrique des eaux territoriales au format WKT.
+        tests:
+          - not_null
+      - name: source
+        description: Source des données des eaux territoriales.
+        tests:
+          - not_null
+      - name: reference
+        description: Référence légale ou réglementaire associée aux eaux territoriales.
+        tests:
+          - not_null
+      - name: parent_iso
+        description: Code ISO du pays parent des eaux territoriales.
+        tests:
+          - not_null
+      - name: iso3
+        description: Code ISO3 des eaux territoriales.
+        tests:
+          - not_null
+
+  - name: territorial_seas
+    config:
+      schema: seeds
+      tags: ['dim','zone','territorial']
+      quote_columns: true
+      delimiter: ","
+      column_types:
+        id: text
+        name: text
+        category: text
+        sub_category: text
+        beneficiaries: text
+        geometry: text
+        source: text
+        reference: text
+        parent_iso: text
+        iso3: text
+    description: >
+      Table des eaux territoriales françaises, incluant des informations sur leur nom, leur géométrie,
+      leur catégorie, leur sous-catégorie, et les bénéficiaires de droits de pêche.
+    columns:
+      - name: id
+        description: Identifiant unique des eaux territoriales.
+        tests:
+          - not_null
+      - name: name
+        description: Nom des eaux territoriales.
+        tests:
+          - not_null
+      - name: category
+        description: Catégorie des eaux territoriales.
+        tests:
+          - not_null
+      - name: sub_category
+        description: Sous-catégorie des eaux territoriales.
+        tests:
+          - not_null
+      - name: beneficiaries
+        description: Bénéficiaires associés aux eaux territoriales.
+      - name: geometry
+        description: Représentation géométrique des eaux territoriales au format WKT.
+        tests:
+          - not_null
+      - name: source
+        description: Source des données des eaux territoriales.
+        tests:
+          - not_null
+      - name: reference
+        description: Référence légale ou réglementaire associée aux eaux territoriales.
+      - name: parent_iso
+        description: Code ISO du pays parent des eaux territoriales.
+        tests:
+          - not_null
+      - name: iso3
+        description: Code ISO3 des eaux territoriales.
+        tests:
+          - not_null
+  # Datasets complémentaires
+  - name: country_codes
+    config:
+      schema: utils
+      tags: ['dim','country','ISO']
+      quote_columns: true
+      delimiter: ","
+      

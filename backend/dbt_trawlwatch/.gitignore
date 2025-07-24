@@ -1,0 +1,11 @@
+
+target/
+dbt_packages/
+profiles.yml
+logs/
+.env
+seeds/clipped_territorial_seas.csv
+seeds/fishing_coastal_waters.csv
+seeds/french_metropolitan_mpas.csv
+seeds/territorial_seas.csv
+dbt_internal_packages/
