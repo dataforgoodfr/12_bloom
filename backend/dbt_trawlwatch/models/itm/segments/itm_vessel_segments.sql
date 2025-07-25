@@ -123,7 +123,7 @@ get_vessel_flag as ( -- Extraction du pavillon du navire à partir de itm_dim_ve
     select
         vessel_id,
         country_iso3 as vessel_flag
-    from {{ ref('itm_dim_vessels') }}
+    from {{ ref('stg_dim_vessels') }}
 ),
 
 positions_w_vessel_flag as (

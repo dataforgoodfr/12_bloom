@@ -84,7 +84,7 @@ def_partitions AS (
 
 vessels as (
 
-    select * from {{ ref('seed_dim_vessels') }}
+    select * from {{ ref('stg_dim_mmsi') }} 
 
 ), 
 
@@ -108,7 +108,17 @@ join_spire_ais_and_vessels as ( -- On ne conserve que la dernière remontée AIS
         position_ais_created_at_max,
         ST_SetSRID(ST_MakePoint(position_longitude, position_latitude), 4326) as position
     from def_partitions ais
-    left join vessels v on ais.position_mmsi = v.mmsi
+    left join vessels v 
+        on ais.position_mmsi = v.mmsi 
+        and utils.safe_between(ais.position_timestamp, v.dim_mmsi_start_date, v.dim_mmsi_end_date)
+    {{ MMSI_filter }}
+    where position_latitude is not null
+        and position_longitude is not null
+        and position_speed is not null
+        and position_heading is not null
+        and position_course is not null
+        and position_rot is not null
+        and position_timestamp is not null
     {{ MMSI_filter }}
     order by position_timestamp desc
 )

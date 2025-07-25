@@ -1,10 +1,14 @@
 -- seed_dim_vessels.sql
 -- This file is used to create a staging table for Vessels.
+
+/*
+    Ce modèle fait converger 3
+
+*/
 {{ config(
-    enabled=true,
     schema='staging',
     materialized='view',
-    tags=['seed','dim', 'vessels','historical'],
+    tags=['seed','dim', 'vessels','static'],
     indexes=[
         {'columns': ['vessel_id'], 'type': 'btree'},
         {'columns': ['dim_vessel_name'], 'type': 'btree'},
@@ -19,37 +23,32 @@
 }}
 
 select 
-    id as vessel_id,
+    coalesce(cfr, concat_ws('_', mmsi ,ship_name )) as vessel_id, -- Création d'un identifiant unique pour le navire
     ship_name as dim_vessel_name,
-    loa as dim_vessel_loa,
     country_iso3 as dim_vessel_flag,
     imo as dim_vessel_imo,
-    NULL::varchar as dim_vessel_cfr,
+    cfr as dim_vessel_cfr,
     ircs as dim_vessel_call_sign,
     external_marking as dim_vessel_external_marking,
     length as dim_vessel_loa,
+
+    null::TIMESTAMPZ as dim_vessel_start_date,
+    null::TIMESTAMPZ as dim_vessel_end_date,
     
-
-
-    start_date as dim_vessel_start_date,
-    end_date as dim_vessel_end_date,
-
-    TRUE as tracking_activated,
-    status as dim_vessel_status,
-    source as dim_vessel_source,
-    'HISTORICAL'::varchar as dim_vessel_origin,
-
+    
+    tracking_activated,
+    tracking_status as dim_vessel_status,
+    "check" as dim_vessel_source,
+    'STATIC'::varchar as dim_vessel_origin, -- Origine des données du navire STATIC | HISTORIZED'
+    
     jsonb_build_object(
-        'gear', gear,
-        'ship_type', type,
-        'main_engine_power', main_engine_power,
-        'auxiliary_engine_power', auxiliary_engine_power,
-        'tonnage_gt', tonnage_gt,
-        'other_tonnage' as other_tonnage,
-        'fish_hold_volume', fish_hold_volume,
-        'carrying_capacity', carrying_capacity
-    ) as dim_vessel_details,
+        'width', width,
+        'length_class', length_class,
+        'ship_type', type
+    ) as dim_vessel_details, -- Infos de dimension du navire en JSON
 
-    now() as dim_vessel_created_at
-from {{ ref('historical_vessels_table') }} as historical_vessels  -- A adapter quand la table de référence changera
+    now() as seed_dim_vessel_created_at -- Méta: date de création de la dimension dans la base de données
+
+from {{ ref('static_vessels_table') }} 
+where tracking_activated = true
 order by vessel_id
