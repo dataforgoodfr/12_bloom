@@ -76,7 +76,7 @@ models:
         description: "External marking of the vessel, used for identification"
       - name: dim_vessel_loa
         description: "Length out of all of the vessel in meters"
-      - name: dim_vesse_start_date
+      - name: dim_vessel_start_date
         description: "Start date of the vessel's operational period (if available)"
       - name: dim_vessel_end_date
         description: "End date of the vessel's operational period (if available)"
