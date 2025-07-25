@@ -30,8 +30,8 @@ static_mmsi as ( -- MMSI statiques
     vessel_id, -- Identifiant unique pour vessel_id
     dim_mmsi_mmsi,
     dim_mmsi_start_date, -- Date de début de validité du MMSI -> NULL
-    dim_mmsi_start_date, -- Date de fin de validité du MMSI -> NULL
-    from {{ ref('seed_static_dim_vessels') }}
+    dim_mmsi_start_date -- Date de fin de validité du MMSI -> NULL
+    from {{ ref('seed_static_dim_mmsi') }}
 ),
 
 historical_mmsi as ( -- MMSI historisés
@@ -39,7 +39,7 @@ historical_mmsi as ( -- MMSI historisés
     vessel_id, -- Identifiant unique pour vessel_id
     dim_mmsi_mmsi,
     dim_mmsi_start_date, -- Date de début de validité du MMSI
-    dim_mmsi_end_date, -- Date de fin de validité du MMSI
+    dim_mmsi_end_date -- Date de fin de validité du MMSI
     from {{ ref('seed_historical_dim_mmsi') }}
 ),
 
@@ -52,7 +52,7 @@ union_mmsi as ( -- Union des MMSI statiques et historisés
 flagged_mmsi as (   -- MMSI avec indicateur d'historisation (pour les prioriser dans la consolidation)
     select 
         *,
-        bool_or(dim_mmsi_start_date is not null) over (partition by vessel_id) as has_historical,
+        bool_or(dim_mmsi_start_date is not null) over (partition by vessel_id) as has_historical
         
 
     from union_mmsi
