@@ -7,7 +7,7 @@ seeds:
       schema: seeds
       tags: ['dim', 'mmsi']
       quote_columns: true
-      delimiter: ","
+      delimiter: ";"
       column_types:
         id: text
         mmsi: integer
@@ -42,7 +42,7 @@ seeds:
       schema: seeds
       tags: ['dim','vessels']
       quote_columns: true
-      delimiter: ","
+      delimiter: ";"
       column_types: 
         id: text
         ship_name: text
