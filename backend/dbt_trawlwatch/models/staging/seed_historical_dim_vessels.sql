@@ -47,9 +47,9 @@ select
         'tonnage_gt', tonnage_gt,
         'other_tonnage' as other_tonnage,
         'fish_hold_volume', fish_hold_volume,
-        'carrying_capacity' as carrying_capacity
+        'carrying_capacity', carrying_capacity
     ) as dim_vessel_details,
 
     now() as dim_vessel_created_at
 from {{ ref('historical_vessels_table') }} as historical_vessels  -- A adapter quand la table de référence changera
-order by vessel
+order by vessel_id

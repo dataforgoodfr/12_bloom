@@ -56,7 +56,7 @@ select
         to_char(position_timestamp__raw_last, 'YYYYMM') as position_ais_created_at__raw_max_month,
         date_trunc('day', position_ais_created_at__raw_max) as position_ais_created_at__raw_max_day,
 
-        ST_MakePoint(position_longitude__raw_last, position_latitude__raw_last, 4326) as position,
+        ST_SetSRID(ST_MakePoint(position_longitude__raw_last, position_latitude__raw_last), 4326) as position,
         'Last_AIS_position'::varchar as position_status
 
 from last_vessel_raw_positions
