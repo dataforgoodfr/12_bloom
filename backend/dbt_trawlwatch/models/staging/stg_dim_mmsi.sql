@@ -31,6 +31,7 @@ static_mmsi as ( -- MMSI statiques
     dim_mmsi_mmsi,
     dim_mmsi_start_date, -- Date de début de validité du MMSI -> NULL
     dim_mmsi_end_date -- Date de fin de validité du MMSI -> NULL
+    dim_mmsi_details -- NULL
     from {{ ref('seed_static_dim_mmsi') }}
 ),
 
@@ -40,6 +41,7 @@ historical_mmsi as ( -- MMSI historisés
     dim_mmsi_mmsi,
     dim_mmsi_start_date, -- Date de début de validité du MMSI
     dim_mmsi_end_date -- Date de fin de validité du MMSI
+    dim_mmsi_details    
     from {{ ref('seed_historical_dim_mmsi') }}
 ),
 
@@ -62,6 +64,7 @@ select
     dim_mmsi_mmsi,
     dim_mmsi_start_date,
     dim_mmsi_end_date,
+    dim_mmsi_details,
     now() as stg_dim_mmsi_created_at -- Date de création de la dimension dans la base de données
 from flagged_mmsi
 -- Consolidation des liens MMSI - vessel_id avec priorité aux MMSI historisés

@@ -16,6 +16,7 @@ select
     start_date as dim_mmsi_start_date,
     end_date as dim_mmsi_end_date,
     'HISTORICAL'::varchar as dim_mmsi_origin,
+    details as dim_mmsi_details,
     now() as dim_mmsi_created_at
 from {{ ref('dim_mmsi') }}
 

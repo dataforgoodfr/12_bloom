@@ -49,7 +49,7 @@ models:
     description: "Static staged model from seed for vessels data, consolidated with historical vessels data further down the pipeline"
     columns:
       - name: vessel_id
-        description: "Unique identifier for each vessel (CRF or MMSI+ship_name)"
+        description: "Unique identifier for each vessel (CFR or user-defined identifier (fishing vessel type + rank))"
         tests:
           - not_null
           - unique
@@ -75,7 +75,7 @@ models:
       - name: dim_vessel_external_marking
         description: "External marking of the vessel, used for identification"
       - name: dim_vessel_loa
-        description: "Length out of all of the vessel in meters"
+        description: "Length overall of the vessel in meters"
       - name: dim_vessel_start_date
         description: "Start date of the vessel's operational period (if available)"
       - name: dim_vessel_end_date
@@ -103,7 +103,7 @@ models:
     description: "Historical staged model from seed for vessels data, consolidated with static vessels data further down the pipeline"
     columns:
       - name: vessel_id
-        description: "Unique identifier for each vessel (CRF or MMSI+ship_name)"
+        description: "Unique identifier for each vessel (CFR or user-defined identifier (fishing vessel type + rank))"
         tests:
           - not_null
           - unique
@@ -129,7 +129,7 @@ models:
       - name: dim_vessel_external_marking
         description: "External marking of the vessel, used for identification"
       - name: dim_vessel_loa
-        description: "Length out of all of the vessel in meters"
+        description: "Length overall of the vessel in meters"
       - name: dim_vessel_start_date
         description: "Start date of the vessel's operational period (if available)"
       - name: dim_vessel_end_date
@@ -160,7 +160,7 @@ models:
       materialized: view
     columns:
       - name: vessel_id
-        description: "Unique identifier for each vessel (CRF or MMSI+ship_name)"
+        description: "Unique identifier for each vessel (CFR or user-defined identifier (fishing vessel type + rank))"
         tests:
           - not_null
           - unique
@@ -186,7 +186,7 @@ models:
       - name: dim_vessel_external_marking
         description: "External marking of the vessel, used for identification"
       - name: dim_vessel_loa
-        description: "Length out of all of the vessel in meters"
+        description: "Length overall of the vessel in meters"
       - name: dim_vessel_start_date
         description: "Start date of the vessel's operational period (if available)"
       - name: dim_vessel_end_date
@@ -232,6 +232,8 @@ models:
           - not_null
       - name: dim_mmsi_end_date
         description: "End date of the MMSI's operational period (if available)"
+      - name: dim_mmsi_details
+        description: "Context of MMSI termination"
       - name: dim_mmsi_created_at
         description: "Timestamp when the record was created in the database"
         tests:
@@ -262,6 +264,8 @@ models:
           - accepted_values:
               values: [null]
               quote: false
+      - name: dim_mmsi_details
+        description: "Context of MMSI termination"
       - name: dim_mmsi_created_at
         description: "Timestamp when the record was created in the database"
         tests:
@@ -292,6 +296,8 @@ models:
           - accepted_values:
               values: [null]
               quote: false
+      - name: dim_mmsi_details
+        description: "Context of MMSI termination"
       - name: dim_mmsi_created_at
         description: "Timestamp when the record was created in the database"
         tests:
