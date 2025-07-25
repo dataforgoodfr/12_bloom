@@ -52,7 +52,7 @@ union_mmsi as ( -- Union des MMSI statiques et historisés
 flagged_mmsi as (   -- MMSI avec indicateur d'historisation (pour les prioriser dans la consolidation)
     select 
         *,
-        bool_or(dim_mmsi_start_date is not null) over (partition by vessel_id) as has_historical,
+        bool_or(dim_mmsi_start_date is not null) over (partition by vessel_id) as has_historical
         
 
     from union_mmsi
