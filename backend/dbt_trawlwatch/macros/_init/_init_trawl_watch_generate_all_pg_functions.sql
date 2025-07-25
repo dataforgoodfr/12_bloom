@@ -647,7 +647,6 @@
     ALTER FUNCTION utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP)
         OWNER TO ulf7g0ewqes1svjic5qf;
 
-
     /* ---- utils.coalesce_json ---------------------------------------------------- */
     DROP FUNCTION IF EXISTS utils.jsonb_coalesce(json, json);
     CREATE OR REPLACE FUNCTION utils.jsonb_coalesce(priority_json JSONB, fallback_json JSONB)
