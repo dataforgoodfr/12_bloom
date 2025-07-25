@@ -35,8 +35,8 @@ last_vessel_raw_positions as (
         last(position_rot order by created_at, position_id) as position_rot__raw_last
 
         from dim_vessels
-        left join {{ source('spire','spire_ais_data') }} spire on vessels.dim_mmsi_mmsi = spire.position_mmsi
-        and utils.safe_between(spire.position_timestamp, vessels.dim_mmsi_start_date, vessels.dim_mmsi_end_date)
+        left join {{ source('spire','spire_ais_data') }} spire on dim_vessels.dim_mmsi_mmsi = spire.position_mmsi
+        and utils.safe_between(spire.position_timestamp, dim_vessels.dim_mmsi_start_date, dim_vessels.dim_mmsi_end_date)
         where spire.position_timestamp is not null
         group by vessel_id
 )
