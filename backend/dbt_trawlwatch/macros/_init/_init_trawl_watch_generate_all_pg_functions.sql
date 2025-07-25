@@ -648,7 +648,7 @@
         RETURN merged_json;
     END;
     $$ LANGUAGE plpgsql;
-    ALTER FUNCTION utils.coalesce_json(json, json)
+    ALTER FUNCTION utils.jsonb_coalesce(JSONB, JSONB)
         OWNER TO ulf7g0ewqes1svjic5qf;
 
     /* ---- utils.count_rows ---------------------------------------------------- */
