@@ -37,7 +37,7 @@ select
     TRUE as tracking_activated,
     status as dim_vessel_status,
     source as dim_vessel_source,
-    'HISTORICAL'::varchar as dim_vessel_origin
+    'HISTORICAL'::varchar as dim_vessel_origin,
 
     jsonb_build_object(
         'gear', gear,
