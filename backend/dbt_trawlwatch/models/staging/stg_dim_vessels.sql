@@ -34,7 +34,7 @@ dim_vessels_union as (
 ),
 flagged as (
   select *,
-         bool_or(dim_vessel_source = 'HISTORICAL') over (partition by vessel_id) as has_historical
+         bool_or(dim_vessel_origin = 'HISTORICAL') over (partition by vessel_id) as has_historical
   from dim_vessels_union
 )
 select 
@@ -56,5 +56,5 @@ select
   dim_vessel_status,
   NOW() as stg_dim_vessel_created_at -- Méta: date de création de la dimension dans la base de données
 from flagged
-where (has_historical and dim_vessel_source = 'HISTORICAL')
-   or (not has_historical and dim_vessel_source = 'STATIC');
+where (has_historical and dim_vessel_origin = 'HISTORICAL')
+   or (not has_historical and dim_vessel_origin = 'STATIC');

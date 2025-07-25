@@ -614,26 +614,41 @@
 
     /* ---- utils.safe_between ---------------------------------------------------- */
     DROP FUNCTION IF EXISTS utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP);
-    CREATE OR REPLACE FUNCTION utils.safe_between(value_ts TIMESTAMP, start_ts TIMESTAMP, end_ts TIMESTAMP)
-	-- RETURNS TRUE IF : (start_ts=NULL, end_ts=NULL) | (start_ts=NULL,<=end_ts) | (>=start_ts, end_ts=NULL) | (>=start_ts, <=end_ts)
+
+    CREATE OR REPLACE FUNCTION utils.safe_between(
+        value_ts TIMESTAMP,
+        start_ts TIMESTAMP,
+        end_ts TIMESTAMP
+    )
     RETURNS BOOLEAN AS $$
+    DECLARE
+        adjusted_end_ts TIMESTAMP;
     BEGIN
-        IF start_ts IS NULL AND end_ts IS NULL THEN
+        -- Ajuste end_ts si l'utilisateur a passé un "end of day" implicite (ex : '2025-07-31'::date)
+        IF end_ts IS NOT NULL AND end_ts::time = '00:00:00' THEN
+            adjusted_end_ts := end_ts + interval '1 day' - interval '1 microsecond';
+        ELSE
+            adjusted_end_ts := end_ts;
+        END IF;
+
+        IF start_ts IS NULL AND adjusted_end_ts IS NULL THEN
             RETURN TRUE;
         ELSIF start_ts IS NULL THEN
-            RETURN value_ts <= end_ts;
-        ELSIF end_ts IS NULL THEN
+            RETURN value_ts <= adjusted_end_ts;
+        ELSIF adjusted_end_ts IS NULL THEN
             RETURN value_ts >= start_ts;
         ELSE
-            RETURN value_ts BETWEEN start_ts AND end_ts;
+            RETURN value_ts BETWEEN start_ts AND adjusted_end_ts;
         END IF;
     END;
     $$ LANGUAGE plpgsql;
+
     ALTER FUNCTION utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP)
         OWNER TO ulf7g0ewqes1svjic5qf;
 
+
     /* ---- utils.coalesce_json ---------------------------------------------------- */
-    DROP FUNCTION IF EXISTS utils.coalesce_json(json, json);
+    DROP FUNCTION IF EXISTS utils.jsonb_coalesce(json, json);
     CREATE OR REPLACE FUNCTION utils.jsonb_coalesce(priority_json JSONB, fallback_json JSONB)
     RETURNS JSONB AS $$
     DECLARE

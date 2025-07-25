@@ -13,10 +13,10 @@ with
 dim_vessels as (
     select 
         vessel_id,
-        vessel_mmsi,
-        mmsi_start_date,
-        mmsi_end_date
-    from {{ ref('stg_dim_vessels') }}
+        dim_mmsi_mmsi,
+        dim_mmsi_start_date,
+        dim_mmsi_end_date
+    from {{ ref('stg_dim_mmsi') }}
 ),
 
 last_vessel_raw_positions as (
@@ -42,10 +42,10 @@ last_vessel_raw_positions as (
 )
 
 select 
+        vessel_id,
         position_id__raw_last,
         position_timestamp__raw_last,
         position_mmsi__raw_last,
-        vessel_id,
         position_latitude__raw_last,
         position_longitude__raw_last,
         position_speed__raw_last,

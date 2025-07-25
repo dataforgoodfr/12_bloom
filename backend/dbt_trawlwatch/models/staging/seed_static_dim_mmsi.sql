@@ -18,6 +18,7 @@ select distinct
     mmsi as dim_mmsi_mmsi,
     NULL::TIMESTAMPZ as dim_mmsi_start_date, -- Date de début de validité du MMSI -> NULL
     NULL::TIMESTAMPZ as dim_mmsi_end_date, -- Date de fin de validité du MMSI -> NULL
+    'STATIC'::varchar as dim_mmsi_origin, -- Origine des données du MMSI STATIC | HISTORIZED
     now() as dim_mmsi_created_at -- Méta: date de création de la dimension dans la base de données
 
 from {{ ref('static_vessels_table') }} 
