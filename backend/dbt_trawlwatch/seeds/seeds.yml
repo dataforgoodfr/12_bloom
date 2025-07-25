@@ -2,6 +2,127 @@ version: 2
 
 seeds:
   # Datastets natifs dans le projet
+  - name: historical_dim_mmsi
+    config:
+      schema: seeds
+      tags: ['dim', 'mmsi']
+      quote_columns: true
+      delimiter: ";"
+      column_types:
+        id: text
+        mmsi: integer
+        start_date: timestamp
+        end_date: timestamp
+        details: text
+      
+      description: >
+        Table for historical MMSI - vessel_id association
+      columns:
+        - name: id
+          description: Unique identifier for each vessel
+          test:
+            - not_null
+        - name: mmsi
+          description: Maritime Mobile Service Identity (MMSI)
+          test:
+            - not_null
+            - unique
+        - name: start_date
+          description: Start date of the MMSI's operational period
+          test:
+            - not_null
+        - name: end_date
+          description: End date of the MMSI's operational period (if available)
+        - name: details
+          description: Context of MMSI termination.
+
+
+  - name: historical_dim_vessels
+    config:
+      schema: seeds
+      tags: ['dim','vessels']
+      quote_columns: true
+      delimiter: ";"
+      column_types: 
+        id: text
+        ship_name: text
+        loa: float
+        country_iso3: text
+        gear: text
+        type: text
+        imo: text
+        ircs: text
+        cfr: text
+        main_engine_power: float
+        auxiliary_engine_power: float
+        tonnage_gt: float
+        other_tonnage: float
+        fish_hold_volume: float
+        carrying_capacity: float
+        external_marking: text
+        start_date: timestamp
+        end_date: timestamp
+        status: text
+        source: text
+
+    description: >
+      Historical table for vessels data
+    columns:
+      - name: id
+        description: Unique identifier for each vessel (CFR or user-defined id)
+        tests:
+          - not_null
+      - name: ship_name
+        description: Name of the vessel
+        tests:
+          - not_null
+      - name: loa
+        description: Length overall (m).
+      - name: country_iso3
+        description: Flag of the ship, represented by the ISO3 code of the country
+        tests:
+          - not_null
+      - name: gear
+        description: Main engine
+        tests:
+          - not_null
+      - name: type
+        description: Fishing vessel type
+      - name: imo
+        description: IMO number of the vessel, used as a unique identifier.
+      - name: cfr
+        description: CFR number of the vessel (EU identifier).
+      - name: ircs
+        description: Call sign of the vessel, used for identification.
+      - name: main_engine_power
+        description: Main engine power (kW)
+      - name: auxiliary_engine_power
+        description: Power of the auxiliary engine(s) (kW)
+      - name: tonnage_gt
+        description: Gross tonnage (UMS for vessels with LOA > 24 m)
+      - name: other_tonnage
+        description: Other tonnage (UMS ?)
+      - name: fish_hold_volume
+        description: Maximal fish hold capacity (m3)
+      - name: carrying_capacity
+        description: Maximal catches capacity (t)
+      - name: external_marking
+        description: External marking written on the hull.
+      - name: start_date
+        description: Start date of the record operational period
+        test:
+          - not_null
+      - name: end_date
+        description: End date of the record operational period (if available)
+      - name: status
+        description: Vessel status (ACTIVE, OUT_OF_SERVICE, MIGHT_BE_OUT_OF_SERVICE, CHECK_FOR_NEW_MMSI)
+        test:
+          - not_null
+          - accepted_values:
+              values: ["ACTIVE", "OUT_OF_SERVICE", "MIGHT_BE_OUT_OF_SERVICE", "CHECK_FOR_NEW_MMSI"]
+      - name: source
+        description: Source of the vessel data & informations
+
   - name: ports
     config: 
       schema: seeds
@@ -54,7 +175,7 @@ seeds:
         tests:
         - not_null
 
-  - name: updated_vessels_table
+  - name: static_vessels_table
     config:
       schema: seeds
       tags: ['dim','vessel']
