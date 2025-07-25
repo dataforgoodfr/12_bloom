@@ -44,7 +44,7 @@ select
     jsonb_build_object(
         'width', width,
         'length_class', length_class,
-        'ship_type', type,
+        'ship_type', type
     ) as dim_vessel_details, -- Infos de dimension du navire en JSON
 
     now() as seed_dim_vessel_created_at -- Méta: date de création de la dimension dans la base de données
