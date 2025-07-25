@@ -13,7 +13,7 @@
 {% else %}
     {% set batchsize = 'month' %}
 {% endif %}
-{% set batchsize = 'day' if var('default_batch_size') == 'hour' else 'month' %}
+
 
 {{ config(
     schema = 'itm',

@@ -611,6 +611,46 @@
     );
     ALTER AGGREGATE utils.array_concat_uniq_agg(anyarray)
         OWNER TO ulf7g0ewqes1svjic5qf;
+
+    /* ---- utils.safe_between ---------------------------------------------------- */
+    DROP FUNCTION IF EXISTS utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP);
+    CREATE OR REPLACE FUNCTION utils.safe_between(value_ts TIMESTAMP, start_ts TIMESTAMP, end_ts TIMESTAMP)
+	-- RETURNS TRUE IF : (start_ts=NULL, end_ts=NULL) | (start_ts=NULL,<=end_ts) | (>=start_ts, end_ts=NULL) | (>=start_ts, <=end_ts)
+    RETURNS BOOLEAN AS $$
+    BEGIN
+        IF start_ts IS NULL AND end_ts IS NULL THEN
+            RETURN TRUE;
+        ELSIF start_ts IS NULL THEN
+            RETURN value_ts <= end_ts;
+        ELSIF end_ts IS NULL THEN
+            RETURN value_ts >= start_ts;
+        ELSE
+            RETURN value_ts BETWEEN start_ts AND end_ts;
+        END IF;
+    END;
+    $$ LANGUAGE plpgsql;
+    ALTER FUNCTION utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP)
+        OWNER TO ulf7g0ewqes1svjic5qf;
+
+    /* ---- utils.coalesce_json ---------------------------------------------------- */
+    DROP FUNCTION IF EXISTS utils.coalesce_json(json, json);
+    CREATE OR REPLACE FUNCTION utils.jsonb_coalesce(priority_json JSONB, fallback_json JSONB)
+    RETURNS JSONB AS $$
+    DECLARE
+        merged_json JSONB;
+        key TEXT;
+    BEGIN
+        merged_json = fallback_json;
+        FOR key IN SELECT jsonb_object_keys(priority_json)
+        LOOP
+            merged_json = merged_json || jsonb_build_object(key, priority_json->>key);
+        END LOOP;
+        RETURN merged_json;
+    END;
+    $$ LANGUAGE plpgsql;
+    ALTER FUNCTION utils.coalesce_json(json, json)
+        OWNER TO ulf7g0ewqes1svjic5qf;
+
     /* ---- utils.count_rows ---------------------------------------------------- */
     CREATE OR REPLACE FUNCTION utils.count_rows(
         schema_name text,

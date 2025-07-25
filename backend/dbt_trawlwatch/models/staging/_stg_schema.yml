@@ -1,11 +1,10 @@
 version: 2
 
 models:
+  ### PORTS
   - name: seed_dim_ports
     description: "Staged model from seed for ports data, used for staging and analysis"
     config:
-      tags: ['seed', 'ports']
-      materialized: view
     columns:
       - name: port_id
         description: "Unique identifier for each port (based on UN/LOCODE)"
@@ -45,54 +44,259 @@ models:
         description: "Geometric representation of the port location (POINT, WGS84 format)"
         tests:
           - not_null
-  - name: seed_dim_vessels
-    description: "Staged model from seed for vessels data, used for staging and analysis"
+  ### VESSELS
+  - name: seed_static_dim_vessels
+    description: "Static staged model from seed for vessels data, consolidated with historical vessels data further down the pipeline"
+    columns:
+      - name: vessel_id
+        description: "Unique identifier for each vessel (CRF or MMSI+ship_name)"
+        tests:
+          - not_null
+          - unique
+      - name: dim_vessel_name
+        description: "Name of the ship"
+        tests:
+          - not_null
+      - name: dim_vessel_flag
+        description: "Flag of the ship, represented by the ISO3 code of the country"
+        tests:
+          - not_null
+      - name: dim_vessel_imo
+        description: "IMO number of the vessel, used as a unique identifier"
+        tests:
+          - not_null
+          - unique
+      - name: dim_vessel_cfr
+        description: "CFR number of the vessel (EU identifier)"
+        tests:
+          - unique
+      - name: dim_vessel_call_sign
+        description: "Call sign of the vessel, used for identification"
+      - name: dim_vessel_external_marking
+        description: "External marking of the vessel, used for identification"
+      - name: dim_vessel_loa
+        description: "Length out of all of the vessel in meters"
+      - name: dim_vesse_start_date
+        description: "Start date of the vessel's operational period (if available)"
+      - name: dim_vessel_end_date
+        description: "End date of the vessel's operational period (if available)"
+      - name: tracking_activated
+        description: "Indicates if the vessel is actively tracked in Trawl Watch(boolean)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+              quote: false
+      - name: tracking_status
+        description: "Status of the vessel's tracking (e.g., 'active', 'inactive')"
+      - name: dim_vessel_source
+        description: "Source of the vessel data & informations"
+      - name: dim_vessel_origin
+        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+      - name: dim_vessel_details
+        description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
+      - name: seed_static_dim_vessel_created_at
+        description: "Timestamp when the vessel record was created in the database"
+        tests:
+          - not_null
+  - name: seed_historical_dim_vessels
+    description: "Historical staged model from seed for vessels data, consolidated with static vessels data further down the pipeline"
+    columns:
+      - name: vessel_id
+        description: "Unique identifier for each vessel (CRF or MMSI+ship_name)"
+        tests:
+          - not_null
+          - unique
+      - name: dim_vessel_name
+        description: "Name of the ship"
+        tests:
+          - not_null
+      - name: dim_vessel_flag
+        description: "Flag of the ship, represented by the ISO3 code of the country"
+        tests:
+          - not_null
+      - name: dim_vessel_imo
+        description: "IMO number of the vessel, used as a unique identifier"
+        tests:
+          - not_null
+          - unique
+      - name: dim_vessel_cfr
+        description: "CFR number of the vessel (EU identifier)"
+        tests:
+          - unique
+      - name: dim_vessel_call_sign
+        description: "Call sign of the vessel, used for identification"
+      - name: dim_vessel_external_marking
+        description: "External marking of the vessel, used for identification"
+      - name: dim_vessel_loa
+        description: "Length out of all of the vessel in meters"
+      - name: dim_vesse_start_date
+        description: "Start date of the vessel's operational period (if available)"
+      - name: dim_vessel_end_date
+        description: "End date of the vessel's operational period (if available)"
+      - name: tracking_activated
+        description: "Indicates if the vessel is actively tracked in Trawl Watch(boolean)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+              quote: false
+      - name: tracking_status
+        description: "Status of the vessel's tracking (e.g., 'active', 'inactive')"
+      - name: dim_vessel_source
+        description: "Source of the vessel data & informations"
+      - name: dim_vessel_origin
+        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+      - name: dim_vessel_details
+        description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
+      - name: seed_dim_vessel_created_at
+        description: "Timestamp when the vessel record was created in the database"
+        tests:
+          - not_null
+  - name: stg_dim_vessels
+    description: "Staging model for vessels data, used for staging and analysis"
     config:
-      tags: ['seed', 'vessels']
+      tags: ['staging', 'vessels']
       materialized: view
+    columns:
+      - name: vessel_id
+        description: "Unique identifier for each vessel (CRF or MMSI+ship_name)"
+        tests:
+          - not_null
+          - unique
+      - name: dim_vessel_name
+        description: "Name of the ship"
+        tests:
+          - not_null
+      - name: dim_vessel_flag
+        description: "Flag of the ship, represented by the ISO3 code of the country"
+        tests:
+          - not_null
+      - name: dim_vessel_imo
+        description: "IMO number of the vessel, used as a unique identifier"
+        tests:
+          - not_null
+          - unique
+      - name: dim_vessel_cfr
+        description: "CFR number of the vessel (EU identifier)"
+        tests:
+          - unique
+      - name: dim_vessel_call_sign
+        description: "Call sign of the vessel, used for identification"
+      - name: dim_vessel_external_marking
+        description: "External marking of the vessel, used for identification"
+      - name: dim_vessel_loa
+        description: "Length out of all of the vessel in meters"
+      - name: dim_vesse_start_date
+        description: "Start date of the vessel's operational period (if available)"
+      - name: dim_vessel_end_date
+        description: "End date of the vessel's operational period (if available)"
+      - name: tracking_activated
+        description: "Indicates if the vessel is actively tracked in Trawl Watch(boolean)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+              quote: false 
+      - name: tracking_status
+        description: "Status of the vessel's tracking (e.g., 'active', 'inactive')"
+      - name: dim_vessel_source
+        description: "Source of the vessel data & informations"
+      - name: dim_vessel_origin
+        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['STATIC', 'HISTORIZED', 'SPIRE_AIS_DATA']
+              quote: true
+      - name: dim_vessel_details
+        description: "JSON object containing additional details about the vessel, such as gear, length class, and ship type"  
+      - name: stg_dim_vessel_created_at
+        description: "Timestamp when the vessel record was created in the database"
+
+  #### MMSI
+  - name: seed_historical_dim_mmsi
+    description: "Seed model for historical MMSI - vessel_id association, consolidated with static MMSI data further down the pipeline"
+    columns:
+      - name: vessel_id
+        description: "Unique identifier for each vessel"
+        tests:
+          - not_null
+      - name: dim_mmsi_mmsi
+        description: "MMSI of the vessel"
+        tests:
+          - not_null
+      - name: dim_mmsi_start_date
+        description: "Start date of the MMSI's operational period (if available)"
+        tests: 
+          - not_null
+      - name: dim_mmsi_end_date
+        description: "End date of the MMSI's operational period (if available)"
+      - name: dim_mmsi_created_at
+        description: "Timestamp when the record was created in the database"
+        tests:
+          - not_null
+
+  - name: seed_static_dim_mmsi
+    description: "Seed model for static MMSI - vessel_id association, consolidated with historical MMSI data further down the pipeline"
     columns:
       - name: vessel_id
         description: "Unique identifier for each vessel"
         tests:
           - not_null
           - unique
-      - name: mmsi
-        description: "Maritime Mobile Service Identity number of the vessel"
+      - name: dim_mmsi_mmsi
+        description: "MMSI of the vessel"
         tests:
           - not_null
           - unique
-      - name: ship_name
-        description: "Name of the ship"
+      - name: dim_mmsi_start_date
+        description: "Start date of the MMSI's operational period (if available)"
+        tests: 
+          - accepted_values:
+              values: [null]
+              quote: false
+      - name: dim_mmsi_end_date
+        description: "End date of the MMSI's operational period (if available)"
+        tests: 
+          - accepted_values:
+              values: [null]
+              quote: false
+      - name: dim_mmsi_created_at
+        description: "Timestamp when the record was created in the database"
         tests:
           - not_null
-      - name: width
-        description: "Width of the vessel"
-      - name: length
-        description: "Length of the vessel"
-      - name: length_class
-        description: "Length class of the vessel"
-      - name: ship_type
-        description: "Type of the vessel"
-      - name: imo
-        description: "IMO number of the vessel, used as a unique identifier"
-      - name: cfr
-        description: "CFR number of the vessel (EU identifier)"
-      - name: external_marking
-        description: "External marking of the vessel, used for identification"
-      - name: ircs
-        description: "International Radio Call Sign of the vessel"
-      - name: tracking_activated
-        description: "Indicates if the vessel is actively tracked (boolean)"
-      - name: tracking_status
-        description: "Status of the vessel's tracking (e.g., 'active', 'inactive')"
-      - name: checked
-        description: "Verification source for the vessel data"
-      - name: details
-        description: "Additional details about the vessel"
-      - name: created_at
-        description: "Timestamp when the vessel record was created in the database"
-      - name: updated_at
-        description: "Timestamp when the vessel record was last updated in the database"
+
+  - name: stg_dim_mmsi
+    description: "Staging model for MMSI data, used for staging and analysis"
+    colums:
+      - name: vessel_id
+        description: "Unique identifier for each vessel"
+        tests:
+          - not_null
+          - unique
+      - name: dim_mmsi_mmsi
+        description: "MMSI of the vessel"
+        tests:
+          - not_null
+          - unique
+      - name: dim_mmsi_start_date
+        description: "Start date of the MMSI's operational period (if available)"
+        tests: 
+          - accepted_values:
+              values: [null]
+              quote: false
+      - name: dim_mmsi_end_date
+        description: "End date of the MMSI's operational period (if available)"
+        tests: 
+          - accepted_values:
+              values: [null]
+              quote: false
+      - name: dim_mmsi_created_at
+        description: "Timestamp when the record was created in the database"
+        tests:
+          - not_null
+  ### ZONES
   - name: stg_dim_zones
     description: "Staging model for zones data, used for staging and analysis"
     config:
@@ -140,6 +344,7 @@ models:
         tests:
           - not_null
 
+  ### VESSEL POSITIONS
   - name: stg_vessel_positions
     description: "Staging partitioned incremental model for vessel positions derived from Spire AIS data with vessel_id"
     config:
