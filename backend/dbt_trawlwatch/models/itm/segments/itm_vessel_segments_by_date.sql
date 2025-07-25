@@ -14,7 +14,6 @@
     {% set batchsize = 'month' %}
 {% endif %}
 
-
 {{ config(
     schema = 'itm',
     enabled = true,
