@@ -46,7 +46,7 @@ select
         'auxiliary_engine_power', auxiliary_engine_power,
         'tonnage_gt', tonnage_gt,
         'other_tonnage' as other_tonnage,
-        'fish_hold_volume' as fish_hold_volume,
+        'fish_hold_volume', fish_hold_volume,
         'carrying_capacity' as carrying_capacity
     ) as dim_vessel_details,
 
