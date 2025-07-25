@@ -269,7 +269,7 @@ models:
 
   - name: stg_dim_mmsi
     description: "Staging model for MMSI data, used for staging and analysis"
-    colums:
+    columns:
       - name: vessel_id
         description: "Unique identifier for each vessel"
         tests:
