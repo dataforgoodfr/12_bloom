@@ -21,7 +21,8 @@
 select 
     id as vessel_id,
     ship_name as dim_vessel_name,
-    loa	country_iso3 as dim_vessel_flag	
+    loa as dim_vessel_loa,
+    country_iso3 as dim_vessel_flag,
     imo as dim_vessel_imo,
     NULL::varchar as dim_vessel_cfr,
     ircs as dim_vessel_call_sign,
