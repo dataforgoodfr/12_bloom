@@ -616,6 +616,7 @@
     DROP FUNCTION IF EXISTS utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP);
 
     CREATE OR REPLACE FUNCTION utils.safe_between(
+        -- RETURNS TRUE IF : (start_ts=NULL, end_ts=NULL) | (start_ts=NULL,<=end_ts) | (>=start_ts, end_ts=NULL) | (>=start_ts, <=end_ts)
         value_ts TIMESTAMP,
         start_ts TIMESTAMP,
         end_ts TIMESTAMP
