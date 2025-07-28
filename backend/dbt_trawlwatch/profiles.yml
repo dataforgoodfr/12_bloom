@@ -1,0 +1,22 @@
+dbt_trawl_watch_profile:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      threads: 4
+      host: "{{ env_var('POSTGRES_HOSTNAME', 'localhost') }}"
+      port: "{{ env_var('POSTGRES_PORT', 5432) | as_number }}"
+      user: "{{ env_var('POSTGRES_USER', 'bloom_user') }}"
+      pass: "{{ env_var('POSTGRES_PASSWORD', 'bloom') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'bloom_db') }}"
+      schema: "staging"
+      sslmode: prefer
+
+      extras:
+        # lève toute limite d’exécution côté Postgres
+        options: "-c statement_timeout=0"
+
+      # ping TCP toutes les 60 s pour éviter la coupure réseau
+      keepalives_idle: 60
+      keepalives_interval: 10
+      keepalives_count: 5
