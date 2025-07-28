@@ -4,7 +4,7 @@
     schema='staging',
     materialized='view',
     alias='seed_dim_ports',
-    tags=['staging', 'dim', 'port'],
+    tags=['seed', 'dim', 'port'],
     indexes=[
         {"columns": ["port_id"], "type": "btree", "unique": true},
         {"columns": ["port_locode"], "type": "btree", "unique": true},

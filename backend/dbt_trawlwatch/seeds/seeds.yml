@@ -11,8 +11,8 @@ seeds:
       column_types:
         id: text
         mmsi: integer
-        start_date: timestamp
-        end_date: timestamp
+        start_date: text
+        end_date: text
         details: text
       
       description: >
@@ -55,13 +55,13 @@ seeds:
         cfr: text
         main_engine_power: float
         auxiliary_engine_power: float
-        tonnage_gt: float
+        tonnage_gt: text
         other_tonnage: float
         fish_hold_volume: float
         carrying_capacity: float
         external_marking: text
-        start_date: timestamp
-        end_date: timestamp
+        start_date: text
+        end_date: text
         status: text
         source: text
 
@@ -180,7 +180,7 @@ seeds:
       schema: seeds
       tags: ['dim','vessel']
       quote_columns: true
-      delimiter: ","
+      delimiter: ";"
       column_types: 
         id: text
         mmsi: integer
