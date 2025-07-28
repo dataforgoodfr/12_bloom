@@ -30,7 +30,7 @@ static_mmsi as ( -- MMSI statiques
     vessel_id, -- Identifiant unique pour vessel_id
     dim_mmsi_mmsi,
     dim_mmsi_start_date, -- Date de début de validité du MMSI -> NULL
-    dim_mmsi_end_date -- Date de fin de validité du MMSI -> NULL
+    dim_mmsi_end_date, -- Date de fin de validité du MMSI -> NULL
     dim_mmsi_details -- NULL
     from {{ ref('seed_static_dim_mmsi') }}
 ),
@@ -40,7 +40,7 @@ historical_mmsi as ( -- MMSI historisés
     vessel_id, -- Identifiant unique pour vessel_id
     dim_mmsi_mmsi,
     dim_mmsi_start_date, -- Date de début de validité du MMSI
-    dim_mmsi_end_date -- Date de fin de validité du MMSI
+    dim_mmsi_end_date, -- Date de fin de validité du MMSI
     dim_mmsi_details    
     from {{ ref('seed_historical_dim_mmsi') }}
 ),
@@ -69,4 +69,4 @@ select
 from flagged_mmsi
 -- Consolidation des liens MMSI - vessel_id avec priorité aux MMSI historisés
 where (has_historical and dim_mmsi_start_date is not null)
-   or (not has_historical and dim_mmsi_start_date is null);
+   or (not has_historical and dim_mmsi_start_date is null)

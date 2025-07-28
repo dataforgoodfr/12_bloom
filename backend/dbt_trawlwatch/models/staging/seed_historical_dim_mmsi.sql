@@ -11,7 +11,7 @@
 }}
 
 select
-    vessel_id as vessel_id,
+    id as vessel_id,
     mmsi as dim_mmsi_mmsi,
     to_timestamp(start_date, 'DD/MM/YYYY') as dim_mmsi_start_date,
     (to_timestamp(end_date, 'DD/MM/YYYY') + interval '1 day' - interval '1 microsecond') as dim_mmsi_end_date,
@@ -20,4 +20,4 @@ select
     now() as dim_mmsi_created_at
 from {{ ref('historical_dim_mmsi') }}
 
-where vessel_id is not null
+where id is not null

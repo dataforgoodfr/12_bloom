@@ -197,7 +197,7 @@ models:
           - accepted_values:
               values: [true, false]
               quote: false 
-      - name: tracking_status
+      - name: dim_vessel_status
         description: "Status of the vessel's tracking (e.g., 'active', 'inactive')"
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"

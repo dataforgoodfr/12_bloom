@@ -32,8 +32,8 @@ select
     external_marking as dim_vessel_external_marking,
     length as dim_vessel_loa,
 
-    null::TIMESTAMPZ as dim_vessel_start_date,
-    null::TIMESTAMPZ as dim_vessel_end_date,
+    null::TIMESTAMPTZ as dim_vessel_start_date,
+    null::TIMESTAMPTZ as dim_vessel_end_date,
     
     
     tracking_activated,

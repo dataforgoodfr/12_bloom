@@ -21,18 +21,14 @@
 select 
     id as vessel_id,
     ship_name as dim_vessel_name,
-    loa as dim_vessel_loa,
     country_iso3 as dim_vessel_flag,
     imo as dim_vessel_imo,
     NULL::varchar as dim_vessel_cfr,
     ircs as dim_vessel_call_sign,
     external_marking as dim_vessel_external_marking,
-    length as dim_vessel_loa,
-    
-
-
-    start_date as dim_vessel_start_date,
-    end_date as dim_vessel_end_date,
+    loa as dim_vessel_loa,
+    to_timestamp(start_date, 'DD/MM/YYYY') as dim_vessel_start_date,
+    (to_timestamp(end_date, 'DD/MM/YYYY') + interval '1 day' - interval '1 microsecond') as dim_vessel_end_date,
 
     TRUE as tracking_activated,
     status as dim_vessel_status,
@@ -45,7 +41,7 @@ select
         'main_engine_power', main_engine_power,
         'auxiliary_engine_power', auxiliary_engine_power,
         'tonnage_gt', tonnage_gt,
-        'other_tonnage' as other_tonnage,
+        'other_tonnage' , other_tonnage,
         'fish_hold_volume', fish_hold_volume,
         'carrying_capacity', carrying_capacity
     ) as dim_vessel_details,
