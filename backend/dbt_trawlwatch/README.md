@@ -18,9 +18,11 @@ Try running the following commands:
 cd .\12_bloom-main\backend\dbt_trawl_watch\
 dbt run-operation _init_dbt_trawl_watch__generate_all_pg_functions
 dbt run-operation _init_dbt_trawl_watch__enforce_incremental_tables_reset
-dbt run --event-time-start "2024-05-01" --event-time-end "2025-07-21" --vars '{default_microbatch_size: "day"}'
+dbt seed
+dbt run --select tag:dim 
+dbt run --event-time-start "2024-05-01" --event-time-end "{# remplacer par : today+1day #}" --vars '{default_microbatch_size: "day"}'
 
-### Test simple sur une période courte
+### Test simple sur le staging des positions pour une période déterminée
 cd .\12_bloom-main\backend\dbt_trawl_watch\
 dbt run -m stg_vessel_positions --event-time-start "2024-05-31" --event-time-end "2024-06-04" 
 
@@ -28,6 +30,3 @@ dbt run -m stg_vessel_positions --event-time-start "2024-05-31" --event-time-end
 cd .\12_bloom-main\backend\dbt_trawl_watch\
 dbt run
 
-### Run au fil de l'eau
-cd .\12_bloom-main\backend\dbt_trawl_watch\
-dbt run

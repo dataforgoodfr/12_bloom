@@ -28,13 +28,11 @@
         identifier='itm_vessel_positions'
 ) %}
 
-
-
 with 
 
 itm_vessel_excursions_events as ( -- Positions des navires filtrées : 1 par timestamp (hors station au port et doublons)
     select 
-        position_id as position_id,
+        position_id,
         vessel_id,
         position_timestamp,
         position_timestamp_day,
@@ -46,7 +44,7 @@ itm_vessel_excursions_events as ( -- Positions des navires filtrées : 1 par tim
         is_excursion_start,
         is_excursion_end,
         position,
-        position_itm_created_at as position_itm_created_at,
+        position_itm_created_at,
         case 
                 when is_excursion_start then 'start'
                 when is_excursion_end then 'end'
@@ -119,7 +117,6 @@ treat_next_excursion_event as ( -- Traite le type d'événement d'excursion suiv
     from check_next_excursion_event
 ),
 
-
 filter_start_end as ( -- Filtre les événements d'excursion pour ne garder que les 'start' et 'end'
 	select 
 		*,
@@ -128,11 +125,10 @@ filter_start_end as ( -- Filtre les événements d'excursion pour ne garder que 
 	where excursion_event_type_redefined in ('start','end')
 ),
 
-
-eval_start_end as ( -- A utiliser comme dernier CTE pour vérifier la succession des événements d'excursion (pruné par défaut car unused dans la suite du modèle)
+/*eval_start_end as ( -- A utiliser comme dernier CTE pour vérifier la succession des événements d'excursion (pruné par défaut car unused dans la suite du modèle)
 	select *, case when excursion_event_rank %2 = 1 then 'expect start' else 'expect end' end as excursion_event_expected
 	from filter_start_end
-),
+),*/
 
 start_list as ( -- Liste des positions de début d'excursion
 	select 
@@ -166,29 +162,30 @@ end_list as ( -- Liste des positions de fin d'excursion
 
 join_it as ( -- Jointure des positions de début et de fin d'excursion
 	select 
-		s.*,
-		e.excursion_end_position_id,
-		e.excursion_end_position_timestamp,
-		e.excursion_end_position_timestamp_day,
-		e.excursion_end_position_timestamp_month,
-		e.excursion_end_port_id,
-		(e.excursion_end_position_timestamp - s.excursion_start_position_timestamp) as excursion_duration_interval,
+		exc_start.*,
+		exc_end.excursion_end_position_id,
+		exc_end.excursion_end_position_timestamp,
+		exc_end.excursion_end_position_timestamp_day,
+		exc_end.excursion_end_position_timestamp_month,
+		exc_end.excursion_end_port_id,
+		(exc_end.excursion_end_position_timestamp - exc_start.excursion_start_position_timestamp) as excursion_duration_interval,
          case 
-            when e.excursion_end_position_timestamp is not null then 'completed'
-            when s.excursion_start_position_timestamp is not null then 'ongoing'
+            when exc_end.excursion_end_position_timestamp is not null then 'completed'
+            when exc_start.excursion_start_position_timestamp is not null then 'ongoing'
             else 'unknown' 
         end as excursion_status, -- Statut de l'excursion
-        s.vessel_id || '_' || lpad(s.excursion_event_rank::text, 4, '0')  as excursion_id,
+        exc_start.vessel_id || '_' || lpad( cast(exc_start.excursion_event_rank as text), 4, '0')  as excursion_id,
         case 
-        when excursion_start_port_id = excursion_end_port_id then true
-        when excursion_start_port_id != excursion_end_port_id then false
-        else null end as excursion_is_loop,
+            when exc_start.excursion_start_port_id = exc_end.excursion_end_port_id then true
+            when exc_start.excursion_start_port_id != exc_end.excursion_end_port_id then false
+        end as excursion_is_loop,
 
-        case when s.excursion_start_position_itm_created_at > e.excursion_end_position_itm_created_at then s.excursion_start_position_itm_created_at
-        else e.excursion_end_position_itm_created_at end as excursion_position_itm_created_at -- Date de création de l'excursion (la plus récente des 2 positions)
+        case when exc_start.excursion_start_position_itm_created_at > exc_end.excursion_end_position_itm_created_at then exc_start.excursion_start_position_itm_created_at
+        else exc_end.excursion_end_position_itm_created_at end as excursion_position_itm_created_at -- Date de création de l'excursion (la plus récente des 2 positions)
 
-	from start_list s
-	left join end_list e on s.vessel_id = e.vessel_id and s.excursion_event_rank + 1 = e.excursion_event_rank
+	from start_list as exc_start
+	left join end_list as exc_end 
+        on exc_start.vessel_id = exc_end.vessel_id and exc_start.excursion_event_rank + 1 = exc_end.excursion_event_rank
 )
 
 select 
@@ -214,4 +211,5 @@ select
     excursion_position_itm_created_at,
     now() as excursion_created_at -- Date de création de l'excursion
 
-from join_it order by vessel_id, excursion_id
+from join_it 
+order by vessel_id, excursion_id

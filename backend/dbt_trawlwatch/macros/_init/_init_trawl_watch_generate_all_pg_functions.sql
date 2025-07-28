@@ -76,7 +76,7 @@
                             position_ais_created_at_min         TIMESTAMPTZ,
                             position_ais_created_at_max         TIMESTAMPTZ,
                             position_stg_created_at TIMESTAMPTZ, -- Date de création de la position dans la base de données (staging)
-                            position                        GEOMETRY(Point,4326),
+                            position_point                        GEOMETRY(Point,4326),
                             CONSTRAINT %I_pkey PRIMARY KEY (vessel_id, position_id, position_timestamp_month)
                         ) PARTITION BY LIST (position_timestamp_month);
                     $ddl$, qualified, base_table);
@@ -93,7 +93,7 @@
                     EXECUTE 'CREATE INDEX IF NOT EXISTS idx_stg_pos_stg_created_at         ON '||qualified||' (position_stg_created_at)';
                     EXECUTE 'CREATE INDEX IF NOT EXISTS idx_stg_pos_timestamp_brin         ON '||qualified||' USING brin(position_timestamp)';
                     EXECUTE 'CREATE INDEX IF NOT EXISTS idx_stg_pos_timestamp_brin         ON '||qualified||' USING brin(position_timestamp_day)';
-                    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_stg_pos_geom                   ON '||qualified||' USING gist(position)';
+                    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_stg_pos_geom                   ON '||qualified||' USING gist(position_point)';
             
             /* 3. Création des partitions manquantes ------------------------------------------------------ */
             FOR y IN start_year..end_year LOOP
@@ -225,8 +225,8 @@
                     distance_km numeric, -- Distance euclidienne entre la position courante et la précédente (en kilomètres)
                     distance_mi numeric, -- Distance euclidienne entre la position courante et la précédente (en milles marins)
 
-                    position GEOMETRY(Point,4326),
-                    position_prev GEOMETRY(Point,4326),
+                    position_point GEOMETRY(Point,4326),
+                    position_point_prev GEOMETRY(Point,4326),
                     nb_ais_messages INTEGER DEFAULT 1, -- Nombre de messages AIS reçus pour cette position
                     position_itm_created_at TIMESTAMPTZ DEFAULT now(), -- Date de création de la position dans la base de données (cette table)
 
@@ -248,7 +248,7 @@
             EXECUTE 'CREATE INDEX IF NOT EXISTS idx_itm_pos_vessel_ts              ON '||qualified||' (vessel_id, position_timestamp)';
             EXECUTE 'CREATE INDEX IF NOT EXISTS idx_itm_pos_vessel_ts_day              ON '||qualified||' (vessel_id, position_timestamp_day)';
 
-            EXECUTE 'CREATE INDEX IF NOT EXISTS idx_itm_pos_geom                   ON '||qualified||' USING gist(position)';
+            EXECUTE 'CREATE INDEX IF NOT EXISTS idx_itm_pos_geom                   ON '||qualified||' USING gist(position_point)';
             EXECUTE 'CREATE INDEX IF NOT EXISTS idx_itm_pos_position_ids                ON '||qualified||' USING btree(position_id, position_id_prev)';
 
             EXECUTE 'CREATE INDEX IF NOT EXISTS idx_itm_pos_is_last_position             ON '||qualified||' USING btree(is_last_position)';

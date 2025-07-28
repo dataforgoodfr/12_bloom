@@ -15,16 +15,12 @@
 
 
 select distinct
-    coalesce(cfr_no_na, concat_ws('_', mmsi ,ship_name )) as vessel_id, -- Création d'un identifiant unique vessel_id
+    id as vessel_id, -- Création d'un identifiant unique vessel_id, à partir du CFR ou de l'IMO, ou si aucun n'est dispo, ...
     mmsi as dim_mmsi_mmsi,
-    NULL::TIMESTAMPTZ as dim_mmsi_start_date, -- Date de début de validité du MMSI -> NULL
-    NULL::TIMESTAMPTZ as dim_mmsi_end_date, -- Date de fin de validité du MMSI -> NULL
-    'STATIC'::varchar as dim_mmsi_origin, -- Origine des données du MMSI STATIC | HISTORIZED
+    cast(NULL as TIMESTAMPTZ) as dim_mmsi_start_date, -- Date de début de validité du MMSI -> NULL
+    cast(NULL as TIMESTAMPTZ) as dim_mmsi_end_date, -- Date de fin de validité du MMSI -> NULL
+    cast('STATIC' as VARCHAR) as dim_mmsi_origin, -- Origine des données du MMSI STATIC | HISTORIZED
     NULL as dim_mmsi_details,
     now() as dim_mmsi_created_at -- Méta: date de création de la dimension dans la base de données
 
-from 
-
-    ( select *,
-        case when cfr = 'NA' then null else cfr end as cfr_no_na -- Gestion des valeurs 'NA' pour CFR
-      from  {{ ref('static_vessels_table') }} ) as static_vessels
+from  {{ ref('static_vessels_table') }} 

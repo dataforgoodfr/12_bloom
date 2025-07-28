@@ -24,7 +24,7 @@ This file is used to create a mart table for zones for API routes :
 with
 
 itm_zones as (
-    select * from {{ ref('itm_dim_zones') }}
+    select * from {{ ref('stg_dim_zones') }}
 )
 
 select

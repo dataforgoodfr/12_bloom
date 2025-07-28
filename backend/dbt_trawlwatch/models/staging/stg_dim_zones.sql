@@ -3,7 +3,16 @@
 {{ config(
     schema='staging',
     materialized='view',
-    tags=['staging', 'dim', 'zone']
+    tags=['staging', 'dim', 'zone'],
+    indexes= [
+        {"columns": ["zone_category"], "type": "btree"},
+        {"columns": ["zone_sub_category"], "type": "btree"},
+        {"columns": ["zone_id"], "type": "btree", "unique": true},
+        {"columns": ["zone_name"], "type": "btree"},
+        {"columns": ["zone_enable"], "type": "btree"},
+        {"columns": ["zone_created_at", "zone_updated_at"], "type": "btree"},
+        {"columns": ["zone_geometry"], "type": "gist"}
+    ]
 ) }}
 
 select 
@@ -18,4 +27,4 @@ select
     centroid as zone_centroid,
     geometry as zone_geometry
 from {{ source('zones','dim_zone') }} 
-where enable = true
+where enable = TRUE

@@ -1,10 +1,26 @@
 -- itm_vessel_excursions_details.sql
 -- This model aggregates vessel excursions with their positions, providing a comprehensive view of each excursion's details
-
 {{ config(
     materialized='table',
-    schema='itm'
-) }}
+    schema='itm',
+    unique_key=['excursion_id'],
+    tags=['itm', 'vessel', 'excursions', 'details'],
+    indexes=[
+        {'columns': ['vessel_id'], 'type': 'btree'},
+        {'columns': ['excursion_id'], 'type': 'btree'},
+        {'columns': ['excursion_start_position_timestamp'], 'type': 'btree'},
+        {'columns': ['excursion_end_position_timestamp'], 'type': 'btree'},
+        {'columns': ['excursion_port_departure'], 'type': 'btree'},
+        {'columns': ['excursion_port_arrival'], 'type': 'btree'},
+        {'columns': ['excursion_is_loop'], 'type': 'btree'},
+        {'columns': ['excursion_duration_interval'], 'type': 'btree'},
+        {'columns': ['excursion_status'], 'type': 'btree'},
+        {'columns': ['excursion_position_itm_created_at'], 'type': 'btree'},
+        {'columns': ['excursion_line'], 'type': 'gist'},
+        {'columns': ['excursion_line_metrics'], 'type': 'gist'}
+    ]
+)
+}}
 
 with 
 
@@ -13,7 +29,7 @@ positions as (
     select *
     from {{ ref('itm_vessel_positions') }} 
     {% if is_incremental() %}
-        where position_itm_created_at >= (select max(excursion_position_itm_created_at) from {{ this }})
+    where position_itm_created_at >= (select max(excursion_position_itm_created_at) from {{ this }})
     {% endif %}
 ),
 
@@ -40,39 +56,36 @@ excursions as (
     from {{ ref('itm_vessel_excursions') }}
 ),
 
-
-
 excursions_detailed as (
 
     select 
-        
-        e.*,
+        exc.*,
 
-        array_agg(p.position_id) as excursion_position_ids,
-        count(p.position_id) as excursion_positions_count,
-        max(position_timestamp) as last_position_checked,
+        array_agg(pos.position_id) as excursion_position_ids,
+        count(pos.position_id) as excursion_positions_count,
+        max(pos.position_timestamp) as last_position_checked,
 
-        ST_MakeLine(
-            array_agg(p.position order by p.position_timestamp)
+        st_makeline(
+            array_agg(pos.position_point order by pos.position_timestamp)
         ) as excursion_line
 
-    from excursions e
-    left join positions p 
-        on e.vessel_id = p.vessel_id 
-        and p.position_timestamp_month between e.excursion_start_position_timestamp_month and e.excursion_end_position_timestamp_month
-        and p.position_timestamp_day between e.excursion_start_position_timestamp_day and e.excursion_end_position_timestamp_day
-        and p.position_timestamp between e.excursion_start_position_timestamp and e.excursion_end_position_timestamp
+    from excursions as exc
+    left join positions as pos 
+        on exc.vessel_id = pos.vessel_id 
+        and pos.position_timestamp_month between exc.excursion_start_position_timestamp_month and exc.excursion_end_position_timestamp_month
+        and pos.position_timestamp_day between exc.excursion_start_position_timestamp_day and exc.excursion_end_position_timestamp_day
+        and pos.position_timestamp between exc.excursion_start_position_timestamp and exc.excursion_end_position_timestamp
     group by 
-        e.vessel_id,
-        e.excursion_id,
-        e.excursion_start_position_id, e.excursion_end_position_id,
-        e.excursion_start_position_timestamp, e.excursion_end_position_timestamp,
-        e.excursion_start_position_timestamp_day, e.excursion_end_position_timestamp_day,
-        e.excursion_start_position_timestamp_month, e.excursion_end_position_timestamp_month,
-        e.excursion_port_departure, e.excursion_port_arrival,
-        e.excursion_is_loop, e.excursion_duration_interval,
-        e.excursion_status, e.excursion_created_at,
-        e.excursion_position_itm_created_at
+        exc.vessel_id,
+        exc.excursion_id,
+        exc.excursion_start_position_id, exc.excursion_end_position_id,
+        exc.excursion_start_position_timestamp, exc.excursion_end_position_timestamp,
+        exc.excursion_start_position_timestamp_day, exc.excursion_end_position_timestamp_day,
+        exc.excursion_start_position_timestamp_month, exc.excursion_end_position_timestamp_month,
+        exc.excursion_port_departure, exc.excursion_port_arrival,
+        exc.excursion_is_loop, exc.excursion_duration_interval,
+        exc.excursion_status, exc.excursion_created_at,
+        exc.excursion_position_itm_created_at
 ),
 
 excursions_synthesis as ( -- Synthèse des excursions (partie 1 : métriques non sensibles aux zones maritimes)
@@ -102,7 +115,7 @@ excursions_synthesis as ( -- Synthèse des excursions (partie 1 : métriques non
 
         excursion_position_ids,
         excursion_positions_count,
-        round ((extract(epoch from excursion_duration_interval) / excursion_positions_count::numeric )/60,1) as excursion_interval_between_positions_minutes,
+        round((extract(epoch from excursion_duration_interval) / excursion_positions_count::numeric )/60,1) as excursion_interval_between_positions_minutes,
         round(st_length(st_transform(excursion_line,3857))::numeric/1852.0, 3) as excursion_line_length_nm,
         last_position_checked,
 
@@ -115,7 +128,6 @@ excursions_synthesis as ( -- Synthèse des excursions (partie 1 : métriques non
 
     
 )
-
 
 select * from excursions_synthesis
 order by excursion_id

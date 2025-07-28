@@ -1,0 +1,8 @@
+version: 2
+data_tests:
+  - name: assert_first_and_last_position_complete
+    description: >
+      This test checks that the number of vessels in the first and last positions table matches the number of distinct vessel_id in the dimension table.
+  - name: assert_last_raw_position_complete
+    description: >
+      This test checks that the number of vessels in the last raw position table matches the number of distinct vessel_id in the dimension table.

@@ -38,12 +38,11 @@ positions as (
     position_id,
     vessel_id,
     position_timestamp,
-    position
+    position_point
   from {{ ref('itm_vessel_positions') }} {{ MMSI_filter }}
 ),
 
-
-its_list as ( -- Liste des correspondances excursions x zones (seulement)
+zec_list as ( -- Liste des correspondances excursions x zones (seulement)
   select 
     excursion_id,
     vessel_id,
@@ -54,41 +53,39 @@ its_list as ( -- Liste des correspondances excursions x zones (seulement)
   from {{ ref('itm_zones_x_excursions_list') }}
 ),
 
-
-positions_with_zones_candidates as ( -- Jointure des positions des navires avec la liste des zones concernées par les excursions (préfiltre des zones à analyser en croisement spatial)
+positions_with_zones_candidates as ( -- Jointure des positions des navires avec la liste des zones_x_excursions (préfiltre des zones à analyser en croisement spatial)
   select 
-    p.position_id,
-    p.vessel_id,
-    position_timestamp,
-    position,
-    zone_id_candidate, -- Récupération des zones candidates pour le croisement spatial
-    excursion_id,
-    excursion_start_position_timestamp
-  from positions p
-	join its_list l 
-		on p.vessel_id = l.vessel_id 
-    and p.position_timestamp between l.excursion_start_position_timestamp and l.excursion_end_position_timestamp
-    and p.position_id = ANY(l.excursion_position_ids)
+    pos.position_id,
+    pos.vessel_id,
+    pos.position_timestamp,
+    pos.position_point,
+    zec.zone_id_candidate, -- Récupération des zones candidates pour le croisement spatial
+    zec.excursion_id,
+    zec.excursion_start_position_timestamp
+  from positions as pos
+	inner join zec_list as zec
+		on pos.vessel_id = zec.vessel_id
+    and pos.position_timestamp between zec.excursion_start_position_timestamp and zec.excursion_end_position_timestamp
+    and pos.position_id = any(zec.excursion_position_ids)
 ) ,
 
 positions_x_zones as ( -- Positions des navires dans les zones maritimes (croisement spatial)
   select distinct
-    p.vessel_id,
-    p.excursion_id,
-    p.position_id,
-    p.position_timestamp,
-    z.zone_id,
-    z.zone_category,
-    z.zone_sub_category,
-    p.excursion_start_position_timestamp,
-    p.position
-  from positions_with_zones_candidates p 
-  join (select * from {{ ref('itm_dim_zones') }} ) z
-	on true 
-    and  z.zone_id = p.zone_id_candidate
-    and ST_Contains(z.zone_geometry, p.position)
-	order by excursion_id, position_timestamp
+    candidates.vessel_id,
+    candidates.excursion_id,
+    candidates.position_id,
+    candidates.position_timestamp,
+    zones.zone_id,
+    zones.zone_category,
+    zones.zone_sub_category,
+    candidates.excursion_start_position_timestamp,
+    candidates.position_point
+  from positions_with_zones_candidates as candidates
+  inner join (select * from {{ ref('stg_dim_zones') }} ) as zones
+	  on true 
+    and candidates.zone_id_candidate = zones.zone_id
+    and st_contains(zones.zone_geometry, candidates.position_point)
+	order by candidates.excursion_id, candidates.position_timestamp
 )
-
 
 select * from positions_x_zones

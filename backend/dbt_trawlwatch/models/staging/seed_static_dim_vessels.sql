@@ -23,7 +23,7 @@
 }}
 
 select 
-    coalesce(cfr, concat_ws('_', mmsi ,ship_name )) as vessel_id, -- Création d'un identifiant unique pour le navire
+    id as vessel_id, -- Création d'un identifiant unique pour le navire
     ship_name as dim_vessel_name,
     country_iso3 as dim_vessel_flag,
     imo as dim_vessel_imo,
@@ -31,16 +31,13 @@ select
     ircs as dim_vessel_call_sign,
     external_marking as dim_vessel_external_marking,
     length as dim_vessel_loa,
-
-    null::TIMESTAMPTZ as dim_vessel_start_date,
-    null::TIMESTAMPTZ as dim_vessel_end_date,
-    
-    
+    cast(NULL as TIMESTAMPTZ) as dim_vessel_start_date,
+    cast(NULL as TIMESTAMPTZ) as dim_vessel_end_date,
     tracking_activated,
     tracking_status as dim_vessel_status,
     "check" as dim_vessel_source,
-    'STATIC'::varchar as dim_vessel_origin, -- Origine des données du navire STATIC | HISTORIZED'
-    
+    cast('STATIC' as VARCHAR) as dim_vessel_origin, -- Origine des données du navire STATIC | HISTORIZED'
+
     jsonb_build_object(
         'width', width,
         'length_class', length_class,
@@ -50,5 +47,5 @@ select
     now() as seed_dim_vessel_created_at -- Méta: date de création de la dimension dans la base de données
 
 from {{ ref('static_vessels_table') }} 
-where tracking_activated = true
+where tracking_activated = TRUE
 order by vessel_id

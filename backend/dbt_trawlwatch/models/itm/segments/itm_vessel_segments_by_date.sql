@@ -45,9 +45,9 @@ vessel_daysegments as (
         segment_ends_at_day as daysegments_date, -- Date de fin du segment
         segment_type, -- Type de segment (AT_SEA, DEFAULT_AIS)
 
-        sum(segment_duration)::interval as segment_duration, -- Interval
-        sum(segment_duration_s::bigint) AS daysegments_duration_s, -- Durée du segment en secondes
-        sum(segment_duration_h::bigint) AS daysegments_duration_h, -- Durée du segment en heures
+        sum(cast(segment_duration as interval)) as segment_duration, -- Interval
+        sum(cast(segment_duration_s as bigint)) AS daysegments_duration_s, -- Durée du segment en secondes
+        sum(cast(segment_duration_h as bigint)) AS daysegments_duration_h, -- Durée du segment en heures
 
         sum(segment_distance_m) AS daysegments_distance_m, -- Distance parcourue dans le segment en mètres (calculée entre les positions de début et de fin du segment)
         sum(segment_distance_nm) AS daysegments_distance_nm, -- Distance parcourue dans le segment en milles marins (calculée entre les positions de début et de fin du segment)
@@ -55,18 +55,19 @@ vessel_daysegments as (
         avg(segment_average_speed) as daysegments_daily_average_speed, -- Vitesse moyenne du segment en nœuds (calculée en faisant la moyenne des vitesses AIS disponibles)
         avg(segment_course_speed) as daysegments_daily_course_speed, -- Vitesse de la route fond en nœuds (calculée entre les positions de début et de fin du segment)
 
+        -- Intersection entre zone_ids et zone_ids_prev : les zones dans lesquelles le navire est resté entre les 2 positions
+        utils.array_concat_uniq_agg(zones_crossed) as zones_crossed, 
 
-        utils.array_concat_uniq_agg(zones_crossed) as zones_crossed, -- Intersection entre zone_ids et zone_ids_prev : les zones dans lesquelles le navire est resté entre les 2 positions
+        -- Le navire est-il dans une zone AMP ?
+        sum(case when is_in_amp_zone then segment_duration else cast('0 minute' as interval) end) as time_in_amp_zone, 
+        -- Le navire est-il dans des eaux territoriales ?
+        sum(case when is_in_territorial_waters then segment_duration else cast('0 minute' as interval) end) as time_in_territorial_waters,
+        -- Le navire est-il dans une zone pour laquelle il n'a pas de droit de pêche ? 
+        sum(case when is_in_zone_with_no_fishing_rights then segment_duration else cast('0 minute' as interval) end) as time_in_zone_with_no_fishing_rights, 
 
-        sum(case when is_in_amp_zone then segment_duration else cast('0 minute' as interval) end) as time_in_amp_zone, -- Le navire est-il dans une zone AMP ?
-        sum(case when is_in_territorial_waters then segment_duration else cast('0 minute' as interval) end) as time_in_territorial_waters, -- Le navire est-il dans des eaux territoriales ?
-        sum(case when is_in_zone_with_no_fishing_rights then segment_duration else cast('0 minute' as interval) end) as time_in_zone_with_no_fishing_rights, -- Le navire est-il dans une zone pour laquelle il n'a pas de droit de pêche ?
-
-        ST_LineMerge(ST_Collect(segment_line), true) as daysegments_line-- Ligne géographique du segment (entre les positions de début et de fin), WGS84
+        st_linemerge(st_collect(segment_line), TRUE) as daysegments_line-- Ligne géographique du segment (entre les positions de début et de fin), WGS84
 
     from {{ ref('itm_vessel_segments') }}
-
-
     group by 
         vessel_id,
         excursion_id,
@@ -92,4 +93,4 @@ select
     vs.time_in_zone_with_no_fishing_rights,
     vs.daysegments_line
 
-from vessel_daysegments vs
+from vessel_daysegments as vs

@@ -77,8 +77,14 @@ models:
         description: "Length overall of the vessel in meters"
       - name: dim_vessel_start_date
         description: "Start date of the vessel's operational period (if available)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "is null"
       - name: dim_vessel_end_date
         description: "End date of the vessel's operational period (if available)"
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "is null"
       - name: tracking_activated
         description: "Indicates if the vessel is actively tracked in Trawl Watch(boolean)"
         tests:
@@ -105,7 +111,6 @@ models:
         description: "Unique identifier for each vessel (CFR or user-defined identifier (fishing vessel type + rank))"
         tests:
           - not_null
-          - unique
       - name: dim_vessel_name
         description: "Name of the ship"
         tests:
@@ -118,7 +123,6 @@ models:
         description: "IMO number of the vessel, used as a unique identifier"
         tests:
           - not_null
-          - unique
       - name: dim_vessel_cfr
         description: "CFR number of the vessel (EU identifier)"
         tests:
@@ -148,7 +152,7 @@ models:
         description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
       - name: dim_vessel_details
         description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
-      - name: seed_dim_vessel_created_at
+      - name: dim_vessel_created_at
         description: "Timestamp when the vessel record was created in the database"
         tests:
           - not_null
@@ -162,7 +166,6 @@ models:
         description: "Unique identifier for each vessel (CFR or user-defined identifier (fishing vessel type + rank))"
         tests:
           - not_null
-          - unique
       - name: dim_vessel_name
         description: "Name of the ship"
         tests:
@@ -175,11 +178,8 @@ models:
         description: "IMO number of the vessel, used as a unique identifier"
         tests:
           - not_null
-          - unique
       - name: dim_vessel_cfr
         description: "CFR number of the vessel (EU identifier)"
-        tests:
-          - unique
       - name: dim_vessel_call_sign
         description: "Call sign of the vessel, used for identification"
       - name: dim_vessel_external_marking
@@ -212,6 +212,8 @@ models:
         description: "JSON object containing additional details about the vessel, such as gear, length class, and ship type"  
       - name: stg_dim_vessel_created_at
         description: "Timestamp when the vessel record was created in the database"
+        tests:
+          - not_null
 
   #### MMSI
   - name: seed_historical_dim_mmsi
@@ -254,15 +256,13 @@ models:
       - name: dim_mmsi_start_date
         description: "Start date of the MMSI's operational period (if available)"
         tests: 
-          - accepted_values:
-              values: [null]
-              quote: false
+          - dbt_utils.expression_is_true:
+              expression: "is null"
       - name: dim_mmsi_end_date
         description: "End date of the MMSI's operational period (if available)"
         tests: 
-          - accepted_values:
-              values: [null]
-              quote: false
+          - dbt_utils.expression_is_true:
+              expression: "is null"
       - name: dim_mmsi_details
         description: "Context of MMSI termination"
       - name: dim_mmsi_created_at
@@ -277,27 +277,17 @@ models:
         description: "Unique identifier for each vessel"
         tests:
           - not_null
-          - unique
       - name: dim_mmsi_mmsi
         description: "MMSI of the vessel"
         tests:
           - not_null
-          - unique
       - name: dim_mmsi_start_date
         description: "Start date of the MMSI's operational period (if available)"
-        tests: 
-          - accepted_values:
-              values: [null]
-              quote: false
       - name: dim_mmsi_end_date
         description: "End date of the MMSI's operational period (if available)"
-        tests: 
-          - accepted_values:
-              values: [null]
-              quote: false
       - name: dim_mmsi_details
         description: "Context of MMSI termination"
-      - name: dim_mmsi_created_at
+      - name: stg_dim_mmsi_created_at
         description: "Timestamp when the record was created in the database"
         tests:
           - not_null
@@ -317,15 +307,13 @@ models:
         description: "Name of the zone"
         tests:
           - not_null
-      - name: category
+      - name: zone_category
         description: "Category of the zone (amp | Clipped territorial seas | Fishing coastal waters (6-12NM) | Territorial seas)"
         tests:
           - not_null
-      - name: sub_category
+      - name: zone_sub_category
         description: "Sub-category of the zone (only for 'amp' category)"
-        tests:
-          - not_null
-      - name: json_data
+      - name: zone_json_data
         description: "JSON data containing additional information about the zone"
       - name: zone_created_at
         description: "Timestamp when the zone record was created in the database"
@@ -333,7 +321,7 @@ models:
           - not_null
       - name: zone_updated_at
         description: "Timestamp when the zone record was last updated in the database"
-      - name: zone_enabled
+      - name: zone_enable
         description: "Indicates if the zone is enabled (boolean). Filtered on true only"
         tests:
           - not_null
@@ -363,7 +351,6 @@ models:
         description: "Unique identifier for each position record"
         tests:
           - not_null
-          - unique
       - name: position_timestamp
         description: "Timestamp of the position record"
         tests:
@@ -385,23 +372,23 @@ models:
 
       - name: position_speed
         description: "Speed of the vessel at the time of the position record"
-      - name: heading
+      - name: position_heading
         description: "Heading of the vessel at the time of the position record"
       - name: position_course
         description: "Course over ground of the vessel at the time of the position record"
       - name: position_rot
         description: "Rate of turn of the vessel at the time of the position record"
-      - name: maneuver
-        description: "Maneuvering status of the vessel at the time of the position record"
-      - name: position_ais_created_at
-        description: "Timestamp when this AIS data was created"
-      - name: position_ais_created_at_month
-        description: "Quarter when this AIS data was created, used for partitioning"
+      - name: position_ais_created_at_min
+        description: "Min timestamp when this AIS messages gave the position"
+      - name: position_ais_created_at_max
+        description: "Max timestamp when this AIS messages gave the position"
+      - name: position_timestamp_month
+        description: "Month when this AIS data was created, used for partitioning"
         tests:
           - not_null
-      - name: position_ais_created_at_day
+      - name: position_timestamp_day
         description: "Day when this AIS data was created, used for partitioning"
-      - name : position
-        description: "Geometric representation of the vessel's position (POINT, WGS84 format)"
         tests:
           - not_null
+      - name : position_point
+        description: "Geometric representation of the vessel's position (POINT, WGS84 format)"

@@ -10,5 +10,7 @@
 ) }}
 
 
-select max(position_ais_created_at_max) as max_position_ais_created_at, max(position_stg_created_at) as max_position_stg_created_at
+select 
+    max(position_ais_created_at_max) as max_position_ais_created_at,
+    max(position_stg_created_at) as max_position_stg_created_at
 from {{ ref('stg_vessel_positions') }}

@@ -59,6 +59,7 @@ flagged_mmsi as (   -- MMSI avec indicateur d'historisation (pour les prioriser 
 
     from union_mmsi
 )
+
 select 
     vessel_id,
     dim_mmsi_mmsi,

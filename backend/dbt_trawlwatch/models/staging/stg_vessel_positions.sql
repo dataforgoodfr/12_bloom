@@ -9,7 +9,6 @@
     4. Sélectionne les colonnes nécessaires pour la table de positions des navires
     5. Les ajoute dans le modèle incrémental des positions de navires
 
-
     La récupération d'un historique de positions se fait en lançant un microbatch suivant cet exemple (pour la période du 1er janvier au 15 juillet 2025) :
      dbt run -m  stg_vessel_positions --event-time-start "2025-01-01" --event-time-end "2025-07-15"
 */
@@ -28,56 +27,51 @@
 
 -- Gestion des run à partir d'une liste de MMSI
 {% set mmsi_list = var('default_mmsi_list', []) %}
-
 {% if mmsi_list | length > 0 %}
-  {% set MMSI_filter = "where position_mmsi in (" ~ mmsi_list | join(',') ~ ")" %}
+    {% set MMSI_filter = "and position_mmsi in (" ~ mmsi_list | join(',') ~ ")" %}
 {% else %}
-  {% set MMSI_filter = "" %}
+    {% set MMSI_filter = "" %}
 {% endif %}
 
-
 with 
-
-
 
 spire_source as ( -- Selectionner les mesures distinctes (MMSI, timestamp, latitude, longitude, etc.) de la source de données AIS
 /* Dans le cas où plusieurs messages AIS sont reçus pour une même position, on ne garde que les dernières infos non nulles pour chaque champ    */
 
     select 
-        max(id) as position_id,
         vessel_mmsi as position_mmsi,
         date_trunc('second', position_timestamp) as position_timestamp,
-        (ARRAY_AGG(position_latitude ORDER BY position_timestamp DESC) FILTER (WHERE position_latitude IS NOT NULL))[1] AS position_latitude,
-        (ARRAY_AGG(position_longitude ORDER BY position_timestamp DESC) FILTER (WHERE position_longitude IS NOT NULL))[1] AS position_longitude,
-        (ARRAY_AGG(position_rot ORDER BY position_timestamp DESC) FILTER (WHERE position_rot IS NOT NULL))[1] AS position_rot,
-        (ARRAY_AGG(position_speed ORDER BY position_timestamp DESC) FILTER (WHERE position_speed IS NOT NULL))[1] AS position_speed,
-        (ARRAY_AGG(position_course ORDER BY position_timestamp DESC) FILTER (WHERE position_course IS NOT NULL))[1] AS position_course,
-        (ARRAY_AGG(position_heading ORDER BY position_timestamp DESC) FILTER (WHERE position_heading IS NOT NULL))[1] AS position_heading,
+        max(id) as position_id,
+        (arrray_agg(position_latitude order by position_timestamp desc) filter (where position_latitude is not NULL))[1] as position_latitude, -- noqa: CP01
+        (arrray_agg(position_longitude order by position_timestamp desc) filter (where position_longitude is not NULL))[1] as position_longitude,
+        (arrray_agg(position_rot order by position_timestamp desc) filter (where position_rot is not NULL))[1] as position_rot,
+        (arrray_agg(position_speed order by position_timestamp desc) filter (where position_speed is not NULL))[1] as position_speed,
+        (arrray_agg(position_course order by position_timestamp desc) filter (where position_course is not NULL))[1] as position_course,
+        (arrray_agg(position_heading order by position_timestamp desc) filter (where position_heading is not NULL))[1] as position_heading,
         min(created_at) as position_ais_created_at_min,
         max(created_at) as position_ais_created_at_max
 
-    from (select * from {{ source('spire','spire_ais_data') }})  s
+    from (select * from {{ source('spire','spire_ais_data') }})  as s
 
     where 
-        date_trunc('second', position_timestamp) is not null and  date_trunc('second', position_timestamp) >= '2024-05-01 00:00:00'
-        and position_latitude is not null
-        and position_longitude is not null
-        and vessel_mmsi is not null
-        and created_at is not null
+        date_trunc('second', position_timestamp) is not NULL 
+        and  date_trunc('second', position_timestamp) >= '2024-05-01 00:00:00'
+        and position_latitude is not NULL
+        and position_longitude is not NULL
+        and vessel_mmsi is not NULL
+        and created_at is not NULL
     group by
         date_trunc('second', position_timestamp),
         position_mmsi
 
 ),
 
-
-
-def_partitions AS (
-        SELECT *,
+def_partitions AS ( -- Définition des champs de partitions et indexation temporelle
+    select 
+        *,
         to_char(position_timestamp, 'YYYYMM') AS position_timestamp_month,
-        date_trunc('day', position_timestamp)::date AS position_timestamp_day,
-        NOW() as position_stg_created_at
-        FROM spire_source
+        date_trunc('day', position_timestamp)::date AS position_timestamp_day
+    from spire_source
 ),
 
 -- Etape 1 : Jointure des positions AIS avec la table de dimension des navires
@@ -91,56 +85,52 @@ vessels as (
 join_spire_ais_and_vessels as ( -- On ne conserve que la dernière remontée AIS correspondant à la position
 
     select
-        CONCAT(vessel_id, '_', to_char(position_timestamp, 'YYYYMMDD_HH24:MI:SS')) as position_id,
-        position_timestamp,
-        position_mmsi,
-        case when vessel_id is null then 'UNKNOWN_MMSI='||position_mmsi else vessel_id end as vessel_id,
-        position_latitude,
-        position_longitude,
-        position_speed,
-        position_heading,
-        position_course,
-        position_rot,
-        position_timestamp_month,
-        position_timestamp_day,
-        position_stg_created_at,
-        position_ais_created_at_min,
-        position_ais_created_at_max,
-        ST_SetSRID(ST_MakePoint(position_longitude, position_latitude), 4326) as position
-    from def_partitions ais
-    left join vessels v 
-        on ais.position_mmsi = v.mmsi 
-        and utils.safe_between(ais.position_timestamp, v.dim_mmsi_start_date, v.dim_mmsi_end_date)
-    {{ MMSI_filter }}
-    where position_latitude is not null
-        and position_longitude is not null
-        and position_speed is not null
-        and position_heading is not null
-        and position_course is not null
-        and position_rot is not null
-        and position_timestamp is not null
-    {{ MMSI_filter }}
-    order by position_timestamp desc
+        concat(v.vessel_id, '_', to_char(ais.position_timestamp, 'YYYYMMDD_HH24MISS')) as position_id,
+        ais.position_timestamp,
+        ais.position_mmsi,
+        coalesce(v.vessel_id, 'UNKNOWN_MMSI='||ais.position_mmsi) as vessel_id,
+        ais.position_latitude,
+        ais.position_longitude,
+        ais.position_speed,
+        ais.position_heading,
+        ais.position_course,
+        ais.position_rot,
+        ais.position_timestamp_month,
+        ais.position_timestamp_day,
+        ais.position_ais_created_at_min,
+        ais.position_ais_created_at_max,
+        st_setsrid(st_makepoint(ais.position_longitude, ais.position_latitude), 4326) as position_point
+    from def_partitions as ais
+    left join vessels as v
+        on ais.position_mmsi = v.mmsi and utils.safe_between(ais.position_timestamp, v.dim_mmsi_start_date, v.dim_mmsi_end_date)
+    where
+        TRUE
+        {{ MMSI_filter }}
+        and ais.position_latitude is not NULL
+        and ais.position_longitude is not NULL
+        and ais.position_speed is not NULL
+        and ais.position_heading is not NULL
+        and ais.position_course is not NULL
+        and ais.position_rot is not NULL
+        and ais.position_timestamp is not NULL
 )
 
-
 select distinct 
-        position_id,
-        position_timestamp,
-        position_mmsi,
-        vessel_id,
-        position_latitude,
-        position_longitude,
-        position_speed,
-        position_heading,
-        position_course,
-        position_rot,
-        position_timestamp_month,
-        position_timestamp_day,
-        position_stg_created_at,
-        position_ais_created_at_min,
-        position_ais_created_at_max,
-        position
-        -- Ajouter un champ méta stg_position_created_at
+    position_id,
+    position_timestamp,
+    position_mmsi,
+    vessel_id,
+    position_latitude,
+    position_longitude,
+    position_speed,
+    position_heading,
+    position_course,
+    position_rot,
+    position_timestamp_month,
+    position_timestamp_day,
+    position_ais_created_at_min,
+    position_ais_created_at_max,
+    now() as position_stg_created_at,
+    position_point
 from join_spire_ais_and_vessels
 order by position_timestamp, vessel_id

@@ -13,7 +13,7 @@
 */
 
 {{ config(
-    schema='itm',
+    schema='staging',
     materialized='table',
     tags=['staging','dim', 'vessels']
 ) 
