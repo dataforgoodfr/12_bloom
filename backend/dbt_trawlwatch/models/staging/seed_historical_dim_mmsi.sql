@@ -18,6 +18,6 @@ select
     'HISTORICAL'::varchar as dim_mmsi_origin,
     details as dim_mmsi_details,
     now() as dim_mmsi_created_at
-from {{ ref('dim_mmsi') }}
+from {{ ref('historical_dim_mmsi') }}
 
 where vessel_id is not null

@@ -4,7 +4,6 @@ models:
   ### PORTS
   - name: seed_dim_ports
     description: "Staged model from seed for ports data, used for staging and analysis"
-    config:
     columns:
       - name: port_id
         description: "Unique identifier for each port (based on UN/LOCODE)"

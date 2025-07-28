@@ -51,5 +51,5 @@ select
     ) as dim_vessel_details,
 
     now() as dim_vessel_created_at
-from {{ ref('historical_vessels_table') }} as historical_vessels  -- A adapter quand la table de référence changera
+from {{ ref('historical_dim_vessels') }} as historical_vessels  -- A adapter quand la table de référence changera
 order by vessel_id
