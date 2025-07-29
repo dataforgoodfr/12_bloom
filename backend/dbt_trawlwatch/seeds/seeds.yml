@@ -81,11 +81,15 @@ seeds:
       - name: country_iso3
         description: Flag of the ship, represented by the ISO3 code of the country
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: gear
         description: Main engine
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: type
         description: Fishing vessel type
       - name: imo

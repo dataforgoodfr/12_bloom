@@ -12,6 +12,9 @@
         {'columns': ['vessel_id'], 'type': 'btree', 'unique': True},
         {'columns': ['position_timestamp__raw_last'], 'type': 'btree'},
         {'columns': ['position_ais_created_at__raw_max'], 'type': 'btree'}
+    ],
+    pre_hook = [
+        "SET work_mem = \'64MB\';"
     ]
 ) }}
 

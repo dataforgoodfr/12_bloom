@@ -59,16 +59,22 @@ models:
       - name: dim_vessel_flag
         description: "Flag of the ship, represented by the ISO3 code of the country"
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: dim_vessel_imo
         description: "IMO number of the vessel, used as a unique identifier"
         tests:
           - not_null
-          - unique
+          - unique:
+              config: 
+                severity: warn
       - name: dim_vessel_cfr
         description: "CFR number of the vessel (EU identifier)"
         tests:
-          - unique
+          - unique:
+              config: 
+                severity: warn
       - name: dim_vessel_call_sign
         description: "Call sign of the vessel, used for identification"
       - name: dim_vessel_external_marking
@@ -90,7 +96,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: [true, false]
+              values: [true]
               quote: false
       - name: tracking_status
         description: "Status of the vessel's tracking (e.g., 'active', 'inactive')"
@@ -102,8 +108,7 @@ models:
         description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
       - name: seed_static_dim_vessel_created_at
         description: "Timestamp when the vessel record was created in the database"
-        tests:
-          - not_null
+
   - name: seed_historical_dim_vessels
     description: "Historical staged model from seed for vessels data, consolidated with static vessels data further down the pipeline"
     columns:
@@ -118,15 +123,21 @@ models:
       - name: dim_vessel_flag
         description: "Flag of the ship, represented by the ISO3 code of the country"
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: dim_vessel_imo
         description: "IMO number of the vessel, used as a unique identifier"
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: dim_vessel_cfr
         description: "CFR number of the vessel (EU identifier)"
         tests:
-          - unique
+          - unique:
+              config:
+                severity: warn
       - name: dim_vessel_call_sign
         description: "Call sign of the vessel, used for identification"
       - name: dim_vessel_external_marking

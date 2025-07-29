@@ -20,4 +20,4 @@ select
     now() as dim_mmsi_created_at
 from {{ ref('historical_dim_mmsi') }}
 
-where id is not null
+where id is not NULL

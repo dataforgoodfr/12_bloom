@@ -30,7 +30,7 @@ select
     to_timestamp(start_date, 'DD/MM/YYYY') as dim_vessel_start_date,
     (to_timestamp(end_date, 'DD/MM/YYYY') + interval '1 day' - interval '1 microsecond') as dim_vessel_end_date,
 
-    TRUE as tracking_activated,
+    coalesce(end_date is NULL, FALSE) as tracking_activated,
     status as dim_vessel_status,
     source as dim_vessel_source,
     'HISTORICAL'::varchar as dim_vessel_origin,

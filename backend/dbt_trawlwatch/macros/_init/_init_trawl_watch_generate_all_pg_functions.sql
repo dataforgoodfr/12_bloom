@@ -575,25 +575,30 @@
     ALTER FUNCTION utils.array_dmerge(anyarray, anyarray)
         OWNER TO ulf7g0ewqes1svjic5qf;  
     /* ----- utils.array_in_both ------------------------------------------------- */
+    -- Renvoie l'intersection de 2 tableaux (les éléments présents dans les 2 tableaux).
     DROP FUNCTION IF EXISTS utils.array_in_both(anyarray, anyarray);
+
     CREATE OR REPLACE FUNCTION utils.array_in_both(
         a1 anyarray,
-        a2 anyarray)
-        RETURNS boolean
-        LANGUAGE 'sql'
-        COST 100
-        IMMUTABLE PARALLEL UNSAFE
-    AS $BODY$
-        SELECT EXISTS (
-            SELECT 1
-            FROM unnest(a1) AS x
-            WHERE x = ANY(a2)
-        );
-    $BODY$;
-    ALTER FUNCTION utils.array_in_both(anyarray, anyarray)
-        OWNER TO ulf7g0ewqes1svjic5qf;
+        a2 anyarray
+    )
+    RETURNS anyarray
+    LANGUAGE sql
+    IMMUTABLE
+    AS $$
+        SELECT
+            CASE
+                WHEN a1 IS NULL OR a2 IS NULL THEN NULL
+                ELSE ARRAY(
+                    SELECT DISTINCT e
+                    FROM unnest(a1) AS e
+                    WHERE e = ANY(a2)
+                )
+            END
+    $$;
 
     /* ----- utils.array_concat_uniq_agg ----------------------------------------- */
+    -- Permet de concaténer des tableaux présents dans plusieurs lignes en éliminant les doublons.
     DROP AGGREGATE IF EXISTS utils.array_concat_uniq_agg(anyarray);
     DROP FUNCTION IF EXISTS utils.array_concat_uniq_agg_transfn(anyarray, anyarray);
     CREATE OR REPLACE FUNCTION utils.array_concat_uniq_agg_transfn(acc anyarray, val anyarray)
@@ -611,8 +616,68 @@
     );
     ALTER AGGREGATE utils.array_concat_uniq_agg(anyarray)
         OWNER TO ulf7g0ewqes1svjic5qf;
+    /* ---- utils.array_intersect_agg ---------------------------------------------------- */
+    -- Permet de calculer l'intersection de tableaux présents dans plusieurs lignes (détecter les valeurs présentes partout)
+    DROP AGGREGATE IF EXISTS utils.array_intersect_agg(anyarray);
+    DROP FUNCTION IF EXISTS utils.array_intersect_agg_transfn(anyarray, anyarray);
+    CREATE OR REPLACE FUNCTION utils.array_intersect_agg_transfn(acc anyarray, val anyarray)
+    RETURNS anyarray
+    LANGUAGE SQL
+    AS $$
+        SELECT
+            CASE
+                WHEN val IS NULL THEN acc
+                WHEN acc IS NULL THEN val
+                ELSE (
+                    SELECT array_agg(DISTINCT e)
+                    FROM unnest(acc) AS t(e)
+                    WHERE e = ANY(val)
+                )
+            END
+    $$;
+    CREATE OR REPLACE AGGREGATE utils.array_intersect_agg(anyarray) (
+        SFUNC = utils.array_intersect_agg_transfn,
+        STYPE = anyarray,
+        INITCOND = '{}',
+        FINALFUNC_MODIFY = READ_ONLY,
+        MFINALFUNC_MODIFY = READ_ONLY
+    );
 
     /* ---- utils.safe_between ---------------------------------------------------- */
+    DROP FUNCTION IF EXISTS utils.safe_between(TIMESTAMPTZ, TIMESTAMPTZ, TIMESTAMPTZ);
+
+    CREATE OR REPLACE FUNCTION utils.safe_between(
+        -- RETURNS TRUE IF : (start_ts=NULL, end_ts=NULL) | (start_ts=NULL,<=end_ts) | (>=start_ts, end_ts=NULL) | (>=start_ts, <=end_ts)
+        value_ts TIMESTAMPTZ,
+        start_ts TIMESTAMPTZ,
+        end_ts TIMESTAMPTZ
+    )
+    RETURNS BOOLEAN AS $$
+    DECLARE
+        adjusted_end_ts TIMESTAMPTZ;
+    BEGIN
+        -- Ajuste end_ts si l'utilisateur a passé un "end of day" implicite (ex : '2025-07-31'::date)
+        IF end_ts IS NOT NULL AND end_ts::time = '00:00:00' THEN
+            adjusted_end_ts := end_ts + interval '1 day' - interval '1 microsecond';
+        ELSE
+            adjusted_end_ts := end_ts;
+        END IF;
+
+        IF start_ts IS NULL AND adjusted_end_ts IS NULL THEN
+            RETURN TRUE;
+        ELSIF start_ts IS NULL THEN
+            RETURN value_ts <= adjusted_end_ts;
+        ELSIF adjusted_end_ts IS NULL THEN
+            RETURN value_ts >= start_ts;
+        ELSE
+            RETURN value_ts BETWEEN start_ts AND adjusted_end_ts;
+        END IF;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    ALTER FUNCTION utils.safe_between(TIMESTAMPTZ, TIMESTAMPTZ, TIMESTAMPTZ)
+        OWNER TO ulf7g0ewqes1svjic5qf;
+    /* ---- utils.safe_between TS ---------------------------------------------------- */
     DROP FUNCTION IF EXISTS utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP);
 
     CREATE OR REPLACE FUNCTION utils.safe_between(
@@ -646,6 +711,7 @@
 
     ALTER FUNCTION utils.safe_between(TIMESTAMP, TIMESTAMP, TIMESTAMP)
         OWNER TO ulf7g0ewqes1svjic5qf;
+
 
     /* ---- utils.coalesce_json ---------------------------------------------------- */
     DROP FUNCTION IF EXISTS utils.jsonb_coalesce(json, json);
