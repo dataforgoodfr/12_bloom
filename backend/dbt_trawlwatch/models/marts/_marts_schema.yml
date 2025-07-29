@@ -37,3 +37,147 @@ models:
           description: "Creation timestamp of the port."
         - name: updated_at
           description: "Last update timestamp of the port."
+
+    # VESSELS MARTS
+    - name: mart_dim_vessels
+      description: "Dimension model for vessels"
+      columns:
+      - name: id
+        description: Unique identifier of the vessel.
+        tests:
+          - not_null
+      - name: mmsi
+        description: Active MMSI of the vessel.
+        tests:
+          - not_null
+      - name: ship_name
+        description: Name of the vessel.
+        tests:
+          - not_null
+      - name: width
+        description: Vessel width (in meters).
+      - name: length
+        description: Vessel length overall (in meters).
+        tests:
+          - not_null
+      - name: length_class
+        description: BLOOM size classes (in meters).
+      - name: country_iso3
+        description: Code of the country where the vessel is registered.
+        tests:
+          - not_null
+      - name: type
+        description: Fishing vessel "type" (FAO gear subcategory or category).
+      - name: imo
+        description: IMO number of the vessel, used as a unique identifier.
+      - name: cfr
+        description: CFR number of the vessel (EU identifier).
+      - name: ircs
+        description: Call sign of the vessel, used for identification.
+      - name: external_marking
+        description: External marking written on the hull.
+      - name: tracking_activated
+        description: Indicates if the vessel is being tracked.
+      - name: tracking_status
+        description: Details on the vessel status (active, exported, wreck).
+      - name: home_port_id
+        description: Most visited port - unique identifier for each port (based on UN/LOCODE).
+      - name: check
+        description: Source of the vessel data & informations.
+      - name: created_at
+        description: Timestamp when the port record was created in the database
+      - name: updated_at
+        description: Timestamp when the port record was last updated in the database.
+      
+    # VESSEL TYPES MARTS
+    - name: mart_dim_vessels__types
+      description: "Dimension model for vessel types, used for API routes."
+      columns:
+        - name: type
+          description: "Fishing vessel type (FAO gear subcategory or category)."
+          tests:
+            - not_null
+            - unique
+
+    # VESSEL CLASSES MARTS
+    - name: mart_dim_vessels__classes
+      description: "Dimension model for vessel size classes, used for API routes."
+      columns:
+        - name: length_class
+          description: "Fishing vessel size class (length overall)."
+          tests:
+            - not_null
+            - unique
+
+    # VESSEL COUNTRIES MARTS
+    - name: mart_dim_vessels__countries
+      description: "Dimension model for vessel countries, used for API routes."
+      columns:
+        - name: country_iso3
+          description: "Isocode 3 of the country where the vessel is registered."
+          tests:
+            - not_null
+            - unique
+
+    # VESSEL TRACKED MARTS
+    - name: mart_dim_vessels__trackedcount
+      description: "Fact model for currently tracked vessels, used for API routes."
+      columns:
+        - name: count
+          description: "Number of tracked vessels at last update."
+          tests:
+            - not_null
+        - name: updated_at
+          description: "Timestamp of when the count was last updated."
+
+    # VESSEL LAST POSITIONS MARTS
+    - name: mart_dim_vessels__last_positions
+      description: "Fact model for the last received positions of vessels, used for API routes."
+      columns:
+        - name: vessel_id
+          description: "Unique identifier of the vessel."
+          tests:
+            - not_null
+            - unique
+        - name: mmsi
+          description: "MMSI of the vessel."
+        - name: ship_name
+          description: "Name of the vessel."
+        - name: width
+          description: "Width of the vessel (in meters)."
+        - name: length
+          description: "Length of the vessel (in meters)."
+        - name: country_iso3
+          description: "ISO3 code of the country where the vessel is registered at time of last known position."
+        - name: type
+          description: "Fishing vessel type (FAO gear subcategory or category) at time of last known position."
+        - name: imo
+          description: "IMO number of the vessel, used as a unique identifier."
+        - name: cfr
+          description: "CFR number of the vessel (EU identifier)."
+        - name: ircs
+          description: "Call sign of the vessel, used for identification."
+        - name: external_marking
+          description: "External marking written on the hull."
+        - name: tracking_activated
+          description: "Indicates if the vessel is being tracked."
+        - name: tracking_status
+          description: "Details on the vessel status (active, exported, wreck)."
+        - name: home_port_id
+          description: "Most visited port - unique identifier for each port (based on UN/LOCODE)."
+        - name: check
+          description: "Source of the vessel data & informations."
+        - name: vessel_created_at
+          description: "Timestamp when the vessel record was created in the database."
+        - name: vessel_updated_at
+          description: "Timestamp when the vessel record was last updated in the database."
+        - name: excursion_id
+          description: "Unique identifier of the excursion associated to the last position."
+        - name: position
+          description: "Last known position of the vessel (POINT(longitude, latitude))."
+        - name: heading
+          description: "Last known heading of the vessel (in degrees)."
+        - name: speed
+          description: "Last known speed of the vessel (in knots)."
+        - name: arrival_port_id
+          description: "Identifier of the destination port of the excursion."
