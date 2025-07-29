@@ -37,3 +37,55 @@ models:
           description: "Creation timestamp of the port."
         - name: updated_at
           description: "Last update timestamp of the port."
+
+    # VESSELS MARTS
+    - name: mart_dim_vessels
+      description: "Dimension model for vessels"
+      columns:
+      - name: id
+        description: Unique identifier of the vessel.
+        tests:
+          - not_null
+      - name: mmsi
+        description: Active MMSI of the vessel.
+        tests:
+          - not_null
+      - name: ship_name
+        description: Name of the vessel.
+        tests:
+          - not_null
+      - name: width
+        description: Vessel width (in meters).
+      - name: length
+        description: Vessel length overall (in meters).
+        tests:
+          - not_null
+      - name: length_class
+        description: BLOOM size classes (in meters).
+      - name: country_iso3
+        description: Code of the country where the vessel is registered.
+        tests:
+          - not_null
+      - name: type
+        description: Fishing vessel "type" (FAO gear subcategory or category).
+      - name: imo
+        description: IMO number of the vessel, used as a unique identifier.
+      - name: cfr
+        description: CFR number of the vessel (EU identifier).
+      - name: ircs
+        description: Call sign of the vessel, used for identification.
+      - name: external_marking
+        description: External marking written on the hull.
+      - name: tracking_activated
+        description: Indicates if the vessel is being tracked.
+      - name: tracking_status
+        description: Details on the vessel status (active, exported, wreck).
+      - name: home_port_id
+        description: Most visited port: unique identifier for each port (based on UN/LOCODE).
+      - name: check
+        description: Source of the vessel data & informations.
+      - name: created_at
+        description: Timestamp when the port record was created in the database
+      - name: updated_at
+        description: Timestamp when the port record was last updated in the database.
+      
