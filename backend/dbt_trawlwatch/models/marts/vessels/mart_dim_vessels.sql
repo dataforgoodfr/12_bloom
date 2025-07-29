@@ -31,7 +31,7 @@
     tags=['mart', 'dim', 'vessel'],
     indexes=[
         {"columns": ["id"], "type": "btree", "unique": true},
-        {"columns": ["imo"], "type": "btree", "unique": true},
+        {"columns": ["imo"], "type": "btree"},
         {"columns": ["cfr"], "type": "btree", "unique": true},
         {"columns": ["ircs"], "type": "btree", "unique": true},
         {"columns": ["mmsi"], "type": "btree"},
@@ -44,19 +44,20 @@
 with 
 
 last_vessel_records as (
-    select *,
+    select stg_vessels.*,
+            stg_mmsi.dim_mmsi_mmsi,
     row_number() over (
                 partition by stg_vessels.vessel_id
-                order by stg_vessels.dim_vessel_start_date desc, order by stg_mmsi.dim_mmsi_start_date desc
+                order by stg_vessels.dim_vessel_start_date desc, stg_mmsi.dim_mmsi_start_date desc
             ) as rn
-    from {{ ref("stg_dim_vessels" )}} stg_vessels
-    left join {{ ref("stg_dim_mmsi") }} stg_mmsi
-    on stg_vessels.vessel_id = stg_mmsi.vessel_id
+    from {{ ref("stg_dim_vessels" )}} as stg_vessels
+    left join (select * from {{ ref("stg_dim_mmsi") }} ) as stg_mmsi
+        on stg_vessels.vessel_id = stg_mmsi.vessel_id
 )
 
 select
     vessel_id as id,
-    mmsi, 
+    dim_mmsi_mmsi as mmsi, 
     dim_vessel_name as ship_name,
     dim_vessel_details->>'width' as width,
     dim_vessel_loa as length,
@@ -66,12 +67,12 @@ select
     dim_vessel_cfr as cfr,
     dim_vessel_external_marking as external_marking,
     dim_vessel_call_sign as ircs,
-    dim_vessel_tracking_activated as tracking_activated,
-    dim_vessel_tracking_status as tracking_status,
+    tracking_activated,
+    dim_vessel_status as tracking_status,
     0 as home_port_id,
     stg_dim_vessel_created_at as created_at,
     NULL as updated_at,
-    source as check,
+    dim_vessel_source as check,
     dim_vessel_details->>'length_class' as length_class
 from last_vessel_records
 where rn = 1

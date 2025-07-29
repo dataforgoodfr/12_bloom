@@ -81,7 +81,7 @@ models:
       - name: tracking_status
         description: Details on the vessel status (active, exported, wreck).
       - name: home_port_id
-        description: Most visited port: unique identifier for each port (based on UN/LOCODE).
+        description: Most visited port - unique identifier for each port (based on UN/LOCODE).
       - name: check
         description: Source of the vessel data & informations.
       - name: created_at
