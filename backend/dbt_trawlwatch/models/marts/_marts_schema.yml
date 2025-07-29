@@ -1,0 +1,39 @@
+version: 2
+
+models:
+    # PORTS MARTS
+    - name: mart_dim_ports
+      description: "Dimension model for ports, including Voronoï buffers to determine vessel presence."
+      columns:
+        - name: id
+          tests:
+            - unique
+            - not_null
+        - name: name
+          description: "Name of the port."
+          tests:
+            - not_null
+        - name: country_iso3
+          description: "ISO3 code of the country where the port is located."
+          tests:
+            - not_null
+        - name: latitude
+          description: "Latitude of the port's location."
+          tests:
+            - not_null
+        - name: longitude
+          description: "Longitude of the port's location."
+          tests:
+            - not_null
+        - name: geometry_point
+          description: "Geometry point of the port's location."
+          tests:
+            - not_null
+        - name: has_excursion
+          description: "Boolean indicating if the port has excursions."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the port."
+        - name: updated_at
+          description: "Last update timestamp of the port."

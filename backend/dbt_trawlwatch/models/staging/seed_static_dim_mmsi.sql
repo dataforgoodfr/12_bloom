@@ -24,3 +24,5 @@ select distinct
     now() as dim_mmsi_created_at -- Méta: date de création de la dimension dans la base de données
 
 from  {{ ref('static_vessels_table') }} 
+where tracking_activated = TRUE
+order by vessel_id
