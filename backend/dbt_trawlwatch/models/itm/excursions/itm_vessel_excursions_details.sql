@@ -72,9 +72,15 @@ excursions_detailed as (
     from excursions as exc
     left join positions as pos 
         on exc.vessel_id = pos.vessel_id 
+        /*
         and pos.position_timestamp_month between exc.excursion_start_position_timestamp_month and exc.excursion_end_position_timestamp_month
         and pos.position_timestamp_day between exc.excursion_start_position_timestamp_day and exc.excursion_end_position_timestamp_day
-        and pos.position_timestamp between exc.excursion_start_position_timestamp and exc.excursion_end_position_timestamp
+        and pos.position_timestamp between exc.excursion_start_position_timestamp and exc.excursion_end_position_timestamp*/
+        and pos.position_timestamp is not NULL
+        and utils.safe_between( pos.position_timestamp_month,  exc.excursion_start_position_timestamp_month, exc.excursion_end_position_timestamp_month)
+        and utils.safe_between( pos.position_timestamp_day,  exc.excursion_start_position_timestamp_day, exc.excursion_end_position_timestamp_day)
+        and utils.safe_between( pos.position_timestamp,  exc.excursion_start_position_timestamp, exc.excursion_end_position_timestamp)
+
     group by 
         exc.vessel_id,
         exc.excursion_id,

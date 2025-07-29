@@ -33,22 +33,151 @@ models:
     # POSITIONS MODELS
     - name: itm_vessel_positions
       description: "Intermediate model for vessel positions."
+      tests:
+        - dbt_utils.unique_combination_of_columns:
+            combination_of_columns:
+              - vessel_id
+              - position_timestamp
+      columns:
+        - name: vessel_id
+          tests:
+            - not_null
+        - name: position_timestamp
+          description: "Timestamp of the position."
+          tests:
+            - not_null
+        - name: position_point
+          description: "Geographic point of the position."
+          tests:
+            - not_null
+        
     - name: itm_vessel_positions_x_zones
       description: "Intermediate model for vessel positions intersecting with zones."
 
     # EXCURSIONS MODELS
     - name: itm_vessel_excursions
       description: "Vessel excursions at sea between port leaving and port arrival. Only start and end informations, no metrics or intermediate positions."
+      columns:
+        - name: excursion_id
+          tests:
+            - unique
+            - not_null
+        - name: vessel_id
+          tests:
+            - not_null
+        - name: excursion_start_position_id
+          description: "Position ID of the start position of the excursion."
+          tests:
+            - not_null
+        - name: excursion_end_position_id
+          description: "Position ID of the end position of the excursion."
+        - name: excursion_start_position_timestamp
+          description: "Start time of the excursion."
+          tests:
+            - not_null
+        - name: excursion_end_position_timestamp
+          description: "End time of the excursion."
+        - name: excursion_duration_interval
+          description: "Duration of the excursion in interval format."
+        - name: excursion_status
+          description: "Status of the excursion (ongoing, completed, unknown)."
+          tests:
+            - not_null
+            - accepted_values:
+                values: 
+                  - ongoing
+                  - completed
     - name: itm_vessel_excursions_details
       description: "Detailed information about vessel excursions, including metrics and intermediate positions."
+      columns:
+        - name: excursion_id
+          tests:
+            - not_null
+        - name: vessel_id
+          tests:
+            - not_null
+        - name: excursion_start_position_id
+          description: "Position ID of the start position of the excursion."
+          tests:
+            - not_null
+        - name: excursion_end_position_id
+          description: "Position ID of the end position of the excursion."
+        - name: excursion_start_position_timestamp
+          description: "Start time of the excursion."
+          tests:
+            - not_null
+        - name: excursion_end_position_timestamp
+          description: "End time of the excursion."
+        - name: excursion_duration_interval
+          description: "Duration of the excursion in interval format."
+        - name: excursion_status
+          description: "Status of the excursion (ongoing, completed, unknown)."
+          tests:
+            - not_null
+            - accepted_values:
+                values: 
+                  - ongoing
+                  - completed
+        - name: excursion_positions_count
+          description: "Number of positions in the excursion."
+          tests:
+            - not_null
+            - dbt_utils.expression_is_true:
+                expression: " > 0"
     - name: itm_zones_x_excursions_list
       description: "List of zones intersecting with excursions to help determine wich positions could be in a zone and reduce compute time."
+      tests:
+        - dbt_utils.unique_combination_of_columns:
+            combination_of_columns:
+              - vessel_id
+              - zone_id
+              - excursion_id
+      columns:
+        - name: zone_id
+          tests:
+            - not_null
+        - name: excursion_id
+          tests:
+            - not_null
+            
     - name: itm_ports_calls
       description: "Port calls (between 2 excursions) with detailed information, including metrics and intermediate positions."
 
     # SEGMENTS MODELS
     - name: itm_vessel_segments
       description: "Vessel segments, which are the result of 2 consecutive positions during an excursion."
+      columns:
+        - name: segment_id
+          tests:
+            - unique
+            - not_null
+        - name: vessel_id
+          tests:
+            - not_null
+        - name : zone_ids
+          description: "Array of zone_ids intersecting with the excursion."
+          tests:
+            - dbt_utils.not_null_proportion:
+                at_least: 0.05
+        - name: segment_duration_s
+          description: "Duration of the segment in seconds."
+          tests:
+            - not_null
+            - dbt_utils.expression_is_true:
+                expression: " > 0"
+        - name: segment_distance_m
+          description: "Distance travelled in the segment in meters."
+          tests:
+            - not_null
+            - dbt_utils.expression_is_true:
+                expression: " >= 0"
+        - name: segment_type
+          description: "Type of segment (AT_SEA, DEFAULT_AIS)."
+          tests:
+            - not_null
+            - accepted_values:
+                values: ['AT_SEA', 'DEFAULT_AIS']
+                quote: true
     - name: itm_vessel_segments_by_date
       description: "Vessel segments metrics by date, preparing marts for UI query between 2 dates."
     

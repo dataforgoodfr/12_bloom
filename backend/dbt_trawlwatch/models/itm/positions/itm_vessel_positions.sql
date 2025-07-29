@@ -3,12 +3,7 @@
     Ce modèle analyse les positions des navires, exclut les positions sans intérêt 
     (doublons, stationnement dans un port sauf entrée et sortie) 
     et ajoute des métriques liées à la fois à la position courante et à la position précédente.
-
-    -> A étudier : 
-    - Possibilité de streamer cette phase en mettant à jour par trigger dans stg_vessel_positions
-     un champ has_been_analyzed pour toutes les positions correspondant à des excursions terminées (ou autre règle),
-     pour ne matérialiser que les segments et les excursions ?
-     - Possibilité de stocker matérialiser une vue qui sera moissonnée en batch par les tables de segments et d'excursions en aval ?
+    Fonctionnant en microbatch, il a besoin de charger la dernière position avant le microbatch pour fonctionner correctement (CTE previous_position).
 */
 
 {{ config(
@@ -109,7 +104,7 @@ vessel_positions as (
 
 ------------------------- Identification des positions remarquables + Suppression des doublons de positions ---------------------------------------------------
 vessel_first_n_last_update as ( -- Récupération de la dernière position_timestamp connue pour chaque navire, déjà traitée dans itm_vessel_last_positions
-    select 
+    select
         vessel_id as vessel_id_flu, 
         first_position_timestamp, last_position_timestamp,
         first_position_id, last_position_id
@@ -128,7 +123,7 @@ mark_first_and_last_positions as ( -- Marquage des positions de début et de fin
     from vessel_positions as pos
     left join vessel_first_n_last_update as flu
         on pos.vessel_id = flu.vessel_id_flu
-    where true
+    where TRUE
 ),
 
 vessel_positions_w_previous as ( -- Récupération de la position précédente du point du vue temporel
@@ -150,10 +145,10 @@ vessel_positions_flag_it as ( -- Identification des positions identiques à la p
         
         -- La position courante est-elle identique (temporellement et géographiquement) à la position précédente ?
         coalesce(
-            (posp.position_timestamp_prev is not null -- La position précédente existe
+            (posp.position_timestamp_prev is not NULL -- La position précédente existe
             and posp.position_timestamp = posp.position_timestamp_prev -- Le timestamp est identique
             and posp.position_point = posp.position_point_prev), -- La position géographique est identique
-            false) as is_same_position
+            FALSE) as is_same_position
 
     from vessel_positions_w_previous as posp
 ),
@@ -162,7 +157,7 @@ drop_same_position as ( -- Supprimer les positions identiques à la précédente
     select * 
     from vessel_positions_flag_it
     -- On garde les positions identiques à la précédente si elles sont la première ou la dernière position connue
-    where is_same_position = false or is_first_position or is_last_position 
+    where is_same_position = FALSE or is_first_position or is_last_position 
     order by position_timestamp, vessel_id
 ),
 
@@ -219,13 +214,13 @@ lag_position_status as ( -- Comparer la situation de la position courante avec l
 position_of_interest as ( -- Conserver uniquement les positions qui ont un intérêt pour l'analyse
     select 
         *,
-        coalesce(is_in_port and is_in_port_prev and port_id = port_id_prev, false) as is_same_port
+        coalesce(is_in_port and is_in_port_prev and port_id = port_id_prev, FALSE) as is_same_port
     from lag_position_status
     where 
         -- On conserve la première position connue
-        is_first_position = true 
+        is_first_position = TRUE
         -- On conserve la dernière position connue
-        or is_last_position = true 
+        or is_last_position = TRUE
         -- On conserve les positions pour lesquelles le navire est en mouvement ou quand le statut est inconnu
         or position_status in ('unknown','at_sea','transiting_in_port_area') 
         -- On conserve les positions pour lesquelles le navire était précédemment en mouvement
