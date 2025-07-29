@@ -1,7 +1,6 @@
 
 target/
 dbt_packages/
-profiles.yml
 logs/
 .env
 seeds/clipped_territorial_seas.csv
