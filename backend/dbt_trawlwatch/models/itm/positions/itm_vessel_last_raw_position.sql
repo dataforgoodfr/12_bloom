@@ -6,7 +6,7 @@
 
 {{ config(
     schema = 'itm',
-    materialized = 'table',
+    materialized = 'incremental',
     unique_key = ['vessel_id'],
     indexes = [
         {'columns': ['vessel_id'], 'type': 'btree', 'unique': True},
@@ -72,6 +72,9 @@ last_vessel_raw_positions as (
             and dim_vessels_mmsi.dim_vessel_imo = cast(spire.vessel_imo as varchar) --and dim_vessels_mmsi.dim_vessel_imo != 'NA'
     ) as t
     where (rn is NULL or rn = 1)
+    {% if is_incremental() %}
+        and position_ais_created_at__raw_max > (select max(position_ais_created_at__raw_max) from {{ this }})
+    {% endif %}
 )
 
 select 

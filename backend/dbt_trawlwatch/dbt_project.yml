@@ -23,6 +23,10 @@ clean-targets:         # directories to be removed by `dbt clean`
   #- "dbt_packages"
 
 vars:
+
+  # Caution !!! All these schemas will be dropped and recreated by __init_dbt_trawl_watch__init_all
+  dbt_schemas_to_init: ['admin','itm','marts','observ','seeds','staging','utils'] 
+
   default_microbatch_size: 'hour'
   default_mmsi_list: []
 

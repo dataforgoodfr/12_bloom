@@ -216,7 +216,7 @@ evaluate_fishing_rights_for_position as (
 position_and_position_prev as ( --Récupération de la position précédente pour création du segment
     select 
         pos_w_r.*,
-        pos_w_r_prev.position_id as position_id_prev,
+        --pos_w_r_prev.position_id as position_id_prev,
         pos_w_r_prev.position_timestamp as position_timestamp_prev,
         pos_w_r_prev.position_point as position_point_prev,
         pos_w_r_prev.vessel_flag as vessel_flag_prev,
@@ -227,32 +227,55 @@ position_and_position_prev as ( --Récupération de la position précédente pou
         pos_w_r.fishing_rights as fishing_rights_prev,
         pos_w_r.zone_ids as zone_ids_prev,
         pos_w_r.zone_categories as zone_categories_prev,
-        pos_w_r.zone_sub_categories as zone_sub_categories_prev
+        pos_w_r.zone_sub_categories as zone_sub_categories_prev,
+        pos_w_r.position_speed as position_speed_prev,
+        pos_w_r.position_heading as position_heading_prev,
+        pos_w_r.position_course as position_course_prev,
+        pos_w_r.position_rot as position_rot_prev
+
 
     from evaluate_fishing_rights_for_position as pos_w_r
     left join evaluate_fishing_rights_for_position  as pos_w_r_prev
         on pos_w_r.position_id_prev = pos_w_r_prev.position_id
-
+        and pos_w_r.excursion_id = pos_w_r_prev.excursion_id
+    where pos_w_r.position_id_prev is not null -- On ne garde que les positions pour lesquelles on a une position précédente
 ),
 
 segment_construction as (
     select
-        concat(excursion_id, '_s', lpad((row_number() OVER (PARTITION BY excursion_id ORDER BY position_timestamp))::text, 7, '0')) as segment_id,
+        concat(excursion_id, '_s', lpad( cast( row_number() OVER (PARTITION BY excursion_id ORDER BY position_timestamp) as text ), 7, '0') ) as segment_id,
+        excursion_id,
+		excursion_id_prev,
+		vessel_id,
         position_id,
         position_id_prev,
         position_timestamp,
         position_timestamp_prev,
         position_point,
         position_point_prev,
+        time_diff_s, -- Temps écoulé entre la position courante et la précédente (en secondes)
+        time_diff_h, -- Temps écoulé entre la position courante et la précédente (  en heures)
+        distance_m, -- Distance euclidienne entre la position courante et la précédente (en mètres)
+        --distance_km, -- Distance euclidienne entre la position courante et la précédente (en kilomètres)
+        distance_mi, -- Distance euclidienne entre la position courante et la précédente (en milles marins)
+        position_course,
+        position_course_prev,
+        position_heading,
+        position_heading_prev,
+        position_speed,
+        position_speed_prev,
+        position_rot,
+        position_rot_prev,
+        is_last_position,
         case 
-        when p.time_diff_s < 1800 -- 30 minutes
+        when time_diff_s < 1800 -- 30 minutes
             then 'AT_SEA'
             else 'DEFAULT_AIS' 
         end as segment_type,
-        st_make_line(
-            p.position_prev,
-            p.position
-        ) as segment_line
+        st_makeline(
+            position_point_prev,
+            position_point
+        ) as segment_line,
 
         zone_ids,
         zone_categories,
@@ -264,7 +287,7 @@ segment_construction as (
 
         utils.array_diff(zone_ids, zone_ids_prev) as zones_entered,
         utils.array_diff(zone_ids_prev, zone_ids) as zones_exited,
-        utils.utils.array_in_both(zone_ids, zone_ids_prev) as zones_crossed,
+        utils.array_in_both(zone_ids, zone_ids_prev) as zones_crossed,
 
         'amp' = any(zone_categories) as is_in_amp_zone,
         'Territorial seas' = any(zone_categories) as is_in_territorial_waters,
@@ -275,6 +298,7 @@ segment_construction as (
         coalesce( fishing_rights_prev = 'excluded', FALSE) as was_in_zone_with_no_fishing_rights_prev
 
     from position_and_position_prev 
+    where position_id_prev is not null -- On ne garde que les positions pour lesquelles on a une position précédente
 ),
 
 segment_metrics as (
@@ -302,6 +326,9 @@ segment_metrics as (
 
         position_speed as segment_speed_at_end,
         position_speed_prev as segment_speed_at_start,
+
+        position_rot as segment_rot_at_end,
+        position_rot_prev as segment_rot_at_start,
         case 
             when position_speed is not NULL and position_speed_prev is not NULL 
                 then round((position_speed + position_speed_prev)::numeric / 2.0, 1)
@@ -311,9 +338,6 @@ segment_metrics as (
                 then position_speed_prev        
         end as segment_average_speed,
         round( ({{ dbt_utils.safe_divide('distance_mi', 'time_diff_h') }})::numeric, 1) as segment_course_speed, -- noqa: 
-
-        position_rot as segment_rot_at_end,
-        position_rot_prev as segment_rot_at_start,
         
 
         zone_ids,
@@ -334,8 +358,8 @@ segment_metrics as (
 
         coalesce(is_last_position, FALSE) as is_last_vessel_segment,
 
-        position as segment_position_start,
-        position_prev as segment_position_end,
+        position_point as segment_position_end,
+        position_point_prev as segment_position_start,
         segment_line,
         now() as segment_created_at -- Date de création du segment dans la base de données (cette table)
         
@@ -351,7 +375,7 @@ select
     segment_end_at, -- TS de la position de fin du segment
 
     segment_duration, -- Interval
-    segment_duration_s::bigint, -- Durée du segment en secondes
+    cast(segment_duration_s as bigint), -- Durée du segment en secondes
     segment_duration_h, -- Durée du segment en heures
 
     segment_course_at_end as segment_course, -- Route fond à la fin du segment en degrés
@@ -402,4 +426,3 @@ select
     segment_line -- Ligne géographique du segment (entre les positions de début et de fin), WGS84
 
 from segment_metrics
-
