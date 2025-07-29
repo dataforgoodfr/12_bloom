@@ -18,8 +18,8 @@
     - tracking_activated: Indicates if the vessel is being tracked
     - tracking_status: Details on the vessel status (active, exported, wreck)
     - home_port_id: Most visited port: unique identifier for each port (based on UN/LOCODE)
-    - created_at: Timestamp when the port record was created in the database
-    - updated_at: Timestamp when the port record was last updated in the database
+    - created_at: Timestamp when the vessel record was created in the database
+    - updated_at: Timestamp when the vessel record was last updated in the database
     - check: Source of the vessel data & informations
     - length_class: BLOOM size classes (in m)
 */
@@ -43,6 +43,7 @@
 
 with 
 
+-- Retrieve last record for each vessel and add last active MMSI
 last_vessel_records as (
     select stg_vessels.*,
             stg_mmsi.dim_mmsi_mmsi,
