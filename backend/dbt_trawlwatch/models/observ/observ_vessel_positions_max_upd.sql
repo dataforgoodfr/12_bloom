@@ -6,7 +6,8 @@
 {{ config(
         schema='observ',
         enabled=true,
-        materialized='table'
+        materialized='table',
+        tags=['observ', 'vessel', 'positions', 'max_update']
 ) }}
 
 

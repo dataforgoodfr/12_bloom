@@ -11,9 +11,10 @@
 */
 
 {{ config(
-    enabled = true,
+    enabled = false,
     schema = 'staging',
-    materialized = 'incremental'
+    materialized = 'incremental',
+    tags = ['staging', 'ais','vessel_infos'],
 ) }}
 
 -- Utiliser pour les run d'initialisation

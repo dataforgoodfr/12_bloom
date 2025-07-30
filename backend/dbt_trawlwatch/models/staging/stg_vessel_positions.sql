@@ -22,6 +22,7 @@
     begin = '2024-05-01',
     lookback = 3,
     unique_key = ['position_id', 'position_timestamp_month'],
+    tags = ['staging', 'ais'],
     pre_hook="SELECT staging.ensure_stg_vessel_positions_future_partitions();"
 ) }}
 
@@ -42,12 +43,12 @@ spire_source as ( -- Selectionner les mesures distinctes (MMSI, timestamp, latit
         vessel_mmsi as position_mmsi,
         date_trunc('second', position_timestamp) as position_timestamp,
         max(id) as position_id,
-        (arrray_agg(position_latitude order by position_timestamp desc) filter (where position_latitude is not NULL))[1] as position_latitude, -- noqa: CP01
-        (arrray_agg(position_longitude order by position_timestamp desc) filter (where position_longitude is not NULL))[1] as position_longitude,
-        (arrray_agg(position_rot order by position_timestamp desc) filter (where position_rot is not NULL))[1] as position_rot,
-        (arrray_agg(position_speed order by position_timestamp desc) filter (where position_speed is not NULL))[1] as position_speed,
-        (arrray_agg(position_course order by position_timestamp desc) filter (where position_course is not NULL))[1] as position_course,
-        (arrray_agg(position_heading order by position_timestamp desc) filter (where position_heading is not NULL))[1] as position_heading,
+        (array_agg(position_latitude order by position_timestamp desc) filter (where position_latitude is not NULL))[1] as position_latitude, -- noqa: CP01
+        (array_agg(position_longitude order by position_timestamp desc) filter (where position_longitude is not NULL))[1] as position_longitude,
+        (array_agg(position_rot order by position_timestamp desc) filter (where position_rot is not NULL))[1] as position_rot,
+        (array_agg(position_speed order by position_timestamp desc) filter (where position_speed is not NULL))[1] as position_speed,
+        (array_agg(position_course order by position_timestamp desc) filter (where position_course is not NULL))[1] as position_course,
+        (array_agg(position_heading order by position_timestamp desc) filter (where position_heading is not NULL))[1] as position_heading,
         min(created_at) as position_ais_created_at_min,
         max(created_at) as position_ais_created_at_max
 
@@ -102,7 +103,7 @@ join_spire_ais_and_vessels as ( -- On ne conserve que la dernière remontée AIS
         st_setsrid(st_makepoint(ais.position_longitude, ais.position_latitude), 4326) as position_point
     from def_partitions as ais
     left join vessels as v
-        on ais.position_mmsi = v.mmsi and utils.safe_between(ais.position_timestamp, v.dim_mmsi_start_date, v.dim_mmsi_end_date)
+        on ais.position_mmsi = v.dim_mmsi_mmsi and utils.safe_between(ais.position_timestamp, v.dim_mmsi_start_date, v.dim_mmsi_end_date)
     where
         TRUE
         {{ MMSI_filter }}

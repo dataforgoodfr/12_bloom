@@ -43,7 +43,7 @@ itm_vessel_excursions_events as ( -- Positions des navires filtrées : 1 par tim
         is_last_position,
         is_excursion_start,
         is_excursion_end,
-        position,
+        position_point,
         position_itm_created_at,
         case 
                 when is_excursion_start then 'start'

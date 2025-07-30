@@ -77,6 +77,9 @@
         {{ pguf__jsonb_coalesce() }}
         /* ---- utils.count_rows ---------------------------------------------------- */
         {{ pguf__count_rows() }}
+        /* ---- utils.get_excursion_details ---------------------------------------------------- */
+        {{ pguf__get_excursion_details() }}
+        
 {% endmacro %}
 
 {% macro _init_create_admin_tables() %}

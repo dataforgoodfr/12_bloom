@@ -15,7 +15,7 @@ select
     when zone_json_data->>'beneficiaries' is not null
       then string_to_array(zone_json_data->>'beneficiaries', ', ')
     when zone_category in ('Territorial seas', 'Fishing coastal waters (6-12 NM)', 'Clipped territorial seas')
-      then array['FR']
+      then array['FRA']
     when zone_category = 'amp'
       then null  -- accès par tous si aucun bénéficiaire désigné, sous réserve des droits des autres zones ?
     --else null

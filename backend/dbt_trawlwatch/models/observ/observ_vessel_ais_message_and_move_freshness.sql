@@ -31,7 +31,6 @@ last_effective_move as (
         vessel_id,
         now() - last_position_timestamp as last_effective_move_freshness
     from {{ ref('itm_vessel_first_and_last_positions') }}
-    group by vessel_id
 )
 
 select

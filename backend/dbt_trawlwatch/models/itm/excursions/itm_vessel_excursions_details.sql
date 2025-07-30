@@ -1,7 +1,8 @@
 -- itm_vessel_excursions_details.sql
 -- This model aggregates vessel excursions with their positions, providing a comprehensive view of each excursion's details
 {{ config(
-    materialized='table',
+    materialized='incremental',
+    incremental_strategy='merge',
     schema='itm',
     unique_key=['excursion_id'],
     tags=['itm', 'vessel', 'excursions', 'details'],
@@ -18,12 +19,30 @@
         {'columns': ['excursion_position_itm_created_at'], 'type': 'btree'},
         {'columns': ['excursion_line'], 'type': 'gist'},
         {'columns': ['excursion_line_metrics'], 'type': 'gist'}
-    ]
+    ],
+    pre_hook="set work_mem to '64MB';"
 )
 }}
 
-with 
 
+select
+    exc.*,
+    (f).position_ids as excursion_position_ids,
+    (f).positions_count as excursion_positions_count,
+    (f).last_position_checked,
+    (f).excursion_line,
+    (f).excursion_line_metrics,
+    now() as excursion_details_completed_at
+from {{ ref('itm_vessel_excursions') }} exc
+left join lateral (
+    select * from utils.get_excursion_details(
+        cast(exc.vessel_id as varchar),
+        exc.excursion_start_position_timestamp,
+        exc.excursion_end_position_timestamp
+    )
+) f on true
+
+/*
 positions as ( 
 
     select *
@@ -77,7 +96,10 @@ excursions_detailed as (
         and pos.position_timestamp_day between exc.excursion_start_position_timestamp_day and exc.excursion_end_position_timestamp_day
         and pos.position_timestamp between exc.excursion_start_position_timestamp and exc.excursion_end_position_timestamp*/
         and pos.position_timestamp is not NULL
-        and utils.safe_between( pos.position_timestamp_month,  exc.excursion_start_position_timestamp_month, exc.excursion_end_position_timestamp_month)
+        and (
+            pos.position_timestamp_month >= exc.excursion_start_position_timestamp_month
+            and (pos.position_timestamp_month <= exc.excursion_end_position_timestamp_month or exc.excursion_end_position_timestamp_month is NULL)
+        )
         and utils.safe_between( pos.position_timestamp_day,  exc.excursion_start_position_timestamp_day, exc.excursion_end_position_timestamp_day)
         and utils.safe_between( pos.position_timestamp,  exc.excursion_start_position_timestamp, exc.excursion_end_position_timestamp)
 
@@ -137,3 +159,4 @@ excursions_synthesis as ( -- Synthèse des excursions (partie 1 : métriques non
 
 select * from excursions_synthesis
 order by excursion_id
+*/

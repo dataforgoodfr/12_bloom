@@ -27,8 +27,8 @@ select
     ircs as dim_vessel_call_sign,
     external_marking as dim_vessel_external_marking,
     loa as dim_vessel_loa,
-    to_timestamp(start_date, 'DD/MM/YYYY') as dim_vessel_start_date,
-    (to_timestamp(end_date, 'DD/MM/YYYY') + interval '1 day' - interval '1 microsecond') as dim_vessel_end_date,
+    {{ switch_date_formats('start_date') }} as dim_vessel_start_date,
+    ({{ switch_date_formats('end_date') }} + interval '1 day' - interval '1 microsecond') as dim_vessel_end_date,
 
     coalesce(end_date is NULL, FALSE) as tracking_activated,
     status as dim_vessel_status,

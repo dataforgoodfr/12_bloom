@@ -102,30 +102,37 @@
 /* ---- utils.array_intersect_agg ---------------------------------------------------- */
 {% macro pguf__array_intersect_agg() %}
 -- Permet de calculer l'intersection de tableaux présents dans plusieurs lignes (détecter les valeurs présentes partout)
-    DROP AGGREGATE IF EXISTS utils.array_intersect_agg(anyarray);
-    DROP FUNCTION IF EXISTS utils.array_intersect_agg_transfn(anyarray, anyarray);
-    CREATE OR REPLACE FUNCTION utils.array_intersect_agg_transfn(acc anyarray, val anyarray)
-    RETURNS anyarray
-    LANGUAGE SQL
+    DROP FUNCTION IF EXISTS utils.array_intersect_agg_transfn(text[], text[]);
+
+    CREATE OR REPLACE FUNCTION utils.array_intersect_agg_transfn(
+    acc text[],
+    val text[]
+    )
+    RETURNS text[]
+    LANGUAGE plpgsql
     AS $$
-        SELECT
-            CASE
-                WHEN val IS NULL THEN acc
-                WHEN acc IS NULL THEN val
-                ELSE (
-                    SELECT array_agg(DISTINCT e)
-                    FROM unnest(acc) AS t(e)
-                    WHERE e = ANY(val)
-                )
-            END
+        BEGIN
+        IF acc IS NULL THEN
+            RETURN val;
+        ELSIF val IS NULL THEN
+            RETURN acc;
+        ELSE
+            RETURN (
+            SELECT array_agg(DISTINCT e)
+            FROM unnest(acc) AS t(e)
+            WHERE e = ANY(val)
+            );
+        END IF;
+        END;
     $$;
-    CREATE OR REPLACE AGGREGATE utils.array_intersect_agg(anyarray) (
+
+    DROP AGGREGATE IF EXISTS utils.array_intersect_agg(text[]);
+
+    CREATE AGGREGATE utils.array_intersect_agg(text[]) (
         SFUNC = utils.array_intersect_agg_transfn,
-        STYPE = anyarray,
-        INITCOND = '{}',
-        FINALFUNC_MODIFY = READ_ONLY,
-        MFINALFUNC_MODIFY = READ_ONLY
+        STYPE = text[],
+        --INITCOND = NULL,  -- important !
+        FINALFUNC_MODIFY = READ_ONLY
     );
-    ALTER AGGREGATE utils.array_intersect_agg(anyarray)
-        OWNER TO ulf7g0ewqes1svjic5qf;
+
 {% endmacro %}

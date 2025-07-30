@@ -122,7 +122,7 @@ vessel_positions_w_flag as (
     from vessel_positions as vpos
     left join lateral ( -- Récupération du pavillon du navire à la position courante
         select f.vessel_flag
-        from {{ ref('itm_vessel_flags') }} f
+        from {{ ref('itm_vessel_flags') }} as f
         where f.vessel_id = vpos.vessel_id
             and utils.safe_between(vpos.position_timestamp, f.flag_start_at, f.flag_end_at)
         limit 1
@@ -142,7 +142,7 @@ pos_w_zones as (
         prev_zones.zone_category as zone_category_prev,
         prev_zones.zone_sub_category as zone_sub_category_prev*/
 
-    from vessel_positions_w_flag pos
+    from vessel_positions_w_flag as pos
 
     left join (select * from {{ ref('itm_vessel_positions_x_zones') }} ) as p_zones
         on (pos.vessel_id, pos.position_id) = (p_zones.vessel_id, p_zones.position_id)
@@ -171,30 +171,36 @@ get_fishing_beneficiaries as ( -- Charger les pavillons bénéficiaires de droit
     where beneficiaries is not NULL -- Les zones sans bénéficiaires ne contribuent ni à l'accumulation des droits, ni à l'évaluation des droits
 ),
 
-vessel_fishing_rights_by_rights_family as ( -- Regrouper les droits de pêche par famille de droits selon les droits les plus favorables
+vessel_fishing_rights_by_rights_family as ( -- Regrouper les droits de pêche par famille de droits selon les droits les plus favorables (UNION des droits)
     select
         pz.vessel_id,
         pz.position_id, 
         dz_ben.zone_rights_family,
-        array_agg(dz_ben.zone_id) as family_zone_ids,
-        array_agg(dz_ben.zone_category) as family_zone_categories,
-        array_agg(dz_ben.zone_sub_category) as family_zone_sub_categories,
-        utils.array_concat_uniq_agg(dz_ben.zone_beneficiaries) as family_zone_beneficiaries -- Concatène les flags distincts des zones de la famille de droits (permissif)
+        array_agg(dz_ben.zone_id) filter (where dz_ben.zone_id is not NULL) as family_zone_ids,
+        array_agg(dz_ben.zone_category) filter (where dz_ben.zone_category is not NULL) as family_zone_categories,
+        array_agg(dz_ben.zone_sub_category) filter (where dz_ben.zone_sub_category is not NULL) as family_zone_sub_categories,
+
+        -- Concatène les flags distincts des zones de la famille de droits (permissif)
+        utils.array_concat_uniq_agg(dz_ben.zone_beneficiaries) as family_zone_beneficiaries 
+
     from pos_w_zones as pz
     left join get_fishing_beneficiaries as dz_ben on pz.zone_id = dz_ben.zone_id
     -- On ne conserve que les positions en zone
-	where dz_ben.zone_id is not null
+	where dz_ben.zone_id is not NULL
     group by pz.vessel_id, pz.position_id, dz_ben.zone_rights_family
 ),
 
-vessel_fishing_rights_by_position as ( -- Calculer l'intersection des droits des différentes familles, donc les droits les moins favorables
+vessel_fishing_rights_by_position as ( -- Calculer l'intersection des droits des différentes familles, donc les droits les moins favorables (ALL des droits)
     select
         vessel_id,
         position_id,
         utils.array_concat_uniq_agg(family_zone_ids) as zone_ids,
         utils.array_concat_uniq_agg(family_zone_categories) as zone_categories,
         utils.array_concat_uniq_agg(family_zone_sub_categories) as zone_sub_categories,
-        utils.array_intersect_agg(family_zone_beneficiaries) as flags_with_fishing_rights_on_position -- Conserve uniquement les pavillons présents dans toutes les familles de droits (restrictif)
+        
+        -- Conserve uniquement les pavillons présents dans toutes les familles de droits (restrictif)
+        utils.array_intersect_agg(cast(family_zone_beneficiaries as text[])) as flags_with_fishing_rights_on_position 
+        
     from vessel_fishing_rights_by_rights_family
     group by vessel_id, position_id
 ),
@@ -223,27 +229,27 @@ position_and_position_prev as ( --Récupération de la position précédente pou
         pos_w_r_prev.excursion_id as excursion_id_prev,
         pos_w_r_prev.excursion_start_position_timestamp as excursion_start_position_timestamp_prev,
         pos_w_r_prev.excursion_end_position_timestamp as excursion_end_position_timestamp_prev,
-        pos_w_r.excursion_status as excursion_status_prev,
-        pos_w_r.fishing_rights as fishing_rights_prev,
-        pos_w_r.zone_ids as zone_ids_prev,
-        pos_w_r.zone_categories as zone_categories_prev,
-        pos_w_r.zone_sub_categories as zone_sub_categories_prev,
-        pos_w_r.position_speed as position_speed_prev,
-        pos_w_r.position_heading as position_heading_prev,
-        pos_w_r.position_course as position_course_prev,
-        pos_w_r.position_rot as position_rot_prev
-
+        pos_w_r_prev.excursion_status as excursion_status_prev,
+        pos_w_r_prev.fishing_rights as fishing_rights_prev,
+		pos_w_r_prev.flags_with_fishing_rights_on_position as flags_with_fishing_rights_on_position_prev,
+        pos_w_r_prev.zone_ids as zone_ids_prev,
+        pos_w_r_prev.zone_categories as zone_categories_prev,
+        pos_w_r_prev.zone_sub_categories as zone_sub_categories_prev,
+        pos_w_r_prev.position_speed as position_speed_prev,
+        pos_w_r_prev.position_heading as position_heading_prev,
+        pos_w_r_prev.position_course as position_course_prev,
+        pos_w_r_prev.position_rot as position_rot_prev
 
     from evaluate_fishing_rights_for_position as pos_w_r
     left join evaluate_fishing_rights_for_position  as pos_w_r_prev
         on pos_w_r.position_id_prev = pos_w_r_prev.position_id
         and pos_w_r.excursion_id = pos_w_r_prev.excursion_id
-    where pos_w_r.position_id_prev is not null -- On ne garde que les positions pour lesquelles on a une position précédente
+    where pos_w_r.position_id_prev is not NULL -- On ne garde que les positions pour lesquelles on a une position précédente
 ),
 
 segment_construction as (
     select
-        concat(excursion_id, '_s', lpad( cast( row_number() OVER (PARTITION BY excursion_id ORDER BY position_timestamp) as text ), 7, '0') ) as segment_id,
+        concat(excursion_id, '_s', lpad( cast( row_number() over (partition by excursion_id order by position_timestamp) as text ), 7, '0') ) as segment_id,
         excursion_id,
 		excursion_id_prev,
 		vessel_id,
@@ -291,11 +297,19 @@ segment_construction as (
 
         'amp' = any(zone_categories) as is_in_amp_zone,
         'Territorial seas' = any(zone_categories) as is_in_territorial_waters,
-        coalesce( fishing_rights = 'excluded', FALSE) as is_in_zone_with_no_fishing_rights,
 
         'amp' = any(zone_categories_prev) as was_in_amp_zone_prev,
         'Territorial seas' = any(zone_categories_prev) as was_in_territorial_waters_prev,
-        coalesce( fishing_rights_prev = 'excluded', FALSE) as was_in_zone_with_no_fishing_rights_prev
+
+        vessel_flag,
+		flags_with_fishing_rights_on_position,
+		fishing_rights,
+	
+		vessel_flag_prev,
+		flags_with_fishing_rights_on_position_prev,
+		fishing_rights_prev,
+        coalesce( fishing_rights = 'excluded', FALSE) as is_in_zone_with_no_fishing_rights,
+		coalesce( fishing_rights_prev = 'excluded', FALSE) as was_in_zone_with_no_fishing_rights_prev
 
     from position_and_position_prev 
     where position_id_prev is not null -- On ne garde que les positions pour lesquelles on a une position précédente
@@ -354,7 +368,17 @@ segment_metrics as (
 
         is_in_amp_zone,
         is_in_territorial_waters,
+
+        vessel_flag,
+		flags_with_fishing_rights_on_position,
+		fishing_rights,
+	
+		vessel_flag_prev,
+		flags_with_fishing_rights_on_position_prev,
+		fishing_rights_prev,
+	
         is_in_zone_with_no_fishing_rights,
+		was_in_zone_with_no_fishing_rights_prev,
 
         coalesce(is_last_position, FALSE) as is_last_vessel_segment,
 
@@ -401,7 +425,24 @@ select
 
     is_in_amp_zone, -- Le navire est-il dans une zone AMP ?
     is_in_territorial_waters, -- Le navire est-il dans des eaux territoriales ?
-    is_in_zone_with_no_fishing_rights, -- Le navire est-il dans une zone pour laquelle il n'a pas de droit de pêche ?
+	
+	----------- Droits de pêche
+	vessel_flag_prev, --Pavillon de navire (début de segment)
+	flags_with_fishing_rights_on_position_prev, -- Pavillons avec droits de pêche à la position (début de segment)
+	fishing_rights_prev, -- Situation du navire au regard des droits de pêche (début de segment)
+	
+	vessel_flag, --Pavillon du navire (fin de segment)
+	flags_with_fishing_rights_on_position, -- Pavillons avec droits de pêche à la position (fin de segment)
+	fishing_rights, -- Situation du navire au regard des droits de pêche (fin de segment)
+
+	is_in_zone_with_no_fishing_rights as ended_in_zone_with_no_fishing_rights, -- Le navire est-il, à la fin du segment, dans une zone pour laquelle il n'a pas de droit de pêche ?
+	was_in_zone_with_no_fishing_rights_prev as started_in_zone_with_no_fishing_rights, -- Le navire était-il, au début du segment dans une zone pour laquelle il n'a pas de droit de pêche ?
+	
+	case -- Le navire est considéré comme présent dans une zone pour laquelle il n'a pas les droits de pêche uniquement s'il n'a les droits ni au début, ni à la fin du segment 
+		when is_in_zone_with_no_fishing_rights and was_in_zone_with_no_fishing_rights_prev then true
+		else false
+	end as is_in_zone_with_no_fishing_rights,
+	-----------/ Droits de pêche
 
     is_last_vessel_segment, -- Le segment est-il le dernier connu pour le navire ?
 

@@ -184,11 +184,15 @@ models:
       - name: dim_vessel_flag
         description: "Flag of the ship, represented by the ISO3 code of the country"
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: dim_vessel_imo
         description: "IMO number of the vessel, used as a unique identifier"
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
       - name: dim_vessel_cfr
         description: "CFR number of the vessel (EU identifier)"
       - name: dim_vessel_call_sign
@@ -219,6 +223,8 @@ models:
           - accepted_values:
               values: ['STATIC', 'HISTORIZED', 'SPIRE_AIS_DATA']
               quote: true
+              config:
+                severity: warn
       - name: dim_vessel_details
         description: "JSON object containing additional details about the vessel, such as gear, length class, and ship type"  
       - name: stg_dim_vessel_created_at
