@@ -35,6 +35,7 @@ last_effective_move as (
 
 select
     r.vessel_id,
+    now() as reference_timestamp,
     r.last_ais_message_freshness,
     r.last_position_timestamp_freshness,
     e.last_effective_move_freshness
