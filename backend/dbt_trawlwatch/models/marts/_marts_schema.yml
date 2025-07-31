@@ -181,3 +181,380 @@ models:
           description: "Last known speed of the vessel (in knots)."
         - name: arrival_port_id
           description: "Identifier of the destination port of the excursion."
+
+    # VESSEL EXCURSIONS MARTS
+    - name: mart_dim_vessels__excursions_by_date
+      description: "Dimension model for vessel excursions by date, used for API routes."
+      columns:
+        - name: excursion_id
+          description: "Unique identifier of the excursion."
+          tests:
+            - not_null
+        - name: day_excursion_date
+          description: "Day of the excursion."
+          tests:
+            - not_null
+        - name: vessel_id
+          description: "Unique identifier of the vessel."
+          tests:
+            - not_null
+        - name: departure_port_id
+          description: "Identifier of the port from which the vessel departed."
+          tests:
+            - not_null
+        - name: arrival_port_id
+          description: "Identifier of the port where the vessel arrived."
+          tests:
+            - not_null
+        - name: departure_at
+          description: "Departure timestamp of the excursion."
+          tests:
+            - not_null
+        - name: arrival_at
+          description: "Arrival timestamp of the excursion."
+        - name: departure_on
+          description: "Departure date of the excursion."
+          tests:
+            - not_null
+        - name: arrival_on
+          description: "Arrival date of the excursion."
+        - name: total_time_at_sea
+          description: "Total time spent at sea."
+          tests:
+            - not_null
+        - name: total_time_in_amp
+          description: "Total time spent in marine protected areas (AMP)."
+          tests:
+            - not_null
+        - name: total_time_in_territorial_waters
+          description: "Total time spent in territorial waters."
+          tests:
+            - not_null
+        - name: total_time_in_zones_with_no_fishing_rights
+          description: "Total time spent in zones with no fishing rights."
+          tests:
+            - not_null
+        - name: total_time_fishing
+          description: "Total time spent fishing."
+          tests:
+            - not_null
+        - name: total_time_fishing_in_amp
+          description: "Total time spent fishing in marine protected areas (AMP)."
+          tests:
+            - not_null
+        - name: total_time_fishing_in_territorial_waters
+          description: "Total time spent fishing in territorial waters."
+          tests:
+            - not_null
+        - name: total_time_fishing_in_zones_with_no_fishing_rights
+          description: "Total time spent fishing in zones with no fishing rights."
+          tests:
+            - not_null
+        - name: total_time_default_ais  
+          description: "Total time the vessel was not broadcasting its AIS signal."
+          tests:
+            - not_null
+        - name: excursion_created_at
+          description: "Creation timestamp of the excursion record."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the record."
+          tests:
+            - not_null
+
+    # VESSEL SEGMENTS MARTS
+    - name: mart_dim_vessels__segments_by_excursion_ids
+      description: "Dimension model for vessel segments by excursion IDs, used for API routes."
+      columns:
+        - name: excursion_id
+          description: "Unique identifier of the excursion."
+          tests:
+            - not_null
+        - name: vessel_id
+          description: "Unique identifier of the vessel."
+          tests:
+            - not_null
+        - name: daysegments_date
+          description: "Day at the end the segment."
+          tests:
+            - not_null
+        - name: timestamp_start
+          description: "Start timestamp of the segment."
+          tests:
+            - not_null
+        - name: timestamp_end
+          description: "End timestamp of the segment."
+          tests:
+            - not_null
+        - name: segment_duration
+          description: "Duration of the segment."
+          tests:
+            - not_null
+        - name: segment_type
+          description: "Type of the segment (e.g., 'DEFAULT_AIS', 'FISHING', 'AT_SEA')."
+          tests:
+            - not_null
+        - name: average_speed
+          description: "Average speed during the segment (in knots)."
+          tests:
+            - not_null
+        - name: start_position
+          description: "Start position of the segment (POINT(longitude, latitude))."
+          tests:
+            - not_null
+        - name: end_position
+          description: "End position of the segment (POINT(longitude, latitude))."
+          tests:
+            - not_null
+        - name: speed_at_start
+          description: "Speed at the start of the segment (in knots)."
+          tests:
+            - not_null
+        - name: speed_at_end
+          description: "Speed at the end of the segment (in knots)."
+          tests:
+            - not_null
+        - name: heading_at_start
+          description: "Heading at the start of the segment (in degrees)."
+        - name: heading_at_end
+          description: "Heading at the end of the segment (in degrees)."
+        - name: course_at_start
+          description: "Course at the start of the segment (in degrees)."
+        - name: course_at_end
+          description: "Course at the end of the segment (in degrees)."
+        - name: in_amp_zone
+          description: "Boolean indicating if the segment was in an AMP zone."
+          tests:
+            - not_null
+        - name: in_territorial_waters
+          description: "Boolean indicating if the segment was in territorial waters."
+          tests:
+            - not_null
+        - name: in_zones_with_no_fishing_rights
+          description: "Boolean indicating if the segment was in a zone with no fishing rights."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the segment record."
+          tests:
+            - not_null
+            
+    # ZONES SUMMARY MARTS
+    - name: mart_dim_zones__summary
+      description: "Dimension model for summarised zones for API routes."
+      columns:
+        - name: id
+          description: "Unique identifier of the zone."
+          tests:
+            - not_null
+            - unique
+        - name: category
+          description: "Protection category of the zone (e.g., 'amp', 'Fishing coastal waters (6-12 NM)')."
+          tests:
+            - not_null
+        - name: sub_category
+          description: "Protection sub-category of the zone."
+        - name: name
+          description: "Name of the zone."
+        - name: created_at
+          description: "Creation timestamp of the zone."
+
+    # ZONES MARTS
+    - name: mart_dim_zones
+      description: "Dimension model for zones, including geometry and centroid."
+      columns:
+        - name: id
+          description: "Unique identifier of the zone."
+          tests:
+            - not_null
+            - unique
+        - name: name
+          description: "Name of the zone."
+          tests:
+            - not_null
+        - name: geometry
+          description: "Geometry of the zone in WKT format."
+          tests:
+            - not_null
+        - name: centroid
+          description: "Centroid of the zone geometry."
+          tests:
+            - not_null
+        - name: category
+          description: "Category of the zone."
+          tests:
+            - not_null
+        - name: sub_category
+          description: "Sub-category of the zone."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the zone."
+          tests:
+            - not_null
+        - name: updated_at
+          description: "Last update timestamp of the zone."
+        - name: json_data
+          description: "Additional JSON data related to the zone."
+        - name: enable  
+          description: "Boolean indicating if the zone is enabled or not."
+          tests:
+            - not_null
+            
+    # ZONES CATEGORIES MARTS
+    - name: mart_dim_zones__categories
+      description: "Dimension model for zones categories, used for API routes."
+      columns:
+        - name: category
+          description: "Category of the zone (e.g., 'amp', 'Fishing coastal waters (6-12 NM)'), 'Territorial seas'"
+          tests:
+            - not_null
+        - name: sub_category
+          description: "Sub-category of the zone (only for amp)."
+    
+    # METRICS VESSELS AT SEA MARTS
+    - name: mart_metrics__vessels_at_sea
+      description: "Mart table for number of vessels at sea, used for API routes."
+      columns:
+        - name: day_date
+          description: "Day of the count."
+          tests:
+            - not_null
+            - unique
+        - name: vessel_ids
+          description: "List of vessel IDs that were at sea on that day."
+          tests:
+            - not_null
+        - name: count_vessels_at_sea
+          description: "Number of vessels at sea on that day."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the record."
+          tests:
+            - not_null
+
+    # METRICS VESSELS IN MPAS MARTS
+    - name: mart_metrics__vessels_in_mpas
+      description: "Mart table for number of vessels in MPAs, used for API routes."
+      columns:
+        - name: day_date
+          description: "Day of the count."
+          tests:
+            - not_null
+            - unique
+        - name: vessel_ids
+          description: "List of vessel IDs that were at sea on that day."
+          tests:
+            - not_null
+        - name: count_vessels_in_mpas
+          description: "Number of vessels in MPAs on that day."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the record."
+          tests:
+            - not_null
+
+    # METRICS ZONES VISITED MARTS
+    - name: mart_metrics__zones_visited
+      description: "Mart table for zones visited by vessels, used for API routes."
+      columns:
+        - name: day_date
+          description: "Day of the visit."
+          tests:
+            - not_null
+        - name: zone_id
+          description: "Unique identifier of the zone visited."
+          tests:
+            - not_null
+        - name: name
+          description: "Name of the zone."
+          tests:
+            - not_null
+        - name: category
+          description: "Category of the zone."
+          tests:
+            - not_null
+        - name: sub_category
+          description: "Sub-category of the zone."
+        - name: zone_created_at
+          description: "Creation timestamp of the zone."
+          tests:
+            - not_null
+        - name: centroid
+          description: "Centroid of the zone geometry."
+          tests:
+            - not_null
+        - name: visiting_duration
+          description: "Total duration spent in the zone."
+          tests:
+            - not_null
+
+    # METRICS ZONES VISITING TIME BY VESSEL MARTS
+    - name: mart_metrics__zones_visiting_time_by_vessel
+      description: "Mart table for zones visiting time by vessel, used for API routes."
+      columns:
+        - name: day_date
+          description: "Day of the visit."
+          tests:
+            - not_null
+        - name: zone_id
+          description: "Unique identifier of the zone visited."
+          tests:
+            - not_null
+        - name: name
+          description: "Name of the zone."
+          tests:
+            - not_null
+        - name: category
+          description: "Category of the zone."
+          tests:
+            - not_null
+        - name: sub_category
+          description: "Sub-category of the zone."
+        - name: zone_created_at
+          description: "Creation timestamp of the zone."
+          tests:
+            - not_null
+        - name: centroid
+          description: "Centroid of the zone geometry."
+          tests:
+            - not_null
+        - name: vessel_id
+          description: "Unique identifier of the vessel."
+          tests:
+            - not_null
+        - name: mmsi
+          description: "MMSI of the vessel."
+          tests:
+            - not_null
+        - name: ship_name
+          description: "Name of the vessel."
+          tests:
+            - not_null
+        - name: length
+          description: "Length overall of the vessel (in meters)."
+          tests:
+            - not_null
+        - name: country_iso3
+          description: "ISO3 code of the country where the vessel is registered."
+        - name: type
+          description: "Fishing vessel type (FAO gear subcategory or category)."
+        - name: imo
+          description: "IMO number of the vessel, used as a unique identifier."
+        - name: ircs
+          description: "Call sign of the vessel, used for identification."
+        - name: vessel_created_at
+          description: "Creation timestamp of the vessel record."
+          tests:
+            - not_null
+        - name: zone_visiting_duration
+          description: "Total duration spent in the zone by the vessel."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the record."
+          tests:
+            - not_null
