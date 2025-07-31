@@ -3,7 +3,9 @@
 {{ config(
     alias = 'itm_vessel_first_and_last_positions',
     schema = 'itm',
-    materialized = 'table',
+    materialized = 'incremental',
+    incremental_strategy = 'merge',
+    tags = ['itm', 'vessels', 'positions','first','last'],
     unique_key = ['vessel_id'],
 ) }}
 
@@ -20,7 +22,15 @@ select
     max(pos.position_timestamp) as last_position_timestamp,
     max(pos.position_id) as last_position_id
 from vessels 
+
 left join {{ ref('stg_vessel_positions') }} as pos
     on vessels.vessel_id = pos.vessel_id
+
+{% if is_incremental() %}
+ join {{ this }} as this
+    on vessels.vessel_id = this.vessel_id 
+    and pos.position_timestamp not between this.first_position_timestamp and this.last_position_timestamp
+{% endif %}
+
 group by vessels.vessel_id
 order by vessels.vessel_id

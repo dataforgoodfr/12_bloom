@@ -6,7 +6,7 @@
                         taille cumulée d’un index partitionné.
         ------------------------------------------------------------------------- */
         create schema if not exists admin;
-
+        drop view if exists admin.heaviest_objects;
         create or replace view admin.heaviest_objects as
         with relsizes as (
             /* Taille de chaque relation utilisateur (octets) */
@@ -85,4 +85,35 @@
             order by total_bytes desc
         ) a  where total_bytes > 261000000 -- env. 250 Mo
         order by total_bytes desc;
+        /* -----------------------Synthèse de l'espace disque au niveau du projet --------------------- */
+        drop view if exists admin.project_weight_compare;
+        create or replace view admin.project_weight_compare as
+
+        with heavy as (
+
+            SELECT 
+            *, 
+            case 
+                when "schema_name" = 'public' and object_name !='spire_ais_data' then 'Old Trawl Watch'
+                when object_name = 'spire_ais_data' then 'SPIRE AIS SOURCE data'
+                when "schema_name" in ('staging','itm','marts','observ','admin','seeds') then 'New dbt Trawl Watch'
+                else 'Others db artefacts'
+            end as trawl_watch_project
+            
+            FROM admin.heaviest_objects
+        )
+
+        select 
+            trawl_watch_project, 
+            sum(total_bytes) as total_bytes, 
+            pg_size_pretty(sum(total_bytes)) as total_size 
+        from heavy 
+        group by trawl_watch_project 
+        order by total_bytes desc;
+
+        alter view admin.heaviest_objects
+            owner to ulf7g0ewqes1svjic5qf;
+        alter view admin.project_weight_compare
+            owner to ulf7g0ewqes1svjic5qf;
+
 {% endmacro %} 

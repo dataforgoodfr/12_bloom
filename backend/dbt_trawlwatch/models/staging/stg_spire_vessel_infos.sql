@@ -1,122 +1,130 @@
 -- stg_spire_vessel_infos.sql
--- This file is used to create a staging table for vessel information from the Spire API.
+-- This file is used to create a kind of staging table for vessel information from the Spire API.
 
 /*
-    Détecter les changements dans la table Spire sur les données des navires associées à un MMSI
-    1. Passer les champs non agrégés hors MMSI en JSONB
-    2. Comparer current et lead
-    3. Si changement, pointer la date de début et de fin de la configuration
-
-    -- DEVELOPPEMENT A TERMINER...
+    observ_spire_dim_vessel_configs permet de lister toutes les configs différentes des navires dans les données AIS de Spire
+    avec des first_seen et last_seen.
+    stg_spire_vessel_infos cherche à déterminer : 
+    - si des configs se chevauchent pour un même navire
+    - si plusieurs configs sont présentes pour un même navire à un instant T
+    - la fréquence d'apparition des configs pour un navire donné
+    - la fréquence de la config active (last_seen = max(last_seen)) pour un navire donné sur les 100 dernières remontées
 */
 
 {{ config(
-    enabled = false,
+    enabled = true,
     schema = 'staging',
     materialized = 'incremental',
     tags = ['staging', 'ais','vessel_infos'],
+    indexes = [
+        {"columns": ["vessel_mmsi"], "type": "btree"},
+        {"columns": ["vessel_mmsi", "config_hash"], "type": "btree"},
+        {"columns": ["config_start", "config_end"], "type": "btree"}
+    ],
 ) }}
 
--- Utiliser pour les run d'initialisation
-{% if not is_incremental() %}
-    {% set partial_end_date = var('partial_end_date', '2099-12-31') %} 
-{% endif %}
 
-
-with
-
-spire_vessel_infos as ( --Création d'une signature JSONB pour les infos d'identification hors MMSI de chaque navire
-    select
+with configs as (
+    select 
         vessel_mmsi,
-        position_timestamp,
-        created_at as ais_message_retrieved_at,
-        jsonb_build_object(
-            'vessel_imo', vessel_imo,
-            'vessel_name', vessel_name,
-            'vessel_callsign', vessel_callsign,
-            'vessel_flag', vessel_flag,
-            'vessel_length', vessel_length
-        ) as vessel_identification_infos
-    from {{ source('spire', 'spire_ais_data') }}
-    where true
+        config_hash,
+        vessel_identification_infos
+    from {{ ref('observ_spire_dim_vessel_configs') }}
+),
+
+ais_tagged as (
+    select 
+        s.vessel_mmsi,
+        s.position_timestamp,
+        s.created_at as ais_message_retrieved_at,
+        c.config_hash,
+        c.vessel_identification_infos
+    from {{ source('spire', 'spire_ais_data') }} as s
+    join configs as c
+      on jsonb_build_object(
+            'vessel_imo', cast(s.vessel_imo as text),
+            'vessel_name', cast(s.vessel_name as text),
+            'vessel_callsign', cast(s.vessel_callsign as text),
+            'vessel_flag', cast(s.vessel_flag as text),
+            'vessel_length', s.vessel_length
+         ) = c.vessel_identification_infos
     {% if is_incremental() %}
-        and created_at > (select max(stg_spire_vessel_infos_created_at) from {{ this }})
-    {% else %}
-    -- Gestion du filtre de run partiel pour éviter les timeouts
-        and created_at <= '{{ partial_end_date }}'
+    where s.created_at > (select max(stg_spire_vessel_infos_created_at) from {{ this }})
     {% endif %}
 ),
 
-ordered as ( -- Récupération du JSONB contenant les infos d'identification du navire pour le message AIS précédent
-    select 
-        *,
-        lag(vessel_identification_infos) over (partition by vessel_mmsi order by position_timestamp) as vessel_identification_infos_prev
-    from spire_vessel_infos
+tagged_with_breaks as (
+    select *,
+        case
+            when lag(config_hash) over (partition by vessel_mmsi order by position_timestamp) = config_hash then 0
+            else 1
+        end as is_new_group
+    from ais_tagged
 ),
 
-change_flagged as ( -- Si les infos d'identification du navire ont changé, on marque le message AIS comme une nouvelle configuration
-    select 
-        *,
-        case when vessel_identification_infos != vessel_identification_infos_prev then 1 else 0 end as is_new_config
-    from ordered
-),
-
-diff_explained as (
-    select 
-        *,
-        case when (vessel_identification_infos ->> 'vessel_imo') != (vessel_identification_infos_prev ->> 'vessel_imo') then 'vessel_imo,' else '' end ||
-        case when (vessel_identification_infos ->> 'vessel_name') != (vessel_identification_infos_prev ->> 'vessel_name') then 'vessel_name,' else '' end ||
-        case when (vessel_identification_infos ->> 'vessel_callsign') != (vessel_identification_infos_prev ->> 'vessel_callsign') then 'vessel_callsign,' else '' end ||
-        case when (vessel_identification_infos ->> 'vessel_flag') != (vessel_identification_infos_prev ->> 'vessel_flag') then 'vessel_flag,' else '' end ||
-        case when (vessel_identification_infos ->> 'vessel_length') != (vessel_identification_infos_prev ->> 'vessel_length') then 'vessel_length,' else '' end
-        as changed_fields_raw
-    from ordered
-),
-
-diff_explained_cleaned as (
-    select 
-        *,
-        string_to_array(trim(trailing ',' from changed_fields_raw), ',') as changed_fields
-    from diff_explained
-),
-
-configs as (
-    select 
-        change_flagged.*,
-        sum(change_flagged.is_new_config) over (partition by change_flagged.vessel_mmsi order by change_flagged.position_timestamp) as config_seq,
-        diff_explained_cleaned.changed_fields
-    from change_flagged
-    left join diff_explained_cleaned
-        on change_flagged.vessel_mmsi = diff_explained_cleaned.vessel_mmsi
-        and change_flagged.position_timestamp = diff_explained_cleaned.position_timestamp
+tagged_with_group as (
+    select *,
+        sum(is_new_group) over (partition by vessel_mmsi order by position_timestamp rows unbounded preceding) as grp
+    from tagged_with_breaks
 ),
 
 final_configs as (
     select
         vessel_mmsi,
+        config_hash,
+        vessel_identification_infos,
         min(position_timestamp) as config_start,
         max(position_timestamp) as config_end,
         min(ais_message_retrieved_at) as ais_message_started_at,
         max(ais_message_retrieved_at) as ais_message_ended_at,
+        count(*) as nb_messages
+    from tagged_with_group
+    group by vessel_mmsi, config_hash, grp, vessel_identification_infos
+), with_lag as (
+    select *,
+        lag(config_end) over (partition by vessel_mmsi, config_hash order by config_start) as prev_config_end
+    from final_configs
+),
+
+final_merged as (
+    select 
+        vessel_mmsi,
+        config_hash,
         vessel_identification_infos,
-        changed_fields
-    from configs
-    group by vessel_mmsi, config_seq, vessel_identification_infos, changed_fields
+        min(config_start) as config_start,
+        max(config_end) as config_end,
+        min(ais_message_started_at) as ais_message_started_at,
+        max(ais_message_ended_at) as ais_message_ended_at,
+        sum(nb_messages) as nb_messages
+    from (
+        select *,
+            sum(
+                case 
+                    when prev_config_end = config_start then 0 
+                    else 1 
+                end
+            ) over (
+                partition by vessel_mmsi, config_hash 
+                order by config_start 
+                rows unbounded preceding
+            ) as merged_grp
+        from with_lag
+    ) t
+    group by vessel_mmsi, config_hash, vessel_identification_infos, merged_grp
 )
 
-select 
+select
     vessel_mmsi,
+    config_hash,
     config_start,
     config_end,
     ais_message_started_at,
     ais_message_ended_at,
     vessel_identification_infos,
-    changed_fields,
     vessel_identification_infos ->> 'vessel_imo'       as vessel_imo,
     vessel_identification_infos ->> 'vessel_name'      as vessel_name,
     vessel_identification_infos ->> 'vessel_callsign'  as vessel_callsign,
     vessel_identification_infos ->> 'vessel_flag'      as vessel_flag,
     (vessel_identification_infos ->> 'vessel_length')::numeric as vessel_length,
     now() as stg_spire_vessel_infos_created_at
-from final_configs
-order by vessel_mmsi, config_start
+from final_merged

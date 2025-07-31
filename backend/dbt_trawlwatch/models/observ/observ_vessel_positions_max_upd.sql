@@ -1,3 +1,4 @@
+-- observ_vessel_positions_max_upd.sql
 /*
     Load only the maximum update timestamp from the stg_vessel_positions table.
     This model is used to track the latest update time for staged vessel positions data.
