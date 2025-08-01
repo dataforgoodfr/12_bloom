@@ -176,9 +176,9 @@ vessel_fishing_rights_by_rights_family as ( -- Regrouper les droits de pêche pa
         pz.vessel_id,
         pz.position_id, 
         dz_ben.zone_rights_family,
-        array_agg(dz_ben.zone_id) filter (where dz_ben.zone_id is not NULL) as family_zone_ids,
-        array_agg(dz_ben.zone_category) filter (where dz_ben.zone_category is not NULL) as family_zone_categories,
-        array_agg(dz_ben.zone_sub_category) filter (where dz_ben.zone_sub_category is not NULL) as family_zone_sub_categories,
+        array_agg(pz.zone_id) filter (where pz.zone_id is not NULL) as family_zone_ids,
+        array_agg(pz.zone_category) filter (where pz.zone_category is not NULL) as family_zone_categories,
+        array_agg(pz.zone_sub_category) filter (where pz.zone_sub_category is not NULL) as family_zone_sub_categories,
 
         -- Concatène les flags distincts des zones de la famille de droits (permissif)
         utils.array_concat_uniq_agg(dz_ben.zone_beneficiaries) as family_zone_beneficiaries 
