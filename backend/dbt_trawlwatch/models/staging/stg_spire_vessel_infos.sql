@@ -26,7 +26,9 @@
 ) }}
 
 
-with configs as (
+with
+
+configs as (
     select 
         vessel_mmsi,
         config_hash,
@@ -34,15 +36,32 @@ with configs as (
     from {{ ref('observ_spire_dim_vessel_configs') }}
 ),
 
+ais_daily_configs as (
+    select distinct
+        vessel_mmsi,
+        date_trunc('day', position_timestamp) as position_timestamp_day,
+        date_trunc('day', created_at) as ais_message_retrieved_at_day,
+        cast(vessel_imo as text) as vessel_imo,
+        cast(vessel_name as text) as vessel_name,
+        cast(vessel_callsign as text) as vessel_callsign,
+        cast(vessel_flag as text) as vessel_flag,
+        cast(vessel_length as text) as vessel_length
+    from {{ source('spire', 'spire_ais_data') }}
+    {% if is_incremental() %}
+        where created_at > (select max(stg_spire_vessel_infos_created_at) from {{ this }})
+    {% endif %}
+    order by vessel_mmsi, position_timestamp_day, ais_message_retrieved_at_day
+),
+
 ais_tagged as (
     select 
         s.vessel_mmsi,
-        date_trunc('day',s.position_timestamp) as position_timestamp_day,
-        date_trunc('day',s.created_at) as ais_message_retrieved_at_day,
+        s.position_timestamp_day,
+        s.ais_message_retrieved_at_day,
         c.config_hash,
         c.vessel_identification_infos
-    from {{ source('spire', 'spire_ais_data') }} as s
-    join configs as c
+    from ais_daily_configs s
+    inner join configs as c
       on jsonb_build_object(
             'vessel_imo', cast(s.vessel_imo as text),
             'vessel_name', cast(s.vessel_name as text),
@@ -50,13 +69,11 @@ ais_tagged as (
             'vessel_flag', cast(s.vessel_flag as text),
             'vessel_length', s.vessel_length
          ) = c.vessel_identification_infos
-    {% if is_incremental() %}
-    where s.created_at > (select max(stg_spire_vessel_infos_created_at) from {{ this }})
-    {% endif %}
 ),
 
 tagged_with_breaks as (
-    select *,
+    select 
+        *,
         case
             when lag(config_hash) over (partition by vessel_mmsi order by position_timestamp_day) = config_hash then 0
             else 1

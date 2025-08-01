@@ -22,7 +22,8 @@
     begin = '2024-05-01',
     unique_key = ['position_id', 'position_timestamp_month'],
     tags = ['staging', 'ais'],
-    pre_hook="SELECT staging.ensure_stg_vessel_positions_future_partitions();"
+    pre_hook="SELECT staging.ensure_stg_vessel_positions_future_partitions();",
+    post_hook="ANALYZE {{ this }};"
 ) }}
 
 -- Gestion des run à partir d'une liste de MMSI

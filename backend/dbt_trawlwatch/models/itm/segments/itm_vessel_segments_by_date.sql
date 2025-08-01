@@ -22,7 +22,6 @@
     event_time = 'position_timestamp',
     batch_size = batchsize,
     begin = '2024-05-01',
-    lookback = 1,
     unique_key = ['vessel_id', 'excursion_id','daysegments_date','segment_type'],
     indexes = [
         {'columns': ['vessel_id'], 'type': 'btree'},

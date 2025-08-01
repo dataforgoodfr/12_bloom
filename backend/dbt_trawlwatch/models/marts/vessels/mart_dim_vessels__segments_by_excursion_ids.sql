@@ -29,7 +29,9 @@ This file is used to create a mart table for segments for API routes :
 {{
     config(
         schema='marts',
-        materialized='table',
+        materialized='incremental',
+        incremental_strategy='merge',
+        unique_key=['excursion_id', 'segment_end_at'],
         alias='mart_dim_vessels__segments_by_excursion_ids',
         tags=['mart', 'dim', 'vessel', 'segment'],
         indexes=[

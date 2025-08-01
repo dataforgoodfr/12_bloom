@@ -10,7 +10,6 @@
     event_time = 'position_timestamp',
     batch_size = var('default_microbatch_size', 'hour'),
     begin = '2024-01-01',
-    lookback = 3,
     unique_key = ['position_id','zone_id'],
     tags=['itm', 'vessel', 'positions', 'zones'],
     indexes=[

@@ -7,6 +7,7 @@
 */
 
 {{ config(
+    enabled = true,
     schema = 'itm',
     materialized = 'incremental',
     incremental_strategy = 'microbatch',
@@ -15,7 +16,8 @@
     begin = '2024-05-01',
     unique_key = ['position_id', 'position_timestamp_month'],
     pre_hook="SELECT itm.ensure_itm_vessel_positions_future_partitions();",
-    enabled = true
+    post_hook="ANALYZE {{ this }};"
+    
 ) }}
 
 -- Gestion des run à partir d'une liste de MMSI

@@ -33,7 +33,7 @@ This file is used to create a mart table for zones visited or vessels visiting z
     indexes=[
         {"columns": ["day_date"], "type": "btree"},
         {"columns": ["zone_id"], "type": "btree"},
-        {"columns": ["vessel_id"], "type": "btree"}
+        {"columns": ["vessel_id"], "type": "btree"},
         {"columns": ["category"], "type": "btree"},
         {"columns": ["sub_category"], "type": "btree"},
         {"columns": ["name"], "type": "btree"},
