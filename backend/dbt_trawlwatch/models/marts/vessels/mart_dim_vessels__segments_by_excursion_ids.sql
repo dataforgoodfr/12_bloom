@@ -31,7 +31,7 @@ This file is used to create a mart table for segments for API routes :
         schema='marts',
         materialized='incremental',
         incremental_strategy='merge',
-        unique_key=['excursion_id', 'segment_end_at'],
+        unique_key=['excursion_id', 'timestamp_end'],
         alias='mart_dim_vessels__segments_by_excursion_ids',
         tags=['mart', 'dim', 'vessel', 'segment'],
         indexes=[
@@ -65,4 +65,7 @@ select
     is_in_zone_with_no_fishing_rights as in_zones_with_no_fishing_rights,
     segment_created_at as created_at
 from {{ ref('itm_vessel_segments') }} as itm_segments
+{% if is_incremental() %}
+where segment_end_at >= (select max(daysegments_date) from {{ this }})
+{% endif %}
 order by vessel_id, daysegments_date, segment_start_at asc
