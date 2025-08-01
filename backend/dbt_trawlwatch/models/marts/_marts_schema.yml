@@ -46,6 +46,7 @@ models:
         description: Unique identifier of the vessel.
         tests:
           - not_null
+          - unique
       - name: mmsi
         description: Active MMSI of the vessel.
         tests:
@@ -72,6 +73,8 @@ models:
         description: IMO number of the vessel, used as a unique identifier.
       - name: cfr
         description: CFR number of the vessel (EU identifier).
+        tests:
+          - unique
       - name: ircs
         description: Call sign of the vessel, used for identification.
       - name: external_marking

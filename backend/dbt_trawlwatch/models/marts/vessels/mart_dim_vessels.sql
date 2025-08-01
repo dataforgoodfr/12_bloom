@@ -33,7 +33,7 @@
         {"columns": ["id"], "type": "btree", "unique": true},
         {"columns": ["imo"], "type": "btree"},
         {"columns": ["cfr"], "type": "btree", "unique": true},
-        {"columns": ["ircs"], "type": "btree", "unique": true},
+        {"columns": ["ircs"], "type": "btree"},
         {"columns": ["mmsi"], "type": "btree"},
         {"columns": ["ship_name"], "type": "btree"},
         {"columns": ["length_class"], "type": "btree"},
