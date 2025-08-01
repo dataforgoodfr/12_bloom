@@ -70,7 +70,12 @@ latest_raw_with_id as ( -- Jointure gauche : les navires sont associés à la po
         l.*
     from dim_vessels_mmsi as dvm
     left join latest_raw as l on 
-        dvm.dim_mmsi_mmsi = l.vessel_mmsi and dvm.dim_vessel_imo = l.vessel_imo
+        dvm.dim_mmsi_mmsi = l.vessel_mmsi 
+        and (
+            dvm.dim_vessel_imo = l.vessel_imo
+            or l.vessel_imo = '0'            -- IMO absent côté Spire
+            or dvm.dim_vessel_imo ='NA'     -- IMO absent côté dim
+        )
 
 ),
 
@@ -95,8 +100,8 @@ last_pos_ts_per_ship as (
     group by s.vessel_mmsi, s.vessel_imo
 ),
 
-fallback_last_raw as (
-    select 
+fallback_last_raw AS (
+    SELECT
         vnlr.vessel_id,
         s.vessel_mmsi,
         s.position_timestamp,
@@ -107,25 +112,38 @@ fallback_last_raw as (
         s.position_course,
         s.position_rot,
         s.created_at,
-        cast('Fallback last AIS position' as varchar) as last_raw_position_origin
-    from vessels_no_latest_raw as vnlr
-    inner join last_pos_ts_per_ship as lps
-        on vnlr.dim_mmsi_mmsi = lps.vessel_mmsi
-       and vnlr.dim_vessel_imo = lps.vessel_imo
-    inner join (
-        select 
-            *,
-            row_number() over (
-                partition by vessel_mmsi, vessel_imo, position_timestamp
-                order by created_at desc
-            ) as rn
-        from {{ source('spire', 'spire_ais_data') }}
-        
-    ) as s
-       on s.vessel_mmsi = lps.vessel_mmsi
-       and cast(s.vessel_imo as text) = lps.vessel_imo
-       and s.position_timestamp = lps.position_timestamp
-       and s.rn = 1
+        'Fallback last AIS position'::varchar AS last_raw_position_origin
+    FROM vessels_no_latest_raw AS vnlr
+    JOIN last_pos_ts_per_ship  AS lps
+      ON vnlr.dim_mmsi_mmsi = lps.vessel_mmsi
+     AND (
+            vnlr.dim_vessel_imo = lps.vessel_imo
+         OR lps.vessel_imo = '0'            -- IMO absent côté Spire
+         OR vnlr.dim_vessel_imo ='NA'     -- IMO absent côté dim
+        )
+    /* -------- partie rapide : on pioche UNE seule ligne -------- */
+    CROSS JOIN LATERAL (
+        SELECT DISTINCT ON (vessel_mmsi, vessel_imo, position_timestamp)
+               vessel_mmsi,
+               vessel_imo,
+               position_timestamp,
+               position_latitude,
+               position_longitude,
+               position_speed,
+               position_heading,
+               position_course,
+               position_rot,
+               created_at
+        FROM public.spire_ais_data sai
+        WHERE sai.vessel_mmsi = vnlr.dim_mmsi_mmsi
+          AND sai.vessel_imo::text = lps.vessel_imo
+          AND sai.position_timestamp = lps.position_timestamp
+        ORDER BY vessel_mmsi,
+                 vessel_imo,
+                 position_timestamp,
+                 created_at DESC   -- le plus récent d’abord
+        LIMIT 1
+    ) AS s
 )
 
 select 

@@ -20,7 +20,6 @@
     event_time = 'position_timestamp',
     batch_size = var('default_microbatch_size', 'hour'),
     begin = '2024-05-01',
-    lookback = 3,
     unique_key = ['position_id', 'position_timestamp_month'],
     tags = ['staging', 'ais'],
     pre_hook="SELECT staging.ensure_stg_vessel_positions_future_partitions();"

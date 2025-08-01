@@ -16,7 +16,6 @@
     event_time = 'segment_start_at',
     batch_size = var('default_microbatch_size', 'hour'),
     begin = '2024-01-01',
-    lookback = 3,
     tags=['itm', 'vessel', 'segments'],
     indexes=[
         {'columns': ['segment_id'], 'type': 'btree'},

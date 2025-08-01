@@ -18,7 +18,8 @@
         {'columns': ['excursion_port_arrival'], 'type': 'btree'},
         {'columns': ['excursion_is_loop'], 'type': 'btree'},
         {'columns': ['excursion_duration_interval'], 'type': 'btree'},
-        {'columns': ['excursion_status'], 'type': 'btree'}
+        {'columns': ['excursion_status'], 'type': 'btree'},
+        {'columns': ['excursion_created_at'], 'type': 'btree'}
     ]
 ) }}
 

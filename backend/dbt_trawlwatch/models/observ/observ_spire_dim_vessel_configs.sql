@@ -38,7 +38,8 @@ agg_configs as (
         ac.vessel_identification_infos,
         min(ac.created_at) as first_seen,
         max(ac.created_at) as last_seen,
-        md5(ac.vessel_identification_infos::text) as config_hash
+        md5(ac.vessel_identification_infos::text) as config_hash,
+        cast(null as boolean) as is_valid_config -- Placeholder for future use
     from all_configs ac
     group by ac.vessel_mmsi, ac.vessel_identification_infos
 )

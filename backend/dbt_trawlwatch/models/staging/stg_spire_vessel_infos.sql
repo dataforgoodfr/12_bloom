@@ -37,8 +37,8 @@ with configs as (
 ais_tagged as (
     select 
         s.vessel_mmsi,
-        s.position_timestamp,
-        s.created_at as ais_message_retrieved_at,
+        date_trunc('day',s.position_timestamp) as position_timestamp_day,
+        date_trunc('day',s.created_at) as ais_message_retrieved_at_day,
         c.config_hash,
         c.vessel_identification_infos
     from {{ source('spire', 'spire_ais_data') }} as s
@@ -58,7 +58,7 @@ ais_tagged as (
 tagged_with_breaks as (
     select *,
         case
-            when lag(config_hash) over (partition by vessel_mmsi order by position_timestamp) = config_hash then 0
+            when lag(config_hash) over (partition by vessel_mmsi order by position_timestamp_day) = config_hash then 0
             else 1
         end as is_new_group
     from ais_tagged
@@ -66,7 +66,7 @@ tagged_with_breaks as (
 
 tagged_with_group as (
     select *,
-        sum(is_new_group) over (partition by vessel_mmsi order by position_timestamp rows unbounded preceding) as grp
+        sum(is_new_group) over (partition by vessel_mmsi order by position_timestamp_day rows unbounded preceding) as grp
     from tagged_with_breaks
 ),
 
@@ -75,10 +75,10 @@ final_configs as (
         vessel_mmsi,
         config_hash,
         vessel_identification_infos,
-        min(position_timestamp) as config_start,
-        max(position_timestamp) as config_end,
-        min(ais_message_retrieved_at) as ais_message_started_at,
-        max(ais_message_retrieved_at) as ais_message_ended_at,
+        min(position_timestamp_day) as config_start,
+        max(position_timestamp_day) as config_end,
+        min(ais_message_retrieved_at_day) as ais_message_started_at_day,
+        max(ais_message_retrieved_at_day) as ais_message_ended_at_day,
         count(*) as nb_messages
     from tagged_with_group
     group by vessel_mmsi, config_hash, grp, vessel_identification_infos
@@ -95,8 +95,8 @@ final_merged as (
         vessel_identification_infos,
         min(config_start) as config_start,
         max(config_end) as config_end,
-        min(ais_message_started_at) as ais_message_started_at,
-        max(ais_message_ended_at) as ais_message_ended_at,
+        min(ais_message_started_at_day) as ais_message_started_at_day,
+        max(ais_message_ended_at_day) as ais_message_ended_at_day,
         sum(nb_messages) as nb_messages
     from (
         select *,
@@ -120,8 +120,8 @@ select
     config_hash,
     config_start,
     config_end,
-    ais_message_started_at,
-    ais_message_ended_at,
+    ais_message_started_at_day,
+    ais_message_ended_at_day,
     vessel_identification_infos,
     vessel_identification_infos ->> 'vessel_imo'       as vessel_imo,
     vessel_identification_infos ->> 'vessel_name'      as vessel_name,

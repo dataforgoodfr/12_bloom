@@ -13,7 +13,6 @@
     event_time = 'position_timestamp',
     batch_size = var('default_microbatch_size', 'hour'),
     begin = '2024-05-01',
-    lookback = 3,
     unique_key = ['position_id', 'position_timestamp_month'],
     pre_hook="SELECT itm.ensure_itm_vessel_positions_future_partitions();",
     enabled = true
@@ -31,7 +30,7 @@
 with
 
 ----------------------------------- Récupération des dernières positions précédant le microbatch -------------------
-previous_positions as ( -- Récupération d'1 ligne par vessel_id (la plus récente déjà stocké) pour le bon fonctionnement du LAG en microbatch
+/*previous_positions as ( -- Récupération d'1 ligne par vessel_id (la plus récente déjà stocké) pour le bon fonctionnement du LAG en microbatch
     select *
     from (
         select  
@@ -51,6 +50,29 @@ previous_positions as ( -- Récupération d'1 ligne par vessel_id (la plus ré
         {{ MMSI_filter }}
     ) as previous_entries
     where rn = 1
+),*/
+
+previous_positions AS (
+  SELECT DISTINCT ON (vessel_id)
+         this.position_id,
+         this.position_timestamp,
+         this.position_mmsi,
+         this.vessel_id,
+         this.position_latitude,
+         this.position_longitude,
+         this.position_rot,
+         this.position_speed,
+         this.position_course,
+         this.position_heading,
+         this.position_point,
+         TRUE AS rn               
+  FROM {{ this }} this
+  join (
+    SELECT vessel_id as vessel_id_ld, max(position_timestamp_day) as ts_day_ld from {{ this }} group by vessel_id
+  ) ld 
+	on (this.vessel_id, this.position_timestamp_day) = (ld.vessel_id_ld, ld.ts_day_ld)
+  {{ MMSI_filter }}
+  ORDER BY vessel_id, position_timestamp DESC
 ),
 
 ----------------------------------- Chargement des positions stagées des navires -----------------------------------
@@ -67,7 +89,7 @@ raw_vessel_positions as ( -- Données remontées par le microbatch sur stg_vesse
             position_course, 
             position_heading,
             position_point,
-            cast(NULL as integer) as rn
+            cast(NULL as boolean) as rn
         from {{ ref('stg_vessel_positions') }} 
         
         {{ MMSI_filter }}
@@ -78,7 +100,7 @@ raw_vessel_positions as ( -- Données remontées par le microbatch sur stg_vesse
 ),
 
 ---------------------------------------- Chargement des positions uniques des navires ---------------------------------------------
-vessel_positions as (
+/*vessel_positions as (
     select 
         min(position_id) as position_id, -- On prend le min pour éviter les doublons stricts hors id
         position_timestamp,
@@ -100,6 +122,26 @@ vessel_positions as (
         position_rot, position_speed, position_course, position_heading,
         position_point, rn
 
+),*/
+
+vessel_positions AS (-- Supprimer les doublons de positions résiduels éventuels
+  SELECT DISTINCT ON (vessel_id,position_timestamp)
+         vessel_id,
+         position_timestamp,
+         position_id,
+         position_mmsi,
+         
+         position_latitude,
+         position_longitude,
+         position_rot,
+         position_speed,
+         position_course,
+         position_heading,
+         position_point,
+         (rn IS NOT NULL) AS is_anterior_position,
+         1                AS nb_ais_messages
+  FROM raw_vessel_positions
+  ORDER BY 1,2       -- n’importe quel ORDER BY couvrant les colonnes de DISTINCT
 ),
 
 ------------------------- Identification des positions remarquables + Suppression des doublons de positions ---------------------------------------------------
