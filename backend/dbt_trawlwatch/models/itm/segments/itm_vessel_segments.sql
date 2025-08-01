@@ -185,7 +185,7 @@ vessel_fishing_rights_by_rights_family as ( -- Regrouper les droits de pêche pa
     from pos_w_zones as pz
     left join get_fishing_beneficiaries as dz_ben on pz.zone_id = dz_ben.zone_id
     -- On ne conserve que les positions en zone
-	where dz_ben.zone_id is not NULL
+	where pz.zone_id is not NULL
     group by pz.vessel_id, pz.position_id, dz_ben.zone_rights_family
 ),
 

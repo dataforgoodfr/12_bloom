@@ -1,6 +1,6 @@
--- mart_metrics__zones_visiting_time_by_vessel.sql
+-- mart_metrics__detailed_visits.sql
 /*
-This file is used to create a mart table for zones visited for API routes :
+This file is used to create a mart table for zones visited or vessels visiting zones for API routes :
     - api/v1/metrics/zones/{zone-id}/visiting-time-by-vessel : Return paginated list of vessels that visited a zone with total duration between dates
     - api/v1/metrics/vessels/time-by-zone : Return paginated list of zones visited by one or more vessels with total duration between dates (by category or subcategory)
     
@@ -28,11 +28,12 @@ This file is used to create a mart table for zones visited for API routes :
 {{ config(
     schema='marts',
     materialized='table',
-    alias='mart_metrics__zones_visiting_time_by_vessel',
+    alias='mart_metrics__detailed_visits',
     tags=['mart', 'metrics', 'zone', 'vessel'],
     indexes=[
         {"columns": ["day_date"], "type": "btree"},
         {"columns": ["zone_id"], "type": "btree"},
+        {"columns": ["vessel_id"], "type": "btree"}
         {"columns": ["category"], "type": "btree"},
         {"columns": ["sub_category"], "type": "btree"},
         {"columns": ["name"], "type": "btree"},
