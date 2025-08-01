@@ -33,11 +33,6 @@ This file is used to create a mart table for zones for API routes :
     ]
 ) }}
 
-with
-
-itm_zones as (
-    select * from {{ ref('stg_dim_zones') }}
-)
 
 select
     zone_id as id,
@@ -50,5 +45,5 @@ select
     st_centroid(zone_geometry) as centroid,
     zone_json_data as json_data,
     zone_enable as enable
-from itm_zones
-order by zone_id
+ from {{ ref('stg_dim_zones') }}
+ order by zone_id

@@ -5,7 +5,7 @@
 
 with expected as (
     select count(distinct vessel_id) as expected_count
-    from {{ ref('stg_dim_vessel') }}
+    from {{ ref('stg_dim_vessels') }}
 ),
 
 actual as (
