@@ -11,7 +11,7 @@
 {{ config(
     schema='itm',
     materialized='incremental',
-    unique_key='segment_id',
+    unique_key=['excursion_id', 'segment_end_at'],
     incremental_strategy = 'microbatch',
     event_time = 'segment_start_at',
     batch_size = var('default_microbatch_size', 'hour'),
@@ -93,11 +93,11 @@ vessel_positions as (
     pos.position_id_prev,
 
     -- METRICS
-    pos.time_diff_s, -- Temps écoulé entre la position courante et la précédente (en secondes)
-    pos.time_diff_h, -- Temps écoulé entre la position courante et la précédente (  en heures)
-    pos.distance_m, -- Distance euclidienne entre la position courante et la précédente (en mètres)
+    --pos.time_diff_s, -- Temps écoulé entre la position courante et la précédente (en secondes)
+    --pos.time_diff_h, -- Temps écoulé entre la position courante et la précédente (  en heures)
+    --pos.distance_m, -- Distance euclidienne entre la position courante et la précédente (en mètres)
     --distance_km, -- Distance euclidienne entre la position courante et la précédente (en kilomètres)
-    pos.distance_mi, -- Distance euclidienne entre la position courante et la précédente (en milles marins)
+    --pos.distance_mi, -- Distance euclidienne entre la position courante et la précédente (en milles marins)
 
     exc.excursion_id,
     exc.excursion_start_position_timestamp,
@@ -249,7 +249,7 @@ position_and_position_prev as ( --Récupération de la position précédente pou
 
 segment_construction as (
     select
-        concat(excursion_id, '_s', lpad( cast( row_number() over (partition by excursion_id order by position_timestamp) as text ), 7, '0') ) as segment_id,
+        concat(excursion_id, '_endat_', position_id ) as segment_id,
         excursion_id,
 		excursion_id_prev,
 		vessel_id,
@@ -259,11 +259,11 @@ segment_construction as (
         position_timestamp_prev,
         position_point,
         position_point_prev,
-        time_diff_s, -- Temps écoulé entre la position courante et la précédente (en secondes)
-        time_diff_h, -- Temps écoulé entre la position courante et la précédente (  en heures)
-        distance_m, -- Distance euclidienne entre la position courante et la précédente (en mètres)
+        --time_diff_s, -- Temps écoulé entre la position courante et la précédente (en secondes)
+        --time_diff_h, -- Temps écoulé entre la position courante et la précédente (  en heures)
+        --distance_m, -- Distance euclidienne entre la position courante et la précédente (en mètres)
         --distance_km, -- Distance euclidienne entre la position courante et la précédente (en kilomètres)
-        distance_mi, -- Distance euclidienne entre la position courante et la précédente (en milles marins)
+        --distance_mi, -- Distance euclidienne entre la position courante et la précédente (en milles marins)
         position_course,
         position_course_prev,
         position_heading,
@@ -274,7 +274,7 @@ segment_construction as (
         position_rot_prev,
         is_last_position,
         case 
-        when time_diff_s < 1800 -- 30 minutes
+        when round(coalesce(extract(epoch from position_timestamp - position_timestamp_prev), 0)::numeric,0) between 0.1 and 1800 -- 30 minutes
             then 'AT_SEA'
             else 'DEFAULT_AIS' 
         end as segment_type,
@@ -312,7 +312,7 @@ segment_construction as (
 		coalesce( fishing_rights_prev = 'excluded', FALSE) as was_in_zone_with_no_fishing_rights_prev
 
     from position_and_position_prev 
-    where position_id_prev is not null -- On ne garde que les positions pour lesquelles on a une position précédente
+    where position_timestamp_prev is not null -- On ne garde que les positions pour lesquelles on a une position précédente
 ),
 
 segment_metrics as (
@@ -326,11 +326,11 @@ segment_metrics as (
         segment_type,
 
         (position_timestamp - position_timestamp_prev) as segment_duration,
-        time_diff_s as segment_duration_s,
-        time_diff_h as segment_duration_h,
+        round(coalesce(extract(epoch from position_timestamp - position_timestamp_prev), 0)::numeric,0)  as segment_duration_s,
+        round(coalesce(extract(epoch from position_timestamp - position_timestamp_prev)/3600, 0)::numeric,4) as segment_duration_h,
 
-        distance_m as segment_distance_m,
-        distance_mi as segment_distance_nm,
+         round(st_distance(position_point, position_point_prev)::numeric,1) as segment_distance_m,
+         round((st_distance(position_point, position_point_prev)/1852)::numeric,1) as segment_distance_nm,
 
         position_course as segment_course_at_end,
         position_course_prev as segment_course_at_start,
@@ -343,16 +343,7 @@ segment_metrics as (
 
         position_rot as segment_rot_at_end,
         position_rot_prev as segment_rot_at_start,
-        case 
-            when position_speed is not NULL and position_speed_prev is not NULL 
-                then round((position_speed + position_speed_prev)::numeric / 2.0, 1)
-            when position_speed is not NULL 
-                then position_speed
-            when position_speed_prev is not NULL 
-                then position_speed_prev        
-        end as segment_average_speed,
-        round( ({{ dbt_utils.safe_divide('distance_mi', 'time_diff_h') }})::numeric, 1) as segment_course_speed, -- noqa: 
-        
+              
 
         zone_ids,
         zone_categories,
@@ -366,8 +357,10 @@ segment_metrics as (
         zones_exited,
         zones_crossed,
 
-        is_in_amp_zone,
-        is_in_territorial_waters,
+        /* PATCH 01-08-2025 */
+        coalesce(is_in_amp_zone and was_in_amp_zone_prev, FALSE) as is_in_amp_zone,
+        coalesce(is_in_territorial_waters and was_in_territorial_waters_prev, FALSE) as is_in_territorial_waters,
+        /* /PATCH 01-08-2025 */
 
         vessel_flag,
 		flags_with_fishing_rights_on_position,
@@ -406,8 +399,18 @@ select
     segment_distance_m, -- Distance parcourue dans le segment en mètres (calculée entre les positions de début et de fin du segment)
     segment_distance_nm, -- Distance parcourue dans le segment en milles marins (calculée entre les positions de début et de fin du segment)
 
-    segment_average_speed, -- Vitesse moyenne du segment en nœuds (calculée en faisant la moyenne des vitesses AIS disponibles)
-    segment_course_speed, -- Vitesse de la route fond en nœuds (calculée entre les positions de début et de fin du segment)
+     -- Vitesse moyenne du segment en nœuds (calculée en faisant la moyenne des vitesses AIS disponibles)
+    case  
+            when segment_speed_at_end is not NULL and segment_speed_at_start is not NULL 
+                then round((segment_speed_at_end + segment_speed_at_start)::numeric / 2.0, 1)
+            when segment_speed_at_end is not NULL 
+                then segment_speed_at_end
+            when segment_speed_at_start is not NULL 
+                then segment_speed_at_start
+    end as segment_average_speed,
+
+    -- Vitesse de la route fond en nœuds (calculée entre les positions de début et de fin du segment)
+    round( ({{ dbt_utils.safe_divide('segment_distance_nm', 'segment_duration_h') }})::numeric, 1) as segment_course_speed, 
 
     segment_type, -- Type de segment (AT_SEA, DEFAULT_AIS)
 
