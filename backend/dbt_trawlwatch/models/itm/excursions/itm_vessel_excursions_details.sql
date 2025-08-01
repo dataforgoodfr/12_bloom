@@ -24,52 +24,50 @@
 )
 }}
 
-WITH excursions AS (
+with excursions as (
 
     -- Excursions à détailler
-    SELECT *
-    FROM {{ ref('itm_vessel_excursions') }}
+    select *
+    from {{ ref('itm_vessel_excursions') }}
     {% if is_incremental() %}
-    WHERE excursion_created_at >= (
-            SELECT COALESCE(MAX(excursion_details_completed_at), '2000-01-01')
-            FROM {{ this }}
-          )
+    where excursion_created_at >= (
+        select coalesce(max(this.excursion_details_completed_at), '2000-01-01') from {{ this }} this
+    )
     {% endif %}
 
 ),
 
-positions AS (
+positions as (
 
     -- On ne garde que les positions nécessaires
-    SELECT *
-    FROM {{ ref('itm_vessel_positions') }}
-    WHERE position_point IS NOT NULL
+    select *
+    from {{ ref('itm_vessel_positions') }}
+    where position_point IS NOT NULL
     {% if is_incremental() %}
-      AND position_itm_created_at >= (
-            SELECT COALESCE(MAX(excursion_position_itm_created_at), '2000-01-01')
-            FROM {{ this }}
+      and position_itm_created_at >= (
+            select coalesce(MAX(excursion_position_itm_created_at), '2000-01-01')
+            from {{ this }}
           )
     {% endif %}
 
 ), 
 
-joined AS (
+joined as (
 
-    -- Jointure “one big set” : pas d’appel répétitif
-    SELECT
+    select
         exc.*,
         pos.position_id,
         pos.position_timestamp,
         pos.position_point
-    FROM excursions exc
-    LEFT JOIN positions pos
-      ON  pos.vessel_id = exc.vessel_id
-      AND pos.position_timestamp BETWEEN exc.excursion_start_position_timestamp
-                                     AND COALESCE(exc.excursion_end_position_timestamp, 'infinity')
+    from excursions exc
+    left join positions pos
+      on  pos.vessel_id = exc.vessel_id
+      and pos.position_timestamp between exc.excursion_start_position_timestamp
+      and coalesce(exc.excursion_end_position_timestamp, 'infinity')
 
 )
 
-SELECT
+select
     ------------------------  Colonnes d’origine  ------------------------
     joined.vessel_id,
     joined.excursion_id,
@@ -93,21 +91,20 @@ SELECT
     joined.excursion_created_at,
 
     ------------------------  Agrégations  ------------------------
-    ARRAY_AGG(joined.position_id ORDER BY joined.position_timestamp)      AS excursion_position_ids,
-    COUNT(joined.position_id)                                             AS excursion_positions_count,
-    MAX(joined.position_timestamp)                                        AS last_position_checked,
+    array_agg(joined.position_id ORDER BY joined.position_timestamp) as excursion_position_ids,
+    count(joined.position_id) as excursion_positions_count,
+    max(joined.position_timestamp) as last_position_checked,
 
-    ST_MakeLine(ARRAY_AGG(joined.position_point ORDER BY joined.position_timestamp))
-        AS excursion_line,
-    ST_Transform(
-        ST_MakeLine(ARRAY_AGG(joined.position_point ORDER BY joined.position_timestamp)),
+    st_makeline(array_agg(joined.position_point ORDER BY joined.position_timestamp)) as excursion_line,
+    st_transform(
+        st_makeline(array_agg(joined.position_point ORDER BY joined.position_timestamp)),
         3857
-    )                                                                     AS excursion_line_metrics,
+    ) as excursion_line_metrics,
 
     ------------------------  Métadonnée  ------------------------
-    NOW()                                                                 AS excursion_details_completed_at
+    now() as excursion_details_completed_at
 
-FROM joined
+from joined
 GROUP BY
     joined.vessel_id,
     joined.excursion_id,

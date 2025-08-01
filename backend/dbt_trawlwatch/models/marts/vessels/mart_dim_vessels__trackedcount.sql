@@ -22,11 +22,11 @@ tracked_vessels as (
         utils.safe_between( date_trunc('day', now())::date,  
                 date_trunc('day', dim_vessel_start_date)::date, 
                 date_trunc('day', dim_vessel_end_date)::date ) as is_tracked
-    from {{ ref("stg_dim_vessels") }} as stg_vessels
+    from {{ ref("stg_dim_vessels") }}
 )
 
 select 
     count(*) as count,
     now() as updated_at
 from tracked_vessels
-where is_tracked = true
+where is_tracked = TRUE

@@ -59,16 +59,46 @@ dbt run
 dbt test
 ```
 
-## Reconstruire et tester seulement les tables de dimension
-```shell
-dbt build --select tag:dim 
-```
+
+
+
 
 # Run au fil de l'eau
 ```shell
 dbt run
 ```
 
-# Mettre à jour seulement "itm_vessel_last_raw_position "
+# Maintenance
+
+## Exemples de commandes CLI dbt 
+
+### Reconstruire et tester seulement les tables de dimension
+```shell
+dbt build --select tag:dim 
+```
+
+### Mettre à jour seulement "itm_vessel_last_raw_position "
 Il faut mettre à jour également les modèles situés en amont (< 15") : 
 `dbt run --select +itm_vessel_last_raw_position` 
+
+## Liste des modèles incrémentaux 
+Ces modèles ne se mettent à jour que de manière marginale, avec les nouvelles données.
+Ils peuvent, à l'exception des modèles alimentant des tables partitionnées (P) 
+être entièrement reconstruits avec l'instruction `dbt --select my_model --full-refresh`
+Les instructions pour reconstruire entièrement les tables (P) sont dans chaque modèle concerné
+
+`dbt ls --resource-type model --select config.materialized:incremental --output name` <-- Pour mettre à jour cette liste
+itm_vessel_excursions
+itm_vessel_excursions_details
+itm_vessel_first_and_last_positions
+itm_vessel_last_raw_position
+itm_vessel_positions  (P) /!\ Ne pas utiliser --full-refresh
+itm_vessel_positions_x_zones
+itm_vessel_segments  (P) /!\ Ne pas utiliser --full-refresh
+itm_vessel_segments_by_date
+itm_zones_x_excursions_list
+mart_dim_vessels__segments_by_excursion_ids
+observ_spire_ais_data_retrievals
+observ_spire_dim_vessel_configs
+stg_spire_vessel_infos
+stg_vessel_positions (P) /!\ Ne pas utiliser --full-refresh

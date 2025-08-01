@@ -26,8 +26,7 @@ This file is used to create a mart table for zones visited for API routes :
         {"columns": ["category"], "type": "btree"},
         {"columns": ["sub_category"], "type": "btree"},
         {"columns": ["name"], "type": "btree"},
-        {"columns": ["centroid"], "type": "gist"},
-        {"columns": ["visiting_duration"], "type": "btree"}
+        {"columns": ["centroid"], "type": "gist"}
     ]
 ) }}
 

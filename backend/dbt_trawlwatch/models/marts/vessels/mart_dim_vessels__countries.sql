@@ -15,8 +15,7 @@
     ]
 ) }}
 
-select
-    distinct dim_vessel_flag as country_iso3 
-from {{ ref("stg_dim_vessels") }} as stg_vessels
-where dim_vessel_flag is not null
+select distinct dim_vessel_flag as country_iso3 
+from {{ ref("stg_dim_vessels") }}
+where dim_vessel_flag is not NULL
 order by dim_vessel_flag asc

@@ -16,8 +16,7 @@
     ]
 ) }}
 
-select
-    distinct dim_vessel_details->>'ship_type' as type
-from {{ ref("stg_dim_vessels") }} as stg_vessels
+select distinct dim_vessel_details->>'ship_type' as type
+from {{ ref("stg_dim_vessels") }}
 where dim_vessel_details->>'ship_type' is not null
 order by type asc

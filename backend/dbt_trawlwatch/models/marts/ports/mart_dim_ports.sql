@@ -55,12 +55,11 @@ itm_ports_updated as ( -- Consolider itm_dim_ports avec l'occurence d'excursions
         coalesce(phe.port_id is not NULL, FALSE) as port_has_excursion,
         itm_ports.port_created_at,
         itm_ports.port_updated_at
-    from {{ ref('itm_dim_ports') }} itm_ports
+    from {{ ref('itm_dim_ports') }} as itm_ports
     -- Join with ports_has_excursion to determine if the port has any excursions
     left join ports_has_excursion as phe
         on itm_ports.port_id = phe.port_id
 )
-
 
 -- Noms de champs correspondants à la route API
 select

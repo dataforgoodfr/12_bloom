@@ -1,10 +1,20 @@
 -- itm_vessel_segments.sql
 
 /*
-1. Récupère les infos liées à position et position_prev dans itm_vessel_positions
-2. Crée les segments de navire entre ces deux positions
-3. Calcule la distance et la durée, ainsi que différentes métriques du segment
+    1. Récupère les infos liées à position et position_prev dans itm_vessel_positions
+    2. Détermine les droits de pêche en fonction de la position
+    3. Crée les segments de navire entre ces deux positions
+    4. Calcule la distance et la durée, ainsi que différentes métriques du segment
 
+    ------ INFORMATIONS IMPORTANTES >>>
+
+    La table est partitionnée et administrée par les fonctions :
+    - itm.manage_itm_vessel_segments_partitions(), qui crée la table, les partitions initiales et les index
+    - itm.ensure_itm_vessel_segments_future_partitions(), qui crée automatiquement les nouvelles partitions nécessaires
+
+    [[[NE PAS UTILISER dbt run --full-refresh]]] sur ce modèle, car cela détruirait le partitionnement
+    Pour une régénération complète : SELECT itm.manage_itm_vessel_segments_partitions(start_year,end_year, full_rebuild=true) (si changement de structure)
+    puis dbt run --select itm_vessel_segments+ --event-time-start "2024-05-01" --event-time-end "<<<remplacer par : today + 1 day>>>" --vars '{default_microbatch_size: "day"}'
 
 */
 

@@ -1,0 +1,66 @@
+version: 2
+
+models: 
+  - name: observ_spire_ais_data_retrievals
+    schema: observ
+    description: "Table de suivi des récupérations de données AIS Spire"
+    columns:
+      - name: retriespire_retrieval_tsval_id
+        description: "Timestamp de la dernière récupération Spire"
+        tests:
+          - not_null
+      - name: spire_retrievals_count
+        description: "Nombre de messages AIS Spire récupérés"
+        tests:
+          - expression:
+              expression: "spire_retrievals_count > 0"
+              severity: warn
+      - name: position_timestamp_min
+        description: "Timestamp minimum des positions récupérées"
+      - name: position_timestamp_max
+        description: "Timestamp maximum des positions récupérées"
+      - name: distinct_mmsi_count
+        description: "Nombre de MMSI distincts dans les positions récupérées"
+      - name: observ_spire_ais_data_retrievals_created_at
+        description: "Métadonnée : Timestamp de création de l'enregistrement"
+        
+  - name: observ_spire_dim_vessel_configs
+    schema: observ
+    description: "Toutes les configurations d'identités différentes des navires pour les données AIS Spire"
+    columns:
+      - name: vessel_mmsi
+        description: "MMSI du navire"
+        tests:
+          - not_null
+      - name: vessel_identification_infos
+        description: "JSON des informations d'identification du navire"
+      - name: first_seen
+        description: "Timestamp de la première apparition de la configuration d'identité dans les données Spire"
+        tests:
+          - not_null
+      - name: last_seen
+        description: "Timestamp de la dernière apparition de la configuration d'identité dans les données Spire"
+        tests:
+          - not_null
+      - name: config_hash
+        description: "Hash de la configuration d'identité du navire (utiliser pour test d'égalité)"
+        tests: 
+          - not_null
+          - unique
+      - name: is_valid_config
+        description: "Indique si la configuration d'identité est valide (true) ou non (false). Validation manuelle."
+        
+  - name: observ_vessel_ais_message_and_move_freshness
+    schema: observ
+    description: "Vue de suivi de la fraîcheur des messages AIS et des mouvements des navires"
+    columns:
+      - name: vessel_id
+        description: "Identifiant du navire"
+        tests:
+          - not_null
+      - name: reference_timestamp
+        description: "Timestamp de référence pour le calcul de fraîcheur"
+      - name: last_ais_message_timestamp_freshness
+        description: "Fraîcheur du dernier message AIS reçu pour le navire"
+      - name: last_effective_move_freshness
+        description: "Fraîcheur du dernier mouvement enregistré pour le navire"

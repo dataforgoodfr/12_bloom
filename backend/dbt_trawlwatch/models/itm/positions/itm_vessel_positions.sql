@@ -4,6 +4,16 @@
     (doublons, stationnement dans un port sauf entrée et sortie) 
     et ajoute des métriques liées à la fois à la position courante et à la position précédente.
     Fonctionnant en microbatch, il a besoin de charger la dernière position avant le microbatch pour fonctionner correctement (CTE previous_position).
+
+    ------ INFORMATIONS IMPORTANTES >>>
+
+    La table est partitionnée et administrée par les fonctions :
+    - itm.manage_itm_vessel_positions_partitions(), qui crée la table, les partitions initiales et les index
+    - itm.ensure_itm_vessel_positions_future_partitions(), qui crée automatiquement les nouvelles partitions nécessaires
+
+    [[[NE PAS UTILISER dbt run --full-refresh]]] sur ce modèle, car cela détruirait le partitionnement
+    Pour une régénération complète : SELECT itm.manage_itm_vessel_positions_partitions(start_year,end_year, full_rebuild=true) (si changement de structure)
+    puis dbt run --select itm_vessel_positions+ --event-time-start "2024-05-01" --event-time-end "<<<remplacer par : today + 1 day>>>" --vars '{default_microbatch_size: "day"}'
 */
 
 {{ config(

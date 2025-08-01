@@ -60,12 +60,12 @@ select
     segment_course_at_start as course_at_start,
     segment_course_at_end as course_at_end,
     segment_type,
-    case when is_in_amp_zone is NULL then false else is_in_amp_zone end as in_amp_zone,
-    case when is_in_territorial_waters is NULL then false else is_in_territorial_waters end as in_territorial_waters,
+    case when is_in_amp_zone is NULL then FALSE else is_in_amp_zone end as in_amp_zone,
+    case when is_in_territorial_waters is NULL then FALSE else is_in_territorial_waters end as in_territorial_waters,
     is_in_zone_with_no_fishing_rights as in_zones_with_no_fishing_rights,
     segment_created_at as created_at
-from {{ ref('itm_vessel_segments') }} as itm_segments
+from {{ ref('itm_vessel_segments') }}
 {% if is_incremental() %}
-where segment_end_at >= (select max(daysegments_date) from {{ this }})
+where segment_end_at >= ( select max(daysegments_date) from {{ this }} )
 {% endif %}
 order by vessel_id, daysegments_date, segment_start_at asc

@@ -52,7 +52,7 @@ last_vessel_records as (
                 order by stg_vessels.dim_vessel_start_date desc, stg_mmsi.dim_mmsi_start_date desc
             ) as rn
     from {{ ref("stg_dim_vessels" )}} as stg_vessels
-    left join (select * from {{ ref("stg_dim_mmsi") }} ) as stg_mmsi
+    left join ( select * from {{ ref("stg_dim_mmsi") }} ) as stg_mmsi
         on stg_vessels.vessel_id = stg_mmsi.vessel_id
 )
 

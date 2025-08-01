@@ -52,12 +52,16 @@ select
     max(itm_excursions.excursion_end_position_timestamp_day) as arrival_on,
     max(itm_excursions.excursion_port_departure) as departure_port_id,
     max(itm_excursions.excursion_port_arrival) as arrival_port_id,
-    daysegments_date as day_excursion_date,
-    sum(segment_duration) as total_time_at_sea,
-    sum(case when segment_type = 'DEFAULT_AIS' then NULL else time_in_amp_zone end) as total_time_in_amp, -- Additionner les temps passés dans les zones AMP en excluant les segments DEFAULT_AIS
-    sum(case when segment_type = 'DEFAULT_AIS' then segment_duration else NULL end) as total_time_default_ais, -- Additionner les temps passés en défaut d'AIS
-    sum(time_in_territorial_waters) as total_time_in_territorial_waters,
-    sum(time_in_zone_with_no_fishing_rights) as total_time_in_zones_with_no_fishing_rights,
+    itm_segments_day.daysegments_date as day_excursion_date,
+    sum(itm_segments_day.segment_duration) as total_time_at_sea,
+
+    -- Additionner les temps passés dans les zones AMP en excluant les segments DEFAULT_AIS
+    sum(case when itm_segments_day.segment_type = 'DEFAULT_AIS' then NULL else itm_segments_day.time_in_amp_zone end) as total_time_in_amp, 
+    -- Additionner les temps passés en défaut d'AIS
+    sum(case when itm_segments_day.segment_type = 'DEFAULT_AIS' then itm_segments_day.segment_duration end) as total_time_default_ais, 
+    
+    sum(itm_segments_day.time_in_territorial_waters) as total_time_in_territorial_waters,
+    sum(itm_segments_day.time_in_zone_with_no_fishing_rights) as total_time_in_zones_with_no_fishing_rights,
     NULL as total_time_fishing,
     NULL as total_time_fishing_in_amp,
     NULL as total_time_fishing_in_territorial_waters,
@@ -67,5 +71,5 @@ select
 from {{ ref('itm_vessel_segments_by_date') }} as itm_segments_day
 left join {{ ref('itm_vessel_excursions') }} as itm_excursions
 on itm_segments_day.excursion_id = itm_excursions.excursion_id
-group by itm_segments_day.excursion_id, itm_segments_day.vessel_id, daysegments_date
-order by itm_segments_day.vessel_id, day_excursion_date asc
+group by itm_segments_day.excursion_id, itm_segments_day.vessel_id, itm_segments_day.daysegments_date
+order by itm_segments_day.vessel_id asc, day_excursion_date asc

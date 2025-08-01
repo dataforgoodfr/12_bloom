@@ -26,6 +26,6 @@ select
     count(distinct vessel_id) as count_vessels_in_mpas,
     now() as created_at
 from {{ ref('itm_vessel_segments_by_date') }}
-where time_in_amp_zone > '00:00:00' -- Est sensé marcher mais problème dans itm_vessel_segments_by_date : il n'y a pas de ligne où time_in_amp_zone > '00:00:00'
+where time_in_amp_zone > '00:00:00' -- Est censé marcher mais problème dans itm_vessel_segments_by_date : il n'y a pas de ligne où time_in_amp_zone > '00:00:00'
 group by daysegments_date
 order by daysegments_date

@@ -83,5 +83,3 @@ left join {{ ref("stg_dim_vessels") }} as stg_vessels
         date_trunc('day', stg_vessels.dim_vessel_end_date)::date
     )
 order by timestamp asc
-
-

@@ -6,8 +6,8 @@
 
 {{ config(
     schema='observ',
-    materialized='table',
-    tags=['observ', 'vessel', 'last_mmsi_update'],
+    materialized='view',
+    tags=['observ', 'vessel', 'freshness'],
     indexes=[
         {"columns": ["vessel_id"], "type": "btree", "unique": True},
         {"columns": ["last_ais_message_freshness"], "type": "btree"},

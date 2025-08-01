@@ -11,6 +11,15 @@
 
     La récupération d'un historique de positions se fait en lançant un microbatch suivant cet exemple (pour la période du 1er janvier au 15 juillet 2025) :
      dbt run -m  stg_vessel_positions --event-time-start "2025-01-01" --event-time-end "2025-07-15"
+
+    La table est partitionnée et administrée par les fonctions :
+        - staging.mange_stg_vessel_positions_partitions(), qui crée la table, les partitions initiales et les index
+        - staging.ensure_stg_vessel_positions_future_partitions(), qui crée automatiquement les nouvelles partitions nécessaires
+
+    [[[NE PAS UTILISER dbt run --full-refresh]]] sur ce modèle, car cela détruirait le partitionnement
+    Pour une régénération complète : SELECT staging.manage_staging_vessel_positions_partitions(start_year,end_year, full_rebuild=true) (si changement de structure)
+    puis dbt run --select staging.vessel_positions+ --event-time-start "2024-05-01" --event-time-end "<<<remplacer par : today + 1 day>>>" --vars '{default_microbatch_size: "day"}'
+
 */
 
 {{ config(

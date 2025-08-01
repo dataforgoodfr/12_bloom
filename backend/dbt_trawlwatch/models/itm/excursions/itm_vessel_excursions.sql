@@ -6,8 +6,9 @@
 
 {{ config(
     schema='itm',
-    materialized='table',
+    materialized='incremental',
     unique_key=['excursion_id'],
+    incremental_strategy='merge',
     tags=['itm', 'vessel', 'excursions'],
     indexes=[
         {'columns': ['vessel_id'], 'type': 'btree'},
@@ -22,12 +23,6 @@
         {'columns': ['excursion_created_at'], 'type': 'btree'}
     ]
 ) }}
-
-{% set itm_vessel_positions_ref = adapter.get_relation(
-        database=target.database,
-        schema='itm',
-        identifier='itm_vessel_positions'
-) %}
 
 with 
 
@@ -53,6 +48,9 @@ itm_vessel_excursions_events as ( -- Positions des navires filtrées : 1 par tim
                 else 'unknown' end as excursion_event_type
     from ( select * from {{ ref('itm_vessel_positions') }} ) as itm_vessel_positions
     where (is_excursion_end = true or is_excursion_start = true or is_first_position = true)
+    {% if is_incremental() %}
+        and position_itm_created_at >= (select max(excursion_position_itm_created_at) from {{ this }})
+    {% endif %}
     order by vessel_id, position_timestamp
 
 ),

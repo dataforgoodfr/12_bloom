@@ -15,8 +15,7 @@
     ]
 ) }}
 
-select
-    distinct dim_vessel_details->>'length_class' as length_class
-from {{ ref("stg_dim_vessels") }} as stg_vessels
+select distinct dim_vessel_details->>'length_class' as length_class
+from {{ ref("stg_dim_vessels") }}
 where dim_vessel_details->>'length_class' is not null
 order by length_class asc
