@@ -496,8 +496,8 @@ models:
             - not_null
 
     # METRICS ZONES VISITING TIME BY VESSEL MARTS
-    - name: mart_metrics__zones_visiting_time_by_vessel
-      description: "Mart table for zones visiting time by vessel, used for API routes."
+    - name: mart_metrics__detailed_visits
+      description: "Mart table for zones visited or vessels visiting zones for API routes."
       columns:
         - name: day_date
           description: "Day of the visit."
