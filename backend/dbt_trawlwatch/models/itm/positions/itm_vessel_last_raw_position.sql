@@ -15,7 +15,7 @@
     incremental_strategy = 'merge',
     unique_key = ['vessel_id'],
     indexes = [
-        {'columns': ['vessel_id'], 'type': 'btree', 'unique': True},
+        {'columns': ['vessel_id'], 'type': 'btree'},
         {'columns': ['position_timestamp__raw_last'], 'type': 'btree'},
         {'columns': ['position_ais_created_at__raw_max'], 'type': 'btree'}
     ],
@@ -88,16 +88,29 @@ vessels_no_latest_raw as ( -- Lister les navires sans position de dernière remo
     where position_timestamp is null
 ),
 
-last_pos_ts_per_ship as (
-    select 
-        s.vessel_mmsi,
-        cast(s.vessel_imo as text) as vessel_imo,
-        max(s.position_timestamp) as position_timestamp
-    from {{ source('spire', 'spire_ais_data') }} as s
+last_pos_ts_per_ship AS ( -- Garder seulement la dernière position RAW par navire (yc si 2 positiions dont 1 imo=0)
+  SELECT
+    vessel_mmsi,
+    vessel_imo,
+    position_timestamp
+  FROM (
+    SELECT
+      s.vessel_mmsi,
+      CAST(s.vessel_imo AS text) AS vessel_imo,
+      s.position_timestamp,
+      ROW_NUMBER() OVER (
+        PARTITION BY s.vessel_mmsi
+        ORDER BY s.position_timestamp DESC
+      ) AS rn
+    FROM {{ source('spire','spire_ais_data') }} AS s
     {% if is_incremental() %}
-        where created_at > (select max(position_ais_created_at__raw_max) from {{ this }})
+    WHERE s.created_at > (
+      SELECT MAX(position_ais_created_at__raw_max)
+      FROM {{ this }}
+    )
     {% endif %}
-    group by s.vessel_mmsi, s.vessel_imo
+  ) t
+  WHERE t.rn = 1
 ),
 
 fallback_last_raw AS (

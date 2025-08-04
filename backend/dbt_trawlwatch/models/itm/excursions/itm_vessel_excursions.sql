@@ -173,7 +173,6 @@ join_it as ( -- Jointure des positions de début et de fin d'excursion
             when exc_start.excursion_start_position_timestamp is not null then 'ongoing'
             else 'unknown' 
         end as excursion_status, -- Statut de l'excursion
-        exc_start.vessel_id || '_' || lpad( cast(exc_start.excursion_event_rank as text), 4, '0')  as excursion_id,
         case 
             when exc_start.excursion_start_port_id = exc_end.excursion_end_port_id then true
             when exc_start.excursion_start_port_id != exc_end.excursion_end_port_id then false
@@ -189,7 +188,7 @@ join_it as ( -- Jointure des positions de début et de fin d'excursion
 
 select 
     vessel_id, 
-    excursion_id,
+    'Exc_' || excursion_start_position_id as excursion_id,
 
     excursion_start_position_id,
     excursion_start_position_timestamp,

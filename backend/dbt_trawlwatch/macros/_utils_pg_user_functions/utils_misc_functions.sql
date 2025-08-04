@@ -65,33 +65,43 @@
 {% endmacro %}
 
 {% macro pguf__get_excursion_details() %}
-drop function if exists utils.get_excursion_details( varchar, timestamptz, timestamptz);
-create or replace function utils.get_excursion_details(
-    _vessel_id varchar,
-    _start_ts timestamptz,
-    _end_ts timestamptz
+-- On supprime l’ancienne signature
+DROP FUNCTION IF EXISTS utils.get_excursion_details(varchar, timestamptz, timestamptz);
+
+-- On recrée en PL/pgSQL + EXECUTE dynamique
+CREATE OR REPLACE FUNCTION utils.get_excursion_details(
+    _vessel_id            varchar,
+    _start_ts             timestamptz,
+    _end_ts               timestamptz
 )
-returns table (
-    position_ids varchar[],
-    positions_count int,
-    last_position_checked timestamptz,
-    excursion_line geometry,
+RETURNS TABLE (
+    position_ids           varchar[],
+    positions_count        int,
+    last_position_checked  timestamptz,
+    excursion_line         geometry,
     excursion_line_metrics geometry
 )
-language sql
-as
-$$
-    select 
-        array_agg(position_id order by position_timestamp),
-        count(*)::int,
-        max(position_timestamp),
-        st_makeline(array_agg(position_point order by position_timestamp)),
-        st_transform(st_makeline(array_agg(position_point order by position_timestamp)), 3857)
-    from itm.itm_vessel_positions
-    where vessel_id = _vessel_id
-      and position_timestamp between _start_ts and _end_ts
-      and position_point is not null;
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY EXECUTE format($f$
+    SELECT 
+      array_agg(position_id ORDER BY position_timestamp),
+      count(*)::int,
+      max(position_timestamp),
+      st_makeline(array_agg(position_point ORDER BY position_timestamp)),
+      st_transform(
+        st_makeline(array_agg(position_point ORDER BY position_timestamp)),
+        3857
+      )
+    FROM itm.itm_vessel_positions
+    WHERE vessel_id = %L
+      AND position_timestamp BETWEEN %L::timestamptz AND %L::timestamptz
+      AND position_point IS NOT NULL
+  $f$, _vessel_id, _start_ts, _end_ts);
+END;
 $$;
+
 ALTER FUNCTION utils.get_excursion_details(varchar, timestamptz, timestamptz)
-        OWNER TO ulf7g0ewqes1svjic5qf;
+    OWNER TO ulf7g0ewqes1svjic5qf;
 {% endmacro %}
