@@ -79,7 +79,7 @@ models:
           description: "End time of the excursion."
         - name: excursion_duration_interval
           description: "Duration of the excursion in interval format."
-        - name: excursion_port_departure_id
+        - name: excursion_port_departure
           description: "Port ID of the departure port of the excursion."
           tests:
             - not_null

@@ -9,7 +9,6 @@ with expected as (
     left join staging.stg_dim_mmsi m
     on v.vessel_id = m.vessel_id
     where v.dim_vessel_end_date is null and m.dim_mmsi_end_date is null
-    order by v.vessel_id, v.dim_vessel_imo, m.dim_mmsi_mmsi
 ),
 
 actual as (

@@ -10,13 +10,13 @@
     event_time = 'position_timestamp',
     batch_size = var('default_microbatch_size', 'hour'),
     begin = '2024-01-01',
-    unique_key = ['position_id','zone_id'],
+    unique_key = ['position_id','excursion_id','zone_id'],
     tags=['itm', 'vessel', 'positions', 'zones'],
     indexes=[
         {'columns': ['vessel_id'], 'type': 'btree'},
         {'columns': ['zone_id'], 'type': 'btree'},
         {'columns': ['excursion_id'], 'type': 'btree'},
-        {'columns': ['position_id', 'zone_id'], 'type': 'btree', 'unique': true},
+        {'columns': ['position_id', 'zone_id'], 'type': 'btree'},
         {'columns': ['excursion_start_position_timestamp'], 'type': 'btree'}
     ]
 ) }}
