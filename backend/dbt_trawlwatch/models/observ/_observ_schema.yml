@@ -12,7 +12,7 @@ models:
       - name: spire_retrievals_count
         description: "Nombre de messages AIS Spire récupérés"
         tests:
-          - expression:
+          - dbt_utils.expression_is_true:
               expression: "spire_retrievals_count > 0"
               severity: warn
       - name: position_timestamp_min

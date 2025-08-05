@@ -42,9 +42,10 @@ itm_vessel_excursions_events as ( -- Positions des navires filtrées : 1 par tim
         position_point,
         position_itm_created_at,
         case 
+                when is_first_position then 'first' -- IMPORTANT : maintenir en premier
                 when is_excursion_start then 'start'
                 when is_excursion_end then 'end'
-                when is_first_position then 'first'
+                
                 else 'unknown' end as excursion_event_type
     from ( select * from {{ ref('itm_vessel_positions') }} ) as itm_vessel_positions
     where (is_excursion_end = true or is_excursion_start = true or is_first_position = true)
@@ -96,6 +97,7 @@ treat_next_excursion_event as ( -- Traite le type d'événement d'excursion suiv
         position_itm_created_at,
         excursion_event_type,
         case 
+            when excursion_event_type = 'first' and port_exited is null then 'first'
             when excursion_event_type = 'first' and next_excursion_event_type = 'start' then 'first'
             when excursion_event_type = 'first' and next_excursion_event_type = 'end' then 'start'
             when excursion_event_type = 'first' and next_excursion_event_type is null then 'start'
@@ -136,7 +138,7 @@ start_list as ( -- Liste des positions de début d'excursion
         position_timestamp_day as excursion_start_position_timestamp_day,
         position_timestamp_month as excursion_start_position_timestamp_month,
         vessel_id,
-        port_id as excursion_start_port_id,
+        port_exited as excursion_start_port_id, -- Port de départ de l'excursion
 		excursion_event_rank,
         position_itm_created_at as excursion_start_position_itm_created_at
 	from filter_start_end
@@ -151,7 +153,7 @@ end_list as ( -- Liste des positions de fin d'excursion
         position_timestamp_day as excursion_end_position_timestamp_day,
         position_timestamp_month as excursion_end_position_timestamp_month,
         vessel_id,
-        port_id as excursion_end_port_id,
+        port_id as excursion_end_port_id, -- Port d'arrivée de l'excursion
         excursion_event_rank,
         position_itm_created_at as excursion_end_position_itm_created_at
     from filter_start_end

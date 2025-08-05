@@ -65,7 +65,7 @@ with
 ),*/
 
 previous_positions AS (
-  SELECT DISTINCT ON (vessel_id)
+  SELECT DISTINCT ON (this.vessel_id)
          this.position_id,
          this.position_timestamp,
          this.position_mmsi,
@@ -78,13 +78,13 @@ previous_positions AS (
          this.position_heading,
          this.position_point,
          TRUE AS rn               
-  FROM {{ this }} this
-  join (
+  FROM {{ this }} as this
+  inner join (
     SELECT vessel_id as vessel_id_ld, max(position_timestamp_day) as ts_day_ld from {{ this }} group by vessel_id
   ) ld 
 	on (this.vessel_id, this.position_timestamp_day) = (ld.vessel_id_ld, ld.ts_day_ld)
   {{ MMSI_filter }}
-  ORDER BY vessel_id, position_timestamp DESC
+  ORDER BY this.vessel_id, this.position_timestamp DESC
 ),
 
 ----------------------------------- Chargement des positions stagées des navires -----------------------------------

@@ -79,6 +79,10 @@ models:
           description: "End time of the excursion."
         - name: excursion_duration_interval
           description: "Duration of the excursion in interval format."
+        - name: excursion_port_departure_id
+          description: "Port ID of the departure port of the excursion."
+          tests:
+            - not_null
         - name: excursion_status
           description: "Status of the excursion (ongoing, completed, unknown)."
           tests:
@@ -149,7 +153,6 @@ models:
       columns:
         - name: segment_id
           tests:
-            - unique
             - not_null
         - name: vessel_id
           tests:

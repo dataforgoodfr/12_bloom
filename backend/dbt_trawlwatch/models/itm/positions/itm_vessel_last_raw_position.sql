@@ -125,7 +125,7 @@ fallback_last_raw AS (
         s.position_course,
         s.position_rot,
         s.created_at,
-        'Fallback last AIS position'::varchar AS last_raw_position_origin
+        cast( 'Fallback last AIS position'as varchar) as last_raw_position_origin
     FROM vessels_no_latest_raw AS vnlr
     JOIN last_pos_ts_per_ship  AS lps
       ON vnlr.dim_mmsi_mmsi = lps.vessel_mmsi
@@ -136,25 +136,25 @@ fallback_last_raw AS (
         )
     /* -------- partie rapide : on pioche UNE seule ligne -------- */
     CROSS JOIN LATERAL (
-        SELECT DISTINCT ON (vessel_mmsi, vessel_imo, position_timestamp)
-               vessel_mmsi,
-               vessel_imo,
-               position_timestamp,
-               position_latitude,
-               position_longitude,
-               position_speed,
-               position_heading,
-               position_course,
-               position_rot,
-               created_at
+        SELECT DISTINCT ON (sai.vessel_mmsi, sai.vessel_imo, sai.position_timestamp)
+               sai.vessel_mmsi,
+               sai.vessel_imo,
+               sai.position_timestamp,
+               sai.position_latitude,
+               sai.position_longitude,
+               sai.position_speed,
+               sai.position_heading,
+               sai.position_course,
+               sai.position_rot,
+               sai.created_at
         FROM public.spire_ais_data sai
         WHERE sai.vessel_mmsi = vnlr.dim_mmsi_mmsi
           AND sai.vessel_imo::text = lps.vessel_imo
           AND sai.position_timestamp = lps.position_timestamp
-        ORDER BY vessel_mmsi,
-                 vessel_imo,
-                 position_timestamp,
-                 created_at DESC   -- le plus récent d’abord
+        ORDER BY sai.vessel_mmsi,
+                 sai.vessel_imo,
+                 sai.position_timestamp,
+                 sai.created_at DESC   -- le plus récent d’abord
         LIMIT 1
     ) AS s
 )
