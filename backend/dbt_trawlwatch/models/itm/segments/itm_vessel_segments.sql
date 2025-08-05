@@ -139,7 +139,7 @@ vessel_positions_w_flag as (
 ),
 
 pos_w_zones as (
-    select
+    select distinct
         pos.vessel_id,
         pos.position_id,
 
