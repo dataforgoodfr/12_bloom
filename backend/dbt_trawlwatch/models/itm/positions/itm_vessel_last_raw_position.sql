@@ -1,12 +1,15 @@
 -- itm_vessel_last_raw_position.sql
 /*
-    Retourne la liste des dernières positions RAW des navires (source directe spire_ais_data) pour chaque navire.
-    Vessel_id est associé par jointure avec itm_dim_vessels sur le MMSI + l'IMO (pour tenir compte des réaffectations de MMSI).
-    2 méthodes complémentaires pour récupérer la dernière position :
-    - La dernière position de la dernière remontée AIS (env. 2/3 des navires)
-    - La dernière position connue pour le navire, même si elle n'est pas de la dernière remontée (avec filtre incrémental sur created_at).  
-    En cas d'absence de position de la dernière remontée, on utilise la dernière position connue pour le navire.
-    Performance attendue : 5 à 6' en initialisation, < 10" en incrémental.
+	Extraire la dernière position connue brute (RAW) par vessel_id
+	
+	Logique : Filtrer spire_ais_data au départ (sans tenir compte de dim_vessels) et ainsi limiter les larges jointures
+	1. Scanner le moins possible des extraits larges de spire_ais_data, et sur un minimum de champs bien indexés : `id`, `vessel_mmsi`, `created_at`, `position_timestamp`
+	2. Garder l’approche consistant à trouver un gain facile en exploitant les positions présentes dans la dernière remontée grâce à `created_at`
+	3. Compléter par l’exploitation des `id` max (donc position située dans la dernière remontée dispo pour le navire)
+	4. Joindre la dimension MMSI pour récupérer le `vessel_id` seulement à la fin (peu de lignes à joindre)
+
+	Performance attendue : INIT < 2'30 contre 5-6' sur la version précédente, incrémental à tester
+	>>> 1 618 lignes en sortie correspondant aux distinct vessel_id
 */
 
 {{ config(
@@ -27,160 +30,132 @@
 
 with 
 
-dim_vessels_mmsi as ( -- Nécessaire pour récupérer l'IMO
-    select 
-        dv.vessel_id,
-        dm.dim_mmsi_mmsi,
-        dv.dim_vessel_imo
-    from {{ ref('stg_dim_vessels') }} as dv
-    left join {{ ref('stg_dim_mmsi') }} as dm 
-        on dv.vessel_id = dm.vessel_id
-    where dv.dim_vessel_end_date is null and dm.dim_mmsi_end_date is null
-),
+last_id as ( -- Obtenir l'id de la dernière remontée AIS par MMSI
+	select  
+		vessel_mmsi, 
+		max(id) as lastid 
+	from {{ source('spire', 'spire_ais_data') }}
 
-last_spire_upd as ( -- Récupération de la dernière date de mise à jour des positions AIS
-    select spire_retrieval_ts
-    from {{ ref('observ_spire_ais_data_retrievals') }}
-    order by spire_retrieval_ts desc
-    limit 1
-),
-
-latest_raw as ( -- Récupérer uniquement les messages AIS de la dernière remontée
-    select 
-        s.vessel_mmsi as vessel_mmsi,
-        cast(s.vessel_imo as varchar) as vessel_imo,
-        s.created_at,
-        s.position_timestamp,
-        s.position_latitude,
-        s.position_longitude,
-        s.position_speed,
-        s.position_heading,
-        s.position_course,
-        s.position_rot,
-        cast('Last_AIS retrieval' as varchar) as last_raw_position_origin
-    from {{ source('spire', 'spire_ais_data') }} as s
-    inner join last_spire_upd on s.created_at = last_spire_upd.spire_retrieval_ts
-),
-
-latest_raw_with_id as ( -- Jointure gauche : les navires sont associés à la position de dernière remontée quand dispo
-    select 
-        dvm.vessel_id,
-        dvm.dim_mmsi_mmsi,
-        dvm.dim_vessel_imo,
-        l.*
-    from dim_vessels_mmsi as dvm
-    left join latest_raw as l on 
-        dvm.dim_mmsi_mmsi = l.vessel_mmsi 
-        and (
-            dvm.dim_vessel_imo = l.vessel_imo
-            or l.vessel_imo = '0'            -- IMO absent côté Spire
-            or dvm.dim_vessel_imo ='NA'     -- IMO absent côté dim
-        )
-
-),
-
-vessels_no_latest_raw as ( -- Lister les navires sans position de dernière remontée
-    select 
-        vessel_id,
-        dim_mmsi_mmsi,
-        dim_vessel_imo
-    from latest_raw_with_id
-    where position_timestamp is null
-),
-
-last_pos_ts_per_ship AS ( -- Garder seulement la dernière position RAW par navire (yc si 2 positiions dont 1 imo=0)
-  SELECT
-    vessel_mmsi,
-    vessel_imo,
-    position_timestamp
-  FROM (
-    SELECT
-      s.vessel_mmsi,
-      CAST(s.vessel_imo AS text) AS vessel_imo,
-      s.position_timestamp,
-      ROW_NUMBER() OVER (
-        PARTITION BY s.vessel_mmsi
-        ORDER BY s.position_timestamp DESC
-      ) AS rn
-    FROM {{ source('spire','spire_ais_data') }} AS s
     {% if is_incremental() %}
-    WHERE s.created_at > (
+    WHERE created_at > (
       SELECT MAX(position_ais_created_at__raw_max)
       FROM {{ this }}
     )
     {% endif %}
-  ) t
-  WHERE t.rn = 1
+
+	group by vessel_mmsi 
+	order by vessel_mmsi
 ),
 
-fallback_last_raw AS (
-    SELECT
-        vnlr.vessel_id,
-        s.vessel_mmsi,
-        s.position_timestamp,
-        s.position_latitude,
-        s.position_longitude,
-        s.position_speed,
-        s.position_heading,
-        s.position_course,
-        s.position_rot,
-        s.created_at,
-        cast( 'Fallback last AIS position'as varchar) as last_raw_position_origin
-    FROM vessels_no_latest_raw AS vnlr
-    JOIN last_pos_ts_per_ship  AS lps
-      ON vnlr.dim_mmsi_mmsi = lps.vessel_mmsi
-     AND (
-            vnlr.dim_vessel_imo = lps.vessel_imo
-         OR lps.vessel_imo = '0'            -- IMO absent côté Spire
-         OR vnlr.dim_vessel_imo ='NA'     -- IMO absent côté dim
+last_retrieval as ( -- Récupération de la dernière date de mise à jour des positions AIS
+    select spire_retrieval_ts as last_retrieval
+    from {{ ref('observ_spire_ais_data_retrievals') }}
+    order by last_retrieval desc
+    limit 1
+),
+
+data_from_last_retrieval as ( -- Extraire les données de la dernière remontée AIS
+	select 
+		'last_retrieval' as raw_origin,
+		ais.vessel_mmsi, 
+		ais.position_timestamp,
+		ais.position_speed,
+		ais.position_heading,
+		ais.position_latitude,
+		ais.position_longitude,
+		ais.created_at
+	from {{ source('spire', 'spire_ais_data') }} as ais
+	inner join last_retrieval as lr 
+		on  ais.created_at = lr.last_retrieval
+	order by ais.vessel_mmsi
+),
+
+list_id_to_get as ( -- Identifier les id à remonter par jointure externe
+	select lid.lastid--, lr.position_timestamp 
+	from last_id as lid
+	left join data_from_last_retrieval as lr on lid.vessel_mmsi = lr.vessel_mmsi
+	where lr.position_timestamp is null
+	order by lid.lastid
+),
+
+get_lastid_infos as ( -- Récupérer les infos des MMSI plus ancien que last_retrieval
+	select 
+		'oldies' as raw_origin,
+		ais.vessel_mmsi, 
+		ais.position_timestamp,
+		ais.position_speed,
+		ais.position_heading,
+		ais.position_latitude,
+		ais.position_longitude,
+		ais.created_at
+	from {{ source('spire', 'spire_ais_data') }} as ais
+	inner join list_id_to_get as lid on ais.id = lid.lastid
+
+    {% if is_incremental() %}
+        WHERE ais.created_at > (
+        SELECT MAX(position_ais_created_at__raw_max)
+        FROM {{ this }}
         )
-    /* -------- partie rapide : on pioche UNE seule ligne -------- */
-    CROSS JOIN LATERAL (
-        SELECT DISTINCT ON (sai.vessel_mmsi, sai.vessel_imo, sai.position_timestamp)
-               sai.vessel_mmsi,
-               sai.vessel_imo,
-               sai.position_timestamp,
-               sai.position_latitude,
-               sai.position_longitude,
-               sai.position_speed,
-               sai.position_heading,
-               sai.position_course,
-               sai.position_rot,
-               sai.created_at
-        FROM public.spire_ais_data sai
-        WHERE sai.vessel_mmsi = vnlr.dim_mmsi_mmsi
-          AND sai.vessel_imo::text = lps.vessel_imo
-          AND sai.position_timestamp = lps.position_timestamp
-        ORDER BY sai.vessel_mmsi,
-                 sai.vessel_imo,
-                 sai.position_timestamp,
-                 sai.created_at DESC   -- le plus récent d’abord
-        LIMIT 1
-    ) AS s
+    {% endif %}
+),
+
+union_it as ( -- Toutes les last_raw_data disponibles
+	select * from data_from_last_retrieval
+	union 
+	select * from get_lastid_infos
+	order by position_timestamp
+),
+
+dim_mmsi as ( -- Dimension MMSI
+	select 
+		vessel_id, 
+		dim_mmsi_mmsi,
+		dim_mmsi_start_date,
+		dim_mmsi_end_date
+	from {{ ref('stg_dim_mmsi') }}
+	order by dim_mmsi_mmsi, dim_mmsi_start_date, dim_mmsi_end_date
+),
+
+join_it as ( -- Jointure entre les dernières positions MMSI connues et la dimension MMSI pour récupérer les vessel_id (pour la période de validité MMSI)
+	select 
+		dim_mmsi.vessel_id,
+		dim_mmsi.dim_mmsi_mmsi as position_mmsi__raw_last,
+		last_raw.position_timestamp as position_timestamp__raw_last,
+		last_raw.position_latitude as position_latitude__raw_last,
+		last_raw.position_longitude as position_longitude__raw_last,
+		last_raw.position_speed as position_speed__raw_last,
+	 	last_raw.position_heading as position_heading__raw_last,
+		last_raw.created_at as position_ais_created_at__raw_max,
+		to_char(last_raw.position_timestamp, 'YYYYMM') as position_timestamp__raw_max_month,
+		date_trunc('day', last_raw.position_timestamp) as position_timestamp__raw_max_day,
+		st_setsrid(
+			st_makepoint(
+				last_raw.position_latitude,
+				last_raw.position_longitude
+			), 4326) as position_point__raw_last,
+		now() as last_raw_position_evaluated_at,
+    	last_raw.raw_origin as last_raw_position_origin
+	from dim_mmsi
+	{% if is_incremental() %}
+    inner join union_it as last_raw
+    {% else %}
+    left join union_it as last_raw 
+    {% endif %}
+		on dim_mmsi.dim_mmsi_mmsi = last_raw.vessel_mmsi 
+		and utils.safe_between(last_raw.position_timestamp, dim_mmsi.dim_mmsi_start_date, dim_mmsi.dim_mmsi_end_date)
+),
+
+get_last_val_by_vessel_id as ( -- Ne conserver que la dernière position par vessel_id
+	select * from (
+		select
+			*,
+			row_number() over (partition by vessel_id order by position_timestamp__raw_last desc) as rn
+		from join_it
+	) as ranked
+	where rn = 1
 )
 
-select 
-    lrwi.vessel_id,
-    coalesce(lrwi.position_timestamp, flr.position_timestamp) as position_timestamp__raw_last,
-    coalesce(lrwi.vessel_mmsi, flr.vessel_mmsi) as position_mmsi__raw_last,
-    coalesce(lrwi.position_latitude, flr.position_latitude) as position_latitude__raw_last,
-    coalesce(lrwi.position_longitude, flr.position_longitude) as position_longitude__raw_last,
-    coalesce(lrwi.position_speed, flr.position_speed) as position_speed__raw_last,
-    coalesce(lrwi.position_heading, flr.position_heading) as position_heading__raw_last,
-    coalesce(lrwi.position_course, flr.position_course) as position_course__raw_last,
-    coalesce(lrwi.position_rot, flr.position_rot) as position_rot__raw_last,
-    coalesce(lrwi.created_at, flr.created_at) as position_ais_created_at__raw_max,
-
-    to_char(coalesce(lrwi.position_timestamp, flr.position_timestamp), 'YYYYMM') as position_timestamp__raw_max_month,
-    date_trunc('day', coalesce(lrwi.position_timestamp, flr.position_timestamp)) as position_timestamp__raw_max_day,
-    st_setsrid(
-        st_makepoint(
-            coalesce(lrwi.position_longitude, flr.position_longitude),
-            coalesce(lrwi.position_latitude, flr.position_latitude)
-        ), 4326) as position_point__raw_last,
-    now() as last_raw_position_evaluated_at,
-    coalesce(lrwi.last_raw_position_origin, flr.last_raw_position_origin) as last_raw_position_origin
-from latest_raw_with_id as lrwi
-left join fallback_last_raw as flr
-    on lrwi.vessel_id = flr.vessel_id
-order by lrwi.vessel_id
+select * from get_last_val_by_vessel_id
+{% if is_incremental() %}
+    WHERE position_timestamp__raw_last is not null
+{% endif %}
