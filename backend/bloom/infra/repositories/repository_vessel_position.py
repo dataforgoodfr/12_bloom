@@ -23,7 +23,10 @@ class VesselPositionRepository:
         session.add(orm_position)
         return VesselPositionRepository.map_to_domain(orm_position)
 
-    def batch_create_vessel_position(self, session: Session, vessel_positions: list[VesselPosition]) -> list[
+    def batch_create_vessel_position(self,
+                                     session: Session,
+                                     vessel_positions: list[VesselPosition]
+                                     ) -> list[
         VesselPosition]:
         orm_list = [VesselPositionRepository.map_to_sql(vessel_position) for vessel_position in vessel_positions]
         session.add_all(orm_list)

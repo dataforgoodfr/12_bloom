@@ -49,9 +49,9 @@ def map_ais_data_to_vessel_voyage(ais_data: SpireAisData, vessel: Vessel) -> Uni
 def run() -> None:
     use_cases = UseCases()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         point_in_time = TaskExecutionRepository.get_point_in_time(session, "update_vessel_data_voyage")
         logger.info(f"Point in time={point_in_time}")
         now = datetime.now(timezone.utc)

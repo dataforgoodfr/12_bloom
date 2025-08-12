@@ -3,7 +3,7 @@ from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, between
 from datetime import datetime
 from bloom.logger import logger
 
@@ -38,6 +38,7 @@ class SpireAisDataRepository:
             sql_model.SpireAisData.spire_update_statement,
             sql_model.SpireAisData.vessel_mmsi,
             sql_model.Vessel.id,
+            sql_model.Vessel.key,
             sql_model.SpireAisData.position_accuracy,
             sql_model.SpireAisData.position_collection_type,
             sql_model.SpireAisData.position_course,
@@ -66,6 +67,7 @@ class SpireAisDataRepository:
             "spire_update_statement",
             "vessel_mmsi",
             "vessel_id",
+            "vessel_key",
             "position_accuracy",
             "position_collection_type",
             "position_course",
@@ -82,6 +84,15 @@ class SpireAisDataRepository:
         ],
                             )
 
+    def get_data_spire_updated_between(self, session: Session,spire_updated_after:datetime,
+                                       spire_updated_before:datetime)-> pd.DataFrame:
+        stmt = (select(sql_model.SpireAisData)
+                .where(sql_model.SpireAisData.spire_update_statement.between(spire_updated_after,spire_updated_before))
+                .order_by(sql_model.SpireAisData.spire_update_statement.asc())
+        )
+        data= pd.DataFrame([v.__dict__ for v in session.execute(stmt).scalars()])
+        return data
+
     def get_all_data_between_date(
             self, session: Session, created_updated_after: datetime, created_updated_before: datetime
     ) -> pd.DataFrame:
@@ -90,6 +101,7 @@ class SpireAisDataRepository:
             sql_model.SpireAisData.spire_update_statement,
             sql_model.SpireAisData.vessel_mmsi,
             sql_model.Vessel.id,
+            sql_model.Vessel.key,
             sql_model.SpireAisData.position_accuracy,
             sql_model.SpireAisData.position_collection_type,
             sql_model.SpireAisData.position_course,
@@ -112,6 +124,12 @@ class SpireAisDataRepository:
                 sql_model.SpireAisData.created_at > created_updated_after,
                 sql_model.SpireAisData.created_at <= created_updated_before
             )
+        ).where(
+            # scd attribute management
+            # filter on spire_update_statement reference date
+            between(sql_model.SpireAisData.spire_update_statement,
+                    sql_model.Vessel.scd_start,
+                    sql_model.Vessel.scd_end)
         ).order_by(sql_model.SpireAisData.created_at.asc())
         result = session.execute(stmt)
         return pd.DataFrame(result, columns=[
@@ -119,6 +137,7 @@ class SpireAisDataRepository:
             "spire_update_statement",
             "vessel_mmsi",
             "vessel_id",
+            "vessel_key",
             "position_accuracy",
             "position_collection_type",
             "position_course",
