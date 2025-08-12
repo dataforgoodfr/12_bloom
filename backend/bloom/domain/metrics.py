@@ -40,6 +40,11 @@ class ResponseMetricsVesselInActivitySchema(BaseModel):
     vessel: VesselListView
     total_time_at_sea: Optional[timedelta]
 
+class ResponseMetricsVesselInZonesSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    vessel: VesselListView
+    total_time_in_zones: Optional[timedelta]
+
 class ResponseMetricsZoneVisitedSchema(BaseModel):
     zone: ZoneListView
     visiting_duration: timedelta

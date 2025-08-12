@@ -1,6 +1,6 @@
 import { TOTAL_VESSELS } from "@/constants/totals.constants"
 import {
-  getTopVesselsInActivity,
+  getTopVesselsInMpas,
   getTopZonesVisited,
   getVesselsAtSea,
   getVesselsTrackedCount,
@@ -13,13 +13,13 @@ import { convertVesselDtoToItem, convertZoneDtoToItem } from "@/libs/mapper"
 const TOP_ITEMS_SIZE = 5
 
 type DashboardData = {
-  topVesselsInActivity: any[]
+  topVesselsInMpas: any[]
   topAmpsVisited: any[]
   totalVesselsInActivity: number
   totalAmpsVisited: number
   totalVesselsTracked: number
   isLoading: {
-    topVesselsInActivity: boolean
+    topVesselsInMpas: boolean
     topAmpsVisited: boolean
     totalVesselsInActivity: boolean
     totalAmpsVisited: boolean
@@ -32,13 +32,13 @@ export const useDashboardData = (
   endAt: string
 ): DashboardData => {
   const {
-    data: topVesselsInActivity = [],
-    isLoading: topVesselsInActivityLoading,
+    data: topVesselsInMpas = [],
+    isLoading: topVesselsInMpasLoading,
   } = useSWR(
-    `topVesselsInActivity-${startAt}`,
+    `topVesselsInMpas-${startAt}`,
     async () => {
       try {
-        const response = await getTopVesselsInActivity(
+        const response = await getTopVesselsInMpas(
           startAt,
           endAt,
           TOP_ITEMS_SIZE
@@ -46,7 +46,7 @@ export const useDashboardData = (
         return convertVesselDtoToItem(response?.data || [])
       } catch (error) {
         console.log(
-          "An error occurred while fetching top vessels in activity: " + error
+          "An error occurred while fetching top vessels in MPAs: " + error
         )
         return []
       }
@@ -137,13 +137,13 @@ export const useDashboardData = (
   )
 
   return {
-    topVesselsInActivity,
+    topVesselsInMpas,
     topAmpsVisited,
     totalVesselsInActivity,
     totalAmpsVisited,
     totalVesselsTracked,
     isLoading: {
-      topVesselsInActivity: topVesselsInActivityLoading,
+      topVesselsInMpas: topVesselsInMpasLoading,
       topAmpsVisited: topAmpsVisitedLoading,
       totalVesselsInActivity: totalVesselsInActivityLoading,
       totalAmpsVisited: totalAmpsVisitedLoading,
