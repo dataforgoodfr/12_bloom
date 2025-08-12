@@ -5,10 +5,8 @@
 
 with expected as (
     select count(distinct v.vessel_id) as expected_count
-    from staging.stg_dim_vessels v
-    left join staging.stg_dim_mmsi m
-    on v.vessel_id = m.vessel_id
-    where v.dim_vessel_end_date is null and m.dim_mmsi_end_date is null
+    from {{ ref('stg_dim_vessels') }} as v
+
 ),
 
 actual as (
