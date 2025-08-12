@@ -1,0 +1,32 @@
+site_name: Trawl Watch
+theme:
+  name: readthedocs
+  highlightjs: true
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          load_external_modules: true
+          options:
+            docstring_style: google
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Description:
+    - description/about.md
+    - description/ais.md
+    - description/technical_architecture.md
+  - Getting Started:
+    - getting_started/development_environment.md
+    - getting_started/database_initialisation.md
+    - getting_started/sql_examples.md
+  - Objects:
+    - objects/tasks.md
+  - Contributing:
+    - contributing/how_to?.md
