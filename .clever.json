@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "app_id": "app_50bfd872-632e-4cb6-abc2-b94479db4d03",
+      "org_id": "orga_07e564aa-7ea8-4a52-bea7-e029e3d8fa35",
+      "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_50bfd872-632e-4cb6-abc2-b94479db4d03.git",
+      "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_50bfd872-632e-4cb6-abc2-b94479db4d03.git",
+      "name": "trawlwatch_prod",
+      "alias": "trawlwatch_prod"
+    }
+  ]
+}
