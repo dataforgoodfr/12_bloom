@@ -4,8 +4,8 @@ import { useEffect } from "react"
 import Image from "next/image"
 import TrawlWatchLogo from "@/public/trawlwatch.svg"
 import { ChartBarIcon } from "@heroicons/react/24/outline"
-import { motion, useAnimationControls } from "framer-motion"
 import { ChevronRightIcon } from "lucide-react"
+import { motion, useAnimationControls } from "motion/react"
 import { useShallow } from "zustand/react/shallow"
 
 import { useLoaderStore } from "@/libs/stores/loader-store"
@@ -14,8 +14,8 @@ import NavigationLink from "@/components/ui/navigation-link"
 import { VesselFinderDemo } from "@/components/core/command/vessel-finder"
 
 import Spinner from "../../ui/custom/spinner"
-import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 import PartnerCredits from "../map/partner-credits"
+import TrackedVesselsPanel from "./tracked-vessel/tracked-vessels-panel"
 
 const containerVariants = {
   close: {
@@ -93,7 +93,7 @@ export default function LeftPanel() {
         initial="close"
         className="absolute left-0 top-0 z-10 flex max-h-screen flex-col gap-3 rounded-br-lg bg-color-3 shadow-lg"
       >
-        <div className="flex w-full flex-row place-items-center p-5 gap-5">
+        <div className="flex w-full flex-row place-items-center gap-5 p-5">
           <a href="/dashboard" className="flex items-center gap-3">
             <Image
               src={TrawlWatchLogo}
