@@ -46,6 +46,8 @@ dependencies = [
     "fastapi[standard]>=0.115.0,<1.0.0",
     "uvicorn~=0.32",
     "redis~=5.0",
+    "invoke>=2.2.0",
+    "isodate>=0.7.2",
 ]
 name = "bloom"
 version = "0.1.0"
