@@ -143,4 +143,5 @@ select distinct
     now() as position_stg_created_at,
     position_point
 from join_spire_ais_and_vessels
+where vessel_id not like 'UNKNOWN_MMSI=%'
 order by position_timestamp, vessel_id

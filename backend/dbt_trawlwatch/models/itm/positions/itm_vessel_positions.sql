@@ -33,7 +33,7 @@
 -- Gestion des run à partir d'une liste de MMSI
 {% set mmsi_list = var('default_mmsi_list', []) %}
 {% if mmsi_list | length > 0 %}
-  {% set MMSI_filter = "where position_mmsi in (" ~ mmsi_list | join(',') ~ ")" %}
+  {% set MMSI_filter = "and position_mmsi in (" ~ mmsi_list | join(',') ~ ")" %}
 {% else %}
   {% set MMSI_filter = "" %}
 {% endif %}
@@ -81,7 +81,8 @@ raw_vessel_positions_load as ( -- Données remontées par le microbatch sur stg_
             position_point,
             cast(NULL as boolean) as rn
         from {{ ref('stg_vessel_positions') }} 
-        
+        where true
+            and vessel_id not like 'UNKNOWN_MMSI=%'
         {{ MMSI_filter }}
     
 ),

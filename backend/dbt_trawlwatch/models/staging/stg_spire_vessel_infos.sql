@@ -16,7 +16,7 @@
     schema = 'staging',
     materialized = 'incremental',
     incremental_strategy = 'merge',
-    unique_key = ['vessel_mmsi', 'config_hash'],
+    unique_key = ['vessel_mmsi', 'config_hash','config_start'],
     tags = ['staging', 'ais','vessel_infos'],
     indexes = [
         {"columns": ["vessel_mmsi"], "type": "btree"},
