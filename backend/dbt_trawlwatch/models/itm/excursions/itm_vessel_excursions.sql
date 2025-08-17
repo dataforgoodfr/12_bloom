@@ -97,7 +97,7 @@ treat_next_excursion_event as ( -- Traite le type d'événement d'excursion suiv
         position_itm_created_at,
         excursion_event_type,
         case 
-            when excursion_event_type = 'first' and port_exited is null then 'first'
+            --when excursion_event_type = 'first' and port_exited is null then 'first' -- NON cela cause une erreur dans le cas où next_excursion_event_type = end
             when excursion_event_type = 'first' and next_excursion_event_type = 'start' then 'first'
             when excursion_event_type = 'first' and next_excursion_event_type = 'end' then 'start'
             when excursion_event_type = 'first' and next_excursion_event_type is null then 'start'

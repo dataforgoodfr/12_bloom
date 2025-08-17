@@ -64,7 +64,7 @@ with
     where rn = 1
 ),*/
 
-
+ -- noqa
 ----------------------------------- Chargement des positions stagées des navires -----------------------------------
 raw_vessel_positions_load as ( -- Données remontées par le microbatch sur stg_vessel_positions
         select 
@@ -81,7 +81,7 @@ raw_vessel_positions_load as ( -- Données remontées par le microbatch sur stg_
             position_point,
             cast(NULL as boolean) as rn
         from {{ ref('stg_vessel_positions') }} 
-        where true
+        where TRUE
             and vessel_id not like 'UNKNOWN_MMSI=%'
         {{ MMSI_filter }}
     
@@ -113,7 +113,7 @@ previous_positions AS (
   inner join (
     SELECT vessel_id as vessel_id_ld, max(position_timestamp_day) as ts_day_ld from {{ this }} 
     {% if is_incremental() %}
-    where position_timestamp <= (select start_batch from get_start_batch)
+    where position_timestamp < (select start_batch from get_start_batch)
     {% endif %}
     group by vessel_id
   ) ld 
