@@ -7,5 +7,7 @@ seeds/clipped_territorial_seas.csv
 seeds/fishing_coastal_waters.csv
 seeds/french_metropolitan_mpas.csv
 seeds/territorial_seas.csv
+seeds/CL_*
+seeds/HCL_*
 dbt_internal_packages/
 .sqlfluff

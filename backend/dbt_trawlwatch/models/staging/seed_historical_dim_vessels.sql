@@ -43,7 +43,14 @@ select
         'tonnage_gt', tonnage_gt,
         'other_tonnage' , other_tonnage,
         'fish_hold_volume', fish_hold_volume,
-        'carrying_capacity', carrying_capacity
+        'carrying_capacity', carrying_capacity,
+        'length_class', case when loa < 15 then '< 15 m'
+                        when loa >= 15 and loa < 24 then '[15-24[ m'
+                        when loa >= 24 and loa < 40 then '[24-40[ m'
+                        when loa >= 40 and loa < 60 then '[40-60[ m'
+                        when loa >= 60 and loa < 80 then '[60-80[ m'
+                        when loa >= 80 then '>=80 m'
+                        else NULL end -- dans l'idéal, pas de valeurs NULL ici
     ) as dim_vessel_details,
 
     now() as dim_vessel_created_at
