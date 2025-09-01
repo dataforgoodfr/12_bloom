@@ -37,11 +37,16 @@ select
     tracking_status as dim_vessel_status,
     "check" as dim_vessel_source,
     cast('STATIC' as VARCHAR) as dim_vessel_origin, -- Origine des données du navire STATIC | HISTORIZED'
-
     jsonb_build_object(
         'width', width,
-        'length_class', length_class,
-        'ship_type', type
+        'ship_type', type,
+        'length_class', case when length < 15 then '< 15 m'
+                        when length >= 15 and length < 24 then '[15-24[ m'
+                        when length >= 24 and length < 40 then '[24-40[ m'
+                        when length >= 40 and length < 60 then '[40-60[ m'
+                        when length >= 60 and length < 80 then '[60-80[ m'
+                        when length >= 80 then '>=80 m'
+                        else NULL end -- dans l'idéal, pas de valeurs NULL ici
     ) as dim_vessel_details, -- Infos de dimension du navire en JSON
 
     now() as seed_dim_vessel_created_at -- Méta: date de création de la dimension dans la base de données
