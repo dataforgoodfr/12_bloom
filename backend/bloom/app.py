@@ -4,6 +4,7 @@ from fastapi import Request
 from bloom.routers.v1.cache import router as router_cache_v1
 from bloom.routers.v1.metrics import router as router_metrics_v1
 from bloom.routers.v1.vessels import router as router_vessels_v1
+from bloom.routers.v2.vessels import router as router_vessels_v2
 from bloom.routers.v1.ports import router as router_ports_v1
 from bloom.routers.v1.zones import router as router_zones_v1
 from starlette.middleware.cors import CORSMiddleware
@@ -12,6 +13,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from bloom.config import settings
 
 API_PREFIX_V1='/api/v1'
+API_PREFIX_V2='/api/v2'
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
@@ -38,6 +40,15 @@ app.include_router(router_metrics_v1,prefix=API_PREFIX_V1,tags=["Metrics"])
 app.include_router(router_ports_v1,prefix=API_PREFIX_V1,tags=["Ports"])
 app.include_router(router_vessels_v1,prefix=API_PREFIX_V1,tags=["Vessels"])
 app.include_router(router_zones_v1,prefix=API_PREFIX_V1,tags=["Zones"])
+
+@app.get("/api/v2", include_in_schema=False)
+async def root_api_v2(request:Request):
+    return {
+            "vessels":  f"{request.url_for('list_vessels')}"
+            }
+
+app.include_router(router_vessels_v2,prefix=API_PREFIX_V2,tags=["Vessels"])
+
 
 origins = [
         "http://localhost",
