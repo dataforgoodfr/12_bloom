@@ -20,7 +20,7 @@ class Vessel(Base):
     __tablename__ = "mart_dim_vessels"  
     __table_args__ = {"schema": "marts"}
 
-    vessel_id = Column("id", String, primary_key=True)
+    id = Column("id", String, primary_key=True)
     mmsi = Column("mmsi", Integer)
     ship_name = Column("ship_name", String)
     width = Column("width", String)
@@ -119,6 +119,7 @@ async def list_vessel_countries(request: Request, # used by @cache
 
 
 @router.get("/vessels")
+@cache
 async def list_vessels(request: Request, # used by @cache
                        nocache:bool=False, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
@@ -130,6 +131,7 @@ async def list_vessels(request: Request, # used by @cache
         return session.execute(stmt).scalars().all()
 
 @router.get("/vessels/{vessel_id}")
+@cache
 async def get_vessel(request: Request, # used by @cache
                      vessel_id: str,
                      nocache:bool=False, # used by @cache
@@ -138,11 +140,12 @@ async def get_vessel(request: Request, # used by @cache
     use_cases = UseCases()
     db = use_cases.db()
     with db.session() as session:
-        stmt = select(Vessel).where(Vessel.vessel_id == vessel_id)
+        stmt = select(Vessel).where(Vessel.id == vessel_id)
         return session.execute(stmt).scalars().first()
 
 
 @router.get("/vessels/all/positions/last")
+@cache
 async def list_all_vessel_last_position(request: Request, # used by @cache
                                         nocache:bool=False, # used by @cache
                                         key: str = Depends(X_API_KEY_HEADER)):
@@ -154,11 +157,33 @@ async def list_all_vessel_last_position(request: Request, # used by @cache
         res = session.execute(stmt).scalars()
         positions = []
         for pos in res:
-            pos.position = to_shape(pos.position).__geo_interface__ if pos and pos.position else None
-            positions.append(pos)
+            position = {
+                "arrival_port_id": pos.arrival_port_id,
+                "excursion_id": pos.excursion_id,
+                "heading": pos.heading,
+                "position": to_shape(pos.position).reverse().__geo_interface__ if pos and pos.position else None,
+                "speed": pos.speed,
+                "timestamp": pos.timestamp,
+                "vessel": {
+                    "id": pos.vessel_id,
+                    "mmsi": pos.mmsi,
+                    "ship_name": pos.ship_name,
+                    "width": pos.width,
+                    "length": pos.length,
+                    "country_iso3": pos.country_iso3,
+                    "type": pos.type,
+                    "imo": pos.imo,
+                    "cfr": pos.cfr, 
+                    "external_marking": pos.external_marking,
+                    "ircs": pos.ircs,
+                    "length_class": pos.length_class
+                }
+            }
+            positions.append(position)
         return positions
     
 @router.get("/vessels/{vessel_id}/positions/last")
+@cache
 async def get_vessel_last_position(request: Request, # used by @cache
                                    vessel_id: str,
                                    nocache:bool=False, # used by @cache
@@ -170,7 +195,27 @@ async def get_vessel_last_position(request: Request, # used by @cache
         stmt = select(VesselPosition).where(VesselPosition.vessel_id == vessel_id)
         res = session.execute(stmt).scalars().first()
         if res:
-            res.position = to_shape(res.position).__geo_interface__ if res.position else None
-        return res
-    
+            position = {
+                "arrival_port_id": res.arrival_port_id,
+                "excursion_id": res.excursion_id,
+                "heading": res.heading,
+                "position": to_shape(res.position).reverse().__geo_interface__ if res and res.position else None,
+                "speed": res.speed,
+                "timestamp": res.timestamp,
+                "vessel": {
+                    "id": res.vessel_id,
+                    "mmsi": res.mmsi,
+                    "ship_name": res.ship_name,
+                    "width": res.width,
+                    "length": res.length,
+                    "country_iso3": res.country_iso3,
+                    "type": res.type,
+                    "imo": res.imo,
+                    "cfr": res.cfr,
+                    "external_marking": res.external_marking,
+                    "ircs": res.ircs,
+                    "length_class": res.length_class
+                }
+            }
+        return position if res else None
 
