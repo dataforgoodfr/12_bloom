@@ -196,6 +196,7 @@ export const useVesselsLayers = () => {
 
     if (mapMode === "position") {
       displayedPositions = vesselsPositions
+
       // Apply filters
       displayedPositions = displayedPositions.filter((vp) => {
         const { type, length_class, country_iso3 } = vp.vessel
