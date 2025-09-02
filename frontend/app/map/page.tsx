@@ -86,13 +86,13 @@ export default function MapPage() {
     }
   }, [vessels, isLoadingVessels])
 
-  // const { data: zones = [], isLoading: isLoadingZones } = useSWR<
-  //   ZoneWithGeometry[]
-  // >("/api/zones", fetcher, {
-  //   revalidateOnFocus: false,
-  //   revalidateOnReconnect: false,
-  //   keepPreviousData: true,
-  // })
+  const { data: zones = [], isLoading: isLoadingZones } = useSWR<
+    ZoneWithGeometry[]
+  >("/api/zones", fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    keepPreviousData: true,
+  })
 
   const { data: latestPositions = [], isLoading: isLoadingPositions } = useSWR<
     VesselPosition[]
@@ -118,9 +118,9 @@ export default function MapPage() {
       }))
     )
 
-  // useEffect(() => {
-  //   setZonesLoading(isLoadingZones)
-  // }, [isLoadingZones])
+  useEffect(() => {
+    setZonesLoading(isLoadingZones)
+  }, [isLoadingZones])
 
   useEffect(() => {
     setPositionsLoading(isLoadingPositions)
@@ -171,9 +171,9 @@ export default function MapPage() {
   return (
     <>
       <LeftPanel />
-      <Map zones={[]} ports={ports} />
+      <Map zones={zones} ports={ports} />
       <MapControls
-        zoneLoading={false}
+        zoneLoading={isLoadingZones}
         vesselLoading={isLoadingVessels}
       />
     </>
