@@ -130,8 +130,8 @@ join_it as ( -- Jointure entre les dernières positions MMSI connues et la dimen
 		date_trunc('day', last_raw.position_timestamp) as position_timestamp__raw_max_day,
 		st_setsrid(
 			st_makepoint(
-				last_raw.position_latitude,
-				last_raw.position_longitude
+				last_raw.position_longitude,
+				last_raw.position_latitude
 			), 4326) as position_point__raw_last,
 		now() as last_raw_position_evaluated_at,
     	last_raw.raw_origin as last_raw_position_origin
