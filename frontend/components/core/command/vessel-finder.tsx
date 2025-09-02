@@ -1,23 +1,18 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
-import { FlyToInterpolator } from "deck.gl"
-import { useShallow } from "zustand/react/shallow"
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client";
+import { FlyToInterpolator } from "deck.gl";
+import { useShallow } from "zustand/react/shallow";
+import { VesselPosition } from "@/types/vessel";
+import { useMapStore } from "@/libs/stores/map-store";
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store";
+import { useVesselsStore } from "@/libs/stores/vessels-store";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 
-import { VesselPosition } from "@/types/vessel"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useVesselsStore } from "@/libs/stores/vessels-store"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
+
+
+
 
 type Props = {
   wideMode: boolean
@@ -83,12 +78,14 @@ export function VesselFinderDemo({ wideMode, setWideMode }: Props) {
 
   const onSelectVessel = async (vesselIdentifier: string) => {
     setOpen(false)
-    const vesselId = parseInt(vesselIdentifier.split(SEPARATOR)[3])
+
+    const vesselId = vesselIdentifier.split(SEPARATOR)[3]
 
     if (vesselId) {
       const selectedVesselLatestPosition = latestPositions.find(
         (position) => position.vessel.id === vesselId
       )
+
       if (selectedVesselLatestPosition) {
         setActivePosition(selectedVesselLatestPosition as VesselPosition)
         setViewState({

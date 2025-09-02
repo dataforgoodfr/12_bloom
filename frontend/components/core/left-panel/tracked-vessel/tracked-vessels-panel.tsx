@@ -1,29 +1,27 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover"
-import { format } from "date-fns"
-import {
-  ChevronRight,
-  MinusIcon,
-  PenIcon,
-  Ship as ShipIcon,
-  TrashIcon,
-  XIcon,
-} from "lucide-react"
-import { DayPicker, getDefaultClassNames, Matcher } from "react-day-picker"
-import { useShallow } from "zustand/react/shallow"
+import { useEffect, useMemo, useState } from "react";
+import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
+import { format } from "date-fns";
+import { ChevronRight, MinusIcon, PenIcon, Ship as ShipIcon, TrashIcon, XIcon } from "lucide-react";
+import { DayPicker, getDefaultClassNames, Matcher } from "react-day-picker";
+import { useShallow } from "zustand/react/shallow";
 
-import { Vessel } from "@/types/vessel"
-import { useMapStore } from "@/libs/stores/map-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useVesselsStore } from "@/libs/stores/vessels-store"
-import { cn } from "@/libs/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Popover } from "@/components/ui/popover"
 
-import TrackedVesselItem from "./tracked-vessel-item"
+
+import { Vessel } from "@/types/vessel";
+import { useMapStore } from "@/libs/stores/map-store";
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store";
+import { useVesselsStore } from "@/libs/stores/vessels-store";
+import { cn } from "@/libs/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Popover } from "@/components/ui/popover";
+
+
+
+import TrackedVesselItem from "./tracked-vessel-item";
+
 
 function NoVesselsPlaceholder() {
   return (

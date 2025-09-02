@@ -5,9 +5,9 @@ import { VesselExcursion } from "@/types/vessel"
 interface ITrackModeOptions {
   startDate: Date | undefined
   endDate: Date | undefined
-  trackedVesselIDs: number[]
+  trackedVesselIDs: string[]
   excursions: { [vesselID: number]: VesselExcursion[] }
-  vesselsIDsHidden: number[]
+  vesselsIDsHidden: string[]
   excursionsIDsHidden: number[]
   focusedExcursionID: number | null
   showPositions: boolean
@@ -19,12 +19,12 @@ interface ITrackModeOptionsActions {
   setEndDate: (endDate: Date | undefined) => void
 
   // Tracked vessels
-  setTrackedVesselIDs: (trackedVesselIDs: number[]) => void
-  addTrackedVessel: (vesselID: number) => void
-  removeTrackedVessel: (vesselID: number) => void
+  setTrackedVesselIDs: (trackedVesselIDs: string[]) => void
+  addTrackedVessel: (vesselID: string) => void
+  removeTrackedVessel: (vesselID: string) => void
   clearTrackedVessels: () => void
-  setVesselVisibility: (vesselID: number, visible: boolean) => void
-  toggleVesselVisibility: (vesselID: number) => void
+  setVesselVisibility: (vesselID: string, visible: boolean) => void
+  toggleVesselVisibility: (vesselID: string) => void
 
   // Excursions
   setExcursions: (excursions: { [vesselID: number]: VesselExcursion[] }) => void

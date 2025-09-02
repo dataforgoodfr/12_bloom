@@ -3,7 +3,7 @@ import type { Feature, Geometry } from "geojson"
 import { ZoneDetails } from "./zone"
 
 export type Vessel = {
-  id: number
+  id: string
   mmsi: number
   ship_name: string
   width: number
@@ -23,7 +23,7 @@ export type VesselMetrics = {
 }
 
 export type VesselDetails = {
-  id: number
+  id: string
   imo: number
   mmsi: number
   ship_name: string
