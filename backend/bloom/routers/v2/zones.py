@@ -34,8 +34,25 @@ class Zone(Base):
     created_at = Column("created_at", DateTime(timezone=True))
     enable = Column("enable",Boolean(), server_default="True")
 
+class ZoneCategory(Base):
+    __tablename__ = "mart_dim_zones__categories"
+    __table_args__ = {"schema": "marts"}
+
+    category = Column("category", String, primary_key=True)
+    sub_category = Column("sub_category", String, primary_key=True)
+
+class ZoneSummary(Base):
+    __tablename__ = "mart_dim_zones__summary"
+    __table_args__ = {"schema": "marts"}
+
+    id = Column("id", Integer, primary_key=True)
+    category = Column("category", String)
+    sub_category = Column("sub_category", String)
+    name = Column("name", String, nullable=False)
+    created_at = Column("created_at", DateTime(timezone=True))
+
 @router.get("/zones")
-# @cache
+#@cache
 async def list_zones(request: Request,
                      nocache: bool = False,
                      key: str = Depends(X_API_KEY_HEADER),
@@ -92,3 +109,54 @@ async def list_zones(request: Request,
                                         value=f"{s.start if s.start != None else ''}-{s.end if s.end != None else ''}/{total}")
 
         return response
+
+    
+@router.get("/zones/categories")
+@cache
+async def list_zone_categories(request: Request, nocache: bool = False, key: str = Depends(X_API_KEY_HEADER)):
+    check_apikey(key)
+    use_cases = UseCases()
+    db = use_cases.db()
+    with db.session() as session:
+        stmt = select(ZoneCategory)
+        return session.execute(stmt).scalars().all()
+    
+@router.get("/zones/summary")
+@cache
+async def list_zones_summary_test(request: Request,
+                             nocache: bool = False,
+                             key: str = Depends(X_API_KEY_HEADER),
+                             ):
+    check_apikey(key)
+    use_cases = UseCases()
+    db = use_cases.db()
+    with db.session() as session:
+        print("Coucou")
+        stmt = select(ZoneSummary)
+        return session.execute(stmt).scalars().all()
+
+
+@router.get("/zones/{zone_id}")
+# @cache
+async def get_zone(request: Request, zone_id: int, nocache: bool = False, key: str = Depends(X_API_KEY_HEADER)):
+    check_apikey(key)
+    use_cases = UseCases()
+    db = use_cases.db()
+    with db.session() as session:
+            stmt = select(Zone).where(Zone.id == zone_id)
+            res = session.execute(stmt).scalars().first()
+
+            if res:
+                return {
+                    "id": res.id,
+                    "category": res.category,
+                    "sub_category": res.sub_category,
+                    "name": res.name,
+                    "geometry": to_shape(res.geometry).__geo_interface__ if res.geometry else None,
+                    "centroid": to_shape(res.centroid).__geo_interface__ if res.centroid else None,
+                    "json_data": res.json_data,
+                    "created_at": res.created_at,
+                    "enable": res.enable
+                }
+
+            return res if res else None
