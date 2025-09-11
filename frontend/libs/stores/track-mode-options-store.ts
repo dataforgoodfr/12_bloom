@@ -6,10 +6,10 @@ interface ITrackModeOptions {
   startDate: Date | undefined
   endDate: Date | undefined
   trackedVesselIDs: string[]
-  excursions: { [vesselID: number]: VesselExcursion[] }
+  excursions: { [vesselID: string]: VesselExcursion[] }
   vesselsIDsHidden: string[]
-  excursionsIDsHidden: number[]
-  focusedExcursionID: number | null
+  excursionsIDsHidden: string[]
+  focusedExcursionID: string | null
   showPositions: boolean
   segmentMode: "speed" | "vessel"
 }
@@ -27,13 +27,13 @@ interface ITrackModeOptionsActions {
   toggleVesselVisibility: (vesselID: string) => void
 
   // Excursions
-  setExcursions: (excursions: { [vesselID: number]: VesselExcursion[] }) => void
-  setVesselExcursions: (vesselID: number, excursions: VesselExcursion[]) => void
-  removeVesselExcursions: (vesselID: number, excursionID: number) => void
+  setExcursions: (excursions: { [vesselID: string]: VesselExcursion[] }) => void
+  setVesselExcursions: (vesselID: string, excursions: VesselExcursion[]) => void
+  removeVesselExcursions: (vesselID: string, excursionID: string) => void
   clearExcursions: () => void
-  setExcursionVisibility: (excursionID: number, visible: boolean) => void
-  toggleExcursionVisibility: (excursionID: number) => void
-  setFocusedExcursionID: (excursionID: number | null) => void
+  setExcursionVisibility: (excursionID: string, visible: boolean) => void
+  toggleExcursionVisibility: (excursionID: string) => void
+  setFocusedExcursionID: (excursionID: string | null) => void
 
   // Settings
   setShowPositions: (showPositions: boolean) => void
@@ -107,7 +107,7 @@ export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
         excursions: {
           ...state.excursions,
           [vesselID]: state.excursions[vesselID].filter(
-            (excursion) => excursion.id !== excursionID
+            (excursion) => excursion.excursion_id !== excursionID
           ),
         },
       })),
@@ -116,14 +116,14 @@ export const useTrackModeOptionsStore = create<ITrackModeOptionsStore>()(
       set((state) => ({
         ...state,
         excursionsIDsHidden: visible
-          ? state.excursionsIDsHidden.filter((id) => id !== excursionID)
+          ? state.excursionsIDsHidden.filter((excursion_id) => excursion_id !== excursionID)
           : [...state.excursionsIDsHidden, excursionID],
       })),
     toggleExcursionVisibility: (excursionID) =>
       set((state) => ({
         ...state,
         excursionsIDsHidden: state.excursionsIDsHidden.includes(excursionID)
-          ? state.excursionsIDsHidden.filter((id) => id !== excursionID)
+          ? state.excursionsIDsHidden.filter((excursion_id) => excursion_id !== excursionID)
           : [...state.excursionsIDsHidden, excursionID],
       })),
     setFocusedExcursionID: (excursionID) =>

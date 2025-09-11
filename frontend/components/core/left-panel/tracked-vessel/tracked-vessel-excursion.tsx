@@ -1,21 +1,19 @@
-import { useEffect, useMemo, useState } from "react"
-import { CrosshairIcon, EyeIcon } from "lucide-react"
-import { useShallow } from "zustand/react/shallow"
+import { useEffect, useMemo, useState } from "react";
+import { CrosshairIcon, EyeIcon } from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
 
-import {
-  ExcursionMetrics,
-  VesselExcursion,
-  VesselExcursionTimeByZone,
-} from "@/types/vessel"
-import { ZoneCategory } from "@/types/zone"
-import {
-  convertDurationInSeconds,
-  convertDurationToString,
-} from "@/libs/dateUtils"
-import { useTrackModeOptionsStore } from "@/libs/stores"
-import SidebarExpander from "@/components/ui/custom/sidebar-expander"
 
-import TrackedVesselMetric from "./tracked-vessel-metric"
+
+import { ExcursionMetrics, VesselExcursion, VesselExcursionTimeByZone } from "@/types/vessel";
+import { ZoneCategory } from "@/types/zone";
+import { convertDurationInSeconds, convertDurationToString } from "@/libs/dateUtils";
+import { useTrackModeOptionsStore } from "@/libs/stores";
+import SidebarExpander from "@/components/ui/custom/sidebar-expander";
+
+
+
+import TrackedVesselMetric from "./tracked-vessel-metric";
+
 
 export interface TrackedVesselExcursionProps {
   index: number
@@ -77,23 +75,23 @@ export default function TrackedVesselExcursion({
   )
 
   const isHidden = useMemo(
-    () => excursionsIDsHidden.includes(excursion.id),
-    [excursionsIDsHidden, excursion.id]
+    () => excursionsIDsHidden.includes(excursion.excursion_id),
+    [excursionsIDsHidden, excursion.excursion_id]
   )
   const isFocused = useMemo(
-    () => focusedExcursionID === excursion.id,
-    [focusedExcursionID, excursion.id]
+    () => focusedExcursionID === excursion.excursion_id,
+    [focusedExcursionID, excursion.excursion_id]
   )
 
   const onToggleVisibility = () => {
-    toggleExcursionVisibility(excursion.id)
+    toggleExcursionVisibility(excursion.excursion_id)
   }
 
   const onFocusExcursion = () => {
     if (isFocused) {
       setFocusedExcursionID(null)
     } else {
-      setFocusedExcursionID(excursion.id)
+      setFocusedExcursionID(excursion.excursion_id)
     }
   }
 
@@ -117,7 +115,7 @@ export default function TrackedVesselExcursion({
 
   const metrics = useMemo(() => {
     return {
-      totalTimeAtSea: convertDurationInSeconds(excursion.excursion_duration),
+      totalTimeAtSea: convertDurationInSeconds(excursion.total_time_at_sea),
       mpa: convertDurationInSeconds(excursion.total_time_in_amp),
       frenchTerritorialWaters: convertDurationInSeconds(
         excursion.total_time_in_territorial_waters

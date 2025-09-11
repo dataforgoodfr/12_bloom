@@ -1,25 +1,27 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import {
-  getVesselExcursions,
-  getVesselSegments,
-  getVesselTimeByZone,
-} from "@/services/backend-rest-client"
-import useSWR from "swr"
-import { useShallow } from "zustand/react/shallow"
+import { useEffect } from "react";
+import { getVesselExcursions, getVesselExcursionsExtracts, getVesselSegments, getVesselTimeByZone } from "@/services/backend-rest-client";
+import useSWR from "swr";
+import { useShallow } from "zustand/react/shallow";
 
-import { Port } from "@/types/port"
-import { Vessel, VesselPosition } from "@/types/vessel"
-import { ZoneCategory, ZoneWithGeometry } from "@/types/zone"
-import { useLoaderStore } from "@/libs/stores/loader-store"
-import { useMapStore } from "@/libs/stores/map-store"
-import { usePortsStore } from "@/libs/stores/port-store"
-import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store"
-import { useVesselsStore } from "@/libs/stores/vessels-store"
-import LeftPanel from "@/components/core/left-panel/main"
-import MapControls from "@/components/core/map-controls"
-import Map from "@/components/core/map/main-map"
+
+
+import { Port } from "@/types/port";
+import { Vessel, VesselPosition } from "@/types/vessel";
+import { ZoneCategory, ZoneWithGeometry } from "@/types/zone";
+import { useLoaderStore } from "@/libs/stores/loader-store";
+import { useMapStore } from "@/libs/stores/map-store";
+import { usePortsStore } from "@/libs/stores/port-store";
+import { useTrackModeOptionsStore } from "@/libs/stores/track-mode-options-store";
+import { useVesselsStore } from "@/libs/stores/vessels-store";
+import LeftPanel from "@/components/core/left-panel/main";
+import MapControls from "@/components/core/map-controls";
+import Map from "@/components/core/map/main-map";
+
+
+
+
 
 const fetcher = async (url: string) => {
   const response = await fetch(url)
@@ -138,34 +140,39 @@ export default function MapPage() {
     const resetExcursions = async () => {
       setExcursionsLoading(true)
       for (const vesselID of trackedVesselIDs) {
-        const vesselExcursions = await getVesselExcursions(
+        const vesselExcursionsSummary = await getVesselExcursionsExtracts(
           vesselID,
           startDate,
           endDate
         )
-        for (const excursion of vesselExcursions.data) {
-          const segments = await getVesselSegments(vesselID, excursion.id)
+
+
+        const vesselExcursions = vesselExcursionsSummary.data.excursions
+        for (const excursion of vesselExcursions) {
+          const segments = await getVesselSegments(
+            vesselID,
+            excursion.excursion_id
+          )
           excursion.segments = segments.data
 
           const timeByMPAZone = await getVesselTimeByZone({
             vesselId: vesselID,
             category: ZoneCategory.AMP,
-            startAt: excursion.departure_at
-              ? new Date(excursion.departure_at)
-              : undefined,
-            endAt: excursion.arrival_at
-              ? new Date(excursion.arrival_at)
-              : undefined,
+            startAt: startDate ? startDate > new Date(excursion.departure_at) ? new Date(startDate) : new Date(excursion.departure_at) : undefined,
+            endAt: endDate ? endDate < new Date(excursion.arrival_at!) ? new Date(endDate) : new Date(excursion.arrival_at!) : undefined,
           })
           excursion.timeByMPAZone = timeByMPAZone
+          console.log("timeByMPAZone", timeByMPAZone)
         }
-        setVesselExcursions(vesselID, vesselExcursions.data)
+        setVesselExcursions(vesselID, vesselExcursions)
       }
-      setExcursionsLoading(false)
-    }
-    if (mapMode === "track") {
-      resetExcursions()
-    }
+        setExcursionsLoading(false)
+      }
+    
+      if (mapMode === "track") {
+        resetExcursions()
+      }
+  
   }, [startDate, endDate, mapMode, trackedVesselIDs])
 
   return (

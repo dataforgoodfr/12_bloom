@@ -15,7 +15,7 @@ export type ZoneVisitTimeDto = {
 }
 
 export interface ZoneDetails {
-  id: number
+  id: string
   created_at: string
   updated_at: string
   category: string
@@ -29,14 +29,13 @@ export interface ZoneDetails {
 
 export interface ZoneMetrics {
   zone: ZoneDetails
-  visiting_duration: string
-  vessel_visiting_time_by_zone: string
+  total_visit_duration: string
 }
 
 export type ZoneVesselMetrics = {
   zone: ZoneDetails
   vessel: VesselDetails
-  zone_visiting_time_by_vessel: string
+  vessel_visiting_time_by_zone: string
 }
 
 export type VesselZoneMetrics = {
