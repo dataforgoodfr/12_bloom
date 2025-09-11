@@ -21,7 +21,7 @@ requires-python = "~=3.10"
 dependencies = [
     "alembic~=1.13",
     "autopep8~=2.3",
-    "dependency-injector~=4.42",
+    "dependency-injector==4.46.0",
     "dependency-injection~=1.2",
     "GeoAlchemy2~=0.15",
     "geopandas~=0.14",
@@ -46,6 +46,13 @@ dependencies = [
     "fastapi[standard]>=0.115.0,<1.0.0",
     "uvicorn~=0.32",
     "redis~=5.0",
+    "timedelta-isoformat>=0.7.0",
+    "daff==1.4.2",
+    "dbt-adapters==1.16.3",
+    "dbt-common==1.27.1",
+    "dbt-core==1.10.5",
+    "dbt-extractor==0.6.0",
+    "dbt-postgres==1.9.0",
 ]
 name = "bloom"
 version = "0.1.0"
