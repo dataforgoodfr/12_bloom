@@ -56,16 +56,15 @@ select
     sum(itm_segments_day.segment_duration) as total_time_at_sea,
 
     -- Additionner les temps passés dans les zones AMP en excluant les segments DEFAULT_AIS
-    sum(case when itm_segments_day.segment_type = 'DEFAULT_AIS' then NULL else itm_segments_day.time_in_amp_zone end) as total_time_in_amp, 
+    sum(case when itm_segments_day.segment_type = 'DEFAULT_AIS' then INTERVAL '0 SECONDS' else itm_segments_day.time_in_amp_zone end) as total_time_in_amp, 
     -- Additionner les temps passés en défaut d'AIS
     sum(case when itm_segments_day.segment_type = 'DEFAULT_AIS' then itm_segments_day.segment_duration end) as total_time_default_ais, 
-    
     sum(itm_segments_day.time_in_territorial_waters) as total_time_in_territorial_waters,
     sum(itm_segments_day.time_in_zone_with_no_fishing_rights) as total_time_in_zones_with_no_fishing_rights,
-    NULL as total_time_fishing,
-    NULL as total_time_fishing_in_amp,
-    NULL as total_time_fishing_in_territorial_waters,
-    NULL as total_time_fishing_in_zones_with_no_fishing_rights,
+    sum(case when itm_segments_day.segment_type = 'FISHING' then itm_segments_day.segment_duration else INTERVAL '0 SECONDS' end) as total_time_fishing, 
+    sum(case when itm_segments_day.segment_type = 'FISHING' then itm_segments_day.time_in_amp_zone else INTERVAL '0 SECONDS' end) as total_time_fishing_in_amp, 
+    sum(case when itm_segments_day.segment_type = 'FISHING' then itm_segments_day.time_in_territorial_waters else INTERVAL '0 SECONDS' end) as total_time_fishing_in_territorial_waters,
+    sum(case when itm_segments_day.segment_type = 'FISHING' then itm_segments_day.time_in_zone_with_no_fishing_rights else INTERVAL '0 SECONDS' end) as total_time_fishing_in_zones_with_no_fishing_rights,
     max(itm_excursions.excursion_created_at) as excursion_created_at,
     now() as created_at
 from {{ ref('itm_vessel_segments_by_date') }} as itm_segments_day

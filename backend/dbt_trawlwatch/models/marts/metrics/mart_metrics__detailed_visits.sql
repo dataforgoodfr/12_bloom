@@ -46,11 +46,12 @@ with
 
 zones_data as (
     select 
-        daysegments_date as day_date,
+        segment_ends_at_day as day_date,
         vessel_id,
         unnest(zones_crossed) as zone_id,
         segment_duration
-    from {{ ref('itm_vessel_segments_by_date') }}
+    from {{ ref('itm_vessel_segments') }}
+    where zones_crossed is not null
 )
 
 select 

@@ -439,7 +439,7 @@ models:
             - not_null
 
     # METRICS VESSELS IN MPAS MARTS
-    - name: mart_metrics__vessels_in_mpas
+    - name: mart_metrics__vessels_count_in_mpas
       description: "Mart table for number of vessels in MPAs, used for API routes."
       columns:
         - name: day_date
@@ -453,6 +453,36 @@ models:
             - not_null
         - name: count_vessels_in_mpas
           description: "Number of vessels in MPAs on that day."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the record."
+          tests:
+            - not_null
+
+    # METRICS VESSELS IN MPAS AND MPA ZONES MARTS
+    - name: mart_metrics__mpas_activity
+      description: "Mart table for vessels in MPAs and MPA zones, used for API routes."
+      columns:
+        - name: day_date
+          description: "Day of the count."
+          tests:
+            - not_null
+            - unique
+        - name: vessel_ids
+          description: "List of vessel IDs that were at sea on that day."
+          tests:
+            - not_null
+        - name: zones_ids
+          description: "List of MPA zone IDs that were crossed by vessels on that day."
+          tests:
+            - not_null
+        - name: count_vessels
+          description: "Number of vessels in MPAs on that day."
+          tests:
+            - not_null
+        - name: count_zones
+          description: "Number of MPA zones crossed by vessels on that day."
           tests:
             - not_null
         - name: created_at
@@ -492,6 +522,55 @@ models:
             - not_null
         - name: visiting_duration
           description: "Total duration spent in the zone."
+          tests:
+            - not_null
+
+    # METRICS VESSELS IN ZONES CATEGORIES MARTS
+    - name: mart_metrics__zones_category_visited
+      description: "Mart table for zones categories visited by vessels, used for API routes."
+      columns:
+        - name: day_date
+          description: "Day of the visit."
+          tests:
+            - not_null
+        - name: vessel_id
+          description: "Unique identifier of the vessel."
+          tests:
+            - not_null
+        - name: mmsi
+          description: "MMSI of the vessel."
+          tests:
+            - not_null
+        - name: ship_name
+          description: "Name of the vessel."
+          tests:
+            - not_null
+        - name: length
+          description: "Length overall of the vessel (in meters)."
+          tests:
+            - not_null
+        - name: country_iso3
+          description: "ISO3 code of the country where the vessel is registered."
+        - name: type
+          description: "Fishing vessel type (FAO gear subcategory or category)."
+        - name: imo
+          description: "IMO number of the vessel, used as a unique identifier."
+        - name: ircs
+          description: "Call sign of the vessel, used for identification."
+        - name: time_in_amp_zone
+          description: "Total time spent in 'amp' zones."
+          tests:
+            - not_null
+        - name: time_in_territorial_waters
+          description: "Total time spent in 'Territorial waters'."
+          tests:
+            - not_null
+        - name: time_in_zone_with_no_fishing_rights
+          description: "Total time spent in 'No fishing rights' zones."
+          tests:
+            - not_null
+        - name: created_at
+          description: "Creation timestamp of the record."
           tests:
             - not_null
 
