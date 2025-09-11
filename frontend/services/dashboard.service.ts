@@ -4,6 +4,7 @@ import {
   getTopZonesVisited,
   getVesselsAtSea,
   getVesselsTrackedCount,
+  getVisitedMPAsNumber,
 } from "@/services/backend-rest-client"
 import { swrOptions } from "@/services/swr"
 import useSWR from "swr"
@@ -100,13 +101,11 @@ export const useDashboardData = (
       `totalAmpsVisited-${startAt}`,
       async () => {
         try {
-          const response = await getTopZonesVisited(
+          const response = await getVisitedMPAsNumber(
             startAt,
             endAt,
-            100000,
-            "amp"
           )
-          return response?.data?.length
+          return response?.data
         } catch (error) {
           console.log(
             "An error occurred while fetching total amps visited: " + error

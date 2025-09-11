@@ -14,7 +14,7 @@ export default function VesselDetailsPage({
 }: {
   params: { id: string }
 }) {
-  const [selectedDays, setSelectedDays] = useState(7)
+  const [selectedDays, setSelectedDays] = useState(30)
 
   const { startAt, endAt } = useMemo(() => {
     return getDateRange(selectedDays)
@@ -64,7 +64,7 @@ export default function VesselDetailsPage({
         onDateRangeChange={(value) => {
           setSelectedDays(Number(value))
         }}
-        defaultDateRange={"7"}
+        defaultDateRange={"30"}
         isLoading={isLoading}
       >
         <Image

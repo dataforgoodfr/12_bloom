@@ -19,7 +19,7 @@ export type Vessel = {
 
 export type VesselMetrics = {
   vessel: VesselDetails
-  total_time_at_sea: string
+  total_time_in_category: string
 }
 
 export type VesselDetails = {
@@ -55,7 +55,7 @@ export interface VesselPosition {
 
 export interface SegmentVesselPosition {
   type: "segmentPosition"
-  vessel_id: number
+  vessel_id: string
   timestamp: string
   position: number[]
   heading?: number
@@ -68,11 +68,11 @@ export interface VesselPositionCoordinates {
 }
 
 export type VesselExcursionSegmentGeo = {
-  vessel_id: number
-  excursion_id: number
+  vessel_id: string
+  excursion_id: string
   speed: number
   navigational_status: string
-  type: VesselExcursionSegment["type"]
+  type: VesselExcursionSegment["segment_type"]
 }
 
 export type VesselExcursionSegmentsGeo = {
@@ -91,17 +91,17 @@ export type VesselExcursionTimeByZone = {
 }
 
 export type VesselExcursion = {
-  id: number
-  vessel_id: number
+  excursion_id: string
+  vessel_id: string
   departure_port_id: number
   departure_at: string
-  departure_position: {
+  departure_position?: {
     type: "Point"
     coordinates: number[]
   }
   arrival_port_id: number | null
   arrival_at: string | null
-  arrival_position: {
+  arrival_position?: {
     type: "Point"
     coordinates: number[]
   } | null
@@ -125,6 +125,23 @@ export type VesselExcursion = {
   timeByMPAZone?: VesselExcursionTimeByZone[]
 }
 
+export type VesselExcursionSummary = {
+  vessel_id: string
+  total_time_at_sea: string
+  total_time_in_amp: string
+  total_time_in_territorial_waters: string
+  total_time_in_zones_with_no_fishing_rights: string
+  total_time_fishing: string
+  total_time_fishing_in_amp: string
+  total_time_fishing_in_territorial_waters: string
+  total_time_fishing_in_zones_with_no_fishing_rights: string
+  total_time_default_ais: string
+
+  excursions : VesselExcursion[]
+
+  count: number
+}
+
 export interface ExcursionMetrics {
   totalTimeAtSea: number
   mpa: number
@@ -134,29 +151,27 @@ export interface ExcursionMetrics {
 }
 
 export type VesselExcursionSegment = {
-  id: number
-  vessel_id: number
-  excursion_id: number
+  vessel_id: string
+  excursion_id: string
   timestamp_start: string
   timestamp_end: string
   segment_duration: string
   start_position: Position
   end_position: Position
-  course: number
-  distance: number
+  course_at_start: number
+  course_at_end: number
   average_speed: number
   speed_at_start: number
   speed_at_end: number
   heading_at_start: number
   heading_at_end: number
-  type: "AT_SEA" | "FISHING" | "DEFAULT_AIS"
+  segment_type: "AT_SEA" | "FISHING" | "DEFAULT_AIS"
   in_amp_zone: boolean
   in_territorial_waters: boolean
-  in_costal_waters: boolean
-  last_vessel_segment: boolean
+  in_zones_with_no_fishing_rights: boolean
   created_at: string
-  updated_at: string
 }
+
 
 export type Position = {
   type: string

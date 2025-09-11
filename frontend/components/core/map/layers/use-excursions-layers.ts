@@ -78,12 +78,13 @@ export const useExcursionsLayers = () => {
   }, [trackedVessels, vesselsIDsHidden])
 
   const trackedAndShownExcursions = useMemo(() => {
+    console.log(excursionsIDsHidden)
     const trackedAndShownExcursions: VesselExcursion[] = []
     trackedAndShownVessels.forEach((vessel) => {
       const vesselExcursions = excursions[vessel.id] || []
       trackedAndShownExcursions.push(
         ...vesselExcursions.filter(
-          (excursion) => !excursionsIDsHidden.includes(excursion.id)
+          (excursion) => !excursionsIDsHidden.includes(excursion.excursion_id)
         )
       )
     })
@@ -142,7 +143,7 @@ export const useExcursionsLayers = () => {
   }
 
   function toSegmentsGeo(
-    vesselId: number,
+    vesselId: string,
     segments: VesselExcursionSegment[] | undefined
   ): VesselExcursionSegmentsGeo {
     if (!segments) return { type: "FeatureCollection", features: [] }
@@ -161,17 +162,17 @@ export const useExcursionsLayers = () => {
           excursion_id: segment.excursion_id,
           speed: segment.average_speed,
           navigational_status: "unknown",
-          type: segment.type,
+          type: segment.segment_type,
         },
       } as Feature<Geometry, VesselExcursionSegmentGeo>
     })
     return { type: "FeatureCollection", features: segmentsGeo ?? [] }
   }
 
-  const focusOnExcursion = (excursionID: number) => {
+  const focusOnExcursion = (excursionID: string) => {
     const focusedExcursion = Object.values(excursions)
       .flat()
-      .find((excursion) => excursion.id === excursionID)
+      .find((excursion) => excursion.excursion_id === excursionID)
 
     if (focusedExcursion) {
       // Get all coordinates from excursion segments

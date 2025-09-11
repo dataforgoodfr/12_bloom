@@ -7,6 +7,7 @@ import {
   VesselDetails,
   VesselExcursion,
   VesselExcursionSegment,
+  VesselExcursionSummary,
   VesselExcursionTimeByZone,
   VesselMetrics,
   VesselPositions,
@@ -41,7 +42,7 @@ export function getVesselsAtSea(startAt: string, endAt: string) {
 }
 
 export function getVesselsTrackedCount() {
-  const url = `${BASE_URL}/vessels/trackedCount`
+  const url = `${BASE_URL}/vessels/tracked-count`
   console.log(`GET ${url}`)
   return axios.get<number>(url)
 }
@@ -93,7 +94,24 @@ export function getVesselExcursions(
   return axios.get<VesselExcursion[]>(url)
 }
 
-export function getVesselSegments(vesselId: number, excursionId: number) {
+export function getVesselExcursionsExtracts(
+  vesselId: string,
+  startDate?: Date,
+  endDate?: Date
+) {
+  let queryParams: string[] = []
+  if (startDate) {
+    queryParams.push(`start_at=${startDate.toISOString()}`)
+  }
+  if (endDate) {
+    queryParams.push(`end_at=${endDate.toISOString()}`)
+  }
+  const url = `${BASE_URL}/vessels/${vesselId}/excursions${queryParams.length > 0 ? `?${queryParams.join("&")}` : ""}`
+  console.log(`GET ${url}`)
+  return axios.get<VesselExcursionSummary>(url)
+}
+
+export function getVesselSegments(vesselId: string, excursionId: string) {
   const url = `${BASE_URL}/vessels/${vesselId}/excursions/${excursionId}/segments`
   console.log(`GET ${url}`)
   return axios.get<VesselExcursionSegment[]>(url)
@@ -119,7 +137,7 @@ export function getTopVesselsInActivity(
   endAt: string,
   topVesselsLimit: number
 ) {
-  const url = `${BASE_URL}/metrics/vessels-in-activity?start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC`
+  const url = `${BASE_URL}/metrics/vessels/activity?start_at=${startAt}&end_at=${endAt}&limit=${topVesselsLimit}&order=DESC&category=amp`
   console.log(`GET ${url}`)
   return axios.get<VesselMetrics[]>(url)
 }
@@ -130,12 +148,22 @@ export function getTopZonesVisited(
   topZonesLimit: number,
   category?: string
 ) {
-  const url = `${BASE_URL}/metrics/zone-visited?${
+  const url = `${BASE_URL}/metrics/zones/activity?${
     category ? `category=${category}&` : ""
   }start_at=${startAt}&end_at=${endAt}&limit=${topZonesLimit}&order=DESC`
   console.log(`GET ${url}`)
   return axios.get<ZoneMetrics[]>(url)
 }
+
+export function getVisitedMPAsNumber(
+  startAt: string,
+  endAt: string,
+) {
+  const url = `${BASE_URL}/metrics/mpas-visited?start_at=${startAt}&end_at=${endAt}`
+  console.log(`GET ${url}`)
+  return axios.get<number>(url)
+}
+
 
 export function getTimeByZone(
   startAt: string,
@@ -159,7 +187,6 @@ export async function getZoneDetails(
   const url = `${BASE_URL}/metrics/zones/${zoneId}/visiting-time-by-vessel?start_at=${startAt}&end_at=${endAt}&order=DESC&limit=10`
   console.log(`GET ${url}`)
   const response = await axios.get<ZoneVesselMetrics[]>(url)
-  console.log(response)
   return response
 }
 
@@ -212,7 +239,7 @@ export async function getVesselTimeByZone({
   startAt,
   endAt,
 }: {
-  vesselId: number
+  vesselId: string
   category?: string
   startAt?: Date
   endAt?: Date

@@ -11,7 +11,7 @@ export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
         id: `${vessel.id}`,
         title: vessel.ship_name,
         description: `IMO ${vessel.imo} / MMSI ${vessel.mmsi} / ${vessel.length} m`,
-        value: convertDurationToString(vesselMetrics.total_time_at_sea),
+        value: convertDurationToString(vesselMetrics.total_time_in_category),
         type: "vessel",
         countryIso3: vessel.country_iso3,
       }
@@ -23,12 +23,12 @@ export function convertVesselDtoToItem(metrics: VesselMetrics[]): Item[] {
 
 export function convertZoneDtoToItem(zoneMetrics: ZoneMetrics[]): Item[] {
   return zoneMetrics?.map((zoneMetrics) => {
-    const { zone, visiting_duration } = zoneMetrics
+    const { zone, total_visit_duration } = zoneMetrics
     return {
       id: `${zone.id}`,
       title: zone.name,
       description: zone.sub_category,
-      value: convertDurationToString(visiting_duration),
+      value: convertDurationToString(total_visit_duration),
       type: "amp",
     }
   })

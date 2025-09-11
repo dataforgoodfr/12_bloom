@@ -178,8 +178,6 @@ export const useZonesLayer = ({
     [fishingZones, isFishingDisplayed]
   )
 
-  console.log("zonesLoading", zonesLoading)
-
   if (zonesLoading) return []
 
   return [

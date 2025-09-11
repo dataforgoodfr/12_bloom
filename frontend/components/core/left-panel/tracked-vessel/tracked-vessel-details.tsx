@@ -49,7 +49,7 @@ export default function TrackedVesselDetails({
     }
     for (const excursion of excursions) {
       metrics.totalTimeAtSea += convertDurationInSeconds(
-        excursion.excursion_duration
+        excursion.total_time_at_sea
       )
       metrics.mpa += convertDurationInSeconds(excursion.total_time_in_amp)
       metrics.frenchTerritorialWaters += convertDurationInSeconds(
