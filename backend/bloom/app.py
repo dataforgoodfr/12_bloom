@@ -9,6 +9,8 @@ from bloom.routers.v1.zones import router as router_zones_v1
 
 from bloom.routers.v2.vessels import router as router_vessels_v2
 from bloom.routers.v2.zones import router as router_zones_v2
+from bloom.routers.v2.ports import router as router_ports_v2
+from bloom.routers.v2.metrics import router as router_metrics_v2
 
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -49,12 +51,14 @@ async def root_api_v2(request:Request):
     return {
             "vessels":  f"{request.url_for('list_vessels')}",
             "zones":    f"{request.url_for('list_zones')}",
+            "ports":    f"{request.url_for('list_ports')}",
+            "metrics":  f"{request.url_for('read_metrics_vessels_in_activity_total')}",
             }
 
 app.include_router(router_vessels_v2,prefix=API_PREFIX_V2,tags=["Vessels_V2"])
 app.include_router(router_zones_v2,prefix=API_PREFIX_V2,tags=["Zones_V2"])
-
-
+app.include_router(router_ports_v2,prefix=API_PREFIX_V2,tags=["Ports_V2"])
+app.include_router(router_metrics_v2, prefix=API_PREFIX_V2,tags=["Metrics_V2"])
 origins = [
         "http://localhost",
         "http://localhost:3000",
