@@ -1,8 +1,9 @@
 #! /bin/sh
 
 cd "$(dirname "$0")" || exit 1
-source backend/.venv/bin/activate    
-cd $APP_FOLDER/dbt_trawlwatch
+source /Users/marthevienne/12_bloom/backend/.venv/bin/activate
+[ ! -f /Users/marthevienne/12_bloom/backend/.env ] || export $(grep -v '^#' /Users/marthevienne/12_bloom/backend/.env | xargs)
+cd ./backend/dbt_trawlwatch
 
 sleep 60
 
