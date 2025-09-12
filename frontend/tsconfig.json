@@ -13,12 +13,11 @@
     // "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react",
+    "jsx": "preserve",
+    "jsxImportSource": "react",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "react": [ "./node_modules/@types/react" ]
-
+      "@/*": ["./*"]
     },
     "plugins": [
       {
