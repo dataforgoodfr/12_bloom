@@ -84,7 +84,7 @@ export default function MainMap({ zones, ports }: MainMapProps) {
     navigator.clipboard.writeText(text)
   }, [])
 
-  const isVesselTracked = (vesselId: number) => {
+  const isVesselTracked = (vesselId: string) => {
     return trackedVesselIDs.includes(vesselId)
   }
 
@@ -114,7 +114,7 @@ export default function MainMap({ zones, ports }: MainMapProps) {
     setHoverInfo(hoverInfo)
   }, [])
 
-  const onToggleTrackedVessel = (vesselId: number) => {
+  const onToggleTrackedVessel = (vesselId: string) => {
     if (trackedVesselIDs.includes(vesselId)) {
       removeTrackedVessel(vesselId)
     } else {

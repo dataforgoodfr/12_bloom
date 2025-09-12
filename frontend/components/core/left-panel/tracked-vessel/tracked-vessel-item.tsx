@@ -54,7 +54,7 @@ export default function TrackedVesselItem({
     if (!excursions[vessel.id]) return false
 
     return excursions[vessel.id].some(
-      (excursion) => focusedExcursionID === excursion.id
+      (excursion) => focusedExcursionID === excursion.excursion_id
     )
   }, [focusedExcursionID, excursions])
 

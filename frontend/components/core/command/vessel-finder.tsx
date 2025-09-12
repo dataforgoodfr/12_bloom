@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client";
 import { FlyToInterpolator } from "deck.gl";
 import { useShallow } from "zustand/react/shallow";
 import { VesselPosition } from "@/types/vessel";
