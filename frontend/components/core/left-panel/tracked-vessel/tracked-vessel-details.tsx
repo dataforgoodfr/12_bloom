@@ -116,7 +116,7 @@ export default function TrackedVesselDetails({
       />
       {vesselExcursions.map((excursion, index) => (
         <TrackedVesselExcursion
-          key={excursion.id}
+          key={excursion.excursion_id}
           index={index + 1}
           excursion={excursion}
         />

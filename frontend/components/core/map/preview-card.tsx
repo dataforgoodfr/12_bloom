@@ -1,6 +1,4 @@
 import Image from "next/image"
-import Link from "next/link"
-import { getVesselFirstExcursionSegments } from "@/services/backend-rest-client"
 import { XIcon } from "lucide-react"
 import { useShallow } from "zustand/react/shallow"
 
@@ -34,11 +32,11 @@ const PreviewCard: React.FC<PreviewCardTypes> = ({ vesselInfo }) => {
     vessel: { id: vesselId, mmsi, ship_name, imo, length },
     timestamp,
   } = vesselInfo
-  const isVesselTracked = (vesselId: number) => {
+  const isVesselTracked = (vesselId: string) => {
     return trackedVesselIDs.includes(vesselId)
   }
 
-  const handleDisplayTrackedVessel = async (vesselId: number) => {
+  const handleDisplayTrackedVessel = async (vesselId: string) => {
     if (isVesselTracked(vesselId)) {
       removeTrackedVessel(vesselId)
     } else {
