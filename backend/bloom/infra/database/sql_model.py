@@ -261,7 +261,7 @@ class MetricsVesselInActivity(Base):
     __table__ = vessel_in_activity_request
     #vessel_id: Mapped[Optional[int]]
     #total_time_at_sea: Mapped[Optional[timedelta]]
-    
+
 
 class Metrics(Base):
     __tablename__ = "fct_metrics"
@@ -281,3 +281,14 @@ class Metrics(Base):
     zone_enable = Column("enable",Boolean(), server_default="True")
 
 
+class PositionUpdate(Base):
+    __tablename__= "position_updates"
+    id = Column("id", Integer, Identity(), primary_key=True)
+    vessel_id = Column(
+        "vessel_id", Integer, ForeignKey("dim_vessel.id")
+    )
+    point_in_time = Column("point_in_time", DateTime(timezone=True))
+    created_at = Column(
+        "created_at", DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())

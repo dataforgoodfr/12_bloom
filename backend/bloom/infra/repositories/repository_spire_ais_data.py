@@ -3,7 +3,7 @@ from bloom.domain.spire_ais_data import SpireAisData
 from bloom.infra.database import sql_model
 from dependency_injector.providers import Callable
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from datetime import datetime
 from bloom.logger import logger
 
@@ -81,6 +81,72 @@ class SpireAisDataRepository:
             "created_at"
         ],
                             )
+
+    def get_all_data_after_position_updates_per_vessel_id(
+        self, session: Session
+    ) -> pd.DataFrame:
+        stmt = (
+            select(
+                sql_model.SpireAisData.id,
+                sql_model.SpireAisData.spire_update_statement,
+                sql_model.SpireAisData.vessel_mmsi,
+                sql_model.Vessel.id,
+                sql_model.SpireAisData.position_accuracy,
+                sql_model.SpireAisData.position_collection_type,
+                sql_model.SpireAisData.position_course,
+                sql_model.SpireAisData.position_heading,
+                sql_model.SpireAisData.position_latitude,
+                sql_model.SpireAisData.position_longitude,
+                sql_model.SpireAisData.position_maneuver,
+                sql_model.SpireAisData.position_navigational_status,
+                sql_model.SpireAisData.position_rot,
+                sql_model.SpireAisData.position_speed,
+                sql_model.SpireAisData.position_timestamp,
+                sql_model.SpireAisData.position_update_timestamp,
+                sql_model.SpireAisData.created_at,
+            )
+            .join(
+                sql_model.Vessel,
+                sql_model.Vessel.mmsi == sql_model.SpireAisData.vessel_mmsi,
+            )
+            .join(
+                sql_model.PositionUpdate,
+                sql_model.PositionUpdate.vessel_id == sql_model.Vessel.id,
+            )
+            .where(
+                and_(
+                    sql_model.Vessel.tracking_activated == True,
+                    or_(
+                        sql_model.SpireAisData.position_update_timestamp
+                        > sql_model.PositionUpdate.point_in_time,
+                        sql_model.PositionUpdate.point_in_time.is_(None),
+                    ),
+                )
+            )
+        )
+        result = session.execute(stmt)
+        return pd.DataFrame(
+            result,
+            columns=[
+                "id",
+                "spire_update_statement",
+                "vessel_mmsi",
+                "vessel_id",
+                "position_accuracy",
+                "position_collection_type",
+                "position_course",
+                "position_heading",
+                "position_latitude",
+                "position_longitude",
+                "position_maneuver",
+                "position_navigational_status",
+                "position_rot",
+                "position_speed",
+                "position_timestamp",
+                "position_update_timestamp",
+                "created_at",
+            ],
+        )
 
     def get_all_data_between_date(
             self, session: Session, created_updated_after: datetime, created_updated_before: datetime

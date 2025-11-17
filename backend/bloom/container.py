@@ -1,3 +1,4 @@
+from bloom.infra.repositories.repository_position_updates import PositionUpdateRepository
 from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.repositories.repository_alert import RepositoryAlert
@@ -94,5 +95,10 @@ class UseCases(containers.DeclarativeContainer):
 
     metrics_repository = providers.Factory(
         MetricsRepository,
+        session_factory=db.provided.session,
+    )
+
+    position_update_repository = providers.Factory(
+        PositionUpdateRepository,
         session_factory=db.provided.session,
     )
