@@ -158,8 +158,18 @@ export default function MapPage() {
           const timeByMPAZone = await getVesselTimeByZone({
             vesselId: vesselID,
             category: ZoneCategory.AMP,
-            startAt: startDate ? startDate > new Date(excursion.departure_at) ? new Date(startDate) : new Date(excursion.departure_at) : undefined,
-            endAt: endDate ? endDate < new Date(excursion.arrival_at!) ? new Date(endDate) : new Date(excursion.arrival_at!) : undefined,
+            startAt: startDate
+              ? startDate > new Date(excursion.departure_at)
+                ? new Date(startDate)
+                : new Date(excursion.departure_at)
+              : undefined,
+            endAt: endDate
+              ? excursion.arrival_at != undefined
+                ? endDate < new Date(excursion.arrival_at!)
+                  ? new Date(endDate!)
+                  : new Date(excursion.arrival_at!)
+                : new Date(endDate!)
+              : undefined,
           })
           excursion.timeByMPAZone = timeByMPAZone
           console.log("timeByMPAZone", timeByMPAZone)
