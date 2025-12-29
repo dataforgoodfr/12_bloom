@@ -10,6 +10,7 @@ from bloom.infra.repositories.repository_vessel_position import VesselPositionRe
 from bloom.infra.repositories.repository_segment import SegmentRepository
 from bloom.infra.repositories.repository_zone import ZoneRepository
 from bloom.infra.repositories.repository_metrics import MetricsRepository
+from bloom.infra.repositories.repository_vessel_mapping import VesselMappingRepository
 
 from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.services.metrics import MetricsService
@@ -35,8 +36,11 @@ class UseCases(containers.DeclarativeContainer):
     )
 
     vessel_repository = providers.Factory(
-        VesselRepository,
-        session_factory=db.provided.session,
+        VesselRepository
+    )
+
+    vessel_mapping_repository = providers.Factory(
+        VesselMappingRepository
     )
 
     alert_repository = providers.Factory(

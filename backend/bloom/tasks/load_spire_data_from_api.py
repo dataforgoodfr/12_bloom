@@ -17,7 +17,6 @@ def run(dump_path: str) -> None:
     use_cases = UseCases()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
     spire_traffic_usecase = use_cases.get_spire_data_usecase()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
 
     orm_data = []
@@ -26,6 +25,7 @@ def run(dump_path: str) -> None:
         current_datetime=None
         position_count= None
         with db.session() as session:
+            vessel_repository = use_cases.vessel_repository(session=session)
             currentTaskTime=TaskExecutionRepository.get_point_in_time(session,"load_spire_data_from_api")
             if(currentTaskTime <= datetime.now(timezone.utc) - settings.api_pooling_period):
                 vessels: list[Vessel] = vessel_repository.get_vessels_list(session)

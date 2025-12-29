@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from datetime import timedelta
+from datetime import datetime,timedelta, timezone
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Any
 
@@ -58,6 +58,25 @@ class Settings(BaseSettings):
                                 pattern=r'NOTSET|DEBUG|INFO|WARNING|ERROR|CRITICAL'
                             )
     api_key:str = Field(min_length=4,default='bloom')
+
+    scd_past_limit: datetime = Field(default=datetime(year=1900,
+                                                      month=1,
+                                                      day=1,
+                                                      hour=0,
+                                                      minute=0,
+                                                      second=0,
+                                                      microsecond=0,
+                                                      tzinfo=timezone.utc))
+    # scd_future_limit doit être < 2262
+    # Cf: https://numpy.org/doc/stable/reference/arrays.datetime.html#datetime-units
+    scd_future_limit: datetime = Field(default=datetime(year=2199,
+                                                        month=12,
+                                                        day=31,
+                                                        hour=23,
+                                                        minute=59,
+                                                        second=59,
+                                                        microsecond=999999,
+                                                        tzinfo=timezone.utc))
 
     @model_validator(mode='after')
     def update_db_url(self)->dict:
