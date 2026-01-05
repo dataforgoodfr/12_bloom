@@ -111,8 +111,17 @@ export function getVesselExcursionsExtracts(
   return axios.get<VesselExcursionSummary>(url)
 }
 
-export function getVesselSegments(vesselId: string, excursionId: string) {
-  const url = `${BASE_URL}/vessels/${vesselId}/excursions/${excursionId}/segments`
+export function getVesselSegments(vesselId: string, excursionId: string, startDate?: Date,
+  endDate?: Date) {
+  let queryParams: string[] = []
+  if (startDate) {
+    queryParams.push(`start_at=${startDate.toISOString()}`)
+  }
+  if (endDate) {
+    // queryParams.push(`end_at=${endDate.toISOString()}`)
+    queryParams.push(`end_at=${endDate.toISOString()}`)
+  }
+  const url = `${BASE_URL}/vessels/${vesselId}/excursions/${excursionId}/segments${queryParams.length > 0 ? `?${queryParams.join("&")}` : ""}`
   console.log(`GET ${url}`)
   return axios.get<VesselExcursionSegment[]>(url)
 }
