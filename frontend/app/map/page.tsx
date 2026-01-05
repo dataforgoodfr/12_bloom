@@ -61,7 +61,8 @@ export default function MapPage() {
     fetcher,
     {
       revalidateOnFocus: false,
-      revalidateOnReconnect: false,
+      revalidateOnReconnect: true,
+      revalidateOnMount: true,
       keepPreviousData: true,
     }
   )
@@ -151,10 +152,13 @@ export default function MapPage() {
         for (const excursion of vesselExcursions) {
           const segments = await getVesselSegments(
             vesselID,
-            excursion.excursion_id
+            excursion.excursion_id,
+            startDate,
+            endDate
           )
           excursion.segments = segments.data
 
+          console.log(excursion.arrival_at == undefined)
           const timeByMPAZone = await getVesselTimeByZone({
             vesselId: vesselID,
             category: ZoneCategory.AMP,
