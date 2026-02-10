@@ -14,7 +14,7 @@ class GetVesselsFromSpire:
         spire_token = settings.spire_token
 
         self.transport = RequestsHTTPTransport(
-            url="https://api.spire.com/graphql",
+            url="https://api.sml.kpler.com/graphql",
             headers={"Authorization": "Bearer " + spire_token},
             verify=True,
             retries=3,
