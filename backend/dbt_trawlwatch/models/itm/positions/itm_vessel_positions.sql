@@ -83,7 +83,7 @@ raw_vessel_positions_load as ( -- Données remontées par le microbatch sur stg_
         from {{ ref('stg_vessel_positions') }} 
         where TRUE
             and vessel_id not like 'UNKNOWN_MMSI=%'
-        {{ MMSI_filter }}
+            {{ MMSI_filter }}
     
 ),
 
@@ -137,8 +137,7 @@ raw_vessel_positions as ( -- Données remontées par le microbatch sur stg_vesse
             position_point,
             cast(NULL as boolean) as rn
         from raw_vessel_positions_load
-        
-        {{ MMSI_filter }}
+        where TRUE {{ MMSI_filter }}
         
         union all          -- on ajoute la « dernière » ligne de chaque navire
         select * from previous_positions
