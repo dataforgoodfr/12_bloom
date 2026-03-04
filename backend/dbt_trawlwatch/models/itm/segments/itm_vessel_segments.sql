@@ -118,8 +118,7 @@ vessel_positions as (
     -- On conserve uniquement les positions correspondant à des excursions
     inner join ( select * from {{ ref('itm_vessel_excursions') }} ) as exc
         on pos.vessel_id = exc.vessel_id
-        and pos.position_timestamp between exc.excursion_start_position_timestamp and exc.excursion_end_position_timestamp
-
+        and utils.safe_between(pos.position_timestamp, exc.excursion_start_position_timestamp, exc.excursion_end_position_timestamp)
     {{ MMSI_filter }}
 ),
 
