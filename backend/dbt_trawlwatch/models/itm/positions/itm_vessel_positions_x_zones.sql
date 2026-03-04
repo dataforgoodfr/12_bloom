@@ -64,9 +64,9 @@ positions_with_zones_candidates as ( -- Jointure des positions des navires avec 
   from positions as pos
 	inner join zec_list as zec
 		on pos.vessel_id = zec.vessel_id
-    and pos.position_timestamp between zec.excursion_start_position_timestamp and zec.excursion_end_position_timestamp
+    and utils.safe_between(pos.position_timestamp, zec.excursion_start_position_timestamp, zec.excursion_end_position_timestamp)
     and pos.position_id = any(zec.excursion_position_ids)
-) ,
+),
 
 positions_x_zones as ( -- Positions des navires dans les zones maritimes (croisement spatial)
   select distinct
