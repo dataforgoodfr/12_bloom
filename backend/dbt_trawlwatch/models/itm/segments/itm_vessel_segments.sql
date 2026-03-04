@@ -337,8 +337,8 @@ segment_metrics as (
         round(coalesce(extract(epoch from position_timestamp - position_timestamp_prev), 0)::numeric,0)  as segment_duration_s,
         round(coalesce(extract(epoch from position_timestamp - position_timestamp_prev)/3600, 0)::numeric,4) as segment_duration_h,
 
-         round(st_distance(position_point, position_point_prev)::numeric,1) as segment_distance_m,
-         round((st_distance(position_point, position_point_prev)/1852)::numeric,1) as segment_distance_nm,
+        round(st_distance(position_point, position_point_prev)::numeric,1) as segment_distance_m,
+        round((st_distance(position_point, position_point_prev)/1852)::numeric,1) as segment_distance_nm,
 
         position_course as segment_course_at_end,
         position_course_prev as segment_course_at_start,
