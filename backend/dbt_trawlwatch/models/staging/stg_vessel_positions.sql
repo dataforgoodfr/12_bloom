@@ -119,9 +119,9 @@ join_spire_ais_and_vessels as ( -- On ne conserve que la dernière remontée AIS
         and ais.position_latitude is not NULL
         and ais.position_longitude is not NULL
         and ais.position_speed is not NULL
-        and ais.position_heading is not NULL
-        and ais.position_course is not NULL
-        and ais.position_rot is not NULL
+        -- and ais.position_heading is not NULL
+        -- and ais.position_course is not NULL
+        -- and ais.position_rot is not NULL
         and ais.position_timestamp is not NULL
 )
 
