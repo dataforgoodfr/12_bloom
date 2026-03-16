@@ -2,6 +2,7 @@ from bloom.config import settings
 from bloom.infra.database.database_manager import Base
 from geoalchemy2 import Geometry
 from sqlalchemy import (
+    ARRAY,
     Boolean,
     Column,
     DateTime,
@@ -20,9 +21,11 @@ from typing_extensions import Annotated, Literal, Optional
 from datetime import timedelta
 
 
+
 class Vessel(Base):
     __tablename__ = "dim_vessel"
     id = Column("id", Integer, primary_key=True)
+    key = Column("key",String,nullable=False)
     mmsi = Column("mmsi", Integer)
     ship_name = Column("ship_name", String, nullable=False)
     width = Column("width", Double)
@@ -43,7 +46,38 @@ class Vessel(Base):
         "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
+    scd_start = Column("scd_start",DateTime(timezone=True))
+    scd_end = Column("scd_end",DateTime(timezone=True))
+    scd_active = Column("scd_active",Boolean)
 
+
+class VesselMapping(Base):
+    __tablename__ = "dim_vessel_mapping"
+    id = Column("id", Integer, primary_key=True)
+    imo = Column("imo", Integer)
+    mmsi = Column("mmsi", Integer)
+    name = Column("ship_name", String, nullable=False)
+    country = Column("country", String, nullable=False)
+    
+    same_imo=   Column("same_imo", ARRAY(Integer))
+    same_mmsi=  Column("same_mmsi", ARRAY(Integer))
+    same_name=  Column("same_name", ARRAY(Integer))
+    same_country=   Column("same_country", ARRAY(Integer))
+    
+    appearance_first= Column("appearance_first",DateTime(timezone=True))
+    appearance_last= Column("appearance_last",DateTime(timezone=True))
+    
+    mapping_auto= Column("mapping_auto", Integer, ForeignKey("dim_vessel.id"), nullable=True)
+    mapping_manual= Column("mapping_manual", Integer, ForeignKey("dim_vessel.id"), nullable=True)
+    vessel= Column("vessel", Integer, ForeignKey("dim_vessel.id"), nullable=True)
+
+    scd_start = Column("scd_start",DateTime(timezone=True))
+    scd_end = Column("scd_end",DateTime(timezone=True))
+    scd_active = Column("scd_active",Boolean)
+    created_at = Column(
+        "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
+    )
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 
 class Alert(Base):
     __tablename__ = "alert"
@@ -109,6 +143,7 @@ class SpireAisData(Base):
 class Zone(Base):
     __tablename__ = "dim_zone"
     id = Column("id", Integer, primary_key=True)
+    key = Column("key", String, nullable=False)
     category = Column("category", String, nullable=False)
     sub_category = Column("sub_category", String)
     name = Column("name", String, nullable=False)
@@ -117,6 +152,10 @@ class Zone(Base):
     json_data = Column("json_data", JSONB)
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
     enable = Column("enable",Boolean(), server_default="True")
+    scd_start = Column("scd_start",DateTime(timezone=True))
+    scd_end = Column("scd_end",DateTime(timezone=True))
+    scd_active = Column("scd_active",Boolean)
+    key = Column("key",String)
 
 
 class WhiteZone(Base):

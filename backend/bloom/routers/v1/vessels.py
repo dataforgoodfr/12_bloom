@@ -18,9 +18,9 @@ async def list_vessel_tracked(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         return vessel_repository.get_vessel_tracked_count(session)
 
 @router.get("/vessels/types")
@@ -28,9 +28,9 @@ async def list_vessel_types(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         return vessel_repository.get_vessel_types(session)
 
 
@@ -39,9 +39,9 @@ async def list_vessel_classes(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         return vessel_repository.get_vessel_length_classes(session)
 
 @router.get("/vessels/countries")
@@ -49,9 +49,9 @@ async def list_vessel_countries(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         return vessel_repository.get_vessel_countries(session)
 
 
@@ -62,9 +62,9 @@ async def list_vessels(request: Request, # used by @cache
                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         return jsonable_encoder(vessel_repository.get_vessels_list(session))
 
 @router.get("/vessels/{vessel_id}")
@@ -75,10 +75,10 @@ async def get_vessel(request: Request, # used by @cache
                      key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     json_data={}
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         data=vessel_repository.get_vessel_by_id(session,vessel_id)
         return json.loads(vessel_repository.map_to_domain(data).model_dump_json()) if data else {}
 
@@ -88,7 +88,6 @@ async def list_all_vessel_last_position(request: Request, # used by @cache
                                         nocache:bool=False, # used by @cache
                                         key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
-    use_cases = UseCases()
     use_cases = UseCases()
     segment_repository = use_cases.segment_repository()
     db = use_cases.db()
@@ -203,10 +202,10 @@ async def get_vessel_excursion_segment(request: Request, # used by @cache
                                        key: str = Depends(X_API_KEY_HEADER)):
     check_apikey(key)
     use_cases = UseCases()
-    vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     json_data={}
     with db.session() as session:
+        vessel_repository = use_cases.vessel_repository(session=session)
         result = vessel_repository.get_vessel_times_in_zones(session,
                                                             vessel_id=vessel_id,
                                                             datetime_range=datetime_range,

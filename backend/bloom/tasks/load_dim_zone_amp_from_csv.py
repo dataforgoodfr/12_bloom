@@ -3,11 +3,12 @@ from time import perf_counter
 
 import pandas as pd
 from shapely import wkb
-
+from datetime import datetime
 from bloom.config import settings
 from bloom.container import UseCases
 from bloom.domain.zone import Zone
 from bloom.logger import logger
+import numpy as np
 
 FIC_ZONE = ["french_metropolitan_mpas.csv","fishing_coastal_waters.csv", "territorial_seas.csv","clipped_territorial_seas.csv"]
 
@@ -25,12 +26,16 @@ def map_to_domain(row: pd.Series) -> Zone:
             pass
 
     return Zone(
+        key=f'{row["category"]}/{row["sub_category"] if not isna["sub_category"] else "" }/{row["name"]}' if 'key' not in row else row['key'],
         category=row["category"],
         sub_category=row["sub_category"] if not isna["sub_category"] else None,
         name=row["name"],
         geometry=row["geometry"],
         centroid=row["geometry"].centroid,
         json_data=json_data,
+        scd_start=datetime.fromisoformat(row["scd_start"]) if "scd_start" in row else settings.scd_past_limit,
+        scd_end=datetime.fromisoformat(row["scd_end"]) if "scd_end" in row else settings.scd_future_limit,
+        scd_active=row["scd_active"] if "scd_end" in row else True,
     )
 
 
@@ -47,9 +52,10 @@ def run():
             total = 0
             df = pd.read_csv(file_name, sep=",")
             df["geometry"] = df["geometry"].apply(wkb.loads)
-            zones = df.apply(map_to_domain, axis=1)
-            zones = zone_repository.batch_create_zone(session, list(zones))
-            total = len(zones)
+            if not df.empty:
+                zones = df.apply(map_to_domain, axis=1)
+                zones = zone_repository.batch_create_zone(session, list(zones))
+                total = len(zones)
             logger.info(f"{total} zone(s) créés")
         session.commit()
 

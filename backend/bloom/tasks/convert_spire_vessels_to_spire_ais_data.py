@@ -10,7 +10,6 @@ from shapely import Point
 from sqlalchemy.orm.session import Session
 
 use_cases = UseCases()
-vessel_repo = use_cases.vessel_repository()
 spire_ais_data_repo = use_cases.spire_ais_data_repository()
 db = use_cases.db()
 batch_size = 1000
@@ -54,7 +53,8 @@ def map_to_ais_spire_data(vessel_position: VesselPositionSpire) -> SpireAisData:
 
 def batch_convert(session: Session) -> Generator[list[SpireAisData], None, None]:
     batch = []
-    for vessel_position in vessel_repo.get_all_spire_vessels_position(session, batch_size):
+    vessel_repository = use_cases.vessel_repository(session=session)
+    for vessel_position in vessel_repository.get_all_spire_vessels_position(session, batch_size):
         batch.append(map_to_ais_spire_data(vessel_position))
         if len(batch) >= batch_size:
             yield batch

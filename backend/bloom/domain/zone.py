@@ -12,6 +12,7 @@ class Zone(BaseModel):
                 Geometry: lambda p: mapping(p),
             },)
     id: Union[int, None] = None
+    key: Union[str, None] = None
     category: str
     sub_category: Union[str, None] = None
     name: str
@@ -21,14 +22,21 @@ class Zone(BaseModel):
     centroid: Union[Point, None] = None
     json_data: Union[dict, None] = None
     enable: Union[bool, None] = None
+    scd_start: Union[datetime, None] = None
+    scd_end: Union[datetime, None] = None
+    scd_active: Union[bool, None] = None
 
 class ZoneSummary(BaseModel):
     id: Union[int, None] = None
+    key: Union[str, None] = None
     category: str
     sub_category: Union[str, None] = None
     name: str
     created_at: Union[datetime, None] = None
     enable: Union[bool, None] = None
+    scd_start: Union[datetime, None] = None
+    scd_end: Union[datetime, None] = None
+    scd_active: Union[bool, None] = None
 
     
 class ZoneListView(Zone):

@@ -27,6 +27,7 @@ def get_distance(current_position: tuple, last_position: tuple):
 def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
     return VesselPosition(
         vessel_id=row["vessel_id"],
+        vessel_key=row["vessel_id"],
         timestamp=row["position_timestamp"],
         accuracy=row["position_accuracy"],
         collection_type=row["position_collection_type"],
