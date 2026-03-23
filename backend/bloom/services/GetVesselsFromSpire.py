@@ -14,7 +14,7 @@ class GetVesselsFromSpire:
         spire_token = settings.spire_token
 
         self.transport = RequestsHTTPTransport(
-            url="https://api.spire.com/graphql",
+            url="https://api.sml.kpler.com/graphql",
             headers={"Authorization": "Bearer " + spire_token},
             verify=True,
             retries=3,
@@ -22,6 +22,7 @@ class GetVesselsFromSpire:
         )
 
     def create_client(self) -> Client:
+        print(self.transport.url)
         try:
             client = Client(transport=self.transport, fetch_schema_from_transport=True)
         except exceptions.ConnectTimeout:
