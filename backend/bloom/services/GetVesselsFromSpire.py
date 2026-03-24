@@ -22,7 +22,7 @@ class GetVesselsFromSpire:
         )
 
     def create_client(self) -> Client:
-        print(self.transport.url)
+        logger.info(f"Connecting to {self.transport.url}...")
         try:
             client = Client(transport=self.transport, fetch_schema_from_transport=True)
         except exceptions.ConnectTimeout:
