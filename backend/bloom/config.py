@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     redis_password: str = Field(default='bloom',min_length=1)
     redis_cache_expiration: int = Field(default=900)
     
-    api_pooling_period: timedelta = Field(default=timedelta(minutes=15))
+    api_pooling_period: timedelta = Field(default=timedelta(minutes=2))
 
     logging_level:str=Field(
                                 default="INFO",
