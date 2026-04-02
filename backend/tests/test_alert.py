@@ -1,4 +1,4 @@
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.alert import Alert
 from datetime import datetime, timezone
 
@@ -13,7 +13,7 @@ test_alert = Alert(
 
 
 def test_launch_alert():
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     alert_usecase = use_cases.generate_alert_usecase()
     status_code = alert_usecase.send_slack_alert(
         test_alert,

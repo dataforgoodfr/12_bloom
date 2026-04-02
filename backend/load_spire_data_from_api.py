@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from time import perf_counter
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.vessel import Vessel
 from bloom.infra.http.spire_api_utils import map_raw_vessels_to_domain
 from bloom.logger import logger
@@ -14,7 +14,7 @@ from bloom.config import settings
 
 
 def run(dump_path: str) -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
     spire_traffic_usecase = use_cases.get_spire_data_usecase()
     vessel_repository = use_cases.vessel_repository()
@@ -106,8 +106,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     time_start = perf_counter()
-    logger.info("DEBUT - Chargement des données JSON depuis l'API SPIRE")
+    logger.info("DEBUT - Chargement des données JSON depuis l'API Kpler")
     run(args.dump_path)
     time_end = perf_counter()
     duration = time_end - time_start
-    logger.info(f"FIN - Chargement des données depuis l'API SPIRE en {duration:.2f}s")
+    logger.info(f"FIN - Chargement des données depuis l'API Kpler en {duration:.2f}s")

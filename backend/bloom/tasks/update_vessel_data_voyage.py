@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from time import perf_counter
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.domain.spire_ais_data import SpireAisData
 from bloom.domain.vessel import Vessel
 from bloom.domain.vessel_data import VesselData
@@ -47,7 +47,7 @@ def map_ais_data_to_vessel_voyage(ais_data: SpireAisData, vessel: Vessel) -> Uni
 
 
 def run() -> None:
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     spire_ais_data_repository = use_cases.spire_ais_data_repository()
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()

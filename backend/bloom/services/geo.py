@@ -2,7 +2,7 @@ from typing import List
 import pandas as pd
 import geopandas as gpd
 
-from bloom.container import UseCases
+from bloom.container import UseCasesContainer
 from bloom.config import settings
 
 def find_positions_in_port_buffer(vessel_positions: List[tuple]) -> List[tuple]:
@@ -28,7 +28,7 @@ def find_positions_in_port_buffer(vessel_positions: List[tuple]) -> List[tuple]:
     )
 
     # Get all ports from DataBase
-    use_cases = UseCases()
+    use_cases = UseCasesContainer()
     port_repository = use_cases.port_repository()
     db = use_cases.db()
     with db.session() as session:
