@@ -5,7 +5,7 @@ from redis import Redis
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from bloom.config import settings
-from bloom.container import UseCasesContainer
+from bloom.container import UseCases
 from bloom.logger import logger
 from bloom.usecase.Ports import PortUseCase
 
@@ -18,7 +18,7 @@ redis_client = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 async def list_ports(
         nocache: bool = False,
         ports_usecase: PortUseCase = Depends(
-            Provide[UseCasesContainer.excursion_usecase]
+            Provide[UseCases.excursion_usecase]
         )
 ):
     endpoint = f"/ports"
@@ -38,7 +38,7 @@ async def list_ports(
 async def get_port(
         port_id: int,
         ports_usecase: PortUseCase = Depends(
-            Provide[UseCasesContainer.excursion_usecase]
+            Provide[UseCases.excursion_usecase]
         )
 ):
     return ports_usecase.get_port_by_id(port_id)

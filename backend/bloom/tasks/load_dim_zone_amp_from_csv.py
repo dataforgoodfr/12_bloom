@@ -5,7 +5,7 @@ import pandas as pd
 from shapely import wkb
 
 from bloom.config import settings
-from bloom.container import UseCasesContainer
+from bloom.container import UseCases
 from bloom.domain.zone import Zone
 from bloom.logger import logger
 
@@ -35,7 +35,7 @@ def map_to_domain(row: pd.Series) -> Zone:
 
 
 def run(csv_file_name: str):
-    use_cases = UseCasesContainer()
+    use_cases = UseCases()
     db = use_cases.db()
     zone_repository = use_cases.zone_repository()
 

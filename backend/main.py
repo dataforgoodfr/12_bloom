@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from starlette.requests import Request
 
-from bloom.container import UseCasesContainer
+from bloom.container import UseCases
 from bloom.routers import excursions, zones, vessels, ports
 from bloom.routers.vessels import rd
 
@@ -28,7 +28,7 @@ def schedule_crawling():
 
 
 def init_container():
-    container = UseCasesContainer()
+    container = UseCases()
     container.wire(
         modules=[
             zones,

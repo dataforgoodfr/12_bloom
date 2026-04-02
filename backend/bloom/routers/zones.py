@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from starlette.requests import Request
 
 from bloom.config import settings
-from bloom.container import UseCasesContainer
+from bloom.container import UseCases
 from bloom.logger import logger
 
 rd = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
@@ -25,7 +25,7 @@ async def list_zones(request: Request, nocache: bool = False):
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -48,7 +48,7 @@ async def list_zone_categories(request: Request, nocache: bool = False):
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -71,7 +71,7 @@ async def get_zone_all_by_category(category: str = "all", sub: str = None, nocac
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -96,7 +96,7 @@ async def get_zone_all_by_category(category: str = "all", nocache: bool = False)
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         zone_repository = use_cases.zone_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -111,7 +111,7 @@ async def get_zone_all_by_category(category: str = "all", nocache: bool = False)
 
 @router.get("/zones/{zones_id}")
 async def get_zone(zones_id: int):
-    use_cases = UseCasesContainer()
+    use_cases = UseCases()
     zone_repository = use_cases.zone_repository()
     db = use_cases.db()
     with db.session() as session:

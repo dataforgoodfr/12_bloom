@@ -19,7 +19,7 @@ from dependency_injector import containers, providers
 import redis
 
 
-class UseCasesContainer(containers.DeclarativeContainer):
+class UseCases(containers.DeclarativeContainer):
     config = providers.Configuration()
     db_url = settings.db_url
     db = providers.Singleton(

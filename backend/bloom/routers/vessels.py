@@ -4,7 +4,7 @@ from redis import Redis
 import json
 import time
 from bloom.config import settings
-from bloom.container import UseCasesContainer
+from bloom.container import UseCases
 from bloom.logger import logger
 
 rd = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
@@ -24,7 +24,7 @@ async def list_vessels(nocache: bool = False):
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         vessel_repository = use_cases.vessel_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -38,7 +38,7 @@ async def list_vessels(nocache: bool = False):
 
 @router.get("/vessels/{vessel_id}")
 async def get_vessel(vessel_id: int):
-    use_cases = UseCasesContainer()
+    use_cases = UseCases()
     vessel_repository = use_cases.vessel_repository()
     db = use_cases.db()
     with db.session() as session:
@@ -56,7 +56,7 @@ async def list_all_vessel_last_position(nocache: bool = False):
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         segment_repository = use_cases.segment_repository()
         db = use_cases.db()
         with db.session() as session:
@@ -79,7 +79,7 @@ async def get_vessel_last_position(vessel_id: int, nocache: bool = False):
         logger.debug(f"{endpoint} elapsed Time: {time.time() - start}")
         return payload
     else:
-        use_cases = UseCasesContainer()
+        use_cases = UseCases()
         segment_repository = use_cases.segment_repository()
         db = use_cases.db()
         with db.session() as session:
