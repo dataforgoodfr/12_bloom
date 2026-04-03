@@ -69,14 +69,6 @@ class UseCases(containers.DeclarativeContainer):
         session_factory=db.provided.session,
     )
 
-    get_spire_data_usecase = providers.Factory(GetVesselsFromSpire)
-
-    generate_alert_usecase = providers.Factory(
-        GenerateAlerts,
-        alert_repository=alert_repository,
-        raster_repository=raster_repository,
-    )
-
     spire_ais_data_repository = providers.Factory(
         SpireAisDataRepository,
         session_factory=db.provided.session,
@@ -95,4 +87,13 @@ class UseCases(containers.DeclarativeContainer):
     metrics_repository = providers.Factory(
         MetricsRepository,
         session_factory=db.provided.session,
+    )
+    get_spire_data_usecase = providers.Factory(
+        GetVesselsFromSpire
+    )
+
+    generate_alert_usecase = providers.Factory(
+        GenerateAlerts,
+        alert_repository=alert_repository,
+        raster_repository=raster_repository,
     )

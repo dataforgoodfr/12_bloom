@@ -34,7 +34,7 @@ def map_to_domain(row: pd.Series) -> Zone:
     )
 
 
-def run():
+def run(csv_file_name: str):
     use_cases = UseCases()
     db = use_cases.db()
     zone_repository = use_cases.zone_repository()
