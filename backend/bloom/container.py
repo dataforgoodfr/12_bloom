@@ -2,6 +2,7 @@ from bloom.config import settings
 from bloom.infra.database.database_manager import Database
 from bloom.infra.repositories.repository_alert import RepositoryAlert
 from bloom.infra.repositories.repository_excursion import ExcursionRepository
+from bloom.infra.repositories.repository_kpler_ais_data import KplerAisDataRepository
 from bloom.infra.repositories.repository_port import PortRepository
 from bloom.infra.repositories.repository_raster import RepositoryRaster
 from bloom.infra.repositories.repository_spire_ais_data import SpireAisDataRepository
@@ -71,6 +72,11 @@ class UseCases(containers.DeclarativeContainer):
 
     spire_ais_data_repository = providers.Factory(
         SpireAisDataRepository,
+        session_factory=db.provided.session,
+    )
+
+    kpler_ais_data_repository = providers.Factory(
+        KplerAisDataRepository,
         session_factory=db.provided.session,
     )
 

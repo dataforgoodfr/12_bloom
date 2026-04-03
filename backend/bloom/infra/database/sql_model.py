@@ -105,6 +105,43 @@ class SpireAisData(Base):
     voyage_update_timestamp = Column("voyage_update_timestamp", DateTime(timezone=True))
     created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
 
+class KplerAisData(Base):
+    __tablename__ = "kpler_ais_data"
+
+    id = Column("id", Integer, primary_key=True)
+    position_id = Column("position_id", Integer)
+    vessel_uid = Column("vessel_uid", Integer)
+    vessel_flag = Column("vessel_flag", String)
+    vessel_name = Column("vessel_name", String)
+    vessel_callsign = Column("vessel_callsign", String)
+    vessel_mmsi = Column("vessel_mmsi", Integer)
+    vessel_imo = Column("vessel_imo", Integer)
+    vessel_marinetraffic_type = Column("vessel_marinetraffic_type", String)
+    vessel_ais_type = Column("vessel_ais_type", Integer)
+    vessel_width = Column("vessel_width", Double)
+    vessel_length = Column("vessel_length", Double)
+    vessel_grt = Column("vessel_grt", Double)
+    vessel_dwt = Column("vessel_dwt", Double)
+    static_timestamp = Column("static_timestamp", DateTime(timezone=True))
+    static_source = Column("static_source", String)
+    static_message_type = Column("static_message_type", Integer)
+    position_message_type = Column("position_message_type", Integer)
+    position_source = Column("position_source", String)
+    position_course = Column("position_course", Double)
+    position_heading = Column("position_heading", Double)
+    position_longitude = Column("position_longitude", Double)
+    position_latitude = Column("position_latitude", Double)
+    position_navigational_status = Column("position_navigational_status", Integer)
+    position_rot = Column("position_rot", Double)
+    position_speed = Column("position_speed", Double)
+    position_timestamp = Column("position_timestamp", DateTime(timezone=True))
+    position_kpler_insert_timestamp = Column("position_kpler_insert_timestamp", DateTime(timezone=True))
+    voyage_destination = Column("voyage_destination", String)
+    voyage_draught = Column("voyage_draught", Double)
+    voyage_eta = Column("voyage_eta", DateTime(timezone=True))
+    payload = Column("payload", JSONB)
+    created_at = Column("created_at", DateTime(timezone=True), server_default=func.now())
+
 
 class Zone(Base):
     __tablename__ = "dim_zone"

@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     redis_password: str = Field(default='bloom',min_length=1)
     redis_cache_expiration: int = Field(default=900)
     
+    kpler_api_root: str = Field(default='')
+    kpler_token: str = Field(default='')
+    messages_page_size: int = Field(default = 100)
+    
     api_pooling_period: timedelta = Field(default=timedelta(minutes=2))
 
     logging_level:str=Field(
