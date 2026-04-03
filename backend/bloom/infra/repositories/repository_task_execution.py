@@ -19,13 +19,6 @@ class TaskExecutionRepository:
         else:
             return e.point_in_time
         
-    def set_duration(session: Session, task_name: str, pit: datetime,duration:timedelta)->None:
-        stmt = (update(sql_model.TaskExecution)
-                .where(sql_model.TaskExecution.task_name==task_name)
-                .where(sql_model.TaskExecution.point_in_time==pit)
-                .values(duration=duration)
-        )
-        session.execute(stmt)
     def set_position_count(session: Session, task_name: str, pit: datetime,count:int)->None:
         stmt = (update(sql_model.TaskExecution)
                 .where(sql_model.TaskExecution.task_name==task_name)
