@@ -13,7 +13,6 @@ from bloom.infra.repositories.repository_metrics import MetricsRepository
 
 from bloom.services.GetVesselsFromSpire import GetVesselsFromSpire
 from bloom.services.metrics import MetricsService
-from bloom.usecase.Excursions import ExcursionUseCase
 from bloom.usecase.GenerateAlerts import GenerateAlerts
 from dependency_injector import containers, providers
 import redis
