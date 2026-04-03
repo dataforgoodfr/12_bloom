@@ -97,8 +97,3 @@ class UseCases(containers.DeclarativeContainer):
         alert_repository=alert_repository,
         raster_repository=raster_repository,
     )
-
-    excursion_usecase = providers.Factory(
-        ExcursionUseCase,
-        excursion_repository=excursion_repository,
-    )
