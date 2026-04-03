@@ -1,3 +1,0 @@
-[
-  "*/15 * * * * /home/bas/venv/bin/python /home/bas/app_6bc7c917-d187-4efa-be8b-abd1da8f82da/backend/load_spire_data_from_api.py"
-]
