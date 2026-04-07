@@ -1,6 +1,6 @@
 import argparse
 import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 
@@ -22,7 +22,6 @@ def run(dump_path: str) -> None:
 
     orm_data = []
     try:
-        process_start=datetime.now(timezone.utc)
         current_datetime=None
         position_count= None
         with db.session() as session:
@@ -48,7 +47,7 @@ def run(dump_path: str) -> None:
                         position_count=len(raw_vessels)
                         if dump_path is not None:
                             try:
-                                now =current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
+                                now = current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
                                 dump_file = Path(args.dump_path, f"spire_{now}").with_suffix(".json")
                                 with dump_file.open("wt") as handle:
                                     json.dump(raw_vessels, handle)
@@ -71,11 +70,6 @@ def run(dump_path: str) -> None:
                         session.commit()
                         raise(e)
                     session.commit()
-                    if current_datetime != None:
-                        TaskExecutionRepository.set_duration(session,
-                                                            "load_spire_data_from_api",
-                                                            current_datetime,
-                                                            datetime.now(timezone.utc)-process_start)
                     if position_count != None:
                         TaskExecutionRepository.set_position_count(session,
                                                         "load_spire_data_from_api",

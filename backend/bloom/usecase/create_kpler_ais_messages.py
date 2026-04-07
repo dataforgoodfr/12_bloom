@@ -28,7 +28,6 @@ class GetVesselsFromKplerUseCase:
         orm_data = []
 
         try:
-            process_start=datetime.now(timezone.utc)
             current_datetime=None
             position_count= None
 
