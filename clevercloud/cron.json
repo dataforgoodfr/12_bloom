@@ -1,3 +1,4 @@
 [
-    "*/15 * * * * $ROOT/cron.sh"
+    "*/15 * * * * $ROOT/cron_spire_endpoint.sh",
+    "*/15 * * * * $ROOT/cron_kpler_endpoint.sh"
 ]
