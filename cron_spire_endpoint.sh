@@ -1,7 +1,7 @@
 #! /bin/bash -l
 
 source ${APP_HOME}/backend/.venv/bin/activate
-python -m bloom.usecase.create_kpler_ais_messages &&\
+python "${APP_HOME}/backend/load_spire_data_from_api.py" &&\
 cd ${APP_HOME}/backend/dbt_trawlwatch &&\
 dbt deps &&\
 dbt run --select observ_spire_ais_data_retrievals &&\
