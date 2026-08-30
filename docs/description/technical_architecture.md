@@ -1,17 +1,19 @@
+# Technical Architecture
+
 ## Components
 
 #todo
 
 ## Data models
 
-- SQL Alchemy is used to map infra [SQL models](see [infra/database](../../src/bloom/infra/database/))
+- SQL Alchemy is used to map infra [SQL models](see [infra/database](../../../src/bloom/infra/database/))
 - A mapping is done to map infra models with domain
-- For the front-end application pydantic is used (see [domain](../../src/bloom/domain/))
+- For the front-end application pydantic is used (see [domain](../../../src/bloom/domain/))
 
 ## Worflows
 
-- Every 15 minutes, latest vessels positions are scrap from spire api [app.py](../../src/app.py)
-- Every 15 minutes, new alerts are sent to slack [app.py](../../src/app.py)
+- Every 15 minutes, latest vessels positions are scrap from spire api [app.py](../../../src/app.py)
+- Every 15 minutes, new alerts are sent to slack [app.py](../../../src/app.py)
 
 ## Versionning
 
