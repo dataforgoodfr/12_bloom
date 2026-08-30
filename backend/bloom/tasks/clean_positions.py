@@ -27,7 +27,7 @@ def get_distance(current_position: tuple, last_position: tuple):
 def map_vessel_position_to_domain(row: pd.Series) -> VesselPosition:
     return VesselPosition(
         vessel_id=row["vessel_id"],
-        timestamp=row["position_timestamp"],
+        timestamp=row["spire_update_statement"],
         accuracy=row["position_accuracy"],
         collection_type=row["position_collection_type"],
         course=row["position_course"],
@@ -66,13 +66,13 @@ def run(batch_time):
         )
         batch_limit = point_in_time + timedelta(days=batch_time)
         # Step 1: load SPIRE batch: read from SpireAisData
-        logger.info(f"Lecture des nouvelles positions de Spire en base")
+        logger.info(f"Lecture des nouvelles positions de Spire en base between {point_in_time} and {batch_limit}")
         batch = spire_repository.get_all_data_between_date(session, point_in_time, batch_limit)
 
         # Recherche de la date de l'enregistrement traité le plus récent.
         # Cette date est stockée comme date d'exécution du traitement ce qui permettra de repartir de cette date
         # à la prochaine execution pour traiter les enregistrements + récents
-        max_created = max(batch["created_at"]) if len(batch) > 0 else batch_limit
+        max_created = max(batch["spire_update_statement"]) if len(batch) > 0 else batch_limit
         logger.info(f"Traitement des positions entre le {point_in_time} et le {max_created}")
         position_count=len(batch)
         logger.info(f"{position_count} nouvelles positions de Spire")
@@ -164,6 +164,7 @@ def run(batch_time):
 
         # Step 9: insert to DataBase
         clean_positions = batch.apply(map_vessel_position_to_domain, axis=1).values.tolist()
+        #print(f"Batch final:\n{clean_positions}")
         vessel_position_repository.batch_create_vessel_position(session, clean_positions)
         TaskExecutionRepository.set_point_in_time(session, "clean_positions", max_created)
         logger.info(f"Ecriture de {len(clean_positions)} positions dans la table vessel_positions")

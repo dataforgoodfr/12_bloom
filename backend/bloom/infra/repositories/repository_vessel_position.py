@@ -53,8 +53,8 @@ class VesselPositionRepository:
         else:
             return []
 
-    def get_positions_with_vessel_created_updated_after(self, session: Session,
-                                                        created_updated_after: datetime) -> pd.DataFrame:
+    def get_positions_with_vessel_updated_after(self, session: Session,
+                                                        updated_after: datetime) -> pd.DataFrame:
         stmt = select(sql_model.VesselPosition.id, sql_model.VesselPosition.timestamp,
                       sql_model.VesselPosition.accuracy, sql_model.VesselPosition.collection_type,
                       sql_model.VesselPosition.course, sql_model.VesselPosition.heading,
@@ -62,7 +62,7 @@ class VesselPositionRepository:
                       sql_model.VesselPosition.latitude, sql_model.VesselPosition.rot,
                       sql_model.VesselPosition.speed, sql_model.VesselPosition.created_at,
                       sql_model.Vessel.id, sql_model.Vessel.mmsi).where(
-            sql_model.VesselPosition.created_at > created_updated_after
+            sql_model.VesselPosition.timestamp > updated_after
         ).join(sql_model.Vessel, sql_model.VesselPosition.vessel_id == sql_model.Vessel.id).order_by(
             sql_model.VesselPosition.created_at.asc())
 
