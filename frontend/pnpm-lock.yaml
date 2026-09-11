@@ -62,6 +62,9 @@ importers:
       '@types/chroma-js':
         specifier: ^2.4.4
         version: 2.4.5
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
       axios:
         specifier: ^1.7.2
         version: 1.20.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
