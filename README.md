@@ -45,6 +45,14 @@ Trawl Watch is tested with:
 
 ## Getting started
 
+### AIS data archives
+
+For database management, AIS "raw" data is archived. Here are the dump files:
+
+- 20230301-20240709_trawlwatch_BDD1.custom => vessel key: vessel_id (in `vessels` table)
+- 20240601-20260518_spire_ais_data.sql => vessel key: MMSI
+- 20260403-20260826_kpler_ais_data.sql => vessel key: MMSI (for now, vessel_uid will be used in further development)
+
 ### Clone Trawl Watch repository
 
 ```bash
