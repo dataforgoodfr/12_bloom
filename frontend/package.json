@@ -13,6 +13,12 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
   },
+    "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "vaadin-usage-statistics"
+    ]
+  },
   "dependencies": {
     "@deck.gl/core": "^9.4.0",
     "@deck.gl/extensions": "^9.0.36",
