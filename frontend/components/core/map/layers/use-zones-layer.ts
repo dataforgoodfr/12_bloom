@@ -132,12 +132,12 @@ export const useZonesLayer = ({
             ? d.geometry.coordinates[0]
             : d.geometry.coordinates
         },
-        getFillColor: [0, 0, 0, 0],
+        getFillColor: [149, 229, 232, 50],
         getLineColor: [132, 0, 0, 255],
         getLineWidth: 0.5,
         lineWidthUnits: "pixels",
         pickable: true,
-        stroked: true,
+        stroked: false,
         filled: true,
         wireframe: false,
         extruded: false,
