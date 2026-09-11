@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 8080",
-    "install": "next build",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
