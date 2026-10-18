@@ -1,3 +1,5 @@
+# SQL Examples
+
 ## List of mmi scrapped since last update
 
 ```sql
