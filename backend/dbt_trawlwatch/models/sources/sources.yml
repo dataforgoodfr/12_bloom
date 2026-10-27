@@ -1,14 +1,15 @@
 version: 2
 
 sources:
-  - name: spire
-    description: "Source data from Spire AIS"
+
+  - name: kpler
+    description: "Source data from Kpler AIS"
     schema: public
     config: 
       event_time: position_timestamp
     tables:
-      - name: spire_ais_data
-        description: "RAW table with AIS data harvested from the Spire API"
+      - name: kpler_ais_data
+        description: "RAW table with AIS data harvested from the Kpler API"
         meta:
           event_time: position_timestamp
         columns:
@@ -20,15 +21,19 @@ sources:
               - not_null
               - unique
 
-          - name: spire_update_statement
-            description: "Update statement from Spire, containing the AIS message"
-            data_type: timestamp
+          - name: position_id
+            description: "Unique identifier for each position"
+            data_type: integer
             tests:
               - not_null
+              - unique
 
-          - name: vessel_ais_class
-            description: "Class of the vessel as per AIS classification"
-            data_type: varchar
+          - name: vessel_uid
+            description: "Unique identifier for each vessel"
+            data_type: integer
+            tests:
+              - not_null
+              - unique
 
           - name: vessel_flag
             description: "Flag of the vessel, indicating its country of registration"
@@ -42,23 +47,13 @@ sources:
             description: "Callsign of the vessel, used for radio communication"
             data_type: varchar
 
-          - name: vessel_timestamp
-            description: "Timestamp of the AIS message"
-            data_type: timestamp
-            tests:
-              - not_null
-
-          - name: vessel_update_timestamp
-            description: "Timestamp of the last update to the vessel's AIS data"
-            data_type: timestamp
-
-          - name: vessel_ship_type
-            description: General vessel type (e.g., cargo, tanker).
+          - name: vessel_marinetraffic_type
+            description: Marine Traffic vessel type (e.g., Fishing vessel, trawler).
             data_type: varchar
 
-          - name: vessel_sub_ship_type
-            description: Specific vessel subtype.
-            data_type: varchar
+          - name: vessel_ais_type
+            description: Specific vessel AIS type.
+            data_type: integer
 
           - name: vessel_mmsi
             description: MMSI (Maritime Mobile Service Identity) number.
@@ -72,17 +67,37 @@ sources:
 
           - name: vessel_width
             description: Vessel width (in meters).
-            data_type: integer
+            data_type: double precision
 
           - name: vessel_length
             description: Vessel length (in meters).
-            data_type: integer
+            data_type: double precision
 
-          - name: position_accuracy
-            description: Positioning accuracy indicator.
+          - name: vessel_grt
+            description: Vessel gross registered tonnage.
+            data_type: double precision
+
+          - name: vessel_dwt
+            description: Vessel deadweight tonnage.
+            data_type: double precision
+
+          - name: static_timestamp
+            description: Timestamp of the AIS message.
+            data_type: timestamp
+
+          - name: static_source
+            description: How the position was collected (e.g., satellite, terrestrial).
             data_type: varchar
+
+          - name: static_message_type
+            description: Static message type
+            data_type: integer
+            
+          - name: position_message_type
+            description: Position message type
+            data_type: integer
         
-          - name: position_collection_type
+          - name: position_source
             description: How the position was collected (e.g., satellite, terrestrial).
             data_type: varchar
 
@@ -102,10 +117,6 @@ sources:
             description: Longitude coordinate.
             data_type: double precision
 
-          - name: position_maneuver
-            description: Current maneuver status.
-            data_type: varchar
-
           - name: position_navigational_status
             description: Navigational status (e.g., underway, at anchor).
             data_type: varchar
@@ -122,8 +133,8 @@ sources:
             description: Timestamp when the position was recorded.
             data_type: timestamptz
 
-          - name: position_update_timestamp
-            description: Timestamp of latest position update.
+          - name: position_kpler_insert_timestar
+            description: A definir
             data_type: timestamptz
 
           - name: voyage_destination
@@ -138,13 +149,9 @@ sources:
             description: Estimated time of arrival (ETA).
             data_type: timestamp
 
-          - name: voyage_timestamp
-            description: Timestamp when voyage data was recorded.
-            data_type: timestamp
-
-          - name: voyage_update_timestamp
-            description: Timestamp of latest voyage update.
-            data_type: timestamp
+          - name: payload
+            description: Payload of the query to the Kpler API.
+            data_type: jsonb
 
           - name: created_at
             description: Record creation timestamp in the database.
@@ -155,6 +162,8 @@ sources:
           - name: updated_at
             description: Record update timestamp in the database.
             data_type: timestamp
+
+
   - name : zones
     description: "Source for consolidated marine zones"
     schema: public

@@ -7,6 +7,6 @@ cd ./backend/dbt_trawlwatch
 
 sleep 30
 
-dbt run --select observ_spire_ais_data_retrievals
+dbt run --select observ_kpler_ais_data_retrievals
 dbt run --select itm_vessel_last_raw_position
 dbt run --select mart_dim_vessels__last_positions

@@ -1,6 +1,6 @@
--- observ_spire_dim_vessel_configs.sql
--- This models tracks distinct configs for vessels in the Spire AIS data and gives a MD5 hash for each config
--- Used by stg_spire_vessel_infos
+-- observ_kpler_dim_vessel_configs.sql
+-- This models tracks distinct configs for vessels in the Kpler AIS data and gives a MD5 hash for each config
+-- Used by stg_kpler_vessel_infos
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'merge',
@@ -25,7 +25,7 @@ with all_configs as (
             'vessel_length', s.vessel_length 
         ) as vessel_identification_infos,
         s.created_at
-    from {{ source('spire', 'spire_ais_data') }} s
+    from {{ source('kpler', 'kpler_ais_data') }} s
     {% if is_incremental() %}
         where s.created_at >= (select max(last_seen) from {{ this }})
     {% endif %}

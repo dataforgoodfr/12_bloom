@@ -17,7 +17,7 @@ dev = [
 authors = [
     {name = "Your Name", email = "you@example.com"},
 ]
-requires-python = "~=3.10"
+requires-python = ">=3.10"
 dependencies = [
     "alembic~=1.13",
     "autopep8~=2.3",

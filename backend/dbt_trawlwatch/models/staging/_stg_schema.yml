@@ -103,7 +103,7 @@ models:
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"
       - name: dim_vessel_origin
-        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        description: "Origin of the vessel data (STATIC | HISTORIZED | KPLER_AIS_DATA)"
       - name: dim_vessel_details
         description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
       - name: seed_static_dim_vessel_created_at
@@ -160,7 +160,7 @@ models:
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"
       - name: dim_vessel_origin
-        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        description: "Origin of the vessel data (STATIC | HISTORIZED | KPLER_AIS_DATA)"
       - name: dim_vessel_details
         description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
       - name: dim_vessel_created_at
@@ -217,11 +217,11 @@ models:
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"
       - name: dim_vessel_origin
-        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        description: "Origin of the vessel data (STATIC | HISTORIZED | KPLER_AIS_DATA)"
         tests:
           - not_null
           - accepted_values:
-              values: ['STATIC', 'HISTORIZED', 'SPIRE_AIS_DATA']
+              values: ['STATIC', 'HISTORIZED', 'KPLER_AIS_DATA']
               quote: true
               config:
                 severity: warn
@@ -356,7 +356,7 @@ models:
 
   ### VESSEL POSITIONS
   - name: stg_vessel_positions
-    description: "Staging partitioned incremental model for vessel positions derived from Spire AIS data with vessel_id"
+    description: "Staging partitioned incremental model for vessel positions derived from Kpler AIS data with vessel_id"
     config:
       tags: ['staging', 'vessel', 'positions']
       materialized: incremental
