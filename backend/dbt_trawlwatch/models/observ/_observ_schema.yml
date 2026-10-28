@@ -1,19 +1,19 @@
 version: 2
 
 models: 
-  - name: observ_spire_ais_data_retrievals
+  - name: observ_kpler_ais_data_retrievals
     schema: observ
-    description: "Table de suivi des récupérations de données AIS Spire"
+    description: "Table de suivi des récupérations de données AIS Kpler"
     columns:
-      - name: retriespire_retrieval_tsval_id
-        description: "Timestamp de la dernière récupération Spire"
+      - name: kpler_retrieval_ts
+        description: "Timestamp de la dernière récupération Kpler"
         tests:
           - not_null
-      - name: spire_retrievals_count
-        description: "Nombre de messages AIS Spire récupérés"
+      - name: kpler_retrieval_count
+        description: "Nombre de messages AIS Kpler récupérés"
         tests:
           - dbt_utils.expression_is_true:
-              expression: "spire_retrievals_count > 0"
+              expression: kpler_retrieval_count > 0
               severity: warn
       - name: position_timestamp_min
         description: "Timestamp minimum des positions récupérées"
@@ -21,12 +21,12 @@ models:
         description: "Timestamp maximum des positions récupérées"
       - name: distinct_mmsi_count
         description: "Nombre de MMSI distincts dans les positions récupérées"
-      - name: observ_spire_ais_data_retrievals_created_at
+      - name: observ_kpler_ais_data_retrievals_created_at
         description: "Métadonnée : Timestamp de création de l'enregistrement"
         
-  - name: observ_spire_dim_vessel_configs
+  - name: observ_kpler_dim_vessel_configs
     schema: observ
-    description: "Toutes les configurations d'identités différentes des navires pour les données AIS Spire"
+    description: "Toutes les configurations d'identités différentes des navires pour les données AIS Kpler"
     columns:
       - name: vessel_mmsi
         description: "MMSI du navire"
@@ -35,11 +35,11 @@ models:
       - name: vessel_identification_infos
         description: "JSON des informations d'identification du navire"
       - name: first_seen
-        description: "Timestamp de la première apparition de la configuration d'identité dans les données Spire"
+        description: "Timestamp de la première apparition de la configuration d'identité dans les données Kpler"
         tests:
           - not_null
       - name: last_seen
-        description: "Timestamp de la dernière apparition de la configuration d'identité dans les données Spire"
+        description: "Timestamp de la dernière apparition de la configuration d'identité dans les données Kpler"
         tests:
           - not_null
       - name: config_hash
@@ -49,7 +49,7 @@ models:
           - unique
       - name: is_valid_config
         description: "Indique si la configuration d'identité est valide (true) ou non (false). Validation manuelle."
-        
+
   - name: observ_vessel_ais_message_and_move_freshness
     schema: observ
     description: "Vue de suivi de la fraîcheur des messages AIS et des mouvements des navires"

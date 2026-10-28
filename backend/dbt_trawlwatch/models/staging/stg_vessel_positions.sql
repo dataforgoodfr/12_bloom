@@ -2,7 +2,7 @@
 -- This file is used to create a staging table for AIS vessel positions.
 
 /*
-    1. Extrait les dernières positions remontées dans la table public.spire_ais_data par micro-batch 
+    1. Extrait les dernières positions remontées dans la table public.kpler_ais_data par micro-batch 
        (chaque batch filtre les données correspondant à une petite plage de temps, définie par batch_size sur position_timestamp)
     2. Jointure avec la table de référence des navires (seed_dim_vessels) sur le MMSI pour récupérer vessel_id
     3. Crée un point géographique à partir de la latitude et de la longitude
@@ -45,7 +45,7 @@
 
 with 
 
-spire_source as ( -- Selectionner les mesures distinctes (MMSI, timestamp, latitude, longitude, etc.) de la source de données AIS
+kpler_source as ( -- Selectionner les mesures distinctes (MMSI, timestamp, latitude, longitude, etc.) de la source de données AIS
 /* Dans le cas où plusieurs messages AIS sont reçus pour une même position, on ne garde que les dernières infos non nulles pour chaque champ    */
 
     select 
@@ -61,7 +61,7 @@ spire_source as ( -- Selectionner les mesures distinctes (MMSI, timestamp, latit
         min(created_at) as position_ais_created_at_min,
         max(created_at) as position_ais_created_at_max
 
-    from (select * from {{ source('spire','spire_ais_data') }})  as s
+    from (select * from {{ source('kpler','kpler_ais_data') }})  as s
 
     where 
         date_trunc('second', position_timestamp) is not NULL 
@@ -81,7 +81,7 @@ def_partitions AS ( -- Définition des champs de partitions et indexation tempor
         *,
         to_char(position_timestamp, 'YYYYMM') AS position_timestamp_month,
         date_trunc('day', position_timestamp)::date AS position_timestamp_day
-    from spire_source
+    from kpler_source
 ),
 
 -- Etape 1 : Jointure des positions AIS avec la table de dimension des navires
@@ -92,7 +92,7 @@ vessels as (
 
 ), 
 
-join_spire_ais_and_vessels as ( -- On ne conserve que la dernière remontée AIS correspondant à la position
+join_kpler_ais_and_vessels as ( -- On ne conserve que la dernière remontée AIS correspondant à la position
 
     select
         concat(v.vessel_id, '_', to_char(ais.position_timestamp, 'YYYYMMDD_HH24MISS')) as position_id,
@@ -142,6 +142,6 @@ select distinct
     position_ais_created_at_max,
     now() as position_stg_created_at,
     position_point
-from join_spire_ais_and_vessels
+from join_kpler_ais_and_vessels
 where vessel_id not like 'UNKNOWN_MMSI=%'
 order by position_timestamp, vessel_id
