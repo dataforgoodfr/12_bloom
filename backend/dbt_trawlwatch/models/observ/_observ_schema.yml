@@ -26,7 +26,7 @@ models:
         
   - name: observ_dim_vessel_configs
     schema: observ
-    description: "Toutes les configurations d'identités différentes des navires pour les données AIS Kpler"
+    description: "Toutes les configurations d'identités différentes des navires pour les données AIS Spire / Kpler"
     columns:
       - name: vessel_mmsi
         description: "MMSI du navire"
@@ -35,11 +35,11 @@ models:
       - name: vessel_identification_infos
         description: "JSON des informations d'identification du navire"
       - name: first_seen
-        description: "Timestamp de la première apparition de la configuration d'identité dans les données Kpler"
+        description: "Timestamp de la première apparition de la configuration d'identité dans les données Spire / Kpler"
         tests:
           - not_null
       - name: last_seen
-        description: "Timestamp de la dernière apparition de la configuration d'identité dans les données Kpler"
+        description: "Timestamp de la dernière apparition de la configuration d'identité dans les données Spire / Kpler"
         tests:
           - not_null
       - name: config_hash

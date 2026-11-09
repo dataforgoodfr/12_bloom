@@ -48,7 +48,7 @@ last_id as ( -- Obtenir l'id de la dernière remontée AIS par MMSI
 ),
 
 last_retrieval as ( -- Récupération de la dernière date de mise à jour des positions AIS
-    select kpler_retrieval_ts as last_retrieval
+    select ais_retrieval_ts as last_retrieval
     from {{ ref('observ_ais_data_retrievals') }}
     order by last_retrieval desc
     limit 1

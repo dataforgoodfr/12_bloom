@@ -10,6 +10,5 @@ cd ${APP_HOME}/backend/dbt_trawlwatch
 yesterday="$(date -v-1d +%Y-%m-%d)"
 tomorrow="$(date -v+1d +%Y-%m-%d)"
 
-dbt deps
-dbt seed 
+# dbt deps
 dbt run --event-time-start ${yesterday} --event-time-end ${tomorrow} --vars '{default_microbatch_size: "day"}'
