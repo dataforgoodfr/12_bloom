@@ -1,19 +1,19 @@
 version: 2
 
 models: 
-  - name: observ_kpler_ais_data_retrievals
+  - name: observ_ais_data_retrievals
     schema: observ
-    description: "Table de suivi des récupérations de données AIS Kpler"
+    description: "Table de suivi des récupérations de données AIS"
     columns:
-      - name: kpler_retrieval_ts
-        description: "Timestamp de la dernière récupération Kpler"
+      - name: ais_retrieval_ts
+        description: "Timestamp de la dernière récupération"
         tests:
           - not_null
-      - name: kpler_retrieval_count
-        description: "Nombre de messages AIS Kpler récupérés"
+      - name: ais_retrieval_count
+        description: "Nombre de messages AIS récupérés"
         tests:
           - dbt_utils.expression_is_true:
-              expression: kpler_retrieval_count > 0
+              expression: ais_retrieval_count > 0
               severity: warn
       - name: position_timestamp_min
         description: "Timestamp minimum des positions récupérées"
@@ -21,10 +21,10 @@ models:
         description: "Timestamp maximum des positions récupérées"
       - name: distinct_mmsi_count
         description: "Nombre de MMSI distincts dans les positions récupérées"
-      - name: observ_kpler_ais_data_retrievals_created_at
+      - name: observ_ais_data_retrievals_created_at
         description: "Métadonnée : Timestamp de création de l'enregistrement"
         
-  - name: observ_kpler_dim_vessel_configs
+  - name: observ_dim_vessel_configs
     schema: observ
     description: "Toutes les configurations d'identités différentes des navires pour les données AIS Kpler"
     columns:

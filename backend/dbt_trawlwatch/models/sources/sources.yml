@@ -29,7 +29,7 @@ sources:
               - unique
 
           - name: vessel_uid
-            description: "Unique identifier for each vessel"
+            description: "Unique vessel identifier assigned by MarineTraffic"
             data_type: integer
             tests:
               - not_null
@@ -52,7 +52,7 @@ sources:
             data_type: varchar
 
           - name: vessel_ais_type
-            description: Specific vessel AIS type.
+            description: Vessel type code reported in the AIS message.
             data_type: integer
 
           - name: vessel_mmsi
@@ -82,7 +82,7 @@ sources:
             data_type: double precision
 
           - name: static_timestamp
-            description: Timestamp of the AIS message.
+            description: Time and date when static AIS message was emitted (ISO 8601).
             data_type: timestamp
 
           - name: static_source
@@ -130,11 +130,11 @@ sources:
             data_type: double precision
 
           - name: position_timestamp
-            description: Timestamp when the position was recorded.
+            description: Time and date when positional AIS message was emitted (ISO 8601).
             data_type: timestamptz
 
-          - name: position_kpler_insert_timestar
-            description: A definir
+          - name: position_kpler_insert_timestamp
+            description: Time and date when the record was inserted into Kpler's database (ISO 8601).
             data_type: timestamptz
 
           - name: voyage_destination

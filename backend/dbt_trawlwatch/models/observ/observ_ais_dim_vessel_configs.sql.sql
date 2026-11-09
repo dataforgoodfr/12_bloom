@@ -1,5 +1,5 @@
--- observ_kpler_dim_vessel_configs.sql
--- This models tracks distinct configs for vessels in the Kpler AIS data and gives a MD5 hash for each config
+-- observ_dim_vessel_configs.sql
+-- This models tracks distinct configs for vessels in the Spire/Kpler AIS data and gives a MD5 hash for each config
 -- Used by stg_kpler_vessel_infos
 {{ config(
     materialized = 'incremental',
