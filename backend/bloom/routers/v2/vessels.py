@@ -324,7 +324,7 @@ async def list_vessel_excursions(request: Request, # used by @cache
             select(func.max(VesselExcursionDay.departure_at))
             .where(
                 VesselExcursionDay.vessel_id == vessel_id,
-                VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
+                #VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
             )
             .scalar_subquery()
         )
