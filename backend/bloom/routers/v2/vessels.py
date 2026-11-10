@@ -6,7 +6,8 @@ from bloom.config import settings
 from bloom.container import UseCases
 from bloom.routers.requests import DatetimeRangeRequest, OrderByEnum,OrderByRequest,PageParams
 from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Interval, String, and_, asc, desc, func, select
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Interval, String, and_, or_, asc, desc, func, select
+from sqlalchemy.orm import aliased
 router = APIRouter()
 from bloom.infra.database.database_manager import Base
 from geoalchemy2.shape import to_shape
@@ -318,6 +319,16 @@ async def list_vessel_excursions(request: Request, # used by @cache
     use_cases = UseCases()
     db = use_cases.db()
     with db.session() as session:
+
+        latest_departure = (
+            select(func.max(VesselExcursionDay.departure_at))
+            .where(
+                VesselExcursionDay.vessel_id == vessel_id,
+                VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
+            )
+            .scalar_subquery()
+        )
+
         stmt_total = (
             select(
                 VesselExcursionDay.vessel_id,
@@ -330,8 +341,16 @@ async def list_vessel_excursions(request: Request, # used by @cache
                 func.sum(VesselExcursionDay.total_time_fishing_in_amp).label("total_time_fishing_in_amp"),
                 func.sum(VesselExcursionDay.total_time_fishing_in_zones_with_no_fishing_rights).label("total_time_fishing_in_zones_with_no_fishing_rights"),
                 func.sum(VesselExcursionDay.total_time_fishing_in_territorial_waters).label("total_time_fishing_in_territorial_waters"),
-            )
-            .where(and_(VesselExcursionDay.vessel_id == vessel_id, VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at)))
+            ).where(
+                and_(
+                    VesselExcursionDay.vessel_id == vessel_id, 
+                    VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
+                    or_(
+                        VesselExcursionDay.departure_at == latest_departure,
+                        VesselExcursionDay.arrival_at.is_not(None),
+                    ),
+                )
+                )
         ).group_by(VesselExcursionDay.vessel_id)
 
         total = session.execute(stmt_total).first()
@@ -354,8 +373,16 @@ async def list_vessel_excursions(request: Request, # used by @cache
                 func.sum(VesselExcursionDay.total_time_fishing_in_zones_with_no_fishing_rights).label("total_time_fishing_in_zones_with_no_fishing_rights"),
                 func.sum(VesselExcursionDay.total_time_fishing_in_territorial_waters).label("total_time_fishing_in_territorial_waters"),
                 func.coalesce(VesselExcursionDay.excursion_created_at)
-            )
-            .where(and_(VesselExcursionDay.vessel_id == vessel_id, VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at)))
+            ).where(
+                and_(
+                    VesselExcursionDay.vessel_id == vessel_id, 
+                    VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
+                    or_(
+                        VesselExcursionDay.departure_at == latest_departure,
+                        VesselExcursionDay.arrival_at.is_not(None),
+                    ),
+                    )
+                )
         ).group_by(VesselExcursionDay.excursion_id, 
                    VesselExcursionDay.vessel_id,
                    VesselExcursionDay.departure_port_id,
