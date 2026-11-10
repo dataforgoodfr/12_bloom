@@ -7,6 +7,7 @@ from bloom.container import UseCases
 from bloom.routers.requests import DatetimeRangeRequest, OrderByEnum,OrderByRequest,PageParams
 from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Interval, String, and_, or_, asc, desc, func, select
+from sqlalchemy.orm import aliased
 router = APIRouter()
 from bloom.infra.database.database_manager import Base
 from geoalchemy2.shape import to_shape
@@ -322,11 +323,8 @@ async def list_vessel_excursions(request: Request, # used by @cache
         latest_departure = (
             select(func.max(VesselExcursionDay.departure_at))
             .where(
-                and_(
-                    VesselExcursionDay.arrival_at is None,
-                    VesselExcursionDay.vessel_id == vessel_id,
-                    VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at)
-                )
+                VesselExcursionDay.vessel_id == vessel_id,
+                VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
             )
             .scalar_subquery()
         )
@@ -351,7 +349,7 @@ async def list_vessel_excursions(request: Request, # used by @cache
                         VesselExcursionDay.departure_at == latest_departure,
                         VesselExcursionDay.arrival_at.is_not(None),
                     ),
-                )
+                    )
                 )
         ).group_by(VesselExcursionDay.vessel_id)
 
@@ -380,8 +378,8 @@ async def list_vessel_excursions(request: Request, # used by @cache
                     VesselExcursionDay.vessel_id == vessel_id, 
                     VesselExcursionDay.day_excursion_date.between(datetime_range.start_at, datetime_range.end_at),
                     or_(
-                        VesselExcursionDay.departure_at == latest_departure,
-                        VesselExcursionDay.arrival_at.is_not(None),
+                                VesselExcursionDay.departure_at == latest_departure,
+                                VesselExcursionDay.arrival_at.is_not(None),
                     ),
                     )
                 )
