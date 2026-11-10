@@ -7,5 +7,5 @@ python -m bloom.usecase.create_kpler_ais_messages
 
 cd ${APP_HOME}/backend/dbt_trawlwatch
 
-# dbt deps
+dbt deps
 dbt run
