@@ -7,7 +7,6 @@ from bloom.container import UseCases
 from bloom.routers.requests import DatetimeRangeRequest, OrderByEnum,OrderByRequest,PageParams
 from bloom.dependencies import (X_API_KEY_HEADER,check_apikey,cache)
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Interval, String, and_, or_, asc, desc, func, select
-from sqlalchemy.orm import aliased
 router = APIRouter()
 from bloom.infra.database.database_manager import Base
 from geoalchemy2.shape import to_shape
