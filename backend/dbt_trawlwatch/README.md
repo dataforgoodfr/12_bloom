@@ -26,10 +26,15 @@ Avec l'augmentation de l'historique, il est possible de rencontrer un timeout su
 cd ./12_bloom/backend/dbt_trawlwatch/
 dbt run-operation __init_dbt_trawl_watch__init_all
 dbt seed
-# À remplacer dynamiquement ou manuellement
-dbt run --event-time-start "2024-05-01" --event-time-end "<<<remplacer par : today + 1 day>>>" --vars '{default_microbatch_size: "day"}'
-dbt run --event-time-start "<<<remplacer par : today - 1 day>>>" --event-time-end "<<<remplacer par : today + 1 day>>>" --vars '{default_microbatch_size: "day"}'
-dbt run
+# À remplacer manuellement
+dbt run --event-time-start "2024-05-01" --event-time-end "2024-05-03" --vars '{default_microbatch_size: "day"}'
+
+# Ou dynamiquement :
+yesterday="$(date -v-1d +%Y-%m-%d)"
+tomorrow="$(date -v+1d +%Y-%m-%d)"
+dbt run --event-time-start $yesterday --event-time-end $tomorrow --vars '{default_microbatch_size: "day"}'
+
+#test
 dbt test
 ```
 
@@ -38,9 +43,15 @@ dbt test
 cd .\12_bloom\backend\dbt_trawlwatch\
 dbt run-operation __init_dbt_trawl_watch__init_all
 dbt seed
-dbt run --event-time-start "2024-05-01" --event-time-end "<<<remplacer par : today + 1day>>>" --vars '{default_microbatch_size: "day"}'
-dbt run --event-time-start "<<<remplacer par : today - 1day>>>" --event-time-end "<<<remplacer par : today + 1day>>>" --vars '{default_microbatch_size: "day"}'
-dbt run 
+# À remplacer manuellement
+dbt run --event-time-start "2024-05-01" --event-time-end "2024-05-03" --vars '{default_microbatch_size: "day"}'
+
+# Ou dynamiquement :
+yesterday=$(date --date="yesterday" +"%Y-%m-%d")
+tomorrow=$(date --date="tomorrow" +"%Y-%m-%d")
+dbt run --event-time-start $yesterday --event-time-end $tomorrow --vars '{default_microbatch_size: "day"}'
+
+#test
 dbt test
 ```
 
