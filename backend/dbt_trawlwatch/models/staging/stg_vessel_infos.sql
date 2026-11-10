@@ -1,10 +1,10 @@
--- stg_spire_vessel_infos.sql
--- This file is used to create a kind of staging table for vessel information from the Spire API.
+-- stg_vessel_infos.sql
+-- This file is used to create a kind of staging table for vessel information from the Spire API / Kpler API.
 
 /*
-    observ_spire_dim_vessel_configs permet de lister toutes les configs différentes des navires dans les données AIS de Spire
+    observ_dim_vessel_configs permet de lister toutes les x dans les données AIS de Spire/Kpler
     avec des first_seen et last_seen.
-    stg_spire_vessel_infos cherche à déterminer : 
+    stg_vessel_infos cherche à déterminer : 
     - si des configs se chevauchent pour un même navire
     - si plusieurs configs sont présentes pour un même navire à un instant T
     - la fréquence d'apparition des configs pour un navire donné
@@ -33,7 +33,7 @@ configs as (
         vessel_mmsi,
         config_hash,
         vessel_identification_infos
-    from {{ ref('observ_spire_dim_vessel_configs') }}
+    from {{ ref('observ_dim_vessel_configs') }}
 ),
 
 ais_daily_configs as (
@@ -46,9 +46,9 @@ ais_daily_configs as (
         cast(vessel_callsign as text) as vessel_callsign,
         cast(vessel_flag as text) as vessel_flag,
         cast(vessel_length as text) as vessel_length
-    from {{ source('spire', 'spire_ais_data') }}
+    from {{ source('kpler', 'kpler_ais_data') }}
     {% if is_incremental() %}
-        where created_at > (select max(stg_spire_vessel_infos_created_at) from {{ this }})
+        where created_at > (select max(stg_vessel_infos_created_at) from {{ this }})
     {% endif %}
     order by vessel_mmsi, position_timestamp_day, ais_message_retrieved_at_day
 ),
@@ -145,5 +145,5 @@ select
     vessel_identification_infos ->> 'vessel_callsign'  as vessel_callsign,
     vessel_identification_infos ->> 'vessel_flag'      as vessel_flag,
     (vessel_identification_infos ->> 'vessel_length')::numeric as vessel_length,
-    now() as stg_spire_vessel_infos_created_at
+    now() as stg_vessel_infos_created_at
 from final_merged

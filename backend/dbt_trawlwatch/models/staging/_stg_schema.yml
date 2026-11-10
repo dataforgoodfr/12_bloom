@@ -103,7 +103,7 @@ models:
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"
       - name: dim_vessel_origin
-        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA | KPLER_AIS_DATA)"
       - name: dim_vessel_details
         description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
       - name: seed_static_dim_vessel_created_at
@@ -160,7 +160,7 @@ models:
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"
       - name: dim_vessel_origin
-        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA | KPLER_AIS_DATA)"
       - name: dim_vessel_details
         description: "JSON object containing additional details about the vessel, such as gear, width, length class, and ship type"
       - name: dim_vessel_created_at
@@ -217,11 +217,11 @@ models:
       - name: dim_vessel_source
         description: "Source of the vessel data & informations"
       - name: dim_vessel_origin
-        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA)"
+        description: "Origin of the vessel data (STATIC | HISTORIZED | SPIRE_AIS_DATA | KPLER_AIS_DATA)"
         tests:
           - not_null
           - accepted_values:
-              values: ['STATIC', 'HISTORIZED', 'SPIRE_AIS_DATA']
+              values: ['STATIC', 'HISTORIZED', 'SPIRE_AIS_DATA', 'KPLER_AIS_DATA']
               quote: true
               config:
                 severity: warn
@@ -356,7 +356,7 @@ models:
 
   ### VESSEL POSITIONS
   - name: stg_vessel_positions
-    description: "Staging partitioned incremental model for vessel positions derived from Spire AIS data with vessel_id"
+    description: "Staging partitioned incremental model for vessel positions derived from Spire then Kpler AIS data with vessel_id"
     config:
       tags: ['staging', 'vessel', 'positions']
       materialized: incremental
@@ -409,3 +409,39 @@ models:
           - not_null
       - name : position_point
         description: "Geometric representation of the vessel's position (POINT, WGS84 format)"
+
+  - name: stg_vessel_infos
+    description: "All vessels configs"
+    columns:
+      - name: vessel_mmsi
+        description: "MMSI of the vessel"
+        tests:
+          - not_null
+          - unique
+      - name: config_hash
+        description: Config hash
+      - name: config_start
+        description: Start day of the vessel config.
+      - name: config_end
+        description: End day of the vessel config.
+      - name: ais_message_started_at_day
+        description: Start day of the AIS message.
+      - name: ais_message_ended_at_day
+        description: End day of the AIS message.
+      - name: vessel_identification_infos
+        description: JSON of the vessel's config
+      - name: vessel_imo
+        description: IMO (International Maritime Organization) number.
+      - name: vessel_name
+        description: Name of the vessel.
+      - name: vessel_callsign
+        description: Callsign of the vessel, used for radio communication.
+      - name: vessel_flag
+        description: Flag of the vessel, indicating its country of registration.
+      - name: vessel_length
+        description: Vessel length (in meters).
+      - name: stg_vessel_infos_created_at
+        description: Record creation timestamp in the database.
+        data_type: timestamp
+        tests:
+          - not_null
