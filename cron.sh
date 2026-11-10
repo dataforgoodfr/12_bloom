@@ -7,8 +7,5 @@ python -m bloom.usecase.create_kpler_ais_messages
 
 cd ${APP_HOME}/backend/dbt_trawlwatch
 
-yesterday="$(date -v-1d +%Y-%m-%d)"
-tomorrow="$(date -v+1d +%Y-%m-%d)"
-
 # dbt deps
-dbt run --event-time-start ${yesterday} --event-time-end ${tomorrow} --vars '{default_microbatch_size: "day"}'
+dbt run
