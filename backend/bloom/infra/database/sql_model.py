@@ -44,6 +44,17 @@ class Vessel(Base):
     )
     updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 
+class VesselMapping(Base):
+    __tablename__ = "brg_vessel_mapping"
+    id = Column("id", Integer, primary_key=True)
+    mmsi = Column("mmsi", Integer)
+    imo = Column("imo", Integer)
+    ship_name = Column("ship_name", String)
+    vessel_id = Column("vessel_id", Integer, ForeignKey("dim_vessel.id"))
+    created_at = Column(
+        "created_at", DateTime(timezone=True), nullable=False, server_default=func.now(),
+    )
+    updated_at = Column("updated_at", DateTime(timezone=True), onupdate=func.now())
 
 class Alert(Base):
     __tablename__ = "alert"
